@@ -311,7 +311,7 @@
           </ArmAdsMisc>
           <Cads>
             <interw>1</interw>
-            <Optim>1</Optim>
+            <Optim>0</Optim>
             <oTime>0</oTime>
             <SplitLS>0</SplitLS>
             <OneElfS>1</OneElfS>
@@ -417,9 +417,19 @@
           <GroupName>Hardware</GroupName>
           <Files>
             <File>
-              <FileName>lcd.cpp</FileName>
+              <FileName>lcdbase.cpp</FileName>
               <FileType>8</FileType>
-              <FilePath>.\src\Hardware\lcd.cpp</FilePath>
+              <FilePath>.\src\Hardware\lcdbase.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>lcd1602.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\src\Hardware\lcd1602.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>lcd12864.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\src\Hardware\lcd12864.cpp</FilePath>
             </File>
           </Files>
         </Group>
@@ -445,6 +455,11 @@
               <FileName>stm32f10x_tim.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\Lib\src\stm32f10x_tim.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f10x_flash.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\Lib\src\stm32f10x_flash.c</FilePath>
             </File>
           </Files>
         </Group>
