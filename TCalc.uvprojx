@@ -10,6 +10,7 @@
       <TargetName>Target 1</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
+      <pCCUsed>5060750::V5.06 update 6 (build 750)::ARMCC</pCCUsed>
       <uAC6>0</uAC6>
       <TargetOption>
         <TargetCommonOption>
@@ -404,6 +405,11 @@
               <FileName>sys.cpp</FileName>
               <FileType>8</FileType>
               <FilePath>.\src\Internal\sys.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>gpiopin.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\src\Internal\gpiopin.cpp</FilePath>
             </File>
           </Files>
         </Group>
