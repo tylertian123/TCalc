@@ -7,7 +7,7 @@ namespace lcd {
 	
 	class LCD1602 : public LCDBase {
 	public:
-		LCD1602(GPIOPin RS, GPIOPin RW, GPIOPin E, GPIOPin BUSY, GPIO_TypeDef *dataPort, uint8_t shift = 0, uint32_t timeout = 100000) :
+		LCD1602(GPIOPin RS, GPIOPin RW, GPIOPin E, GPIOPin BUSY, GPIO_TypeDef *dataPort, uint8_t shift = 0, uint32_t timeout = 1000000) :
 			LCDBase(RS, RW, E, BUSY, dataPort, shift, timeout) {}
 		
 		virtual bool init() override;

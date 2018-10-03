@@ -10,7 +10,7 @@ namespace lcd {
 	
 	class LCDBase {
 	public:
-		LCDBase(GPIOPin RS, GPIOPin RW, GPIOPin E, GPIOPin BUSY, GPIO_TypeDef *dataPort, uint8_t shift = 0, uint32_t timeout = 100000) :
+		LCDBase(GPIOPin RS, GPIOPin RW, GPIOPin E, GPIOPin BUSY, GPIO_TypeDef *dataPort, uint8_t shift = 0, uint32_t timeout = 1000000) :
 				RS(RS), RW(RW), E(E), BUSY(BUSY), dataPort(dataPort), shift(shift), timeout(timeout) {
 			initGPIO();
 		}
