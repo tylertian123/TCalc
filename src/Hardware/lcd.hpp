@@ -2,23 +2,11 @@
 #define __LCD_H__
 #include "stm32f10x.h"
 #include "delay.hpp"
+#include "gpiopin.hpp"
 
 #define LCD_ENABLE_DELAY 10 //Cycles
 
 namespace lcd {
-	
-	class GPIOPin {
-	public:
-		GPIO_TypeDef *port;
-		uint16_t pin;
-		
-		void set(const bool &val);
-		bool get(void) const;
-	
-		GPIOPin& operator=(const bool&);
-		
-		operator bool() const;
-	};
 	
 	class LCDBase {
 	public:
