@@ -13,12 +13,14 @@ public:
 	GPIOPin(GPIO_TypeDef *port, uint16_t pin) : port(port), pin(pin) {}
 	GPIOPin() : port(0), pin(0) {}
 	
-	void set(const bool &val);
-	bool get(void) const;
+	virtual void set(const bool &val);
+	virtual bool get(void) const;
 
 	GPIOPin& operator=(const bool&);
 	
 	operator bool() const;
+		
+	uint32_t getRCCPeriph() const;
 };
 
 #endif

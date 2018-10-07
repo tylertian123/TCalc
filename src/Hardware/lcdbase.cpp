@@ -10,30 +10,7 @@ namespace lcd {
 	
 	//Initializes one GPIO pin
 	void initPin(GPIOPin *pin, GPIOMode_TypeDef mode) {
-		uint32_t rccPeriph;
-		if(pin->port == GPIOA) {
-			rccPeriph = RCC_APB2Periph_GPIOA;
-		}
-		else if(pin->port == GPIOB) {
-			rccPeriph = RCC_APB2Periph_GPIOB;
-		}
-		else if(pin->port == GPIOC) {
-			rccPeriph = RCC_APB2Periph_GPIOC;
-		}
-		else if(pin->port == GPIOD) {
-			rccPeriph = RCC_APB2Periph_GPIOD;
-		}
-		else if(pin->port == GPIOE) {
-			rccPeriph = RCC_APB2Periph_GPIOE;
-		}
-		else if(pin->port == GPIOF) {
-			rccPeriph = RCC_APB2Periph_GPIOF;
-		}
-		else {
-			rccPeriph = RCC_APB2Periph_GPIOG;
-		}
-		
-		RCC_APB2PeriphClockCmd(rccPeriph, ENABLE);
+		RCC_APB2PeriphClockCmd(pin->getRCCPeriph(), ENABLE);
 		
 		GPIO_InitTypeDef initStruct;
 		initStruct.GPIO_Mode = mode;

@@ -13,3 +13,26 @@ GPIOPin& GPIOPin::operator=(const bool &val) {
 GPIOPin::operator bool() const {
 	return get();
 }
+uint32_t GPIOPin::getRCCPeriph() const {
+	if(port == GPIOA) {
+		return RCC_APB2Periph_GPIOA;
+	}
+	else if(port == GPIOB) {
+		return RCC_APB2Periph_GPIOB;
+	}
+	else if(port == GPIOC) {
+		return RCC_APB2Periph_GPIOC;
+	}
+	else if(port == GPIOD) {
+		return RCC_APB2Periph_GPIOD;
+	}
+	else if(port == GPIOE) {
+		return RCC_APB2Periph_GPIOE;
+	}
+	else if(port == GPIOF) {
+		return RCC_APB2Periph_GPIOF;
+	}
+	else {
+		return RCC_APB2Periph_GPIOG;
+	}
+}
