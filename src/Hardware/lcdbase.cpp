@@ -1,4 +1,5 @@
 #include "lcdbase.hpp"
+#include "usart.hpp"
 
 namespace lcd {
 	
@@ -15,7 +16,7 @@ namespace lcd {
 		GPIO_InitTypeDef initStruct;
 		initStruct.GPIO_Mode = mode;
 		initStruct.GPIO_Pin = pin->pin;
-		initStruct.GPIO_Speed = GPIO_Speed_10MHz;
+		initStruct.GPIO_Speed = GPIO_Speed_2MHz;
 		GPIO_Init(pin->port, &initStruct);
 	}
 	
@@ -25,34 +26,13 @@ namespace lcd {
 		initPin(&E, GPIO_Mode_Out_PP);
 		initPin(&BUSY, GPIO_Mode_IPU);
 		
-		uint32_t rccPeriph;
-		if(dataPort == GPIOA) {
-			rccPeriph = RCC_APB2Periph_GPIOA;
-		}
-		else if(dataPort == GPIOB) {
-			rccPeriph = RCC_APB2Periph_GPIOB;
-		}
-		else if(dataPort == GPIOC) {
-			rccPeriph = RCC_APB2Periph_GPIOC;
-		}
-		else if(dataPort == GPIOD) {
-			rccPeriph = RCC_APB2Periph_GPIOD;
-		}
-		else if(dataPort == GPIOE) {
-			rccPeriph = RCC_APB2Periph_GPIOE;
-		}
-		else if(dataPort == GPIOF) {
-			rccPeriph = RCC_APB2Periph_GPIOF;
-		}
-		else {
-			rccPeriph = RCC_APB2Periph_GPIOG;
-		}
-		
-		RCC_APB2PeriphClockCmd(rccPeriph, ENABLE);
+		RCC_APB2PeriphClockCmd(GPIOPin(dataPort, 0).getRCCPeriph(), ENABLE);
 		
 		GPIO_InitTypeDef initStruct;
 		initStruct.GPIO_Mode = GPIO_Mode_Out_PP;
-		initStruct.GPIO_Speed = GPIO_Speed_10MHz;
+		initStruct.GPIO_Speed = GPIO_Speed_2MHz;
+		#pragma message("Shift, Init Read")
+		//Incorporate shift!
 		initStruct.GPIO_Pin = GPIO_Pin_7 | GPIO_Pin_6 | GPIO_Pin_5 | GPIO_Pin_4 | GPIO_Pin_3 | GPIO_Pin_2 | GPIO_Pin_1 | GPIO_Pin_0;
 		GPIO_Init(dataPort, &initStruct);
 		
@@ -92,10 +72,11 @@ namespace lcd {
 	 * E enables the LCD by generating a pulse
 	 */
 	bool LCDBase::waitForBusyFlag() {
-		setDataPort(0xFF);
+		BUSY = true;
 		RS = false;
 		RW = true;
 		E = true;
+		LCD_EDELAY;
 		uint32_t timeoutCounter = 0;
 		//Wait until the pin is cleared
 		while(BUSY) {
@@ -107,6 +88,9 @@ namespace lcd {
 				E = false;
 				return false;
 			}
+			E = false;
+			LCD_EDELAY;
+			E = true;
 		}
 		E = false;
 		return true;
@@ -115,7 +99,6 @@ namespace lcd {
 		
 	bool LCDBase::writeCommand(uint8_t cmd) {
 		LCD_WAITBUSY;
-		
 		RS = false;
 		RW = false;
 		setDataPort(cmd);
@@ -123,6 +106,15 @@ namespace lcd {
 		LCD_EDELAY;
 		E = false;
 		return true;
+	}
+	//The busy flag cannnot be checked before initialization, thus delays are used instead of busy flag checking
+	void LCDBase::writeCommandNoWait(uint8_t cmd) {
+		RS = false;
+		RW = false;
+		setDataPort(cmd);
+		E = true;
+		LCD_EDELAY;
+		E = false;
 	}
 	bool LCDBase::writeData(uint8_t data) {
 		LCD_WAITBUSY;
@@ -133,6 +125,7 @@ namespace lcd {
 		E = true;
 		LCD_EDELAY;
 		E = false;
+		
 		return true;
 	}
 	bool LCDBase::readData(uint8_t &out) {
@@ -147,8 +140,8 @@ namespace lcd {
 		return true;
 	}
 	bool LCDBase::writeString(const char *str) {
-		while(*str != '\0') {
-			if(!writeData(*str++)) {
+		for(uint16_t i = 0; str[i] != '\0'; i ++) {
+			if(!writeData(str[i])) {
 				return false;
 			}
 		}

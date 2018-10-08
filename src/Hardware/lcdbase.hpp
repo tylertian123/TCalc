@@ -15,7 +15,7 @@ namespace lcd {
 			initGPIO();
 		}
 	
-		virtual bool init() = 0;
+		virtual void init() = 0;
 		virtual bool setCursor(uint8_t, uint8_t) = 0;
 		
 		virtual uint32_t getTimeout();
@@ -35,6 +35,7 @@ namespace lcd {
 		virtual bool waitForBusyFlag();
 		virtual void setDataPort(uint8_t);
 		virtual uint8_t readDataPort();
+		virtual void writeCommandNoWait(uint8_t);
 	private:
 		void initGPIO();
 	};

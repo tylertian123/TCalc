@@ -411,6 +411,11 @@
               <FileType>8</FileType>
               <FilePath>.\src\Internal\gpiopin.cpp</FilePath>
             </File>
+            <File>
+              <FileName>usart.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\src\Internal\usart.cpp</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -460,6 +465,11 @@
               <FileName>stm32f10x_flash.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\Lib\src\stm32f10x_flash.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f10x_usart.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\Lib\src\stm32f10x_usart.c</FilePath>
             </File>
           </Files>
         </Group>

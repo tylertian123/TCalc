@@ -36,3 +36,12 @@ uint32_t GPIOPin::getRCCPeriph() const {
 		return RCC_APB2Periph_GPIOG;
 	}
 }
+
+void GPIOPin::init(GPIOMode_TypeDef mode, GPIOSpeed_TypeDef speed) {
+	RCC_APB2PeriphClockCmd(getRCCPeriph(), ENABLE);
+	GPIO_InitTypeDef initStruct;
+	initStruct.GPIO_Mode = mode;
+	initStruct.GPIO_Speed = speed;
+	initStruct.GPIO_Pin = pin;
+	GPIO_Init(port, &initStruct);
+}
