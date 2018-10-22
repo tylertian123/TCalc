@@ -1,6 +1,9 @@
 #include "lcd1602.hpp"
-#include "usart.hpp"
 namespace lcd {
+	
+	#define W_CMD(x) \
+		if(!writeCommand(x)) \
+			return false
 	
 	bool LCD1602::clear() {
 		return writeCommand(Command::CLEAR);
@@ -9,40 +12,19 @@ namespace lcd {
 		return writeCommand(Command::HOME);
 	}
 	
-	void LCD1602::init() {
-//		if(!writeCommand(Command::EIGHT_BIT_TWO_LINES)) {
-//			return false;
-//		}
-//		if(!writeCommand(Command::DISPLAY_ON_CURSOR_OFF)) {
-//			return false;
-//		}
-//		if(!writeCommand(Command::ENTRY_CURSOR_SHIFT_RIGHT)) {
-//			return false;
-//		}
-//		if(!home()) {
-//			return false;
-//		}
-//		if(!clear()) {
-//			return false;
-//		}
-//		return true;
+	bool LCD1602::init() {
 		delay::ms(15);
 		writeCommandNoWait(Command::EIGHT_BIT_TWO_LINES);
 		delay::ms(5);
 		writeCommandNoWait(Command::EIGHT_BIT_TWO_LINES);
 		delay::ms(1);
 		writeCommandNoWait(Command::EIGHT_BIT_TWO_LINES);
-		delay::ms(1);
-		writeCommand(Command::EIGHT_BIT_TWO_LINES);
-		delay::ms(1);
-		writeCommand(Command::DISPLAY_OFF);
-		delay::ms(1);
-		writeCommand(Command::CLEAR);
-		delay::ms(1);
-		writeCommand(Command::ENTRY_CURSOR_SHIFT_RIGHT);
-		delay::ms(1);
-		writeCommand(Command::DISPLAY_ON_CURSOR_BLINK);
-		delay::ms(1);
+		
+		W_CMD(Command::DISPLAY_OFF);
+		W_CMD(Command::CLEAR);
+		W_CMD(Command::ENTRY_CURSOR_SHIFT_RIGHT);
+		W_CMD(Command::DISPLAY_ON_CURSOR_OFF);
+		return true;
 	}
 	
 	bool LCD1602::setCursor(uint8_t row, uint8_t col) {

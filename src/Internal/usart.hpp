@@ -22,6 +22,7 @@ namespace usart {
 	void sendDataSync(uint16_t data);
 	void sendDataAsync(uint16_t data);
 	void printf(const char *, ...);
+	void println(const char *, const char * = "\r\n");
 	
 	uint16_t queryReceive();
 	bool receiveBufferNotEmpty();

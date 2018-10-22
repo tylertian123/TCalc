@@ -88,6 +88,14 @@ namespace usart {
 		
 		va_end(args);
 	}
+	void println(const char *msg, const char *ending) {
+		for(uint16_t i = 0; msg[i] != '\0'; i ++) {
+			usart::sendDataSync(msg[i]);
+		}
+		for(uint16_t i = 0; ending[i] != '\0'; i ++) {
+			usart::sendDataSync(ending[i]);
+		}
+	}
 	
 	uint16_t queryReceive() {
 		return USART_ReceiveData(USART_USED);
