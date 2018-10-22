@@ -45,3 +45,6 @@ void GPIOPin::init(GPIOMode_TypeDef mode, GPIOSpeed_TypeDef speed) {
 	initStruct.GPIO_Pin = pin;
 	GPIO_Init(port, &initStruct);
 }
+void GPIOPin::init(const GPIOConfig &config) {
+	init(config.mode, config.speed);
+}

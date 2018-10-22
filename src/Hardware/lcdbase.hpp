@@ -10,8 +10,9 @@ namespace lcd {
 	
 	class LCDBase {
 	public:
-		LCDBase(GPIOPin RS, GPIOPin RW, GPIOPin E, GPIOPin BUSY, GPIO_TypeDef *dataPort, uint8_t shift = 0, uint32_t timeout = 1000000) :
-				RS(RS), RW(RW), E(E), BUSY(BUSY), dataPort(dataPort), shift(shift), timeout(timeout) {
+		LCDBase(GPIOPin RS, GPIOPin RW, GPIOPin E, GPIOPin D0, GPIOPin D1, GPIOPin D2, GPIOPin D3, GPIOPin D4,
+				GPIOPin D5, GPIOPin D6, GPIOPin D7, uint32_t timeout = 1000000) :
+				RS(RS), RW(RW), E(E), D0(D0), D1(D1), D2(D2), D3(D3), D4(D4), D5(D5), D6(D6), D7(D7), timeout(timeout) {
 			initGPIO();
 		}
 	
@@ -27,15 +28,21 @@ namespace lcd {
 		virtual bool writeString(const char *str);
 	
 	protected:
-		GPIOPin RS, RW, E, BUSY;
-		GPIO_TypeDef *dataPort;
-		uint8_t shift;
+		GPIOPin RS, RW, E;
+		GPIOPin D0, D1, D2, D3, D4, D5, D6, D7;
 		uint32_t timeout;
 	
 		virtual bool waitForBusyFlag();
+		
+		virtual void writeCommandNoWait(uint8_t);
 		virtual void setDataPort(uint8_t);
 		virtual uint8_t readDataPort();
-		virtual void writeCommandNoWait(uint8_t);
+		virtual void setGPIOMode(const GPIOConfig&);
+	
+		static const GPIOConfig READ_CONFIG;
+		static const GPIOConfig WRITE_CONFIG;
+		
+	
 	private:
 		void initGPIO();
 	};

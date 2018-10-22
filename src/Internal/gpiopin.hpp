@@ -5,6 +5,11 @@
 /*
  * A class that represents a GPIO pin
  */
+struct GPIOConfig {
+	GPIOMode_TypeDef mode;
+	GPIOSpeed_TypeDef speed;
+};
+
 class GPIOPin {
 public:
 	GPIO_TypeDef *port;
@@ -23,6 +28,7 @@ public:
 	uint32_t getRCCPeriph() const;
 	
 	void init(GPIOMode_TypeDef, GPIOSpeed_TypeDef);
+	void init(const GPIOConfig&);
 };
 
 #endif

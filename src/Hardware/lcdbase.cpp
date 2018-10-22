@@ -3,44 +3,40 @@
 
 namespace lcd {
 	
+	const GPIOConfig LCDBase::READ_CONFIG = { GPIO_Mode_IPU, GPIO_Speed_2MHz };
+	const GPIOConfig LCDBase::WRITE_CONFIG = { GPIO_Mode_Out_PP, GPIO_Speed_2MHz };
+	
 	#define LCD_WAITBUSY \
 		if(!waitForBusyFlag()) { \
 			return false; \
 		} 
 	#define LCD_EDELAY delay::cycles(LCD_ENABLE_DELAY)
-	
-	//Initializes one GPIO pin
-	void initPin(GPIOPin *pin, GPIOMode_TypeDef mode) {
-		RCC_APB2PeriphClockCmd(pin->getRCCPeriph(), ENABLE);
-		
-		GPIO_InitTypeDef initStruct;
-		initStruct.GPIO_Mode = mode;
-		initStruct.GPIO_Pin = pin->pin;
-		initStruct.GPIO_Speed = GPIO_Speed_2MHz;
-		GPIO_Init(pin->port, &initStruct);
-	}
+	#define INIT_I(x) x.init(GPIO_Mode_IPU, GPIO_Speed_2MHz)
+	#define INIT_O(x) x.init(GPIO_Mode_Out_PP, GPIO_Speed_2MHz)
 	
 	void LCDBase::initGPIO() {
-		initPin(&RS, GPIO_Mode_Out_PP);
-		initPin(&RW, GPIO_Mode_Out_PP);
-		initPin(&E, GPIO_Mode_Out_PP);
-		initPin(&BUSY, GPIO_Mode_IPU);
+		//Initialize the pins for output first
+		INIT_O(RS);
+		INIT_O(RW);
+		INIT_O(E);
 		
-		RCC_APB2PeriphClockCmd(GPIOPin(dataPort, 0).getRCCPeriph(), ENABLE);
-		
-		GPIO_InitTypeDef initStruct;
-		initStruct.GPIO_Mode = GPIO_Mode_Out_PP;
-		initStruct.GPIO_Speed = GPIO_Speed_2MHz;
-		#pragma message("Shift, Init Read")
-		//Incorporate shift!
-		initStruct.GPIO_Pin = GPIO_Pin_7 | GPIO_Pin_6 | GPIO_Pin_5 | GPIO_Pin_4 | GPIO_Pin_3 | GPIO_Pin_2 | GPIO_Pin_1 | GPIO_Pin_0;
-		GPIO_Init(dataPort, &initStruct);
+		setGPIOMode(WRITE_CONFIG);
 		
 		//Reset the data pins just in case
 		setDataPort(0x00);
 		RS = false;
 		RW = false;
 		E = false;
+	}
+	void LCDBase::setGPIOMode(const GPIOConfig &config) {
+		D0.init(config);
+		D1.init(config);
+		D2.init(config);
+		D3.init(config);
+		D4.init(config);
+		D5.init(config);
+		D6.init(config);
+		D7.init(config);
 	}
 	
 	uint32_t LCDBase::getTimeout() {
@@ -52,18 +48,20 @@ namespace lcd {
 	
 	//These functions set and read from the data port
 	void LCDBase::setDataPort(uint8_t data) {
-		//Create a mask
-		//The mask will have all bits 1, except for the 8 bits where the data port occupies
-		uint16_t mask = ~(0xFF << shift);
-		//To not affect the output of other ports, take the current state, mask off some of the bits and OR it with our shifted data
-		GPIO_Write(dataPort, (GPIO_ReadInputData(dataPort) & mask) | (data << shift));
+		D0 = data & 0x01;
+		D1 = data & 0x02;
+		D2 = data & 0x04;
+		D3 = data & 0x08;
+		D4 = data & 0x10;
+		D5 = data & 0x20;
+		D6 = data & 0x40;
+		D7 = data & 0x80;
 	}
 	uint8_t LCDBase::readDataPort() {
-		//Create a mask
-		//Same logic as above, except this mask has all bits 0 except the bits of the data
-		uint16_t mask = 0xFF << shift;
-		//First mask off unwanted bits and then right-shift back to fit in one byte
-		return (GPIO_ReadInputData(dataPort) & mask) >> shift;
+		setGPIOMode(READ_CONFIG);
+		uint8_t result = D0 << 0 | D1 << 1 | D2 << 2 | D3 << 3 | D4 << 4 | D5 << 5 | D6 << 6 | D7 << 7;
+		setGPIOMode(WRITE_CONFIG);
+		return result;
 	}
 	
 	/*
@@ -72,20 +70,23 @@ namespace lcd {
 	 * E enables the LCD by generating a pulse
 	 */
 	bool LCDBase::waitForBusyFlag() {
-		BUSY = true;
+		D7 = true;
 		RS = false;
 		RW = true;
 		E = true;
 		LCD_EDELAY;
 		uint32_t timeoutCounter = 0;
+		//Initialize to read the busy flag
+		INIT_I(D7);
 		//Wait until the pin is cleared
-		while(BUSY) {
+		while(D7) {
 			timeoutCounter++;
 			delay::us(1);
 			//Handle timeout
 			if(timeoutCounter > timeout) {
 				//Make sure to reset enable pin after
 				E = false;
+				INIT_O(D7);
 				return false;
 			}
 			E = false;
@@ -93,6 +94,7 @@ namespace lcd {
 			E = true;
 		}
 		E = false;
+		INIT_O(D7);
 		return true;
 	}
 	
@@ -150,4 +152,6 @@ namespace lcd {
 	
 	#undef LCD_WAITBUSY
 	#undef LCD_EDELAY
+	#undef INIT_I
+	#undef INIT_O
 }
