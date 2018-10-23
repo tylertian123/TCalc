@@ -11,7 +11,6 @@ int main() {
 	
 	sys::initRCC();
 	sys::initNVIC();
-	delay::init();
 	usart::init(115200);
 	
 	GPIOPin led(GPIOC, GPIO_Pin_13);
