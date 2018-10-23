@@ -12,7 +12,11 @@ namespace lcd {
 	public:
 		LCDBase(GPIOPin RS, GPIOPin RW, GPIOPin E, GPIOPin D0, GPIOPin D1, GPIOPin D2, GPIOPin D3, GPIOPin D4,
 				GPIOPin D5, GPIOPin D6, GPIOPin D7, uint32_t timeout = 1000000) :
-				RS(RS), RW(RW), E(E), D0(D0), D1(D1), D2(D2), D3(D3), D4(D4), D5(D5), D6(D6), D7(D7), timeout(timeout) {
+				RS(RS), RW(RW), E(E), D0(D0), D1(D1), D2(D2), D3(D3), D4(D4), D5(D5), D6(D6), D7(D7), timeout(timeout), FOUR_WIRE_INTERFACE(false) {
+			initGPIO();
+		}
+		LCDBase(GPIOPin RS, GPIOPin RW, GPIOPin E, GPIOPin D4, GPIOPin D5, GPIOPin D6, GPIOPin D7, uint32_t timeout = 1000000) :
+				RS(RS), RW(RW), E(E), D4(D4), D5(D5), D6(D6), D7(D7), timeout(timeout), FOUR_WIRE_INTERFACE(true) {
 			initGPIO();
 		}
 	
@@ -35,9 +39,13 @@ namespace lcd {
 		virtual bool waitForBusyFlag();
 		
 		virtual void writeCommandNoWait(uint8_t);
+	
 		virtual void setDataPort(uint8_t);
 		virtual uint8_t readDataPort();
+	
 		virtual void setGPIOMode(const GPIOConfig&);
+		
+		const bool FOUR_WIRE_INTERFACE;
 	
 		static const GPIOConfig READ_CONFIG;
 		static const GPIOConfig WRITE_CONFIG;

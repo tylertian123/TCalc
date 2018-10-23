@@ -24,11 +24,10 @@ int main() {
 	
 	delay::sec(3);
 	
-	GPIOPin RS(GPIOB, GPIO_Pin_12), RW(GPIOB, GPIO_Pin_13), E(GPIOB, GPIO_Pin_14), 
-			D0(GPIOA, GPIO_Pin_15), D1(GPIOB, GPIO_Pin_3), D2(GPIOB, GPIO_Pin_4), D3(GPIOB, GPIO_Pin_5),
+	GPIOPin RS(GPIOB, GPIO_Pin_12), RW(GPIOB, GPIO_Pin_13), E(GPIOB, GPIO_Pin_14),
 			D4(GPIOB, GPIO_Pin_6), D5(GPIOB, GPIO_Pin_7), D6(GPIOB, GPIO_Pin_8), D7(GPIOB, GPIO_Pin_9);
-	LCD1602 lcd(RS, RW, E, D0, D1, D2, D3, D4, D5, D6, D7);
-	lcd.init();
+	LCD1602 lcd(RS, RW, E, D4, D5, D6, D7);
+	led = !lcd.init();
 	lcd.writeString("Hello, World");
     while(true) {
     }

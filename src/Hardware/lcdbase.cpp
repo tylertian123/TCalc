@@ -1,5 +1,4 @@
 #include "lcdbase.hpp"
-#include "usart.hpp"
 
 namespace lcd {
 	
@@ -28,10 +27,12 @@ namespace lcd {
 		E = false;
 	}
 	void LCDBase::setGPIOMode(const GPIOConfig &config) {
-		D0.init(config);
-		D1.init(config);
-		D2.init(config);
-		D3.init(config);
+		if(!FOUR_WIRE_INTERFACE) {
+			D0.init(config);
+			D1.init(config);
+			D2.init(config);
+			D3.init(config);
+		}
 		D4.init(config);
 		D5.init(config);
 		D6.init(config);
@@ -46,19 +47,31 @@ namespace lcd {
 	}
 	
 	//These functions set and read from the data port
+	//If in four wire interface, only the lowest 4 bits will be written
 	void LCDBase::setDataPort(uint8_t data) {
-		D0 = data & 0x01;
-		D1 = data & 0x02;
-		D2 = data & 0x04;
-		D3 = data & 0x08;
-		D4 = data & 0x10;
-		D5 = data & 0x20;
-		D6 = data & 0x40;
-		D7 = data & 0x80;
+		if(!FOUR_WIRE_INTERFACE) {
+			D0 = data & 0x01;
+			D1 = data & 0x02;
+			D2 = data & 0x04;
+			D3 = data & 0x08;
+			D4 = data & 0x10;
+			D5 = data & 0x20;
+			D6 = data & 0x40;
+			D7 = data & 0x80;
+		}
+		else {
+			data &= 0x0F;
+			D4 = data & 0x01;
+			D5 = data & 0x02;
+			D6 = data & 0x04;
+			D7 = data & 0x08;
+		}
 	}
+	//If in four wire interface, only a nibble will be read
 	uint8_t LCDBase::readDataPort() {
 		setGPIOMode(READ_CONFIG);
-		uint8_t result = D0 << 0 | D1 << 1 | D2 << 2 | D3 << 3 | D4 << 4 | D5 << 5 | D6 << 6 | D7 << 7;
+		uint8_t result = FOUR_WIRE_INTERFACE ? (D7 << 3 | D6 << 2 | D5 << 1 | D4 << 0) : 
+				(D0 << 0 | D1 << 1 | D2 << 2 | D3 << 3 | D4 << 4 | D5 << 5 | D6 << 6 | D7 << 7);
 		setGPIOMode(WRITE_CONFIG);
 		return result;
 	}
@@ -88,9 +101,18 @@ namespace lcd {
 				INIT_O(D7);
 				return false;
 			}
+			
 			E = false;
 			LCD_EDELAY;
 			E = true;
+			
+			if(FOUR_WIRE_INTERFACE) {
+				LCD_EDELAY;
+				E = false;
+				LCD_EDELAY;
+				E = true;
+			}
+				
 		}
 		E = false;
 		INIT_O(D7);
@@ -102,42 +124,96 @@ namespace lcd {
 		LCD_WAITBUSY;
 		RS = false;
 		RW = false;
-		setDataPort(cmd);
-		E = true;
-		LCD_EDELAY;
-		E = false;
+		
+		if(FOUR_WIRE_INTERFACE) {
+			setDataPort(cmd >> 4);
+			E = true;
+			LCD_EDELAY;
+			E = false;
+			setDataPort(cmd & 0x0F);
+			LCD_EDELAY;
+			E = true;
+			LCD_EDELAY;
+			E = false;
+		}
+		else {
+			setDataPort(cmd);
+			E = true;
+			LCD_EDELAY;
+			E = false;
+		}
 		return true;
 	}
 	//The busy flag cannnot be checked before initialization, thus delays are used instead of busy flag checking
 	void LCDBase::writeCommandNoWait(uint8_t cmd) {
 		RS = false;
 		RW = false;
-		setDataPort(cmd);
-		E = true;
-		LCD_EDELAY;
-		E = false;
+		
+		if(FOUR_WIRE_INTERFACE) {
+			setDataPort(cmd >> 4);
+			E = true;
+			LCD_EDELAY;
+			E = false;
+			setDataPort(cmd & 0x0F);
+			LCD_EDELAY;
+			E = true;
+			LCD_EDELAY;
+			E = false;
+		}
+		else {
+			setDataPort(cmd);
+			E = true;
+			LCD_EDELAY;
+			E = false;
+		}
 	}
 	bool LCDBase::writeData(uint8_t data) {
 		LCD_WAITBUSY;
-		
 		RS = true;
 		RW = false;
-		setDataPort(data);
-		E = true;
-		LCD_EDELAY;
-		E = false;
 		
+		if(FOUR_WIRE_INTERFACE) {
+			setDataPort(data >> 4);
+			E = true;
+			LCD_EDELAY;
+			E = false;
+			setDataPort(data & 0x0F);
+			LCD_EDELAY;
+			E = true;
+			LCD_EDELAY;
+			E = false;
+		}
+		else {
+			setDataPort(data);
+			E = true;
+			LCD_EDELAY;
+			E = false;
+		}
 		return true;
 	}
 	bool LCDBase::readData(uint8_t &out) {
 		LCD_WAITBUSY;
-		
 		RS = true;
 		RW = true;
-		E = true;
-		LCD_EDELAY;
-		out = readDataPort();
-		E = false;
+		
+		if(FOUR_WIRE_INTERFACE) {
+			E = true;
+			LCD_EDELAY;
+			out = readDataPort() << 4;
+			E = false;
+			LCD_EDELAY;
+			E = true;
+			LCD_EDELAY;
+			out |= readDataPort() & 0x0F;
+			E = false;
+		}
+		else {
+			E = true;
+			LCD_EDELAY;
+			out = readDataPort();
+			E = false;
+		}
+		
 		return true;
 	}
 	bool LCDBase::writeString(const char *str) {
