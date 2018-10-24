@@ -416,6 +416,11 @@
               <FileType>8</FileType>
               <FilePath>.\src\Internal\usart.cpp</FilePath>
             </File>
+            <File>
+              <FileName>pwm.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\src\Internal\pwm.cpp</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

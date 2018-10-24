@@ -4,6 +4,7 @@
 #include "usart.hpp"
 #include "gpiopin.hpp"
 #include "lcd1602.hpp"
+#include "pwm.hpp"
 
 using namespace lcd;
 
@@ -28,6 +29,16 @@ int main() {
 	LCD1602 lcd(RS, RW, E, D4, D5, D6, D7);
 	led = !lcd.init();
 	lcd.writeString("Hello, World");
+	
+	GPIOPin PWMPin(GPIOA, GPIO_Pin_1);
+	pwm::PWMOutput<2, 72000000, 100> PWMOut(TIM2, RCC_APB1Periph_TIM2, PWMPin);
+	PWMOut.startTimer();
+	
+	uint8_t level = 0;
+	
     while(true) {
+		//PWMOut.set(0);
+		PWMOut.set(level ++);
+		delay::ms(10);
     }
 }
