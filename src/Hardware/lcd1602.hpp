@@ -15,6 +15,8 @@ namespace lcd {
 		
 		virtual bool init() override;
 		virtual bool setCursor(uint8_t, uint8_t) override;
+		virtual bool clear() override;
+		virtual bool home() override;
 		
 		enum Command : uint8_t {
 			CLEAR = 0x01,					//0000 0001
@@ -39,9 +41,6 @@ namespace lcd {
 			FOUR_BIT_TWO_LINES = 0x28,		//0010 1000
 			FOUR_BIT_ONE_LINE = 0x20,		//0010 0000
 		};
-		
-		bool clear();
-		bool home();
 	};
 }
 

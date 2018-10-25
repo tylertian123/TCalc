@@ -22,6 +22,8 @@ namespace lcd {
 	
 		virtual bool init() = 0;
 		virtual bool setCursor(uint8_t, uint8_t) = 0;
+		virtual bool clear() = 0;
+		virtual bool home() = 0;
 		
 		virtual uint32_t getTimeout();
 		virtual void setTimeout(uint32_t);
