@@ -33,12 +33,8 @@ int main() {
 	GPIOPin PWMPin(GPIOA, GPIO_Pin_1);
 	pwm::PWMOutput<2, 72000000, 100> PWMOut(TIM2, RCC_APB1Periph_TIM2, PWMPin);
 	PWMOut.startTimer();
-	
-	uint8_t level = 0;
+	PWMOut.set(0x80);
 	
     while(true) {
-		//PWMOut.set(0);
-		PWMOut.set(level ++);
-		delay::ms(10);
     }
 }
