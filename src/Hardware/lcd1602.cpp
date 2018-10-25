@@ -43,4 +43,6 @@ namespace lcd {
 		}
 		return writeCommand(0x80 | col);
 	}
+	
+	#undef W_CMD
 }
