@@ -14,11 +14,20 @@ namespace lcd {
 	}
 			
 	bool LCD12864::init() {
-		delay::ms(15);
-		writeCommandNoWait(Command::NORMAL_CMD_8BIT);
-		delay::ms(5);
-		writeCommandNoWait(Command::NORMAL_CMD_8BIT);
-		delay::ms(5);
+		if(!FOUR_WIRE_INTERFACE) {
+			delay::ms(15);
+			writeCommandNoWait(Command::NORMAL_CMD_8BIT);
+			delay::ms(5);
+			writeCommandNoWait(Command::NORMAL_CMD_8BIT);
+			delay::ms(5);
+		}
+		else {
+			delay::ms(15);
+			writeCommandNoWait(Command::NORMAL_CMD_4BIT);
+			delay::ms(5);
+			writeCommandNoWait(Command::NORMAL_CMD_4BIT);
+			delay::ms(5);
+		}
 		
 		W_CMD(Command::ENTRY_CURSOR_SHIFT_RIGHT);
 		W_CMD(Command::CLEAR);
