@@ -87,5 +87,12 @@ namespace lcd {
 		return true;
 	}
 	
+	bool LCD12864::isDrawing() {
+		return drawing;
+	}
+	bool LCD12864::startDraw() {
+		
+	}
+	
 	#undef W_CMD
 }

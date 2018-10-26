@@ -25,17 +25,22 @@ int main() {
 	
 	delay::sec(3);
 	
-	GPIOPin RS(GPIOB, GPIO_Pin_12), RW(GPIOB, GPIO_Pin_13), E(GPIOA, GPIO_Pin_12),//E(GPIOB, GPIO_Pin_14),
-			D0(GPIOA, GPIO_Pin_15), D1(GPIOB, GPIO_Pin_3), D2(GPIOB, GPIO_Pin_4), D3(GPIOB, GPIO_Pin_5),
-			D4(GPIOB, GPIO_Pin_6), D5(GPIOB, GPIO_Pin_7), D6(GPIOB, GPIO_Pin_8), D7(GPIOB, GPIO_Pin_9);
-	LCD12864 lcd(RS, RW, E, D0, D1, D2, D3, D4, D5, D6, D7);
-	led = !lcd.init();
-	lcd.writeString("Hello, World");
+	GPIOPin RS(GPIOB, GPIO_Pin_12), RW(GPIOB, GPIO_Pin_13), pE(GPIOA, GPIO_Pin_12), sE(GPIOB, GPIO_Pin_14),
+			pD4(GPIOB, GPIO_Pin_6), pD5(GPIOB, GPIO_Pin_7), pD6(GPIOB, GPIO_Pin_8), pD7(GPIOB, GPIO_Pin_9),
+			sD4(GPIOA, GPIO_Pin_15), sD5(GPIOB, GPIO_Pin_3), sD6(GPIOB, GPIO_Pin_4), sD7(GPIOB, GPIO_Pin_5);
+	LCD12864 primaryLCD(RS, RW, pE, pD4, pD5, pD6, pD7);
+	primaryLCD.init();
+	LCD1602 secondaryLCD(RS, RW, sE, sD4, sD5, sD6, sD7);
+	secondaryLCD.init();
+	
+	primaryLCD.writeString("Primary LCD");
+	secondaryLCD.writeString("Secondary LCD");
+	
 	
 	GPIOPin PWMPin(GPIOA, GPIO_Pin_1);
 	pwm::PWMOutput<2, 72000000, 100> PWMOut(TIM2, RCC_APB1Periph_TIM2, PWMPin);
 	PWMOut.startTimer();
-	PWMOut.set(0x80);
+	PWMOut.set(0xA0);
 	
     while(true) {
     }
