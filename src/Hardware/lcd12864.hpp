@@ -68,10 +68,21 @@ namespace lcd {
 		bool isDrawing();
 		bool startDraw();
 		bool endDraw();
+		
+		bool clearDrawing();
+		bool updateDrawing();
+		
+		void setPixel(uint8_t, uint8_t, bool);
 	
 	protected:
 		bool extendedCmd = false;
 		bool drawing = false;
+	
+		//dispBuf stores what's currently being displayed 
+		//drawBuf is what we're working on
+		//Total: 2KB of RAM
+		uint16_t drawBuf[16][32] = { 0 };
+		uint16_t dispBuf[16][32] = { 0 };
 	};
 }
 
