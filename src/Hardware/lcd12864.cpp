@@ -91,7 +91,19 @@ namespace lcd {
 		return drawing;
 	}
 	bool LCD12864::startDraw() {
-		
+		if(!isUsingExtended()) {
+			if(!useExtended()) {
+				return false;
+			}
+		}
+		W_CMD(FOUR_WIRE_INTERFACE ? Command::EXT_GRAPHICS_ON_4BIT : Command::EXT_GRAPHICS_ON_8BIT);
+		drawing = true;
+		return true;
+	}
+	bool LCD12864::endDraw() {
+		W_CMD(FOUR_WIRE_INTERFACE ? Command::EXT_GRAPHICS_OFF_4BIT : Command::EXT_GRAPHICS_OFF_8BIT);
+		drawing = false;
+		return true;
 	}
 	
 	#undef W_CMD
