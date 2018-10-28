@@ -152,6 +152,10 @@ namespace lcd {
 		return true;
 	}
 	
+	void LCD12864::clearDrawingBuffer() {
+		std::memset(drawBuf, 0, sizeof(drawBuf));
+	}
+	
 	void LCD12864::setPixel(uint8_t x, uint8_t y, bool state) {
 		//Calculate the index of the uint16_t
 		uint8_t col = x / 16;

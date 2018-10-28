@@ -42,6 +42,16 @@ int main() {
 	PWMOut.startTimer();
 	PWMOut.set(0xA0);
 	
+	led = !primaryLCD.clear();
+	led = !primaryLCD.useExtended();
+	led = !primaryLCD.startDraw();
+	led = !primaryLCD.clearDrawing();
+	//primaryLCD.setPixel(1, 1, 1);
+	//primaryLCD.setPixel(0, 1, 1);
+	//primaryLCD.updateDrawing();
+	//primaryLCD.endDraw();
+	//primaryLCD.useBasic();
+	
     while(true) {
     }
 }

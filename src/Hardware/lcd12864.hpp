@@ -2,6 +2,7 @@
 #define __LCD12864_H__
 #include "stm32f10x.h"
 #include "lcdbase.hpp"
+#include <cstring>
 
 namespace lcd {
 	
@@ -71,7 +72,7 @@ namespace lcd {
 		
 		bool clearDrawing();
 		bool updateDrawing();
-		
+		void clearDrawingBuffer();
 		void setPixel(uint8_t, uint8_t, bool);
 	
 	protected:
