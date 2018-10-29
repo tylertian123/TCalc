@@ -113,19 +113,20 @@ namespace lcd {
 		if(!isDrawing()) {
 			return false;
 		}
-		for(uint8_t i = 0; i < 32; i ++) {
-			for(uint8_t j = 0; j < 16; j ++) {
+		
+		for(uint8_t row = 0; row < 32; row ++) {
+			for(uint8_t col = 0; col < 16; col ++) {
 				//The row gets written first
 				//There are 32 rows (bottom 32 are just extensions of the top 32)
 				//And then the column gets written (16 pixels)
-				W_CMD(0x80 | i);
-				W_CMD(0x80 | j);
+				W_CMD(0x80 | row);
+				W_CMD(0x80 | col);
 				W_CHR(0x00);
 				W_CHR(0x00);
 				
 				//Clear our buffers
-				drawBuf[j][i] = 0x0000;
-				dispBuf[j][i] = 0x0000;
+				drawBuf[col][row] = 0x0000;
+				dispBuf[col][row] = 0x0000;
 			}
 		}
 		return true;

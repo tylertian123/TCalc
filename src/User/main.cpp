@@ -28,13 +28,19 @@ int main() {
 	GPIOPin RS(GPIOB, GPIO_Pin_12), RW(GPIOB, GPIO_Pin_13), pE(GPIOA, GPIO_Pin_12), sE(GPIOB, GPIO_Pin_14),
 			pD4(GPIOB, GPIO_Pin_6), pD5(GPIOB, GPIO_Pin_7), pD6(GPIOB, GPIO_Pin_8), pD7(GPIOB, GPIO_Pin_9),
 			sD4(GPIOA, GPIO_Pin_15), sD5(GPIOB, GPIO_Pin_3), sD6(GPIOB, GPIO_Pin_4), sD7(GPIOB, GPIO_Pin_5);
-	LCD12864 primaryLCD(RS, RW, pE, pD4, pD5, pD6, pD7);
-	primaryLCD.init();
-	LCD1602 secondaryLCD(RS, RW, sE, sD4, sD5, sD6, sD7);
+	//LCD12864 primaryLCD(RS, RW, pE, sD4, sD5, sD6, sD7, pD4, pD5, pD6, pD7);
+	//LCD12864 primaryLCD(RS, RW, pE, pD4, pD5, pD6, pD7);
+	//primaryLCD.init();
+	LCD1602 secondaryLCD(RS, RW, sE, pD4, pD5, pD6, pD7);
 	secondaryLCD.init();
 	
-	primaryLCD.writeString("Primary LCD");
 	secondaryLCD.writeString("Secondary LCD");
+	
+//	primaryLCD.writeString("Primary LCD");
+//	primaryLCD.setCursor(1, 3);
+//	primaryLCD.writeString("Primary");
+//	primaryLCD.setCursor(2, 0);
+//	primaryLCD.writeString("LCD");
 	
 	
 	GPIOPin PWMPin(GPIOA, GPIO_Pin_1);
@@ -42,10 +48,10 @@ int main() {
 	PWMOut.startTimer();
 	PWMOut.set(0xA0);
 	
-	led = !primaryLCD.clear();
-	led = !primaryLCD.useExtended();
-	led = !primaryLCD.startDraw();
-	led = !primaryLCD.clearDrawing();
+//	led = !primaryLCD.clear();
+//	led = !primaryLCD.useExtended();
+//	led = !primaryLCD.startDraw();
+//	led = !primaryLCD.clearDrawing();
 	//primaryLCD.setPixel(1, 1, 1);
 	//primaryLCD.setPixel(0, 1, 1);
 	//primaryLCD.updateDrawing();
