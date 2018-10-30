@@ -184,6 +184,23 @@ namespace lcd {
 		}
 	}
 	
+	void LCD12864::setDrawBufferByte(uint8_t x, uint8_t y, uint8_t data) {
+		if(x >= 16 || y >= 64) {
+			return;
+		}
+		//Calculate row and column
+		//The row is just the Y if y < 32, otherwise it's y - 32
+		uint8_t row = y < 32 ? y : y - 32;
+		//The column is just x / 2 if y < 32, otherwise it's x / 2 + 8
+		uint8_t col = x / 2 + (y < 32 ? 0 : 8);
+		//If x is even, then the byte is on the left of the uint16, so left shift by 8.
+		drawBuf[col][row] |= x % 2 == 0 ? data << 8 : data;
+	}
+	
+	void LCD12864::drawImage(LCD12864Image img) {
+		
+	}
+	
 	#undef W_CMD
 	#undef W_CHR
 }

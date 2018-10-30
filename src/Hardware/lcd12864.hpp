@@ -6,6 +6,12 @@
 
 namespace lcd {
 	
+	struct LCD12864Image {
+		const char **data;
+		uint8_t width;
+		uint8_t height;
+	};
+	
 	class LCD12864 : public LCDBase {
 	public:
 		LCD12864(GPIOPin RS, GPIOPin RW, GPIOPin E, GPIOPin D0, GPIOPin D1, GPIOPin D2, GPIOPin D3, GPIOPin D4, 
@@ -74,6 +80,8 @@ namespace lcd {
 		bool updateDrawing();
 		void clearDrawingBuffer();
 		void setPixel(uint8_t, uint8_t, bool);
+		void setDrawBufferByte(uint8_t, uint8_t, uint8_t);
+		void drawImage(LCD12864Image);
 	
 	protected:
 		bool extendedCmd = false;

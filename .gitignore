@@ -1,5 +1,7 @@
 /DebugConfig/
 /Objects/
 /Listings/
-TCalc.uvguix.tyler
+TCalc.uvguix.*
+TCalc.uvmpw.uvgui.*
+TCalc_8051.uvgui.*
 *.TMP
