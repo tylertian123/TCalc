@@ -125,8 +125,8 @@ namespace lcd {
 				W_CHR(0x00);
 				
 				//Clear our buffers
-				drawBuf[col][row] = 0x0000;
-				dispBuf[col][row] = 0x0000;
+				drawBuf[row][col] = 0x0000;
+				dispBuf[row][col] = 0x0000;
 			}
 		}
 		return true;
@@ -139,14 +139,14 @@ namespace lcd {
 		for(uint8_t row = 0; row < 32; row ++) {
 			for(uint8_t col = 0; col < 16; col ++) {
 				//Compare drawBuf with dispBuf
-				if(dispBuf[col][row] != drawBuf[col][row]) {
+				if(dispBuf[row][col] != drawBuf[row][col]) {
 					//Update the display buffer
-					dispBuf[col][row] = drawBuf[col][row];
+					dispBuf[row][col] = drawBuf[row][col];
 					W_CMD(0x80 | row);
 					W_CMD(0x80 | col);
 					//Write higher order byte first
-					W_CHR(dispBuf[col][row] >> 8);
-					W_CHR(dispBuf[col][row] & 0x00FF);
+					W_CHR(dispBuf[row][col] >> 8);
+					W_CHR(dispBuf[row][col] & 0x00FF);
 				}
 			}
 		}
@@ -176,11 +176,11 @@ namespace lcd {
 		uint16_t mask;
 		if(state) {
 			mask = 0x8000 >> offset; //1000 0000 0000 0000
-			drawBuf[col][row] |= mask;
+			drawBuf[row][col] |= mask;
 		}
 		else {
 			mask = ~(0x8000 >> offset); //Same as above, only flip the 1s and 0s
-			drawBuf[col][row] &= mask;
+			drawBuf[row][col] &= mask;
 		}
 	}
 	
@@ -194,7 +194,7 @@ namespace lcd {
 		//The column is just x / 2 if y < 32, otherwise it's x / 2 + 8
 		uint8_t col = x / 2 + (y < 32 ? 0 : 8);
 		//If x is even, then the byte is on the left of the uint16, so left shift by 8.
-		drawBuf[col][row] |= x % 2 == 0 ? data << 8 : data;
+		drawBuf[row][col] |= x % 2 == 0 ? data << 8 : data;
 	}
 	
 	void LCD12864::drawImage(LCD12864Image img) {

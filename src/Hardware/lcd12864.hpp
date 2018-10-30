@@ -90,8 +90,9 @@ namespace lcd {
 		//dispBuf stores what's currently being displayed 
 		//drawBuf is what we're working on
 		//Total: 2KB of RAM
-		uint16_t drawBuf[16][32] = { 0 };
-		uint16_t dispBuf[16][32] = { 0 };
+		//First index is row and second is column
+		uint16_t drawBuf[32][16] = { 0 };
+		uint16_t dispBuf[32][16] = { 0 };
 	};
 }
 
