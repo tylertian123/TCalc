@@ -6,10 +6,13 @@
 
 namespace lcd {
 	
-	struct LCD12864Image {
-		const char **data;
-		uint8_t width;
+	class LCD12864Image {
+	public:
+		const uint8_t *data;
+		uint8_t bytesWide;
 		uint8_t height;
+		
+		LCD12864Image(const uint8_t *data, uint8_t bytesWide, uint8_t height) : data(data), bytesWide(bytesWide), height(height) {}
 	};
 	
 	class LCD12864 : public LCDBase {
@@ -81,7 +84,7 @@ namespace lcd {
 		void clearDrawingBuffer();
 		void setPixel(uint8_t, uint8_t, bool);
 		void setDrawBufferByte(uint8_t, uint8_t, uint8_t);
-		void drawImage(LCD12864Image);
+		void drawImage(uint8_t, uint8_t, const LCD12864Image&);
 	
 	protected:
 		bool extendedCmd = false;

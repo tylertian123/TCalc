@@ -197,8 +197,47 @@ namespace lcd {
 		drawBuf[row][col] |= x % 2 == 0 ? data << 8 : data;
 	}
 	
-	void LCD12864::drawImage(LCD12864Image img) {
-		
+	void LCD12864::drawImage(uint8_t x, uint8_t y, const LCD12864Image &img) {
+		uint8_t baseByte = x / 8;
+		uint8_t offset = x % 8;
+		for(uint8_t row = 0; row < img.height; row ++) {
+			//If the byte we're drawing into is out of bounds vertically then break this outer loop
+			if(row + y >= 64) {
+				break;
+			}
+			for(uint8_t byte = 0; byte < img.bytesWide; byte ++) {
+				//If the byte we're drawing into is out of bounds horizontally then break this inner loop
+				if(baseByte + byte >= 16) {
+					break;
+				}
+				
+				//The bytes have to be shifted
+				uint8_t currentByte = img.data[row * img.bytesWide + byte] >> offset;
+				/*
+				 * If this byte isn't the first byte, then add the truncated parts of the previous byte to it
+				 * Ex. 1111 1010, 1100 0000 right shifted 2:
+				 * First byte is just 1111 1010 >> 2 = 0011 1110
+				 * Second byte:
+				 * 		1100 0000 >> 2 = 0011 0000
+				 * 	OR	1111 1010 << 6 = 1000 0000
+				 * -------------------------------
+				 *						 1011 0000
+				 * Final Result: 0011 1110, 1011 0000
+				 */
+				
+				if(byte != 0) {
+					currentByte |= img.data[row * img.bytesWide + byte - 1] << (8 - offset);
+				}
+				
+				setDrawBufferByte(baseByte + byte, row + y, currentByte);
+			}
+			//Finally, if we shifted by more than one bit, then there must be some bits clipped in the end
+			//Here we recover those lost bits and write them to the buffer
+			if(offset != 0) {
+				uint8_t finalByte = img.data[row * img.bytesWide + img.bytesWide - 1] << (8 - offset);
+				setDrawBufferByte(baseByte + img.bytesWide, row + y, finalByte);
+			}
+		}
 	}
 	
 	#undef W_CMD
