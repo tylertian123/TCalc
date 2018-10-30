@@ -158,6 +158,10 @@ namespace lcd {
 	}
 	
 	void LCD12864::setPixel(uint8_t x, uint8_t y, bool state) {
+		if(x >= 128 || y >= 64) {
+			return;
+		}
+		
 		//Calculate the index of the uint16_t
 		uint8_t col = x / 16;
 		uint8_t row = y;

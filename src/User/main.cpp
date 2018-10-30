@@ -3,7 +3,6 @@
 #include "delay.hpp"
 #include "usart.hpp"
 #include "gpiopin.hpp"
-#include "lcd1602.hpp"
 #include "lcd12864.hpp"
 #include "pwm.hpp"
 
@@ -25,22 +24,11 @@ int main() {
 	
 	delay::sec(3);
 	
-	GPIOPin RS(GPIOB, GPIO_Pin_12), RW(GPIOB, GPIO_Pin_13), pE(GPIOA, GPIO_Pin_12), sE(GPIOB, GPIO_Pin_14),
-			pD4(GPIOB, GPIO_Pin_6), pD5(GPIOB, GPIO_Pin_7), pD6(GPIOB, GPIO_Pin_8), pD7(GPIOB, GPIO_Pin_9),
-			sD4(GPIOA, GPIO_Pin_15), sD5(GPIOB, GPIO_Pin_3), sD6(GPIOB, GPIO_Pin_4), sD7(GPIOB, GPIO_Pin_5);
-	//LCD12864 primaryLCD(RS, RW, pE, sD4, sD5, sD6, sD7, pD4, pD5, pD6, pD7);
-	//LCD12864 primaryLCD(RS, RW, pE, pD4, pD5, pD6, pD7);
-	//primaryLCD.init();
-	LCD1602 secondaryLCD(RS, RW, sE, pD4, pD5, pD6, pD7);
-	secondaryLCD.init();
-	
-	secondaryLCD.writeString("Secondary LCD");
-	
-//	primaryLCD.writeString("Primary LCD");
-//	primaryLCD.setCursor(1, 3);
-//	primaryLCD.writeString("Primary");
-//	primaryLCD.setCursor(2, 0);
-//	primaryLCD.writeString("LCD");
+	GPIOPin RS(GPIOB, GPIO_Pin_12), RW(GPIOB, GPIO_Pin_13), E(GPIOB, GPIO_Pin_14),
+			D7(GPIOA, GPIO_Pin_15), D6(GPIOB, GPIO_Pin_3), D5(GPIOB, GPIO_Pin_4), D4(GPIOB, GPIO_Pin_5),
+			D3(GPIOB, GPIO_Pin_6), D2(GPIOB, GPIO_Pin_7), D1(GPIOB, GPIO_Pin_8), D0(GPIOB, GPIO_Pin_9);
+	LCD12864 primaryLCD(RS, RW, E, D0, D1, D2, D3, D4, D5, D6, D7);
+	primaryLCD.init();
 	
 	
 	GPIOPin PWMPin(GPIOA, GPIO_Pin_1);
@@ -48,15 +36,15 @@ int main() {
 	PWMOut.startTimer();
 	PWMOut.set(0xA0);
 	
-//	led = !primaryLCD.clear();
-//	led = !primaryLCD.useExtended();
-//	led = !primaryLCD.startDraw();
-//	led = !primaryLCD.clearDrawing();
-	//primaryLCD.setPixel(1, 1, 1);
-	//primaryLCD.setPixel(0, 1, 1);
-	//primaryLCD.updateDrawing();
-	//primaryLCD.endDraw();
-	//primaryLCD.useBasic();
+	led = !primaryLCD.clear();
+	led = !primaryLCD.useExtended();
+	led = !primaryLCD.startDraw();
+	led = !primaryLCD.clearDrawing();
+	uint8_t x = 0, y = 0;
+	for(; y < 64; x += 2, y++) {
+		primaryLCD.setPixel(x, y, 1);
+	}
+	primaryLCD.updateDrawing();
 	
     while(true) {
     }
