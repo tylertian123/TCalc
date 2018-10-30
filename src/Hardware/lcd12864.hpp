@@ -10,9 +10,10 @@ namespace lcd {
 	public:
 		const uint8_t *data;
 		uint8_t bytesWide;
+		uint8_t width;
 		uint8_t height;
 		
-		LCD12864Image(const uint8_t *data, uint8_t bytesWide, uint8_t height) : data(data), bytesWide(bytesWide), height(height) {}
+		LCD12864Image(const uint8_t *data, uint8_t bytesWide, uint8_t width, uint8_t height) : data(data), bytesWide(bytesWide), width(width), height(height) {}
 	};
 	
 	class LCD12864 : public LCDBase {
