@@ -39,14 +39,6 @@ int main() {
 	led = !primaryLCD.useExtended();
 	led = !primaryLCD.startDraw();
 	led = !primaryLCD.clearDrawing();
-	primaryLCD.drawImage(0, 0, lcd::TEST_CHAR);
-	for(uint8_t x = 0; x < 128; x += 4) {
-		primaryLCD.drawImage(x, 10, lcd::TEST_CHAR);
-	}
-	//Looks like train tracks! Yay!
-	for(uint8_t x = 0; x < 128; x += 2) {
-		primaryLCD.drawImage(x, 30, lcd::TEST_CHAR);
-	}
 	primaryLCD.updateDrawing();
 	
     while(true) {

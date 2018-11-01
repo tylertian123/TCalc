@@ -7,7 +7,7 @@
 
   <Targets>
     <Target>
-      <TargetName>Target 1</TargetName>
+      <TargetName>8051</TargetName>
       <ToolsetNumber>0x0</ToolsetNumber>
       <ToolsetName>MCS-51</ToolsetName>
       <uAC6>0</uAC6>
@@ -374,12 +374,17 @@
       </TargetOption>
       <Groups>
         <Group>
-          <GroupName>Source Group 1</GroupName>
+          <GroupName>Main</GroupName>
           <Files>
             <File>
               <FileName>Main.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\8051\Main.c</FilePath>
+            </File>
+            <File>
+              <FileName>SBDI.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\8051\SBDI.c</FilePath>
             </File>
           </Files>
         </Group>
