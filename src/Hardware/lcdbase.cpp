@@ -121,6 +121,8 @@ namespace lcd {
 	
 		
 	bool LCDBase::writeCommand(uint8_t cmd) {
+		__disable_irq();
+		
 		LCD_WAITBUSY;
 		RS = false;
 		RW = false;
@@ -142,10 +144,14 @@ namespace lcd {
 			LCD_EDELAY;
 			E = false;
 		}
+		
+		__enable_irq();
 		return true;
 	}
 	//The busy flag cannnot be checked before initialization, thus delays are used instead of busy flag checking
 	void LCDBase::writeCommandNoWait(uint8_t cmd) {
+		__disable_irq();
+		
 		RS = false;
 		RW = false;
 		
@@ -166,8 +172,12 @@ namespace lcd {
 			LCD_EDELAY;
 			E = false;
 		}
+		
+		__enable_irq();
 	}
 	bool LCDBase::writeData(uint8_t data) {
+		__disable_irq();
+		
 		LCD_WAITBUSY;
 		RS = true;
 		RW = false;
@@ -189,9 +199,13 @@ namespace lcd {
 			LCD_EDELAY;
 			E = false;
 		}
+		
+		__enable_irq();
 		return true;
 	}
 	bool LCDBase::readData(uint8_t &out) {
+		__disable_irq();
+		
 		LCD_WAITBUSY;
 		RS = true;
 		RW = true;
@@ -214,6 +228,7 @@ namespace lcd {
 			E = false;
 		}
 		
+		__enable_irq();
 		return true;
 	}
 	bool LCDBase::writeString(const char *str) {
