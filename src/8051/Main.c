@@ -1,5 +1,6 @@
 #include <stc/STC12C5630AD.h>
 #include <intrins.h>
+#include "sbdi.h"
 
 typedef bit bool;
 
@@ -97,5 +98,9 @@ void main(void) {
 			while(!BUTTON);
 			delay(50);
 		}
+		
+		SBDI_BeginTransmission();
+		SBDI_SendByte((unsigned char) result >> 2);
+		SBDI_EndTransmission();
 	}
 }
