@@ -2,7 +2,7 @@
 #define __SBDI_H__
 
 /*
- * Simple Bi-Directional Interface
+ * Simple Bi-Directional Interface AKA I2C But Not I2C or I2C2BN
  * 
  * This bus requires a total of 3 wires:
  * EN - The enable line. This line has a pullup and is pulled down when transmitting data.
