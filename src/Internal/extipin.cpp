@@ -94,6 +94,10 @@ uint8_t EXTIPin::getEXTIIRQChannel() {
 	}
 }
 
+GPIOPin EXTIPin::getPin() {
+	return pin;
+}
+
 void EXTIPin::init(GPIOSpeed_TypeDef speed, EXTITrigger_TypeDef trigger, uint8_t preemp, uint8_t sub) {
 	pin.init(GPIO_Mode_IN_FLOATING, speed);
 	
@@ -122,35 +126,38 @@ void EXTIPin::init(GPIOSpeed_TypeDef speed, EXTITrigger_TypeDef trigger, uint8_t
 		EXTI_ClearITPendingBit(EXTI_Line ## x);\
 	}
 
-void EXTI0_IRQHandler() {
-	EXTI_HANDLE_CHANNEL(0);
-}
-void EXTI1_IRQHandler() {
-	EXTI_HANDLE_CHANNEL(1);
-}
-void EXTI2_IRQHandler() {
-	EXTI_HANDLE_CHANNEL(2);
-}
-void EXTI3_IRQHandler() {
-	EXTI_HANDLE_CHANNEL(3);
-}
-void EXTI4_IRQHandler() {
-	EXTI_HANDLE_CHANNEL(4);
-}
-void EXTI9_5_IRQHandler() {
-	EXTI_HANDLE_CHANNEL(5);
-	EXTI_HANDLE_CHANNEL(6);
-	EXTI_HANDLE_CHANNEL(7);
-	EXTI_HANDLE_CHANNEL(8);
-	EXTI_HANDLE_CHANNEL(9);
-}
-void EXTI15_10_IRQHandler() {
-	EXTI_HANDLE_CHANNEL(10);
-	EXTI_HANDLE_CHANNEL(11);
-	EXTI_HANDLE_CHANNEL(12);
-	EXTI_HANDLE_CHANNEL(13);
-	EXTI_HANDLE_CHANNEL(14);
-	EXTI_HANDLE_CHANNEL(15);
+extern "C" {
+	
+	void EXTI0_IRQHandler() {
+		EXTI_HANDLE_CHANNEL(0);
+	}
+	void EXTI1_IRQHandler() {
+		EXTI_HANDLE_CHANNEL(1);
+	}
+	void EXTI2_IRQHandler() {
+		EXTI_HANDLE_CHANNEL(2);
+	}
+	void EXTI3_IRQHandler() {
+		EXTI_HANDLE_CHANNEL(3);
+	}
+	void EXTI4_IRQHandler() {
+		EXTI_HANDLE_CHANNEL(4);
+	}
+	void EXTI9_5_IRQHandler() {
+		EXTI_HANDLE_CHANNEL(5);
+		EXTI_HANDLE_CHANNEL(6);
+		EXTI_HANDLE_CHANNEL(7);
+		EXTI_HANDLE_CHANNEL(8);
+		EXTI_HANDLE_CHANNEL(9);
+	}
+	void EXTI15_10_IRQHandler() {
+		EXTI_HANDLE_CHANNEL(10);
+		EXTI_HANDLE_CHANNEL(11);
+		EXTI_HANDLE_CHANNEL(12);
+		EXTI_HANDLE_CHANNEL(13);
+		EXTI_HANDLE_CHANNEL(14);
+		EXTI_HANDLE_CHANNEL(15);
+	}
 }
 
 #undef EXTI_HANDLE_CHANNEL

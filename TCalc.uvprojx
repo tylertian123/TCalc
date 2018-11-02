@@ -426,6 +426,11 @@
               <FileType>8</FileType>
               <FilePath>.\src\Internal\extipin.cpp</FilePath>
             </File>
+            <File>
+              <FileName>sbdi.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\src\Internal\sbdi.cpp</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
