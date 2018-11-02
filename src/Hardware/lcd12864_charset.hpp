@@ -1067,6 +1067,17 @@ namespace lcd {
         0x00,
         0x00,
     };
+	const uint8_t CHAR_UNKNOWN_DATA[] = {
+		0xf8,
+		0xd8,
+		0xa8,
+		0xe8,
+		0xd8,
+		0xf8,
+		0xd8,
+		0xf8,
+		0xf8,
+	};
     
     const Img CHAR_ASCII[] = {
         Img(CHAR_SPC_DATA, 1, 5, 9),
@@ -1164,7 +1175,12 @@ namespace lcd {
         Img(CHAR_PIPE_DATA, 1, 5, 9),
         Img(CHAR_RCVB_DATA, 1, 5, 9),
         Img(CHAR_TLDE_DATA, 1, 5, 9),
+		Img(CHAR_UNKNOWN_DATA, 1, 5, 9),
     };
+	
+	uint8_t asciiToIndex(char);
+	const Img& getChar(char);
+	const Img& getNumber(uint8_t);
 }
 
 #endif
