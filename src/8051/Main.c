@@ -73,6 +73,11 @@ void main(void) {
 	LED0 = LED1 = LED2 = 0;
 	BUTTON = 1;
 	while(1) {
+		
+		SBDI_BeginTransmission();
+		SBDI_SendByte(0xA5);
+		SBDI_EndTransmission();
+		
 		ADC_StartConv(channel);
 		while(!ADC_ConvFin());
 		result = ADC_GetResult();
@@ -99,8 +104,8 @@ void main(void) {
 			delay(50);
 		}
 		
-		SBDI_BeginTransmission();
-		SBDI_SendByte((unsigned char) result >> 2);
-		SBDI_EndTransmission();
+//		SBDI_BeginTransmission();
+//		SBDI_SendByte((unsigned char) result >> 2);
+//		SBDI_EndTransmission();
 	}
 }

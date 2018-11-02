@@ -46,9 +46,12 @@ int main() {
 	GPIOPin interruptPin(GPIOA, GPIO_Pin_11);
 	
 	sbdi::Receiver receiver(SBDI_EN, SBDI_DATA, SBDI_CLK);
+	receiver.init();
 	receiver.onReceive([](uint32_t data) {
 		level = (uint8_t) data;
 	});
+	
+	
 	
     while(true) {
 		display.writeData(level / 100 + 0x30);
