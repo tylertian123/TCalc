@@ -431,6 +431,16 @@
               <FileType>8</FileType>
               <FilePath>.\src\Internal\sbdi.cpp</FilePath>
             </File>
+            <File>
+              <FileName>neda.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\src\Internal\neda.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>lcd12864_charset.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\src\Hardware\lcd12864_charset.cpp</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
