@@ -421,6 +421,11 @@
               <FileType>8</FileType>
               <FilePath>.\src\Internal\pwm.cpp</FilePath>
             </File>
+            <File>
+              <FileName>extipin.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\src\Internal\extipin.cpp</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -475,6 +480,11 @@
               <FileName>stm32f10x_usart.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\Lib\src\stm32f10x_usart.c</FilePath>
+            </File>
+            <File>
+              <FileName>stm32f10x_exti.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\Lib\src\stm32f10x_exti.c</FilePath>
             </File>
           </Files>
         </Group>
