@@ -1,17 +1,7 @@
 #include "usart.hpp"
 
-//Import the stdio library without semihosting
-#include <cstdarg>
-#include <cstdio>
-
-#pragma import(__use_no_semihosting)
-extern "C" {
-	//Redefine _sys_exit to allow loading of library
-	void _sys_exit(int code) {
-		//According to specifications this function should never return
-		while(1);
-	}
-}
+#include <stdarg.h>
+#include <stdio.h>
 
 namespace usart {
 	void init(uint32_t baudrate) {
@@ -81,7 +71,7 @@ namespace usart {
 		std::va_list args;
 		va_start(args, fmt);
 		//Use vsnprintf to safely format the string and put into the buffer
-		std::vsnprintf(buf, USART_PRINTF_BUFFER_SIZE, fmt, args);
+		vsnprintf(buf, USART_PRINTF_BUFFER_SIZE, fmt, args);
 		for(uint16_t i = 0; i < USART_PRINTF_BUFFER_SIZE && buf[i] != '\0'; i ++) {
 			usart::sendDataSync(buf[i]);
 		}

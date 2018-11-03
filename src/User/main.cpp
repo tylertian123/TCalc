@@ -45,20 +45,23 @@ int main() {
 	
 	GPIOPin interruptPin(GPIOA, GPIO_Pin_11);
 	
-	sbdi::Receiver receiver(SBDI_EN, SBDI_DATA, SBDI_CLK);
-	receiver.init();
-	receiver.onReceive([](uint32_t data) {
-		level = (uint8_t) data;
-	});
+//	sbdi::Receiver receiver(SBDI_EN, SBDI_DATA, SBDI_CLK);
+//	receiver.init();
+//	receiver.onReceive([](uint32_t data) {
+//		level = (uint8_t) data;
+//	});
 	
-	
+	uint8_t *mem = new uint8_t;
+	*mem = 'a';
+	display.writeData(*mem);
+	delete mem;
 	
     while(true) {
-		display.writeData(level / 100 + 0x30);
-		display.writeData((level % 100) / 10 + 0x30);
-		display.writeData(level % 10 + 0x30);
-		delay::ms(500);
-		display.home();
-		display.clear();
+//		display.writeData(level / 100 + 0x30);
+//		display.writeData((level % 100) / 10 + 0x30);
+//		display.writeData(level % 10 + 0x30);
+//		delay::ms(500);
+//		display.home();
+//		display.clear();
     }
 }

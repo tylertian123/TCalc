@@ -28,6 +28,7 @@ void SBDI_SendSingleBit(bit b) {
 	CLK = 0;
 	delay_cycles(SBDI_CLK_DELAY);
 	CLK = 1;
+	delay_cycles(SBDI_CLK_DELAY);
 }
 
 void SBDI_SendByte(unsigned char b) {

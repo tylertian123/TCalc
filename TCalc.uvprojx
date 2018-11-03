@@ -412,11 +412,6 @@
               <FilePath>.\src\Internal\gpiopin.cpp</FilePath>
             </File>
             <File>
-              <FileName>usart.cpp</FileName>
-              <FileType>8</FileType>
-              <FilePath>.\src\Internal\usart.cpp</FilePath>
-            </File>
-            <File>
               <FileName>pwm.cpp</FileName>
               <FileType>8</FileType>
               <FilePath>.\src\Internal\pwm.cpp</FilePath>
@@ -440,6 +435,11 @@
               <FileName>lcd12864_charset.cpp</FileName>
               <FileType>8</FileType>
               <FilePath>.\src\Hardware\lcd12864_charset.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>usart.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\src\Internal\usart.cpp</FilePath>
             </File>
           </Files>
         </Group>
