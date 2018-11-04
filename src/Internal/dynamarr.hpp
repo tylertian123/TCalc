@@ -8,7 +8,7 @@ template <typename T>
 class DynamicArray {
 public:
 	//Default constructor with length 0
-	DynamicArray() : contents(nullptr), len(0), maxLen(0) {}
+	DynamicArray() : contents((T*) malloc(0)), len(0), maxLen(0) {}
 	//Constructor with initial capacity
 	DynamicArray(uint32_t initialCapacity) : len(0), maxLen(initialCapacity) {
 		//Make sure the length is multipled by the size of T
