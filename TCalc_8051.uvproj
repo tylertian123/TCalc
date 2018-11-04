@@ -386,6 +386,11 @@
               <FileType>1</FileType>
               <FilePath>.\src\8051\SBDI.c</FilePath>
             </File>
+            <File>
+              <FileName>ADC.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\8051\ADC.c</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>

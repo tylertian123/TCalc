@@ -432,11 +432,6 @@
               <FilePath>.\src\Internal\neda.cpp</FilePath>
             </File>
             <File>
-              <FileName>lcd12864_charset.cpp</FileName>
-              <FileType>8</FileType>
-              <FilePath>.\src\Hardware\lcd12864_charset.cpp</FilePath>
-            </File>
-            <File>
               <FileName>usart.cpp</FileName>
               <FileType>8</FileType>
               <FilePath>.\src\Internal\usart.cpp</FilePath>
@@ -451,6 +446,11 @@
         <Group>
           <GroupName>Hardware</GroupName>
           <Files>
+            <File>
+              <FileName>lcd12864_charset.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\src\Hardware\lcd12864_charset.cpp</FilePath>
+            </File>
             <File>
               <FileName>lcdbase.cpp</FileName>
               <FileType>8</FileType>

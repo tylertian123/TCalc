@@ -14,11 +14,47 @@ GPIOPin RS(GPIOB, GPIO_Pin_12), RW(GPIOB, GPIO_Pin_13), E(GPIOB, GPIO_Pin_14),
 			D3(GPIOB, GPIO_Pin_6), D2(GPIOB, GPIO_Pin_7), D1(GPIOB, GPIO_Pin_8), D0(GPIOB, GPIO_Pin_9);
 lcd::LCD12864 display(RS, RW, E, D0, D1, D2, D3, D4, D5, D6, D7);
 
+GPIOPin backlightPin(GPIOA, GPIO_Pin_1);
+pwm::PWMOutput<2, 72000000, 100> backlight(TIM2, RCC_APB1Periph_TIM2, backlightPin);
+
 GPIOPin SBDI_EN(GPIOA, GPIO_Pin_12);
 GPIOPin SBDI_CLK(GPIOA, GPIO_Pin_11);
 GPIOPin SBDI_DATA(GPIOA, GPIO_Pin_8);
 
-volatile uint8_t level = 0;
+GPIOPin led(GPIOC, GPIO_Pin_13);
+
+uint32_t keyDataBuffer = 0;
+
+#define KEY_NULL	0x0000
+#define KEY_UP		0x0001
+#define KEY_DOWN	0x0002
+#define KEY_LEFT	0x0003
+#define KEY_RIGHT	0x0004
+#define KEY_CENTER	0x0005
+
+uint16_t fetchKey() {
+	uint16_t data;
+	//Check for key in buffer
+	if(keyDataBuffer != 0) {
+		//If there are 2 keys in the buffer
+		if(keyDataBuffer >> 16 != 0) {
+			//Return the first key
+			data = keyDataBuffer >> 16;
+			//Remove the first key from the buffer
+			keyDataBuffer &= 0x0000FFFF;
+		}
+		else {
+			//Return the key and clear the buffer
+			data = keyDataBuffer;
+			keyDataBuffer = 0;
+		}
+		return data;
+	}
+	//If buffer empty then no new keys have been entered
+	else {
+		return KEY_NULL;
+	}
+}
 
 int main() {
 	
@@ -26,7 +62,6 @@ int main() {
 	sys::initNVIC();
 	usart::init(115200);
 	
-	GPIOPin led(GPIOC, GPIO_Pin_13);
 	led.init(GPIO_Mode_Out_PP, GPIO_Speed_2MHz);
 	led = 0;
 	
@@ -34,57 +69,55 @@ int main() {
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
 	GPIO_PinRemapConfig(GPIO_Remap_SWJ_Disable, ENABLE);
 	
-	delay::sec(3);
+	//1s startup delay
+	delay::sec(1);
 	
+	//Initialize display and backlight control
 	display.init();
 	
+	backlight.startTimer();
+	backlight.set(0xA0);
 	
-	GPIOPin PWMPin(GPIOA, GPIO_Pin_1);
-	pwm::PWMOutput<2, 72000000, 100> PWMOut(TIM2, RCC_APB1Periph_TIM2, PWMPin);
-	PWMOut.startTimer();
-	PWMOut.set(0xA0);
-	
-	GPIOPin interruptPin(GPIOA, GPIO_Pin_11);
-	
+	//Set up SBDI receiver
 	sbdi::Receiver receiver(SBDI_EN, SBDI_DATA, SBDI_CLK);
 	receiver.init();
 	receiver.onReceive([](uint32_t data) {
-		level = (uint8_t) data;
+		//Store keystroke into buffer
+		//If there is already data in the buffer then shift that data left to make room
+		if(keyDataBuffer != 0) {
+			keyDataBuffer <<= 16;
+		}
+		keyDataBuffer += (uint16_t) data;
 	});
-
-//	SBDI_EN.init(GPIO_Mode_IN_FLOATING, GPIO_Speed_10MHz);
-//	SBDI_DATA.init(GPIO_Mode_IN_FLOATING, GPIO_Speed_10MHz);
-//	SBDI_CLK.init(GPIO_Mode_IN_FLOATING, GPIO_Speed_10MHz);
-//	
-//	DynamicArray<uint8_t> ioData(1000);
 	
+	display.useExtended();
+	display.startDraw();
+	display.clearDrawing();
 	
-	
+	char ch = ' ';
+	uint16_t key = 0;
     while(true) {
-		display.writeData(level / 100 + 0x30);
-		display.writeData((level % 100) / 10 + 0x30);
-		display.writeData(level % 10 + 0x30);
-		delay::ms(100);
-		display.home();
-		display.clear();
-		led = !led;
-//		while(SBDI_EN);
-//		do {
-//			uint8_t data = SBDI_EN << 2 | SBDI_DATA << 1 | SBDI_CLK;
-//			
-//			if(ioData.length() == 0) {
-//				ioData.add(data);
-//			}
-//			else {
-//				if(data != ioData[ioData.length() - 1]) {
-//					ioData.add(data);
-//				}
-//			}
-//		} while(!SBDI_EN);
-//		
-//		for(uint32_t i = 0; i < ioData.length(); i ++) {
-//			usart::printf("EN: %d  DATA: %d  CLK: %d\r\n", (ioData[i] & 1 << 2) >> 2, (ioData[i] & 1 << 1) >> 1, ioData[i] & 1);
-//		}
-//		ioData.empty();
+		if((key = fetchKey()) != KEY_NULL) {
+			if(key == KEY_LEFT) {
+				if(ch > ' ') {
+					ch --;
+				}
+				else {
+					ch = 0x7F;
+				}
+			}
+			else if(key == KEY_RIGHT) {
+				if(ch < 0x7F) {
+					ch ++;
+				}
+				else {
+					ch = ' ';
+				}
+			}
+			
+			display.clearDrawingBuffer();
+			display.drawImage(0, 0, lcd::getChar(ch));
+			display.updateDrawing();
+		}
     }
 }

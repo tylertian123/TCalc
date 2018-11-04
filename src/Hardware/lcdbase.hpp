@@ -5,6 +5,7 @@
 #include "gpiopin.hpp"
 
 #define LCD_ENABLE_DELAY 10 //Cycles
+#define LCD_PRINTF_BUFFER_SIZE 128 //Characters
 
 namespace lcd {
 	
@@ -28,10 +29,11 @@ namespace lcd {
 		virtual uint32_t getTimeout();
 		virtual void setTimeout(uint32_t);
 	
-		virtual bool writeCommand(uint8_t cmd);
-		virtual bool writeData(uint8_t data);
-		virtual bool readData(uint8_t &out);
-		virtual bool writeString(const char *str);
+		virtual bool writeCommand(uint8_t);
+		virtual bool writeData(uint8_t);
+		virtual bool readData(uint8_t&);
+		virtual bool writeString(const char *);
+		virtual bool printf(const char *, ...);
 	
 	protected:
 		GPIOPin RS, RW, E;

@@ -1,18 +1,10 @@
 #include <stc/STC12C5630AD.h>
-#include <intrins.h>
 #include "sbdi.h"
-
-typedef bit bool;
-
-typedef unsigned char uint8_t;
-typedef unsigned short uint16_t;
-typedef unsigned long uint32_t;
-
-sbit LED0 = P2 ^ 6;
-sbit LED1 = P2 ^ 7;
-sbit LED2 = P3 ^ 7;
+#include "adc.h"
 
 sbit BUTTON = P1 ^ 2;
+#define CHANNEL_X_AXIS 0
+#define CHANNEL_Y_AXIS 1
 
 void delay (unsigned int a){
 	unsigned int i;
@@ -21,43 +13,28 @@ void delay (unsigned int a){
 	}
 }
 
-void ADC_StartConv(uint8_t channel) {
-	//Clear ADC Flag
-	ADC_CONTR &= 0xEF; //1110 1111
-	//Set channel by setting the last 3 bits
-	//First clear the bits
-	ADC_CONTR &= 0xF8; //1111 1000
-	//And then set them
-	ADC_CONTR |= channel & 0x07; //0000 0111
-	//Start conversion
-	ADC_CONTR |= 0x08;
-	//Delay 4 clock cycles
-	_nop_();
-	_nop_();
-	_nop_();
-	_nop_();
-}
-bool ADC_ConvFin() {
-	return ADC_CONTR & 0x10; //0001 0000
-}
-uint16_t ADC_GetResult() {
-	uint16_t result = 0;
-	//Clear ADC Flag
-	ADC_CONTR &= 0xEF; //1110 1111
-	//Reassemble the result from the scattered bits
-	result = ADC_DATA << 2;
-	result |= ADC_LOW2;
-	//Delay 4 clock cycles
-	_nop_();
-	_nop_();
-	_nop_();
-	_nop_();
-	return result;
+const unsigned short MIN_THRESH = 192;
+const unsigned short MAX_THRESH = 832;
+
+#define KEY_NULL	0x0000
+#define KEY_UP		0x0001
+#define KEY_DOWN	0x0002
+#define KEY_LEFT	0x0003
+#define KEY_RIGHT	0x0004
+#define KEY_CENTER	0x0005
+
+void sendKey(unsigned short key) {
+	SBDI_BeginTransmission();
+	SBDI_SendByte(key >> 8);
+	SBDI_SendByte(key & 0x00FF);
+	SBDI_EndTransmission();
 }
 
 void main(void) {
-	uint8_t channel = 0;
-	uint16_t result = 0;
+	unsigned short result = 0;
+	unsigned short lastXResult = 512;
+	unsigned short lastYResult = 512;
+	
 	delay(1000);
 	//Set input pins to high impedance mode
 	P1M0 |= 0x03; //0000 0011
@@ -65,43 +42,47 @@ void main(void) {
 	//Turn on ADC power
 	ADC_CONTR |= 0x80;
 	//Configure ADC
-	//1 conversion per 1080 CPU cycles
-	ADC_CONTR &= 0x9F; //1001 1111
+	//1 conversion per 90 CPU cycles
+	ADC_CONTR |= 0x60; //0110 0000
 	//Clear ADC Flag
 	ADC_CONTR &= 0xEF; //1110 1111
 	
-	LED0 = LED1 = LED2 = 0;
 	BUTTON = 1;
 	while(1) {
-		
-		ADC_StartConv(channel);
+		//Check for left and right
+		ADC_StartConv(CHANNEL_X_AXIS);
 		while(!ADC_ConvFin());
 		result = ADC_GetResult();
+		//Check if the value is below the min threshold, and that the last time we checked it was above
+		if(result < MIN_THRESH && lastXResult >= MIN_THRESH) {
+			sendKey(KEY_LEFT);
+			delay(20);
+		}
+		else if(result > MAX_THRESH && lastXResult <= MAX_THRESH) {
+			sendKey(KEY_RIGHT);
+			delay(20);
+		}
+		lastXResult = result;
 		
-		if(result >= 768) {
-			LED0 = LED1 = LED2 = 1;
+		//Check for up and down
+		ADC_StartConv(CHANNEL_Y_AXIS);
+		while(!ADC_ConvFin());
+		result = ADC_GetResult();
+		if(result < MIN_THRESH && lastYResult >= MIN_THRESH) {
+			sendKey(KEY_UP);
+			delay(20);
 		}
-		else if(result >= 512) {
-			LED0 = LED1 = 1;
-			LED2 = 0;
+		else if(result > MAX_THRESH && lastYResult <= MAX_THRESH) {
+			sendKey(KEY_DOWN);
+			delay(20);
 		}
-		else if(result >= 256) {
-			LED0 = 1;
-			LED1 = LED2 = 0;
-		}
-		else {
-			LED0 = LED1 = LED2 = 0;
-		}
+		lastYResult = result;
 		
 		if(!BUTTON) {
-			delay(50);
-			channel = channel == 0 ? 1 : 0;
+			delay(10);
+			sendKey(KEY_CENTER);
 			while(!BUTTON);
-			delay(50);
+			delay(10);
 		}
-		
-		SBDI_BeginTransmission();
-		SBDI_SendByte((unsigned char) (result >> 2));
-		SBDI_EndTransmission();
 	}
 }

@@ -1,4 +1,7 @@
 #include "lcdbase.hpp"
+#include <stdarg.h>
+#include <stdio.h>
+#include <string.h>
 
 namespace lcd {
 	
@@ -238,6 +241,15 @@ namespace lcd {
 			}
 		}
 		return true;
+	}
+	bool LCDBase::printf(const char *fmt, ...) {
+		//Buffer used to store formatted string
+		char buf[LCD_PRINTF_BUFFER_SIZE] = { 0 };
+		std::va_list args;
+		va_start(args, fmt);
+		//Use vsnprintf to safely format the string and put into the buffer
+		vsnprintf(buf, LCD_PRINTF_BUFFER_SIZE, fmt, args);
+		return writeString(buf);
 	}
 	
 	#undef LCD_WAITBUSY
