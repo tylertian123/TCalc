@@ -88,6 +88,20 @@ public:
 		return *this;
 	}
 	
+	typedef T* iterator;
+	typedef const T* const_iterator;
+	iterator begin() {
+		return &contents[0];
+	}
+	const_iterator begin() const {
+		return &contents[0];
+	}
+	iterator end() {
+		return &contents[len];
+	}
+	const_iterator end() const {
+		return &contents[len];
+	}
 
 protected:
 	T *contents;
