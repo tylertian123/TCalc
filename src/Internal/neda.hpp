@@ -26,9 +26,7 @@ namespace neda {
 		virtual uint16_t getWidth() override;
 		virtual uint16_t getHeight() override;
 		virtual bool draw(uint16_t, uint16_t) override;
-		
-		void addChar(char);
-		
+	
 	protected:
 		DynamicArray<char> contents;
 	};

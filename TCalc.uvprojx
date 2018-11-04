@@ -441,6 +441,11 @@
               <FileType>8</FileType>
               <FilePath>.\src\Internal\dynamarr.cpp</FilePath>
             </File>
+            <File>
+              <FileName>font.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\src\Internal\font.cpp</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
