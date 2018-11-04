@@ -3,6 +3,7 @@
 #include "stm32f10x.h"
 #include "lcd12864.hpp"
 #include "dynamarr.hpp"
+#include <string.h>
 
 //Nested Expression Display Algorithm
 namespace neda {
@@ -12,20 +13,20 @@ namespace neda {
 	public:
 		virtual uint16_t getWidth() = 0;
 		virtual uint16_t getHeight() = 0;
-		virtual bool draw(uint16_t, uint16_t) = 0;
+		virtual void draw(lcd::LCD12864&, uint16_t, uint16_t) = 0;
 	};
 	
 	//Bottom-level expression that is just a string.
 	class StringExpression : public Expression {
 	public:
 		//Constructor from string, copy constructor and default constructor
-		StringExpression(const char *contents);
+		StringExpression(const char *contents) : contents(contents, strlen(contents)) {}
 		StringExpression(const StringExpression &other) : contents(other.contents) {}
 		StringExpression() : contents() {}
 			
 		virtual uint16_t getWidth() override;
 		virtual uint16_t getHeight() override;
-		virtual bool draw(uint16_t, uint16_t) override;
+		virtual void draw(lcd::LCD12864&, uint16_t, uint16_t) override;
 	
 	protected:
 		DynamicArray<char> contents;
@@ -41,7 +42,7 @@ namespace neda {
 			
 		virtual uint16_t getWidth() override;
 		virtual uint16_t getHeight() override;
-		virtual bool draw(uint16_t, uint16_t) override;
+		virtual void draw(lcd::LCD12864&, uint16_t, uint16_t) override;
 	
 	protected:
 		DynamicArray<Expression*> contents;
@@ -55,7 +56,7 @@ namespace neda {
 			
 		virtual uint16_t getWidth() override;
 		virtual uint16_t getHeight() override;
-		virtual bool draw(uint16_t, uint16_t) override;
+		virtual void draw(lcd::LCD12864&, uint16_t, uint16_t) override;
 	
 	protected:
 		Expression *numerator;
