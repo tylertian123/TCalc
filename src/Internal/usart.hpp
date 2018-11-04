@@ -12,9 +12,9 @@
 #define USART_IRQn USART1_IRQn
 
 //Maximum string length is this buffer size minus one (leaving room for the null terminator)
-#define USART_PRINTF_BUFFER_SIZE 1024
+#define USART_PRINTF_BUFFER_SIZE 512
 //Comment this out to use query instead of interrupt
-#define USART_RECEIVE_METHOD_INTERRUPT
+//#define USART_RECEIVE_METHOD_INTERRUPT
 
 namespace usart {
 	void init(uint32_t);

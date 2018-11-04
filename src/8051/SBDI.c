@@ -1,7 +1,7 @@
 #include "SBDI.h"
 #include <stc/STC12C5630AD.h>
 
-#define SBDI_CLK_DELAY 1000
+#define SBDI_CLK_DELAY 500
 
 sbit EN = P1 ^ 7;
 sbit CLK = P1 ^ 6;

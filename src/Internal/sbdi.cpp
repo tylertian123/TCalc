@@ -22,13 +22,16 @@ namespace sbdi {
 			while(receiverInstance->CLK) {
 				//At any point if the enable line goes back to high then exit
 				if(receiverInstance->EN.getPin()) {
+					//delay::cycles(360000);
 					goto receive_loop_end; //Prepare for a raptor attack
 				}
 			}
-			
+			//delay::cycles(360000);
 			//Shift the buffer left and fill the last bit
 			receiverInstance->buffer <<= 1;
 			receiverInstance->buffer += receiverInstance->DATA;
+			
+			while(!receiverInstance->CLK);
 		}
 	receive_loop_end:
 		//Call callback if set

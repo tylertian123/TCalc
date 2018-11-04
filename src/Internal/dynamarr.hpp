@@ -56,6 +56,9 @@ public:
 		//Simply decrement the length, no need to waste time clearing out the memory
 		len --;
 	}
+	void empty() {
+		len = 0;
+	}
 	
 	//WARNING: Does not check for out of bounds!
 	const T& operator[](uint32_t i) const {

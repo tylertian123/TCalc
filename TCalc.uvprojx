@@ -441,6 +441,11 @@
               <FileType>8</FileType>
               <FilePath>.\src\Internal\usart.cpp</FilePath>
             </File>
+            <File>
+              <FileName>dynamarr.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\src\Internal\dynamarr.cpp</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

@@ -4,7 +4,7 @@
 
 namespace delay {
 	void init();
-	void cycles(uint16_t);
+	void cycles(uint32_t);
 	void sec(uint16_t s);
 	void ms(uint16_t ms);
 	void us(uint16_t us);

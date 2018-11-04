@@ -4,7 +4,7 @@
 
 namespace delay {
 	
-	void cycles(uint16_t c) {
+	void cycles(uint32_t c) {
 		while(c--);
 	}
 	
