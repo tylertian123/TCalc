@@ -95,30 +95,36 @@ int main() {
 	display.startDraw();
 	display.clearDrawing();
 	
-	char ch = ' ';
-	uint16_t key = 0;
+	//char ch = ' ';
+	//uint16_t key = 0;
+	
+	neda::StringExpression strExp("1+1=2, Hello World");
+	strExp.addChar('!');
+	strExp.draw(display, 0, 0);
+	display.updateDrawing();
+	
     while(true) {
-		if((key = fetchKey()) != KEY_NULL) {
-			if(key == KEY_LEFT) {
-				if(ch > ' ') {
-					ch --;
-				}
-				else {
-					ch = 0x7F;
-				}
-			}
-			else if(key == KEY_RIGHT) {
-				if(ch < 0x7F) {
-					ch ++;
-				}
-				else {
-					ch = ' ';
-				}
-			}
-			
-			display.clearDrawingBuffer();
-			display.drawImage(0, 0, lcd::getChar(ch));
-			display.updateDrawing();
-		}
+//		if((key = fetchKey()) != KEY_NULL) {
+//			if(key == KEY_LEFT) {
+//				if(ch > ' ') {
+//					ch --;
+//				}
+//				else {
+//					ch = 0x7F;
+//				}
+//			}
+//			else if(key == KEY_RIGHT) {
+//				if(ch < 0x7F) {
+//					ch ++;
+//				}
+//				else {
+//					ch = ' ';
+//				}
+//			}
+//			
+//			display.clearDrawingBuffer();
+//			display.drawImage(0, 0, lcd::getChar(ch));
+//			display.updateDrawing();
+//		}
     }
 }

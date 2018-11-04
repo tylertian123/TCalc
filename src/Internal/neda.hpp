@@ -23,6 +23,8 @@ namespace neda {
 		StringExpression(const char *contents) : contents(contents, strlen(contents)) {}
 		StringExpression(const StringExpression &other) : contents(other.contents) {}
 		StringExpression() : contents() {}
+		
+		void addChar(char);
 			
 		virtual uint16_t getWidth() override;
 		virtual uint16_t getHeight() override;

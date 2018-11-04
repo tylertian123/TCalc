@@ -39,4 +39,7 @@ namespace neda {
 			x += charImg.width + 1;
 		}
 	}
+	void StringExpression::addChar(char ch) {
+		contents.add(ch);
+	}
 }
