@@ -14,6 +14,16 @@ public:
 		//Make sure the length is multipled by the size of T
 		contents = (T*) malloc(sizeof(T) * initialCapacity);
 	}
+	//Copy constructor
+	DynamicArray(const DynamicArray &other) {
+		len = other.len;
+		maxLen = other.maxLen;
+		contents = (T*) malloc(sizeof(T) * maxLen);
+		
+		for(uint32_t i = 0; i < len; i ++) {
+			contents[i] = other.contents[i];
+		}
+	}
 	~DynamicArray() {
 		free(contents);
 	}
