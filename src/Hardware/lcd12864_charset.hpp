@@ -6,218 +6,218 @@ namespace lcd {
 
 	typedef LCD12864Image Img;
 
-    extern const uint8_t CHAR_SPC_DATA[];
-	extern const uint8_t CHAR_EXMK_DATA[];
-	extern const uint8_t CHAR_DBLQ_DATA[];
-	extern const uint8_t CHAR_NSGN_DATA[];
-	extern const uint8_t CHAR_DLR_DATA[];
-	extern const uint8_t CHAR_PCT_DATA[];
-	extern const uint8_t CHAR_AND_DATA[];
-	extern const uint8_t CHAR_SGLQ_DATA[];
-	extern const uint8_t CHAR_LBKT_DATA[];
-	extern const uint8_t CHAR_RBKT_DATA[];
-	extern const uint8_t CHAR_ASTK_DATA[];
-	extern const uint8_t CHAR_PLUS_DATA[];
-	extern const uint8_t CHAR_CMMA_DATA[];
-	extern const uint8_t CHAR_MNUS_DATA[];
-	extern const uint8_t CHAR_DOT_DATA[];
-	extern const uint8_t CHAR_SLSH_DATA[];
-	extern const uint8_t CHAR_0_DATA[];
-	extern const uint8_t CHAR_1_DATA[];
-	extern const uint8_t CHAR_2_DATA[];
-	extern const uint8_t CHAR_3_DATA[];
-	extern const uint8_t CHAR_4_DATA[];
-	extern const uint8_t CHAR_5_DATA[];
-	extern const uint8_t CHAR_6_DATA[];
-	extern const uint8_t CHAR_7_DATA[];
-	extern const uint8_t CHAR_8_DATA[];
-	extern const uint8_t CHAR_9_DATA[];
-	extern const uint8_t CHAR_CLN_DATA[];
-	extern const uint8_t CHAR_SMCN_DATA[];
-	extern const uint8_t CHAR_LSTN_DATA[];
-	extern const uint8_t CHAR_EQL_DATA[];
-	extern const uint8_t CHAR_GTTN_DATA[];
-	extern const uint8_t CHAR_QNMK_DATA[];
-	extern const uint8_t CHAR_ATSB_DATA[];
-	extern const uint8_t CHAR_A_DATA[];
-	extern const uint8_t CHAR_B_DATA[];
-	extern const uint8_t CHAR_C_DATA[];
-	extern const uint8_t CHAR_D_DATA[];
-	extern const uint8_t CHAR_E_DATA[];
-	extern const uint8_t CHAR_F_DATA[];
-	extern const uint8_t CHAR_G_DATA[];
-	extern const uint8_t CHAR_H_DATA[];
-	extern const uint8_t CHAR_I_DATA[];
-	extern const uint8_t CHAR_J_DATA[];
-	extern const uint8_t CHAR_K_DATA[];
-	extern const uint8_t CHAR_L_DATA[];
-	extern const uint8_t CHAR_M_DATA[];
-	extern const uint8_t CHAR_N_DATA[];
-	extern const uint8_t CHAR_O_DATA[];
-	extern const uint8_t CHAR_P_DATA[];
-	extern const uint8_t CHAR_Q_DATA[];
-	extern const uint8_t CHAR_R_DATA[];
-	extern const uint8_t CHAR_S_DATA[];
-	extern const uint8_t CHAR_T_DATA[];
-	extern const uint8_t CHAR_U_DATA[];
-	extern const uint8_t CHAR_V_DATA[];
-	extern const uint8_t CHAR_W_DATA[];
-	extern const uint8_t CHAR_X_DATA[];
-	extern const uint8_t CHAR_Y_DATA[];
-	extern const uint8_t CHAR_Z_DATA[];
-	extern const uint8_t CHAR_LSQB_DATA[];
-	extern const uint8_t CHAR_BKSL_DATA[];
-	extern const uint8_t CHAR_RSQB_DATA[];
-	extern const uint8_t CHAR_CART_DATA[];
-	extern const uint8_t CHAR_USCR_DATA[];
-	extern const uint8_t CHAR_BKTK_DATA[];
-	extern const uint8_t CHAR_LCA_DATA[];
-	extern const uint8_t CHAR_LCB_DATA[];
-	extern const uint8_t CHAR_LCC_DATA[];
-	extern const uint8_t CHAR_LCD_DATA[];
-	extern const uint8_t CHAR_LCE_DATA[];
-	extern const uint8_t CHAR_LCF_DATA[];
-	extern const uint8_t CHAR_LCG_DATA[];
-	extern const uint8_t CHAR_LCH_DATA[];
-	extern const uint8_t CHAR_LCI_DATA[];
-	extern const uint8_t CHAR_LCJ_DATA[];
-	extern const uint8_t CHAR_LCK_DATA[];
-	extern const uint8_t CHAR_LCL_DATA[];
-	extern const uint8_t CHAR_LCM_DATA[];
-	extern const uint8_t CHAR_LCN_DATA[];
-	extern const uint8_t CHAR_LCO_DATA[];
-	extern const uint8_t CHAR_LCP_DATA[];
-	extern const uint8_t CHAR_LCQ_DATA[];
-	extern const uint8_t CHAR_LCR_DATA[];
-	extern const uint8_t CHAR_LCS_DATA[];
-	extern const uint8_t CHAR_LCT_DATA[];
-	extern const uint8_t CHAR_LCU_DATA[];
-	extern const uint8_t CHAR_LCV_DATA[];
-	extern const uint8_t CHAR_LCW_DATA[];
-	extern const uint8_t CHAR_LCX_DATA[];
-	extern const uint8_t CHAR_LCY_DATA[];
-	extern const uint8_t CHAR_LCZ_DATA[];
-	extern const uint8_t CHAR_LCVB_DATA[];
-	extern const uint8_t CHAR_PIPE_DATA[];
-	extern const uint8_t CHAR_RCVB_DATA[];
-	extern const uint8_t CHAR_TLDE_DATA[];
-	extern const uint8_t CHAR_UNKNOWN_DATA[];
+    extern const Img CHAR_SPC;
+	extern const Img CHAR_EXMK;
+	extern const Img CHAR_DBLQ;
+	extern const Img CHAR_NSGN;
+	extern const Img CHAR_DLR;
+	extern const Img CHAR_PCT;
+	extern const Img CHAR_AND;
+	extern const Img CHAR_SGLQ;
+	extern const Img CHAR_LBKT;
+	extern const Img CHAR_RBKT;
+	extern const Img CHAR_ASTK;
+	extern const Img CHAR_PLUS;
+	extern const Img CHAR_CMMA;
+	extern const Img CHAR_MNUS;
+	extern const Img CHAR_DOT;
+	extern const Img CHAR_SLSH;
+	extern const Img CHAR_0;
+	extern const Img CHAR_1;
+	extern const Img CHAR_2;
+	extern const Img CHAR_3;
+	extern const Img CHAR_4;
+	extern const Img CHAR_5;
+	extern const Img CHAR_6;
+	extern const Img CHAR_7;
+	extern const Img CHAR_8;
+	extern const Img CHAR_9;
+	extern const Img CHAR_CLN;
+	extern const Img CHAR_SMCN;
+	extern const Img CHAR_LSTN;
+	extern const Img CHAR_EQL;
+	extern const Img CHAR_GTTN;
+	extern const Img CHAR_QNMK;
+	extern const Img CHAR_ATSB;
+	extern const Img CHAR_A;
+	extern const Img CHAR_B;
+	extern const Img CHAR_C;
+	extern const Img CHAR_D;
+	extern const Img CHAR_E;
+	extern const Img CHAR_F;
+	extern const Img CHAR_G;
+	extern const Img CHAR_H;
+	extern const Img CHAR_I;
+	extern const Img CHAR_J;
+	extern const Img CHAR_K;
+	extern const Img CHAR_L;
+	extern const Img CHAR_M;
+	extern const Img CHAR_N;
+	extern const Img CHAR_O;
+	extern const Img CHAR_P;
+	extern const Img CHAR_Q;
+	extern const Img CHAR_R;
+	extern const Img CHAR_S;
+	extern const Img CHAR_T;
+	extern const Img CHAR_U;
+	extern const Img CHAR_V;
+	extern const Img CHAR_W;
+	extern const Img CHAR_X;
+	extern const Img CHAR_Y;
+	extern const Img CHAR_Z;
+	extern const Img CHAR_LSQB;
+	extern const Img CHAR_BKSL;
+	extern const Img CHAR_RSQB;
+	extern const Img CHAR_CART;
+	extern const Img CHAR_USCR;
+	extern const Img CHAR_BKTK;
+	extern const Img CHAR_LCA;
+	extern const Img CHAR_LCB;
+	extern const Img CHAR_LCC;
+	extern const Img CHAR_LCD;
+	extern const Img CHAR_LCE;
+	extern const Img CHAR_LCF;
+	extern const Img CHAR_LCG;
+	extern const Img CHAR_LCH;
+	extern const Img CHAR_LCI;
+	extern const Img CHAR_LCJ;
+	extern const Img CHAR_LCK;
+	extern const Img CHAR_LCL;
+	extern const Img CHAR_LCM;
+	extern const Img CHAR_LCN;
+	extern const Img CHAR_LCO;
+	extern const Img CHAR_LCP;
+	extern const Img CHAR_LCQ;
+	extern const Img CHAR_LCR;
+	extern const Img CHAR_LCS;
+	extern const Img CHAR_LCT;
+	extern const Img CHAR_LCU;
+	extern const Img CHAR_LCV;
+	extern const Img CHAR_LCW;
+	extern const Img CHAR_LCX;
+	extern const Img CHAR_LCY;
+	extern const Img CHAR_LCZ;
+	extern const Img CHAR_LCVB;
+	extern const Img CHAR_PIPE;
+	extern const Img CHAR_RCVB;
+	extern const Img CHAR_TLDE;
+	extern const Img CHAR_UNKNOWN;
 
     const Img CHAR_NUMBERS[] = {
-        Img(CHAR_0_DATA, 1, 5, 9),
-        Img(CHAR_1_DATA, 1, 5, 9),
-        Img(CHAR_2_DATA, 1, 5, 9),
-        Img(CHAR_3_DATA, 1, 5, 9),
-        Img(CHAR_4_DATA, 1, 5, 9),
-        Img(CHAR_5_DATA, 1, 5, 9),
-        Img(CHAR_6_DATA, 1, 5, 9),
-        Img(CHAR_7_DATA, 1, 5, 9),
-        Img(CHAR_8_DATA, 1, 5, 9),
-        Img(CHAR_9_DATA, 1, 5, 9),
+        CHAR_0,
+        CHAR_1,
+        CHAR_2,
+        CHAR_3,
+        CHAR_4,
+        CHAR_5,
+        CHAR_6,
+        CHAR_7,
+        CHAR_8,
+        CHAR_9,
     };
 	
     const Img CHAR_ASCII[] = {
-        Img(CHAR_SPC_DATA, 1, 5, 9),
-        Img(CHAR_EXMK_DATA, 1, 5, 9),
-        Img(CHAR_DBLQ_DATA, 1, 5, 9),
-        Img(CHAR_NSGN_DATA, 1, 5, 9),
-        Img(CHAR_DLR_DATA, 1, 5, 9),
-        Img(CHAR_PCT_DATA, 1, 5, 9),
-        Img(CHAR_AND_DATA, 1, 5, 9),
-        Img(CHAR_SGLQ_DATA, 1, 5, 9),
-        Img(CHAR_LBKT_DATA, 1, 5, 9),
-        Img(CHAR_RBKT_DATA, 1, 5, 9),
-        Img(CHAR_ASTK_DATA, 1, 5, 9),
-        Img(CHAR_PLUS_DATA, 1, 5, 9),
-        Img(CHAR_CMMA_DATA, 1, 5, 9),
-        Img(CHAR_MNUS_DATA, 1, 5, 9),
-        Img(CHAR_DOT_DATA, 1, 5, 9),
-        Img(CHAR_SLSH_DATA, 1, 5, 9),
-        Img(CHAR_0_DATA, 1, 5, 9),
-        Img(CHAR_1_DATA, 1, 5, 9),
-        Img(CHAR_2_DATA, 1, 5, 9),
-        Img(CHAR_3_DATA, 1, 5, 9),
-        Img(CHAR_4_DATA, 1, 5, 9),
-        Img(CHAR_5_DATA, 1, 5, 9),
-        Img(CHAR_6_DATA, 1, 5, 9),
-        Img(CHAR_7_DATA, 1, 5, 9),
-        Img(CHAR_8_DATA, 1, 5, 9),
-        Img(CHAR_9_DATA, 1, 5, 9),
-        Img(CHAR_CLN_DATA, 1, 5, 9),
-        Img(CHAR_SMCN_DATA, 1, 5, 9),
-        Img(CHAR_LSTN_DATA, 1, 5, 9),
-        Img(CHAR_EQL_DATA, 1, 5, 9),
-        Img(CHAR_GTTN_DATA, 1, 5, 9),
-        Img(CHAR_QNMK_DATA, 1, 5, 9),
-        Img(CHAR_ATSB_DATA, 1, 5, 9),
-        Img(CHAR_A_DATA, 1, 5, 9),
-        Img(CHAR_B_DATA, 1, 5, 9),
-        Img(CHAR_C_DATA, 1, 5, 9),
-        Img(CHAR_D_DATA, 1, 5, 9),
-        Img(CHAR_E_DATA, 1, 5, 9),
-        Img(CHAR_F_DATA, 1, 5, 9),
-        Img(CHAR_G_DATA, 1, 5, 9),
-        Img(CHAR_H_DATA, 1, 5, 9),
-        Img(CHAR_I_DATA, 1, 5, 9),
-        Img(CHAR_J_DATA, 1, 5, 9),
-        Img(CHAR_K_DATA, 1, 5, 9),
-        Img(CHAR_L_DATA, 1, 5, 9),
-        Img(CHAR_M_DATA, 1, 5, 9),
-        Img(CHAR_N_DATA, 1, 5, 9),
-        Img(CHAR_O_DATA, 1, 5, 9),
-        Img(CHAR_P_DATA, 1, 5, 9),
-        Img(CHAR_Q_DATA, 1, 5, 9),
-        Img(CHAR_R_DATA, 1, 5, 9),
-        Img(CHAR_S_DATA, 1, 5, 9),
-        Img(CHAR_T_DATA, 1, 5, 9),
-        Img(CHAR_U_DATA, 1, 5, 9),
-        Img(CHAR_V_DATA, 1, 5, 9),
-        Img(CHAR_W_DATA, 1, 5, 9),
-        Img(CHAR_X_DATA, 1, 5, 9),
-        Img(CHAR_Y_DATA, 1, 5, 9),
-        Img(CHAR_Z_DATA, 1, 5, 9),
-        Img(CHAR_LSQB_DATA, 1, 5, 9),
-        Img(CHAR_BKSL_DATA, 1, 5, 9),
-        Img(CHAR_RSQB_DATA, 1, 5, 9),
-        Img(CHAR_CART_DATA, 1, 5, 9),
-        Img(CHAR_USCR_DATA, 1, 5, 9),
-        Img(CHAR_BKTK_DATA, 1, 5, 9),
-        Img(CHAR_LCA_DATA, 1, 5, 9),
-        Img(CHAR_LCB_DATA, 1, 5, 9),
-        Img(CHAR_LCC_DATA, 1, 5, 9),
-        Img(CHAR_LCD_DATA, 1, 5, 9),
-        Img(CHAR_LCE_DATA, 1, 5, 9),
-        Img(CHAR_LCF_DATA, 1, 5, 9),
-        Img(CHAR_LCG_DATA, 1, 5, 9),
-        Img(CHAR_LCH_DATA, 1, 5, 9),
-        Img(CHAR_LCI_DATA, 1, 5, 9),
-        Img(CHAR_LCJ_DATA, 1, 5, 9),
-        Img(CHAR_LCK_DATA, 1, 5, 9),
-        Img(CHAR_LCL_DATA, 1, 5, 9),
-        Img(CHAR_LCM_DATA, 1, 5, 9),
-        Img(CHAR_LCN_DATA, 1, 5, 9),
-        Img(CHAR_LCO_DATA, 1, 5, 9),
-        Img(CHAR_LCP_DATA, 1, 5, 9),
-        Img(CHAR_LCQ_DATA, 1, 5, 9),
-        Img(CHAR_LCR_DATA, 1, 5, 9),
-        Img(CHAR_LCS_DATA, 1, 5, 9),
-        Img(CHAR_LCT_DATA, 1, 5, 9),
-        Img(CHAR_LCU_DATA, 1, 5, 9),
-        Img(CHAR_LCV_DATA, 1, 5, 9),
-        Img(CHAR_LCW_DATA, 1, 5, 9),
-        Img(CHAR_LCX_DATA, 1, 5, 9),
-        Img(CHAR_LCY_DATA, 1, 5, 9),
-        Img(CHAR_LCZ_DATA, 1, 5, 9),
-        Img(CHAR_LCVB_DATA, 1, 5, 9),
-        Img(CHAR_PIPE_DATA, 1, 5, 9),
-        Img(CHAR_RCVB_DATA, 1, 5, 9),
-        Img(CHAR_TLDE_DATA, 1, 5, 9),
-		Img(CHAR_UNKNOWN_DATA, 1, 5, 9),
+        CHAR_SPC,
+        CHAR_EXMK,
+        CHAR_DBLQ,
+        CHAR_NSGN,
+        CHAR_DLR,
+        CHAR_PCT,
+        CHAR_AND,
+        CHAR_SGLQ,
+        CHAR_LBKT,
+        CHAR_RBKT,
+        CHAR_ASTK,
+        CHAR_PLUS,
+        CHAR_CMMA,
+        CHAR_MNUS,
+        CHAR_DOT,
+        CHAR_SLSH,
+        CHAR_0,
+        CHAR_1,
+        CHAR_2,
+        CHAR_3,
+        CHAR_4,
+        CHAR_5,
+        CHAR_6,
+        CHAR_7,
+        CHAR_8,
+        CHAR_9,
+        CHAR_CLN,
+        CHAR_SMCN,
+        CHAR_LSTN,
+        CHAR_EQL,
+        CHAR_GTTN,
+        CHAR_QNMK,
+        CHAR_ATSB,
+        CHAR_A,
+        CHAR_B,
+        CHAR_C,
+        CHAR_D,
+        CHAR_E,
+        CHAR_F,
+        CHAR_G,
+        CHAR_H,
+        CHAR_I,
+        CHAR_J,
+        CHAR_K,
+        CHAR_L,
+        CHAR_M,
+        CHAR_N,
+        CHAR_O,
+        CHAR_P,
+        CHAR_Q,
+        CHAR_R,
+        CHAR_S,
+        CHAR_T,
+        CHAR_U,
+        CHAR_V,
+        CHAR_W,
+        CHAR_X,
+        CHAR_Y,
+        CHAR_Z,
+        CHAR_LSQB,
+        CHAR_BKSL,
+        CHAR_RSQB,
+        CHAR_CART,
+        CHAR_USCR,
+        CHAR_BKTK,
+        CHAR_LCA,
+        CHAR_LCB,
+        CHAR_LCC,
+        CHAR_LCD,
+        CHAR_LCE,
+        CHAR_LCF,
+        CHAR_LCG,
+        CHAR_LCH,
+        CHAR_LCI,
+        CHAR_LCJ,
+        CHAR_LCK,
+        CHAR_LCL,
+        CHAR_LCM,
+        CHAR_LCN,
+        CHAR_LCO,
+        CHAR_LCP,
+        CHAR_LCQ,
+        CHAR_LCR,
+        CHAR_LCS,
+        CHAR_LCT,
+        CHAR_LCU,
+        CHAR_LCV,
+        CHAR_LCW,
+        CHAR_LCX,
+        CHAR_LCY,
+        CHAR_LCZ,
+        CHAR_LCVB,
+        CHAR_PIPE,
+        CHAR_RCVB,
+        CHAR_TLDE,
+		CHAR_UNKNOWN,
     };
 	
 	uint8_t asciiToIndex(char);
 	const Img& getChar(char);
-	const Img& getNumber(uint8_t);
+	const Img& getNumber(Img);
 }
 
 #endif
