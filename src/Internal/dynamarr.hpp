@@ -15,13 +15,19 @@ public:
 		contents = (T*) malloc(sizeof(T) * initialCapacity);
 	}
 	//Copy constructor
-	DynamicArray(const DynamicArray &other) {
-		len = other.len;
-		maxLen = other.maxLen;
+	DynamicArray(const DynamicArray &other) : len(other.len), maxLen(other.maxLen) {
 		contents = (T*) malloc(sizeof(T) * maxLen);
 		
 		for(uint32_t i = 0; i < len; i ++) {
 			contents[i] = other.contents[i];
+		}
+	}
+	//Array constructor
+	DynamicArray(const T *arr, uint32_t len) : len(len), maxLen(len) {
+		contents = (T*) malloc(sizeof(T) * maxLen);
+		
+		for(uint32_t i = 0; i < len; i ++) {
+			contents[i] = arr[i];
 		}
 	}
 	~DynamicArray() {
