@@ -22,11 +22,13 @@ namespace sbdi {
 		uint32_t getLast();
 		void onReceive(Callback);
 			
-		friend void Receiver_Callback();
+		friend void Receiver_CLK_Callback();
+		friend void Receiver_EN_Callback();
 	
 	protected:
 		EXTIPin EN;
-		GPIOPin DATA, CLK;
+		GPIOPin DATA;
+		EXTIPin CLK;
 		Callback callback;
 		uint32_t buffer;
 	};

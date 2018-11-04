@@ -19,6 +19,8 @@ public:
 	uint32_t getEXTILine();
 	uint8_t getEXTIIRQChannel();
 	
+	operator bool() const;
+	
 	static CallbackFunction EXTI0Callback, EXTI1Callback, EXTI2Callback, EXTI3Callback, 
 		EXTI4Callback, EXTI5Callback, EXTI6Callback, EXTI7Callback,
 		EXTI8Callback, EXTI9Callback, EXTI10Callback, EXTI11Callback,

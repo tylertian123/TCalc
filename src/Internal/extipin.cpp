@@ -94,6 +94,10 @@ uint8_t EXTIPin::getEXTIIRQChannel() {
 	}
 }
 
+EXTIPin::operator bool() const {
+	return pin;
+}
+
 GPIOPin EXTIPin::getPin() {
 	return pin;
 }
