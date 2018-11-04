@@ -8,6 +8,7 @@
 #include "lcd12864_charset.hpp"
 #include "pwm.hpp"
 #include "dynamarr.hpp"
+#include "neda.hpp"
 
 GPIOPin RS(GPIOB, GPIO_Pin_12), RW(GPIOB, GPIO_Pin_13), E(GPIOB, GPIO_Pin_14),
 			D7(GPIOA, GPIO_Pin_15), D6(GPIOB, GPIO_Pin_3), D5(GPIOB, GPIO_Pin_4), D4(GPIOB, GPIO_Pin_5),
