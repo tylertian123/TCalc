@@ -7,28 +7,36 @@
 
 namespace neda {
 	
+	//*************************** Expression ***************************************
+	uint16_t Expression::getWidth() {
+		return exprWidth;
+	}
+	uint16_t Expression::getHeight() {
+		return exprHeight;
+	}
+	
 	//*************************** StringExpression ***************************************
-	uint16_t StringExpression::getWidth() {
+	void StringExpression::computeWidth() {
 		if(contents.length() == 0) {
-			return 0;
+			exprWidth = 0;
+			return;
 		}
 		
 		//Add up all the character's widths
-		uint16_t width = 0;
+		exprWidth = 0;
 		for(char ch : contents) {
-			width += lcd::getChar(ch).width;
+			exprWidth += lcd::getChar(ch).width;
 		}
 		//Add up all length - 1 spaces between the characters
-		width += contents.length() - 1;
-		return width;
+		exprWidth += contents.length() - 1;
 	}
-	uint16_t StringExpression::getHeight() {
+	void StringExpression::computeHeight() {
 		uint16_t max = 0;
 		//Take the max of all the heights
 		for(char ch : contents) {
 			max = lcd::getChar(ch).height > max ? lcd::getChar(ch).height : max;
 		}
-		return max;
+		exprHeight = max;
 	}
 	void StringExpression::draw(lcd::LCD12864 &dest, uint16_t x, uint16_t y) {
 		uint16_t height = getHeight();

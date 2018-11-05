@@ -11,9 +11,14 @@ namespace neda {
 	//Base Expression class.
 	class Expression {
 	public:
-		virtual uint16_t getWidth() = 0;
-		virtual uint16_t getHeight() = 0;
+		virtual void computeWidth() = 0;
+		virtual void computeHeight() = 0;
+		virtual uint16_t getWidth();
+		virtual uint16_t getHeight();
 		virtual void draw(lcd::LCD12864&, uint16_t, uint16_t) = 0;
+	protected:
+		uint16_t exprWidth;
+		uint16_t exprHeight;
 	};
 	
 	//Bottom-level expression that is just a string.
@@ -26,8 +31,8 @@ namespace neda {
 		
 		void addChar(char);
 			
-		virtual uint16_t getWidth() override;
-		virtual uint16_t getHeight() override;
+		virtual void computeWidth() override;
+		virtual void computeHeight() override;
 		virtual void draw(lcd::LCD12864&, uint16_t, uint16_t) override;
 	
 	protected:
