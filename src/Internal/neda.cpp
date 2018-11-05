@@ -42,4 +42,58 @@ namespace neda {
 	void StringExpression::addChar(char ch) {
 		contents.add(ch);
 	}
+	
+	
+	uint16_t ContainerExpression::getWidth() {
+		//An empty ContainerExpression has a default width and height of 5x9
+		if(contents.length() == 0) {
+			return 5;
+		}
+		
+		//Add up all the expressions's widths
+		uint16_t width = 0;
+		for(Expression *ex : contents) {
+			width += ex->getWidth();
+		}
+		//Add up all length - 1 spaces between the expressions
+		width += contents.length() - 1;
+		return width;
+	}
+	uint16_t ContainerExpression::getHeight() {
+		if(contents.length() == 0) {
+			return 9;
+		}
+		
+		uint16_t max = 0;
+		//Take the max of all the heights
+		for(Expression *ex : contents) {
+			max = ex->getHeight() > max ? ex->getHeight() : max;
+		}
+		return max;
+	}
+	void ContainerExpression::draw(lcd::LCD12864 &dest, uint16_t x, uint16_t y) {
+		if(contents.length() == 0) {
+			//Empty container shows up as a box
+			for(uint16_t w = 0; w < getWidth(); w ++) {
+				dest.setPixel(x + w, y, true);
+				dest.setPixel(x + w, y + getHeight(), true);
+			}
+			for(uint16_t h = 0; h <= getHeight(); h ++) {
+				dest.setPixel(x, y + h, true);
+				dest.setPixel(x + getWidth(), y + h, true);
+			}
+		}
+		
+		uint16_t height = getHeight();
+		
+		for(Expression *ex : contents) {
+			uint16_t exHeight = ex->getHeight();
+			//Center everything
+			ex->draw(dest, x, y + (height - exHeight) / 2);
+			x += ex->getWidth() + 1;
+		}
+	}
+	void ContainerExpression::addExpr(Expression *expr) {
+		contents.add(expr);
+	}
 }
