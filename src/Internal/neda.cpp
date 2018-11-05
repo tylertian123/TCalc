@@ -116,16 +116,24 @@ namespace neda {
 	}
 	
 	//*************************** FractionExpression ***************************************
-	//TODO: Check for null pointers
 	void FractionExpression::computeWidth() {
 		//Take the greater of the widths and add 2 for the spacing at the sides
-		exprWidth = MAX(numerator->getWidth(), denominator->getWidth()) + 2;
+		uint16_t numeratorWidth = numerator ? numerator->getWidth() : 0;
+		uint16_t denominatorWidth = denominator ? denominator->getWidth() : 0;
+		exprWidth = MAX(numeratorWidth, denominatorWidth) + 2;
 	}
 	void FractionExpression::computeHeight() {
+		uint16_t numeratorHeight = numerator ? numerator->getHeight() : 0;
+		uint16_t denominatorHeight = denominator ? denominator->getHeight() : 0;
 		//Take the sum of the heights and add 3 for the fraction line
-		exprHeight = numerator->getHeight() + denominator->getHeight() + 3;
+		exprHeight = numeratorHeight + denominatorHeight + 3;
 	}
 	void FractionExpression::draw(lcd::LCD12864 &dest, uint16_t x, uint16_t y) {
+		//Watch out for null pointers
+		if(!numerator || !denominator) {
+			return;
+		}
+		
 		uint16_t width = getWidth();
 		//Center horizontally
 		numerator->draw(dest, x + (width - numerator->getWidth()) / 2, y);

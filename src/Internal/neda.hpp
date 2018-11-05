@@ -82,11 +82,11 @@ namespace neda {
 			computeWidth();
 			computeHeight();
 		}
-		FractionExpression() : numerator(), denominator() {
+		FractionExpression() : numerator(nullptr), denominator(nullptr) {
 			computeWidth();
 			computeHeight();
 		}
-			
+		
 		virtual void computeWidth() override;
 		virtual void computeHeight() override;
 		virtual void draw(lcd::LCD12864&, uint16_t, uint16_t) override;
