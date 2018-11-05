@@ -56,7 +56,7 @@ namespace neda {
 			width += ex->getWidth();
 		}
 		//Add up all length - 1 spaces between the expressions
-		width += contents.length() - 1;
+		width += (contents.length() - 1) * 3;
 		return width;
 	}
 	uint16_t ContainerExpression::getHeight() {
@@ -90,7 +90,7 @@ namespace neda {
 			uint16_t exHeight = ex->getHeight();
 			//Center everything
 			ex->draw(dest, x, y + (height - exHeight) / 2);
-			x += ex->getWidth() + 1;
+			x += ex->getWidth() + 3;
 		}
 	}
 	void ContainerExpression::addExpr(Expression *expr) {
