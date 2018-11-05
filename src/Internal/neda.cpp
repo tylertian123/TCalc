@@ -54,6 +54,8 @@ namespace neda {
 	}
 	void StringExpression::addChar(char ch) {
 		contents.add(ch);
+		computeWidth();
+		computeHeight();
 	}
 	
 	//*************************** ContainerExpression ***************************************
@@ -109,9 +111,12 @@ namespace neda {
 	}
 	void ContainerExpression::addExpr(Expression *expr) {
 		contents.add(expr);
+		computeWidth();
+		computeHeight();
 	}
 	
 	//*************************** FractionExpression ***************************************
+	//TODO: Check for null pointers
 	void FractionExpression::computeWidth() {
 		//Take the greater of the widths and add 2 for the spacing at the sides
 		exprWidth = MAX(numerator->getWidth(), denominator->getWidth()) + 2;
@@ -139,8 +144,12 @@ namespace neda {
 	}
 	void FractionExpression::setNumerator(Expression *numerator) {
 		this->numerator = numerator;
+		computeWidth();
+		computeHeight();
 	}
 	void FractionExpression::setDenominator(Expression *denominator) {
 		this->denominator = denominator;
+		computeWidth();
+		computeHeight();
 	}
 }
