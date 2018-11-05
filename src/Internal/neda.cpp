@@ -1,8 +1,13 @@
 #include "neda.hpp"
 #include "lcd12864_charset.hpp"
 
+#ifndef MAX
+#define MAX(a, b) (b > a ? b : a)
+#endif
+
 namespace neda {
 	
+	//*************************** StringExpression ***************************************
 	uint16_t StringExpression::getWidth() {
 		if(contents.length() == 0) {
 			return 0;
@@ -43,7 +48,7 @@ namespace neda {
 		contents.add(ch);
 	}
 	
-	
+	//*************************** ContainerExpression ***************************************
 	uint16_t ContainerExpression::getWidth() {
 		//An empty ContainerExpression has a default width and height of 5x9
 		if(contents.length() == 0) {
@@ -63,11 +68,11 @@ namespace neda {
 		if(contents.length() == 0) {
 			return 9;
 		}
-		
 		uint16_t max = 0;
 		//Take the max of all the heights
 		for(Expression *ex : contents) {
-			max = ex->getHeight() > max ? ex->getHeight() : max;
+			uint16_t height = ex->getHeight();
+			max = MAX(height, max);
 		}
 		return max;
 	}
@@ -95,5 +100,38 @@ namespace neda {
 	}
 	void ContainerExpression::addExpr(Expression *expr) {
 		contents.add(expr);
+	}
+	
+	//*************************** FractionExpression ***************************************
+	uint16_t FractionExpression::getWidth() {
+		//Take the greater of the widths and add 2 for the spacing at the sides
+		return MAX(numerator->getWidth(), denominator->getWidth()) + 2;
+	}
+	uint16_t FractionExpression::getHeight() {
+		//Take the sum of the heights and add 3 for the fraction line
+		return numerator->getHeight() + denominator->getHeight() + 3;
+	}
+	void FractionExpression::draw(lcd::LCD12864 &dest, uint16_t x, uint16_t y) {
+		uint16_t width = getWidth();
+		//Center horizontally
+		numerator->draw(dest, x + (width - numerator->getWidth()) / 2, y);
+		uint16_t numHeight = numerator->getHeight();
+		for(uint16_t i = 0; i < width; i ++) {
+			//Draw the fraction line
+			dest.setPixel(x + i, y + numHeight + 1, true);
+		}
+		denominator->draw(dest, x + (width - denominator->getWidth()) / 2, y + numHeight + 3);
+	}
+	Expression* FractionExpression::getNumerator() {
+		return numerator;
+	}
+	Expression* FractionExpression::getDenominator() {
+		return denominator;
+	}
+	void FractionExpression::setNumerator(Expression *numerator) {
+		this->numerator = numerator;
+	}
+	void FractionExpression::setDenominator(Expression *denominator) {
+		this->denominator = denominator;
 	}
 }

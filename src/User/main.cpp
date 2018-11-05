@@ -98,13 +98,44 @@ int main() {
 	//char ch = ' ';
 	//uint16_t key = 0;
 	
-	neda::StringExpression strExp("1+1=2");
-	neda::StringExpression strExp2("3" LCD_CHAR_MUL "4" LCD_CHAR_DIV "2=6");
-	neda::ContainerExpression containerExpr;
-	containerExpr.addExpr(&strExp);
-	containerExpr.addExpr(&strExp2);
-	containerExpr.draw(display, 0, 0);
-	display.updateDrawing();
+//	neda::StringExpression strExp("A");
+//	neda::StringExpression strExp2("1+1");
+//	neda::StringExpression strExp3("3" LCD_CHAR_MUL "4" LCD_CHAR_DIV "2");
+//	neda::FractionExpression fracExp;
+//	fracExp.setNumerator(&strExp2);
+//	fracExp.setDenominator(&strExp3);
+//	neda::ContainerExpression expr;
+//	expr.addExpr(&fracExp);
+//	
+//	expr.addExpr(&strExp);
+//	expr.getHeight();
+//	expr.draw(display, 0, 0);
+//	display.updateDrawing();
+
+	//neda::StringExpression strExp2("B");
+	neda::StringExpression strExp("A");
+	neda::ContainerExpression expr;
+	expr.addExpr(&strExp);
+	neda::StringExpression strExp2("B");
+	expr.addExpr(&strExp2);
+	expr.getHeight();
+	//expr.draw(display, 0, 0);
+	//display.updateDrawing();
+	
+//	neda::StringExpression strExp("1+1");
+//	neda::StringExpression strExp2("3" LCD_CHAR_MUL "4" LCD_CHAR_DIV "2");
+//	neda::FractionExpression frac;
+//	frac.setNumerator(&strExp);
+//	frac.setDenominator(&strExp2);
+//	neda::StringExpression strExp3("x+4-10" LCD_CHAR_MUL "33");
+//	neda::FractionExpression frac2(&frac, &strExp3);
+//	neda::ContainerExpression expr;
+//	expr.addExpr(&frac);
+//	neda::StringExpression strExp4(LCD_CHAR_MUL);
+//	expr.addExpr(&strExp4);
+//	expr.addExpr(&frac2);
+//	expr.draw(display, 0, 0);
+//	display.updateDrawing();
 	
     while(true) {
 //		if((key = fetchKey()) != KEY_NULL) {

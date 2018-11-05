@@ -61,6 +61,11 @@ namespace neda {
 		virtual uint16_t getWidth() override;
 		virtual uint16_t getHeight() override;
 		virtual void draw(lcd::LCD12864&, uint16_t, uint16_t) override;
+			
+		Expression* getNumerator();
+		Expression* getDenominator();
+		void setNumerator(Expression*);
+		void setDenominator(Expression*);
 	
 	protected:
 		Expression *numerator;
