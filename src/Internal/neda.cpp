@@ -57,24 +57,25 @@ namespace neda {
 	}
 	
 	//*************************** ContainerExpression ***************************************
-	uint16_t ContainerExpression::getWidth() {
+	void ContainerExpression::computeWidth() {
 		//An empty ContainerExpression has a default width and height of 5x9
 		if(contents.length() == 0) {
-			return 5;
+			exprWidth = 5;
+			return;
 		}
 		
 		//Add up all the expressions's widths
-		uint16_t width = 0;
+		exprWidth = 0;
 		for(Expression *ex : contents) {
-			width += ex->getWidth();
+			exprWidth += ex->getWidth();
 		}
 		//Add up all length - 1 spaces between the expressions
-		width += (contents.length() - 1) * 3;
-		return width;
+		exprWidth += (contents.length() - 1) * 3;
 	}
-	uint16_t ContainerExpression::getHeight() {
+	void ContainerExpression::computeHeight() {
 		if(contents.length() == 0) {
-			return 9;
+			exprHeight = 9;
+			return;
 		}
 		uint16_t max = 0;
 		//Take the max of all the heights
@@ -82,7 +83,7 @@ namespace neda {
 			uint16_t height = ex->getHeight();
 			max = MAX(height, max);
 		}
-		return max;
+		exprHeight = max;
 	}
 	void ContainerExpression::draw(lcd::LCD12864 &dest, uint16_t x, uint16_t y) {
 		if(contents.length() == 0) {
@@ -111,13 +112,13 @@ namespace neda {
 	}
 	
 	//*************************** FractionExpression ***************************************
-	uint16_t FractionExpression::getWidth() {
+	void FractionExpression::computeWidth() {
 		//Take the greater of the widths and add 2 for the spacing at the sides
-		return MAX(numerator->getWidth(), denominator->getWidth()) + 2;
+		exprWidth = MAX(numerator->getWidth(), denominator->getWidth()) + 2;
 	}
-	uint16_t FractionExpression::getHeight() {
+	void FractionExpression::computeHeight() {
 		//Take the sum of the heights and add 3 for the fraction line
-		return numerator->getHeight() + denominator->getHeight() + 3;
+		exprHeight = numerator->getHeight() + denominator->getHeight() + 3;
 	}
 	void FractionExpression::draw(lcd::LCD12864 &dest, uint16_t x, uint16_t y) {
 		uint16_t width = getWidth();
