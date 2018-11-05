@@ -41,6 +41,8 @@ namespace neda {
 		ContainerExpression(const DynamicArray<Expression*> &expressions) : contents(expressions) {}
 		ContainerExpression(const ContainerExpression &other) : contents(other.contents) {}
 		ContainerExpression() : contents() {}
+		
+		void addExpr(Expression*);
 			
 		virtual uint16_t getWidth() override;
 		virtual uint16_t getHeight() override;

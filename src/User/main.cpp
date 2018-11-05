@@ -98,9 +98,12 @@ int main() {
 	//char ch = ' ';
 	//uint16_t key = 0;
 	
-	neda::StringExpression strExp("1+1=2, Hello World");
-	strExp.addChar('!');
-	strExp.draw(display, 0, 0);
+	neda::StringExpression strExp("1+1=2");
+	neda::StringExpression strExp2("3" LCD_CHAR_MUL "4" LCD_CHAR_DIV "2=6");
+	neda::ContainerExpression containerExpr;
+	containerExpr.addExpr(&strExp);
+	containerExpr.addExpr(&strExp2);
+	containerExpr.draw(display, 0, 0);
 	display.updateDrawing();
 	
     while(true) {
@@ -126,5 +129,7 @@ int main() {
 //			display.drawImage(0, 0, lcd::getChar(ch));
 //			display.updateDrawing();
 //		}
+		led = !led;
+		delay::ms(100);
     }
 }
