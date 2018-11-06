@@ -10,7 +10,7 @@
 namespace neda {
 	
 	//Base Expression class.
-	class Expression {
+	class Expr {
 	public:
 		virtual void computeWidth() = 0;
 		virtual void computeHeight() = 0;
@@ -18,26 +18,26 @@ namespace neda {
 		virtual uint16_t getHeight();
 		virtual void draw(lcd::LCD12864&, uint16_t, uint16_t) = 0;
 	
-		virtual ~Expression() {};
+		virtual ~Expr() {};
 	
 	protected:
 		uint16_t exprWidth;
 		uint16_t exprHeight;
 	};
 	
-	//Bottom-level expression that is just a string.
-	class StringExpression : public Expression {
+	//Bottom-level Expression that is just a string.
+	class StringExpr : public Expr {
 	public:
 		//Constructor from string, copy constructor and default constructor
-		StringExpression(const char *contents) : contents(contents, strlen(contents)) {
+		StringExpr(const char *contents) : contents(contents, strlen(contents)) {
 			computeWidth();
 			computeHeight();
 		}
-		StringExpression(const StringExpression &other) : contents(other.contents) {
+		StringExpr(const StringExpr &other) : contents(other.contents) {
 			computeWidth();
 			computeHeight();
 		}
-		StringExpression() : contents() {
+		StringExpr() : contents() {
 			computeWidth();
 			computeHeight();
 		}
@@ -48,50 +48,50 @@ namespace neda {
 		virtual void computeHeight() override;
 		virtual void draw(lcd::LCD12864&, uint16_t, uint16_t) override;
 		
-		//StringExpressions don't need special handling because it doesn't have any children
-		virtual ~StringExpression() {}
+		//StringExprs don't need special handling because it doesn't have any children
+		virtual ~StringExpr() {}
 	
 	protected:
 		DynamicArray<char> contents;
 	};
 	
-	//An expression that contains multiple expressions.
-	class ContainerExpression : public Expression {
+	//An Expression that contains multiple Exprs.
+	class ContainerExpr : public Expr {
 	public:
-		//Constructor from dynamic array of expression pointers, copy constructor and default constructor
-		ContainerExpression(const DynamicArray<Expression*> &expressions) : contents(expressions) {
+		//Constructor from dynamic array of Expression pointers, copy constructor and default constructor
+		ContainerExpr(const DynamicArray<Expr*> &Exprs) : contents(Exprs) {
 			computeWidth();
 			computeHeight();
 		}
-		ContainerExpression(const ContainerExpression &other) : contents(other.contents) {
+		ContainerExpr(const ContainerExpr &other) : contents(other.contents) {
 			computeWidth();
 			computeHeight();
 		}
-		ContainerExpression() : contents() {
+		ContainerExpr() : contents() {
 			computeWidth();
 			computeHeight();
 		}
 		
-		void addExpr(Expression*);
+		void addExpr(Expr*);
 			
 		virtual void computeWidth() override;
 		virtual void computeHeight() override;
 		virtual void draw(lcd::LCD12864&, uint16_t, uint16_t) override;
 		
-		virtual ~ContainerExpression();
+		virtual ~ContainerExpr();
 	
 	protected:
-		DynamicArray<Expression*> contents;
+		DynamicArray<Expr*> contents;
 	};
 	
 	//Fraction
-	class FractionExpression : public Expression {
+	class FractionExpr : public Expr {
 	public:
-		FractionExpression(Expression *numerator, Expression *denominator) : numerator(numerator), denominator(denominator) {
+		FractionExpr(Expr *numerator, Expr *denominator) : numerator(numerator), denominator(denominator) {
 			computeWidth();
 			computeHeight();
 		}
-		FractionExpression() : numerator(nullptr), denominator(nullptr) {
+		FractionExpr() : numerator(nullptr), denominator(nullptr) {
 			computeWidth();
 			computeHeight();
 		}
@@ -100,16 +100,16 @@ namespace neda {
 		virtual void computeHeight() override;
 		virtual void draw(lcd::LCD12864&, uint16_t, uint16_t) override;
 			
-		Expression* getNumerator();
-		Expression* getDenominator();
-		void setNumerator(Expression*);
-		void setDenominator(Expression*);
+		Expr* getNumerator();
+		Expr* getDenominator();
+		void setNumerator(Expr*);
+		void setDenominator(Expr*);
 		
-		virtual ~FractionExpression();
+		virtual ~FractionExpr();
 	
 	protected:
-		Expression *numerator;
-		Expression *denominator;
+		Expr *numerator;
+		Expr *denominator;
 	};
 }
 

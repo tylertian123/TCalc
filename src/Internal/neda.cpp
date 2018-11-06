@@ -7,16 +7,16 @@
 
 namespace neda {
 	
-	//*************************** Expression ***************************************
-	uint16_t Expression::getWidth() {
+	//*************************** Expr ***************************************
+	uint16_t Expr::getWidth() {
 		return exprWidth;
 	}
-	uint16_t Expression::getHeight() {
+	uint16_t Expr::getHeight() {
 		return exprHeight;
 	}
 	
-	//*************************** StringExpression ***************************************
-	void StringExpression::computeWidth() {
+	//*************************** StringExpr ***************************************
+	void StringExpr::computeWidth() {
 		if(contents.length() == 0) {
 			exprWidth = 0;
 			return;
@@ -30,7 +30,7 @@ namespace neda {
 		//Add up all length - 1 spaces between the characters
 		exprWidth += contents.length() - 1;
 	}
-	void StringExpression::computeHeight() {
+	void StringExpr::computeHeight() {
 		uint16_t max = 0;
 		//Take the max of all the heights
 		for(char ch : contents) {
@@ -38,7 +38,7 @@ namespace neda {
 		}
 		exprHeight = max;
 	}
-	void StringExpression::draw(lcd::LCD12864 &dest, uint16_t x, uint16_t y) {
+	void StringExpr::draw(lcd::LCD12864 &dest, uint16_t x, uint16_t y) {
 		uint16_t height = getHeight();
 		for(char ch : contents) {
 			if(x >= 128 || y >= 64) {
@@ -52,42 +52,42 @@ namespace neda {
 			x += charImg.width + 1;
 		}
 	}
-	void StringExpression::addChar(char ch) {
+	void StringExpr::addChar(char ch) {
 		contents.add(ch);
 		computeWidth();
 		computeHeight();
 	}
 	
-	//*************************** ContainerExpression ***************************************
-	void ContainerExpression::computeWidth() {
-		//An empty ContainerExpression has a default width and height of 5x9
+	//*************************** ContainerExpr ***************************************
+	void ContainerExpr::computeWidth() {
+		//An empty ContainerExpr has a default width and height of 5x9
 		if(contents.length() == 0) {
 			exprWidth = 5;
 			return;
 		}
 		
-		//Add up all the expressions's widths
+		//Add up all the Expressions's widths
 		exprWidth = 0;
-		for(Expression *ex : contents) {
+		for(Expr *ex : contents) {
 			exprWidth += ex->getWidth();
 		}
-		//Add up all length - 1 spaces between the expressions
+		//Add up all length - 1 spaces between the Exprs
 		exprWidth += (contents.length() - 1) * 3;
 	}
-	void ContainerExpression::computeHeight() {
+	void ContainerExpr::computeHeight() {
 		if(contents.length() == 0) {
 			exprHeight = 9;
 			return;
 		}
 		uint16_t max = 0;
 		//Take the max of all the heights
-		for(Expression *ex : contents) {
+		for(Expr *ex : contents) {
 			uint16_t height = ex->getHeight();
 			max = MAX(height, max);
 		}
 		exprHeight = max;
 	}
-	void ContainerExpression::draw(lcd::LCD12864 &dest, uint16_t x, uint16_t y) {
+	void ContainerExpr::draw(lcd::LCD12864 &dest, uint16_t x, uint16_t y) {
 		if(contents.length() == 0) {
 			//Empty container shows up as a box
 			for(uint16_t w = 0; w < getWidth(); w ++) {
@@ -102,39 +102,39 @@ namespace neda {
 		
 		uint16_t height = getHeight();
 		
-		for(Expression *ex : contents) {
+		for(Expr *ex : contents) {
 			uint16_t exHeight = ex->getHeight();
 			//Center everything
 			ex->draw(dest, x, y + (height - exHeight) / 2);
 			x += ex->getWidth() + 3;
 		}
 	}
-	void ContainerExpression::addExpr(Expression *expr) {
+	void ContainerExpr::addExpr(Expr *expr) {
 		contents.add(expr);
 		
 		computeWidth();
 		computeHeight();
 	}
-	ContainerExpression::~ContainerExpression() {
-		for(Expression *ex : contents) {
+	ContainerExpr::~ContainerExpr() {
+		for(Expr *ex : contents) {
 			delete ex;
 		}
 	}
 	
-	//*************************** FractionExpression ***************************************
-	void FractionExpression::computeWidth() {
+	//*************************** FractionExpr ***************************************
+	void FractionExpr::computeWidth() {
 		//Take the greater of the widths and add 2 for the spacing at the sides
 		uint16_t numeratorWidth = numerator ? numerator->getWidth() : 0;
 		uint16_t denominatorWidth = denominator ? denominator->getWidth() : 0;
 		exprWidth = MAX(numeratorWidth, denominatorWidth) + 2;
 	}
-	void FractionExpression::computeHeight() {
+	void FractionExpr::computeHeight() {
 		uint16_t numeratorHeight = numerator ? numerator->getHeight() : 0;
 		uint16_t denominatorHeight = denominator ? denominator->getHeight() : 0;
 		//Take the sum of the heights and add 3 for the fraction line
 		exprHeight = numeratorHeight + denominatorHeight + 3;
 	}
-	void FractionExpression::draw(lcd::LCD12864 &dest, uint16_t x, uint16_t y) {
+	void FractionExpr::draw(lcd::LCD12864 &dest, uint16_t x, uint16_t y) {
 		//Watch out for null pointers
 		if(!numerator || !denominator) {
 			return;
@@ -150,23 +150,23 @@ namespace neda {
 		}
 		denominator->draw(dest, x + (width - denominator->getWidth()) / 2, y + numHeight + 3);
 	}
-	Expression* FractionExpression::getNumerator() {
+	Expr* FractionExpr::getNumerator() {
 		return numerator;
 	}
-	Expression* FractionExpression::getDenominator() {
+	Expr* FractionExpr::getDenominator() {
 		return denominator;
 	}
-	void FractionExpression::setNumerator(Expression *numerator) {
+	void FractionExpr::setNumerator(Expr *numerator) {
 		this->numerator = numerator;
 		computeWidth();
 		computeHeight();
 	}
-	void FractionExpression::setDenominator(Expression *denominator) {
+	void FractionExpr::setDenominator(Expr *denominator) {
 		this->denominator = denominator;
 		computeWidth();
 		computeHeight();
 	}
-	FractionExpression::~FractionExpression() {
+	FractionExpr::~FractionExpr() {
 		if(numerator) {
 			delete numerator;
 		}
