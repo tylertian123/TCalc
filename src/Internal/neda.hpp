@@ -6,6 +6,7 @@
 #include <string.h>
 
 //Nested Expression Display Algorithm
+//WARNING: All instances have to be allocated on the heap with new
 namespace neda {
 	
 	//Base Expression class.
@@ -16,6 +17,9 @@ namespace neda {
 		virtual uint16_t getWidth();
 		virtual uint16_t getHeight();
 		virtual void draw(lcd::LCD12864&, uint16_t, uint16_t) = 0;
+	
+		virtual ~Expression() {};
+	
 	protected:
 		uint16_t exprWidth;
 		uint16_t exprHeight;
@@ -43,6 +47,9 @@ namespace neda {
 		virtual void computeWidth() override;
 		virtual void computeHeight() override;
 		virtual void draw(lcd::LCD12864&, uint16_t, uint16_t) override;
+		
+		//StringExpressions don't need special handling because it doesn't have any children
+		virtual ~StringExpression() {}
 	
 	protected:
 		DynamicArray<char> contents;
@@ -70,6 +77,8 @@ namespace neda {
 		virtual void computeWidth() override;
 		virtual void computeHeight() override;
 		virtual void draw(lcd::LCD12864&, uint16_t, uint16_t) override;
+		
+		virtual ~ContainerExpression();
 	
 	protected:
 		DynamicArray<Expression*> contents;
@@ -95,6 +104,8 @@ namespace neda {
 		Expression* getDenominator();
 		void setNumerator(Expression*);
 		void setDenominator(Expression*);
+		
+		virtual ~FractionExpression();
 	
 	protected:
 		Expression *numerator;

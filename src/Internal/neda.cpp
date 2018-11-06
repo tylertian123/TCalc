@@ -1,8 +1,6 @@
 #include "neda.hpp"
 #include "lcd12864_charset.hpp"
 
-#include "usart.hpp"
-
 #ifndef MAX
 #define MAX(a, b) (b > a ? b : a)
 #endif
@@ -68,12 +66,9 @@ namespace neda {
 			return;
 		}
 		
-		usart::printf("computeWidth len %d\r\n", contents.length());
-		
 		//Add up all the expressions's widths
 		exprWidth = 0;
 		for(Expression *ex : contents) {
-			usart::printf("computeWidth Expr Addr: %x\r\n", ex);
 			exprWidth += ex->getWidth();
 		}
 		//Add up all length - 1 spaces between the expressions
@@ -115,12 +110,15 @@ namespace neda {
 		}
 	}
 	void ContainerExpression::addExpr(Expression *expr) {
-		usart::printf("addExpr Addr: %x\r\n", expr);
 		contents.add(expr);
-		usart::printf("Index 0: %x\r\n", contents[0]);
 		
 		computeWidth();
-		//computeHeight();
+		computeHeight();
+	}
+	ContainerExpression::~ContainerExpression() {
+		for(Expression *ex : contents) {
+			delete ex;
+		}
 	}
 	
 	//*************************** FractionExpression ***************************************
@@ -167,5 +165,13 @@ namespace neda {
 		this->denominator = denominator;
 		computeWidth();
 		computeHeight();
+	}
+	FractionExpression::~FractionExpression() {
+		if(numerator) {
+			delete numerator;
+		}
+		if(denominator) {
+			delete denominator;
+		}
 	}
 }

@@ -113,12 +113,22 @@ int main() {
 //	display.updateDrawing();
 
 	//neda::StringExpression strExp2("B");
-	neda::StringExpression strExp("A");
-	neda::ContainerExpression expr;
-	expr.addExpr(&strExp);
-	neda::StringExpression strExp2("B");
-	expr.addExpr(&strExp2);
+//	neda::StringExpression strExp("A");
+//	neda::ContainerExpression expr;
+//	expr.addExpr(&strExp);
+//	neda::StringExpression strExp2("B");
+//	expr.addExpr(&strExp2);
 	//expr.getHeight();
+	neda::StringExpression *strExp1 = new neda::StringExpression("A");
+	neda::StringExpression *strExp2 = new neda::StringExpression("B");
+	neda::ContainerExpression *cont = new neda::ContainerExpression;
+	cont->addExpr(strExp1);
+	cont->addExpr(strExp2);
+	cont->draw(display, 0, 0);
+	display.updateDrawing();
+	delete strExp1;
+	delete strExp2;
+	delete cont;
 	
 //	neda::StringExpression strExp("1+1");
 //	neda::StringExpression strExp2("3" LCD_CHAR_MUL "4" LCD_CHAR_DIV "2");
