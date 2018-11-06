@@ -118,9 +118,7 @@ int main() {
 	expr.addExpr(&strExp);
 	neda::StringExpression strExp2("B");
 	expr.addExpr(&strExp2);
-	expr.getHeight();
-	//expr.draw(display, 0, 0);
-	//display.updateDrawing();
+	//expr.getHeight();
 	
 //	neda::StringExpression strExp("1+1");
 //	neda::StringExpression strExp2("3" LCD_CHAR_MUL "4" LCD_CHAR_DIV "2");
