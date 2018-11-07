@@ -103,47 +103,49 @@ int main() {
 //	expr.addExpr(&strExp2);
 	//expr.getHeight();
 	
-	neda::StringExpr *strExp1 = new neda::StringExpr("1");
-	neda::StringExpr *strExp2 = new neda::StringExpr("2");
-	neda::StringExpr *strExp3 = new neda::StringExpr("9");
-	neda::StringExpr *strExp6 = new neda::StringExpr("=X");
-	neda::ExponentExpr *expExp = new neda::ExponentExpr(strExp1, strExp2);
-	neda::BracketExpr *bracExp = new neda::BracketExpr(expExp);
-	neda::ContainerExpr *cont = new neda::ContainerExpr;
-	cont->addExpr(bracExp);
-	cont->addExpr(strExp6);
+//	neda::StringExpr *strExp1 = new neda::StringExpr("1");
+//	neda::StringExpr *strExp2 = new neda::StringExpr("2");
+//	neda::StringExpr *strExp3 = new neda::StringExpr("9");
+//	neda::StringExpr *strExp6 = new neda::StringExpr("=X");
+//	neda::ExponentExpr *expExp = new neda::ExponentExpr(strExp1, strExp2);
+//	neda::BracketExpr *bracExp = new neda::BracketExpr(expExp);
+//	neda::BracketExpr *bracExp2 = new neda::BracketExpr(bracExp);
+//	neda::BracketExpr *bracExp3 = new neda::BracketExpr(bracExp2);
+//	neda::ContainerExpr *cont = new neda::ContainerExpr;
+//	cont->addExpr(bracExp3);
+//	cont->addExpr(strExp6);
+//	
+//	cont->draw(display, 0, 0);
+//	display.updateDrawing();
+//	
+//	delete cont;
 	
-	cont->draw(display, 0, 0);
-	display.updateDrawing();
-	
-	delete cont;
-	
-	//char ch = ' ';
-	//uint16_t key = 0;
+	char ch = LCD_CHARSET_LOWBOUND;
+	uint16_t key = 0;
 	
     while(true) {
-//		if((key = fetchKey()) != KEY_NULL) {
-//			if(key == KEY_LEFT) {
-//				if(ch > ' ') {
-//					ch --;
-//				}
-//				else {
-//					ch = 0x7F;
-//				}
-//			}
-//			else if(key == KEY_RIGHT) {
-//				if(ch < 0x7F) {
-//					ch ++;
-//				}
-//				else {
-//					ch = ' ';
-//				}
-//			}
-//			
-//			display.clearDrawingBuffer();
-//			display.drawImage(0, 0, lcd::getChar(ch));
-//			display.updateDrawing();
-//		}
+		if((key = fetchKey()) != KEY_NULL) {
+			if(key == KEY_LEFT) {
+				if(ch > LCD_CHARSET_LOWBOUND) {
+					ch --;
+				}
+				else {
+					ch = 0x7F;
+				}
+			}
+			else if(key == KEY_RIGHT) {
+				if(ch < 0x7F) {
+					ch ++;
+				}
+				else {
+					ch = LCD_CHARSET_LOWBOUND;
+				}
+			}
+			
+			display.clearDrawingBuffer();
+			display.drawImage(0, 0, lcd::getChar(ch));
+			display.updateDrawing();
+		}
 		led = !led;
 		delay::ms(100);
     }
