@@ -221,6 +221,7 @@ namespace neda {
     uint16_t ExponentExpr::getTopSpacing() {
         //The top spacing for exponents is the height minus half of the height of the base
 		uint16_t baseHeight = SAFE_EXEC(base, getHeight);
+		//Round down
         return exprHeight - (baseHeight % 2 == 0 ? baseHeight / 2 : baseHeight / 2 + 1);
     }
 	void ExponentExpr::computeWidth() {
@@ -262,6 +263,38 @@ namespace neda {
 		if(exponent) {
 			delete exponent;
 		}
+	}
+	
+	//*************************** BracketExpr ***************************************
+	uint16_t BracketExpr::getTopSpacing() {
+		return exprHeight / 2; 
+	}
+	void BracketExpr::computeWidth() {
+		//+6 for the brackets themselves
+		exprWidth = SAFE_EXEC(contents, getWidth) + 6;
+	}
+	void BracketExpr::computeHeight() {
+		//+2 for the padding at the top and bottom
+		exprHeight = SAFE_EXEC(contents, getHeight) + 2;
+	}
+	void BracketExpr::draw(lcd::LCD12864 &dest, uint16_t x, uint16_t y) {
+		if(!contents) {
+			return;
+		}
+		//Bracket
+		dest.setPixel(x + 2, y, true);
+		dest.setPixel(x + 1, y + 1, true);
+		dest.setPixel(x + 1, y + exprHeight - 1 - 1, true);
+		dest.setPixel(x + 2, y + exprHeight - 1, true);
+		for(uint16_t i = 2; i < exprHeight - 2; i ++) {
+			dest.setPixel(x, y + i, true);
+			dest.setPixel(x + exprWidth - 1, y + i, true);
+		}
+		dest.setPixel(x + exprWidth - 1 - 2, y, true);
+		dest.setPixel(x + exprWidth - 1 - 1, y + 1, true);
+		dest.setPixel(x + exprWidth - 1 - 1, y + exprHeight - 1 - 1, true);
+		dest.setPixel(x + exprWidth - 1 - 2, y + exprHeight - 1, true);
+		contents->draw(dest, x + 3, y + 1);
 	}
 }
 

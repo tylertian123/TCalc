@@ -106,21 +106,15 @@ int main() {
 	neda::StringExpr *strExp1 = new neda::StringExpr("1");
 	neda::StringExpr *strExp2 = new neda::StringExpr("2");
 	neda::StringExpr *strExp3 = new neda::StringExpr("9");
-	neda::StringExpr *strExp4 = new neda::StringExpr("1");
-	neda::StringExpr *strExp5 = new neda::StringExpr("2");
 	neda::StringExpr *strExp6 = new neda::StringExpr("=X");
 	neda::ExponentExpr *expExp = new neda::ExponentExpr(strExp1, strExp2);
-	neda::FractionExpr *fracExp = new neda::FractionExpr(strExp4, strExp5);
-	neda::ExponentExpr *expExp2 = new neda::ExponentExpr(strExp3, fracExp);
+	neda::BracketExpr *bracExp = new neda::BracketExpr(expExp);
 	neda::ContainerExpr *cont = new neda::ContainerExpr;
-	cont->addExpr(expExp);
-	//cont->addExpr(expExp2);
+	cont->addExpr(bracExp);
 	cont->addExpr(strExp6);
 	
 	cont->draw(display, 0, 0);
 	display.updateDrawing();
-	
-	usart::printf("Spacing: %d\r\n", expExp->getTopSpacing());
 	
 	delete cont;
 	

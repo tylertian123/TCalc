@@ -176,6 +176,29 @@ namespace neda {
 		Expr *base;
 		Expr *exponent;
 	};
+	
+	//An expression in brackets
+	class BracketExpr : public Expr {
+	public:
+		BracketExpr(Expr *contents) : contents(contents) {
+			computeWidth();
+			computeHeight();
+		}
+		BracketExpr() : contents(nullptr) {
+			computeWidth();
+			computeHeight();
+		}
+		
+		virtual uint16_t getTopSpacing() override;
+		virtual void computeWidth() override;
+		virtual void computeHeight() override;
+		virtual void draw(lcd::LCD12864&, uint16_t, uint16_t) override;
+		
+		Expr* getContents();
+		void setContents(Expr*);
+	protected:
+		Expr *contents;
+	};
 }
 
 #endif
