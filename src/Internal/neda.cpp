@@ -220,7 +220,8 @@ namespace neda {
 	//*************************** ExponentExpr ***************************************
     uint16_t ExponentExpr::getTopSpacing() {
         //The top spacing for exponents is the height minus half of the height of the base
-        return exprHeight - (SAFE_EXEC(base, getHeight) / 2);
+		uint16_t baseHeight = SAFE_EXEC(base, getHeight);
+        return exprHeight - (baseHeight % 2 == 0 ? baseHeight / 2 : baseHeight / 2 + 1);
     }
 	void ExponentExpr::computeWidth() {
 		uint16_t baseWidth = SAFE_EXEC(base, getWidth);
@@ -239,7 +240,7 @@ namespace neda {
 		}
 		uint16_t baseWidth = base->getWidth();
 		uint16_t exponentHeight = exponent->getHeight();
-		base->draw(dest, x, exponentHeight - 4);
+		base->draw(dest, x, y + exponentHeight - 4);
 		exponent->draw(dest, x + baseWidth + 2, y);
 	}
 	Expr* ExponentExpr::getBase() {
