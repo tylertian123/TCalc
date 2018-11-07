@@ -7,15 +7,40 @@
 
 //Nested Expression Display Algorithm
 //WARNING: All instances have to be allocated on the heap with new
+//If allocated on the stack the object must not go out of scope
+//DO NOT ALLOCATE USING malloc
+/*
+ * NEDA: Nested Expression Display Algorithm
+ * 
+ * WARNING: To prevent possible memory leaks, all NEDA classes have destructors that deletes all its children.
+ * This means that all instances have to be allocated on the heap, with the new operator to prevent segmentation faults.
+ * If allocated on the stack, the variable must never go out of scope.
+ * DO NOT ALLOCATE WITH malloc
+ */
 namespace neda {
 	
-	//Base Expression class.
+	/*
+     * This is the base Expression class.
+     * 
+     * Every NEDA object is made of nested expressions, hence the name.
+     * Every expression in NEDA has 3 properties: a width, a height, and a top spacing, and can be drawn.
+     * The top spacing is so that expressions in a group line up nicely, e.g. in the expression 1^2+3, the 1, plus sign and 3 should
+     * line up, despite 1^2 being taller than the other expressions. 
+     * The top spacing refers to the distance between the very top of the expression to the middle of the "base" part of the 
+     * expression (rounded down). For example, the top spacing of 1^2 would be the distance in pixels from the top of the 2 to the
+     * middle of the 1, and the top spacing of 1 would just be half the height of 1.
+     * The top spacing is to the middle of the base expression to accommodate for things with different heights such as fractions.
+     */
 	class Expr {
 	public:
 		virtual void computeWidth() = 0;
 		virtual void computeHeight() = 0;
+	
 		virtual uint16_t getWidth();
 		virtual uint16_t getHeight();
+	
+		virtual uint16_t getTopSpacing() = 0;
+	
 		virtual void draw(lcd::LCD12864&, uint16_t, uint16_t) = 0;
 	
 		virtual ~Expr() {};
@@ -25,7 +50,10 @@ namespace neda {
 		uint16_t exprHeight;
 	};
 	
-	//Bottom-level Expression that is just a string.
+	/*
+     * The StringExpr is a bottom-level expression that is simply a string, and in this case, implemented with a DynamicArray<char>.
+     * Being so basic, StringExpr does not have any children; its contents are simply a string and nothing else.
+     */
 	class StringExpr : public Expr {
 	public:
 		//Constructor from string, copy constructor and default constructor
@@ -43,9 +71,10 @@ namespace neda {
 		}
 		
 		void addChar(char);
-			
+		
 		virtual void computeWidth() override;
 		virtual void computeHeight() override;
+        virtual uint16_t getTopSpacing() override;
 		virtual void draw(lcd::LCD12864&, uint16_t, uint16_t) override;
 		
 		//StringExprs don't need special handling because it doesn't have any children
@@ -55,7 +84,10 @@ namespace neda {
 		DynamicArray<char> contents;
 	};
 	
-	//An Expression that contains multiple Exprs.
+	/*
+     * The ContainerExpr is an expression that serves as a container for a bunch of other expressions.
+     * ContainerExprs have special logic in their drawing code that make sure everything lines up using the top spacing.
+     */
 	class ContainerExpr : public Expr {
 	public:
 		//Constructor from dynamic array of Expression pointers, copy constructor and default constructor
@@ -71,9 +103,13 @@ namespace neda {
 			computeWidth();
 			computeHeight();
 		}
+
+        static const int EMPTY_CONTAINER_WIDTH = 5;
+        static const int EMPTY_CONTAINER_HEIGHT = 9;
 		
 		void addExpr(Expr*);
 			
+        virtual uint16_t getTopSpacing() override;
 		virtual void computeWidth() override;
 		virtual void computeHeight() override;
 		virtual void draw(lcd::LCD12864&, uint16_t, uint16_t) override;
@@ -96,6 +132,7 @@ namespace neda {
 			computeHeight();
 		}
 		
+        virtual uint16_t getTopSpacing() override;
 		virtual void computeWidth() override;
 		virtual void computeHeight() override;
 		virtual void draw(lcd::LCD12864&, uint16_t, uint16_t) override;
@@ -124,6 +161,7 @@ namespace neda {
 			computeHeight();
 		}
 		
+        virtual uint16_t getTopSpacing() override;
 		virtual void computeWidth() override;
 		virtual void computeHeight() override;
 		virtual void draw(lcd::LCD12864&, uint16_t, uint16_t) override;

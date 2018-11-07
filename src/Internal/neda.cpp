@@ -2,8 +2,11 @@
 #include "lcd12864_charset.hpp"
 
 #ifndef MAX
-#define MAX(a, b) (b > a ? b : a)
+#define MAX(a, b) (((b) > (a)) ? (b) : (a))
 #endif
+
+//Execute method on obj with no arguments if obj is not null, otherwise 0
+#define SAFE_EXEC(obj, method) ((obj) ? (obj->method()) : 0)
 
 namespace neda {
 	
@@ -16,6 +19,10 @@ namespace neda {
 	}
 	
 	//*************************** StringExpr ***************************************
+    uint16_t StringExpr::getTopSpacing() {
+        //Because of its basic nature, StringExpr doesn't need any special processing
+        return exprHeight / 2;
+    }
 	void StringExpr::computeWidth() {
 		if(contents.length() == 0) {
 			exprWidth = 0;
@@ -59,10 +66,14 @@ namespace neda {
 	}
 	
 	//*************************** ContainerExpr ***************************************
+    uint16_t ContainerExpr::getTopSpacing() {
+        //ContainerExprs don't contain any special parts; they're just rectangles
+        return exprHeight / 2;
+    }
 	void ContainerExpr::computeWidth() {
-		//An empty ContainerExpr has a default width and height of 5x9
+		//An empty ContainerExpr has a default width and height
 		if(contents.length() == 0) {
-			exprWidth = 5;
+			exprWidth = EMPTY_CONTAINER_WIDTH;
 			return;
 		}
 		
@@ -76,16 +87,31 @@ namespace neda {
 	}
 	void ContainerExpr::computeHeight() {
 		if(contents.length() == 0) {
-			exprHeight = 9;
+			exprHeight = EMPTY_CONTAINER_HEIGHT;
 			return;
 		}
-		uint16_t max = 0;
-		//Take the max of all the heights
+
+        //Computing the height takes special logic as it is more than just taking the max of all the children's heights.
+        //In the case of expressions such as 1^2+3_4, the height is greater than the max of all the children because the 1 and 3
+        //have to line up.
+		uint16_t maxTopSpacing = 0;
+		//Take the max of all the top spacings
 		for(Expr *ex : contents) {
-			uint16_t height = ex->getHeight();
-			max = MAX(height, max);
+			uint16_t ts = ex->getTopSpacing();
+			maxTopSpacing = MAX(ts, maxTopSpacing);
 		}
-		exprHeight = max;
+        //Now with the max top spacing we can compute the heights and see what the max is
+        uint16_t maxHeight = 0;
+        for(Expr *ex : contents) {
+            //To calculate the height of any expression in this container, we essentially "replace" the top spacing with the max top
+            //spacing, so that there is now a padding on the top. This is done in the expression below.
+            //When that expression's top spacing is the max top spacing, the expression will be touching the top of the container.
+            //Therefore, its height is just the height. In other cases, it will be increased by the difference between the max top
+            //spacing and the top spacing.
+            uint16_t height = (ex->getHeight() - ex->getTopSpacing()) + maxTopSpacing;
+            maxHeight = MAX(height, maxHeight);
+        }
+        exprHeight = maxHeight;
 	}
 	void ContainerExpr::draw(lcd::LCD12864 &dest, uint16_t x, uint16_t y) {
 		if(contents.length() == 0) {
@@ -100,12 +126,23 @@ namespace neda {
 			}
 		}
 		
-		uint16_t height = getHeight();
+        //Special logic in drawing to make sure everything lines up
+        uint16_t maxTopSpacing = 0;
+        //Take the max of all the top spacings; this will be used to compute the top padding for each expression later.
+        for(Expr *ex : contents) {
+            uint16_t ts = ex->getTopSpacing();
+            maxTopSpacing = MAX(ts, maxTopSpacing);
+        }
 		
 		for(Expr *ex : contents) {
 			uint16_t exHeight = ex->getHeight();
-			//Center everything
-			ex->draw(dest, x, y + (height - exHeight) / 2);
+			//For each expression, its top padding is the difference between the max top spacing and its top spacing.
+            //E.g. A tall expression like 1^2 would have a higher top spacing than 3, so the max top spacing would be its top spacing;
+            //So when drawing the 1^2, there is no difference between the max top spacing and the top spacing, and therefore it has
+            //no top padding. But when drawing the 3, the difference between its top spacing and the max creates a top padding.
+			ex->draw(dest, x, y + (maxTopSpacing - ex->getTopSpacing()));
+            //Increase x so nothing overlaps
+            //Add 3 for a gap between different expressions
 			x += ex->getWidth() + 3;
 		}
 	}
@@ -122,15 +159,20 @@ namespace neda {
 	}
 	
 	//*************************** FractionExpr ***************************************
+    uint16_t FractionExpr::getTopSpacing() {
+        //The top spacing of a fraction is equal to the height of its numerator, plus a pixel of spacing between the numerator and
+        //the fraction line.
+        return SAFE_EXEC(numerator, getHeight) + 1;
+    }
 	void FractionExpr::computeWidth() {
 		//Take the greater of the widths and add 2 for the spacing at the sides
-		uint16_t numeratorWidth = numerator ? numerator->getWidth() : 0;
-		uint16_t denominatorWidth = denominator ? denominator->getWidth() : 0;
+        uint16_t numeratorWidth = SAFE_EXEC(numerator, getWidth);
+		uint16_t denominatorWidth = SAFE_EXEC(denominator, getWidth);
 		exprWidth = MAX(numeratorWidth, denominatorWidth) + 2;
 	}
 	void FractionExpr::computeHeight() {
-		uint16_t numeratorHeight = numerator ? numerator->getHeight() : 0;
-		uint16_t denominatorHeight = denominator ? denominator->getHeight() : 0;
+		uint16_t numeratorHeight = SAFE_EXEC(numerator, getHeight);
+		uint16_t denominatorHeight = SAFE_EXEC(denominator, getHeight);
 		//Take the sum of the heights and add 3 for the fraction line
 		exprHeight = numeratorHeight + denominatorHeight + 3;
 	}
@@ -176,25 +218,29 @@ namespace neda {
 	}
 	
 	//*************************** ExponentExpr ***************************************
+    uint16_t ExponentExpr::getTopSpacing() {
+        //The top spacing for exponents is the height minus half of the height of the base
+        return exprHeight - (SAFE_EXEC(base, getHeight) / 2);
+    }
 	void ExponentExpr::computeWidth() {
-		uint16_t baseWidth = base ? base->getWidth() : 0;
-		uint16_t exponentWidth = exponent ? exponent->getWidth() : 0;
+		uint16_t baseWidth = SAFE_EXEC(base, getWidth);
+		uint16_t exponentWidth = SAFE_EXEC(exponent, getWidth);
 		exprWidth = baseWidth + exponentWidth + 2;
 	}
 	void ExponentExpr::computeHeight() {
-		uint16_t baseHeight = base ? base->getHeight() : 0;
+		uint16_t baseHeight = SAFE_EXEC(base, getHeight);
 		uint16_t exponentHeight = exponent ? exponent->getHeight() : 0;
 		//Make sure this is positive
 		exprHeight = MAX(0, baseHeight + exponentHeight - 4);
 	}
-	void ExponentExpr::draw(lcd::LCD12864 &target, uint16_t x, uint16_t y) {
+	void ExponentExpr::draw(lcd::LCD12864 &dest, uint16_t x, uint16_t y) {
 		if(!base || !exponent) {
 			return;
 		}
 		uint16_t baseWidth = base->getWidth();
 		uint16_t exponentHeight = exponent->getHeight();
-		base->draw(target, x, exponentHeight - 4);
-		exponent->draw(target, x + baseWidth + 2, y);
+		base->draw(dest, x, exponentHeight - 4);
+		exponent->draw(dest, x + baseWidth + 2, y);
 	}
 	Expr* ExponentExpr::getBase() {
 		return base;
@@ -217,3 +263,5 @@ namespace neda {
 		}
 	}
 }
+
+#undef SAFE_EXEC
