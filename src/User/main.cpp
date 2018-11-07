@@ -94,23 +94,6 @@ int main() {
 	display.useExtended();
 	display.startDraw();
 	display.clearDrawing();
-	
-	//char ch = ' ';
-	//uint16_t key = 0;
-	
-//	neda::StringExpression strExp("A");
-//	neda::StringExpression strExp2("1+1");
-//	neda::StringExpression strExp3("3" LCD_CHAR_MUL "4" LCD_CHAR_DIV "2");
-//	neda::FractionExpression fracExp;
-//	fracExp.setNumerator(&strExp2);
-//	fracExp.setDenominator(&strExp3);
-//	neda::ContainerExpression expr;
-//	expr.addExpr(&fracExp);
-//	
-//	expr.addExpr(&strExp);
-//	expr.getHeight();
-//	expr.draw(display, 0, 0);
-//	display.updateDrawing();
 
 	//neda::StringExpression strExp2("B");
 //	neda::StringExpression strExp("A");
@@ -119,34 +102,26 @@ int main() {
 //	neda::StringExpression strExp2("B");
 //	expr.addExpr(&strExp2);
 	//expr.getHeight();
-	neda::StringExpr *strExp1 = new neda::StringExpr("2");
-	neda::StringExpr *strExp2 = new neda::StringExpr("10");
-	neda::StringExpr *strExp3 = new neda::StringExpr("=1024");
-	neda::ExponentExpr *expr = new neda::ExponentExpr;
-	expr->setBase(strExp1);
-	expr->setExponent(strExp2);
+	
+	neda::StringExpr *strExp1 = new neda::StringExpr("1");
+	neda::StringExpr *strExp2 = new neda::StringExpr("2");
+	neda::StringExpr *strExp3 = new neda::StringExpr("3");
+	neda::StringExpr *strExp4 = new neda::StringExpr("4");
+	neda::StringExpr *strExp5 = new neda::StringExpr("5");
+	neda::FractionExpr *innerFrac = new neda::FractionExpr(strExp1, strExp2);
+	neda::FractionExpr *outerFrac = new neda::FractionExpr(innerFrac, strExp3);
+	neda::FractionExpr *otherFrac = new neda::FractionExpr(strExp4, strExp5);
 	neda::ContainerExpr *cont = new neda::ContainerExpr;
-	cont->addExpr(expr);
-	cont->addExpr(strExp3);
+	cont->addExpr(outerFrac);
+	cont->addExpr(otherFrac);
+	
 	cont->draw(display, 0, 0);
 	display.updateDrawing();
 	
 	delete cont;
 	
-//	neda::StringExpression strExp("1+1");
-//	neda::StringExpression strExp2("3" LCD_CHAR_MUL "4" LCD_CHAR_DIV "2");
-//	neda::FractionExpression frac;
-//	frac.setNumerator(&strExp);
-//	frac.setDenominator(&strExp2);
-//	neda::StringExpression strExp3("x+4-10" LCD_CHAR_MUL "33");
-//	neda::FractionExpression frac2(&frac, &strExp3);
-//	neda::ContainerExpression expr;
-//	expr.addExpr(&frac);
-//	neda::StringExpression strExp4(LCD_CHAR_MUL);
-//	expr.addExpr(&strExp4);
-//	expr.addExpr(&frac2);
-//	expr.draw(display, 0, 0);
-//	display.updateDrawing();
+	//char ch = ' ';
+	//uint16_t key = 0;
 	
     while(true) {
 //		if((key = fetchKey()) != KEY_NULL) {
