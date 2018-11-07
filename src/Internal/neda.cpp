@@ -174,4 +174,46 @@ namespace neda {
 			delete denominator;
 		}
 	}
+	
+	//*************************** ExponentExpr ***************************************
+	void ExponentExpr::computeWidth() {
+		uint16_t baseWidth = base ? base->getWidth() : 0;
+		uint16_t exponentWidth = exponent ? exponent->getWidth() : 0;
+		exprWidth = baseWidth + exponentWidth + 2;
+	}
+	void ExponentExpr::computeHeight() {
+		uint16_t baseHeight = base ? base->getHeight() : 0;
+		uint16_t exponentHeight = exponent ? exponent->getHeight() : 0;
+		//Make sure this is positive
+		exprHeight = MAX(0, baseHeight + exponentHeight - 4);
+	}
+	void ExponentExpr::draw(lcd::LCD12864 &target, uint16_t x, uint16_t y) {
+		if(!base || !exponent) {
+			return;
+		}
+		uint16_t baseWidth = base->getWidth();
+		uint16_t exponentHeight = exponent->getHeight();
+		base->draw(target, x, exponentHeight - 4);
+		exponent->draw(target, x + baseWidth + 2, y);
+	}
+	Expr* ExponentExpr::getBase() {
+		return base;
+	}
+	Expr* ExponentExpr::getExponent() {
+		return exponent;
+	}
+	void ExponentExpr::setBase(Expr *base) {
+		this->base = base;
+	}
+	void ExponentExpr::setExponent(Expr *exponent) {
+		this->exponent = exponent;
+	}
+	ExponentExpr::~ExponentExpr() {
+		if(base) {
+			delete base;
+		}
+		if(exponent) {
+			delete exponent;
+		}
+	}
 }

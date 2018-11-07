@@ -111,6 +111,33 @@ namespace neda {
 		Expr *numerator;
 		Expr *denominator;
 	};
+	
+	//Exponent
+	class ExponentExpr : public Expr {
+	public:
+		ExponentExpr(Expr *base, Expr *exponent) : base(base), exponent(exponent) {
+			computeWidth();
+			computeHeight();
+		}
+		ExponentExpr() : base(nullptr), exponent(nullptr) {
+			computeWidth();
+			computeHeight();
+		}
+		
+		virtual void computeWidth() override;
+		virtual void computeHeight() override;
+		virtual void draw(lcd::LCD12864&, uint16_t, uint16_t) override;
+		
+		Expr* getBase();
+		Expr* getExponent();
+		void setBase(Expr*);
+		void setExponent(Expr*);
+		
+		virtual ~ExponentExpr();
+	protected:
+		Expr *base;
+		Expr *exponent;
+	};
 }
 
 #endif

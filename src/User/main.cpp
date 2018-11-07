@@ -119,13 +119,18 @@ int main() {
 //	neda::StringExpression strExp2("B");
 //	expr.addExpr(&strExp2);
 	//expr.getHeight();
-	neda::StringExpr *strExp1 = new neda::StringExpr("A");
-	neda::StringExpr *strExp2 = new neda::StringExpr("B");
+	neda::StringExpr *strExp1 = new neda::StringExpr("2");
+	neda::StringExpr *strExp2 = new neda::StringExpr("10");
+	neda::StringExpr *strExp3 = new neda::StringExpr("=1024");
+	neda::ExponentExpr *expr = new neda::ExponentExpr;
+	expr->setBase(strExp1);
+	expr->setExponent(strExp2);
 	neda::ContainerExpr *cont = new neda::ContainerExpr;
-	cont->addExpr(strExp1);
-	cont->addExpr(strExp2);
+	cont->addExpr(expr);
+	cont->addExpr(strExp3);
 	cont->draw(display, 0, 0);
 	display.updateDrawing();
+	
 	delete cont;
 	
 //	neda::StringExpression strExp("1+1");
