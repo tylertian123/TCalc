@@ -2,7 +2,8 @@
 #define __LCD12864_CHARSET_H__
 #include "lcd12864.hpp"
 
-#define LCD_CHARSET_LOWBOUND 0x1D
+#define LCD_CHARSET_LOWBOUND 0x1C
+#define LCD_CHAR_SERR "\x1c"
 #define LCD_CHAR_PI "\x1d"
 #define LCD_CHAR_MUL "\x1e"
 #define LCD_CHAR_DIV "\x1f"
@@ -108,6 +109,7 @@ namespace lcd {
 	extern const Img CHAR_TLDE;
 	extern const Img CHAR_UNKNOWN;
 	
+	extern const Img CHAR_SERR;
 	extern const Img CHAR_PI;
 	extern const Img CHAR_MUL;
 	extern const Img CHAR_DIV;
@@ -126,6 +128,7 @@ namespace lcd {
     };
 	
     const Img CHAR_ASCII[] = {
+		CHAR_SERR,
 		CHAR_PI,
 		CHAR_MUL, 
 		CHAR_DIV,
