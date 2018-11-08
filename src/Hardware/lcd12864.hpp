@@ -86,7 +86,7 @@ namespace lcd {
 		void setPixel(uint16_t, uint16_t, bool);
 		void setDrawBufferByte(uint16_t, uint16_t, uint8_t);
 		void drawImage(uint16_t, uint16_t, const LCD12864Image&);
-		
+		void drawLine(uint16_t, uint16_t, uint16_t, uint16_t);
 	
 	protected:
 		bool extendedCmd = false;

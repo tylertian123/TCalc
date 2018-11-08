@@ -1,5 +1,9 @@
 #include "lcd12864.hpp"
 
+#ifndef ABS
+#define ABS(x) ((x) >= 0 ? (x) : -(x))
+#endif
+
 namespace lcd {
 	
 	#define W_CMD(x) \
@@ -240,6 +244,84 @@ namespace lcd {
 			if(offset != 0) {
 				uint8_t finalByte = img.data[row * img.bytesWide + img.bytesWide - 1] << (8 - offset);
 				setDrawBufferByte(baseByte + img.bytesWide, row + y, finalByte);
+			}
+		}
+	}
+	
+	//Bresenham's Line Algorithm
+	void drawLineLow(LCD12864 &dest, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2) {
+		bool flip = y2 < y1;
+		if (flip) {
+			y2 = y1 + (y1 - y2);
+		}
+		dest.setPixel(x1, y1, true);
+		uint16_t dx = x2 - x1;
+		uint16_t dy = y2 - y1;
+		uint16_t dy2 = 2 * dy;
+		uint16_t dydx2 = dy2 - 2 * dx;
+
+		int16_t p = dy2 - dx;
+		uint16_t y = y1;
+		for (uint16_t x = x1 + 1; x <= x2; x++) {
+			if (p < 0) {
+				dest.setPixel(x, y, true);
+				p += dy2;
+			}
+			else {
+				dest.setPixel(x, flip ? --y : ++y, true);
+				p += dydx2;
+			}
+
+		}
+	}
+	void drawLineHigh(LCD12864 &dest, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2) {
+		uint16_t temp = x1;
+		x1 = y1;
+		y1 = temp;
+		temp = x2;
+		x2 = y2;
+		y2 = temp;
+
+		bool flip = y2 < y1;
+		if (flip) {
+			y2 = y1 + (y1 - y2);
+		}
+
+		dest.setPixel(y1, x1, true);
+		uint16_t dx = x2 - x1;
+		uint16_t dy = y2 - y1;
+		uint16_t dy2 = 2 * dy;
+		uint16_t dydx2 = dy2 - 2 * dx;
+
+		int16_t p = dy2 - dx;
+		uint16_t y = y1;
+		for (uint16_t x = x1 + 1; x <= x2; x++) {
+			if (p < 0) {
+				dest.setPixel(y, x, true);
+				p += dy2;
+			}
+			else {
+				dest.setPixel(flip ? y -- : y++, x, true);
+				p += dydx2;
+			}
+
+		}
+	}
+	void LCD12864::drawLine(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2) {
+		if (ABS(y2 - y1) <= ABS(x2 - x1)) {
+			if (x2 > x1) {
+				drawLineLow(*this, x1, y1, x2, y2);
+			}
+			else {
+				drawLineLow(*this, x2, y2, x1, y1);
+			}
+		}
+		else {
+			if (y2 > y1) {
+				drawLineHigh(*this, x1, y1, x2, y2);
+			}
+			else {
+				drawLineHigh(*this, x2, y2, x1, y1);
 			}
 		}
 	}
