@@ -296,6 +296,33 @@ namespace neda {
 		dest.setPixel(x + exprWidth - 1 - 2, y + exprHeight - 1, true);
 		contents->draw(dest, x + 3, y + 1);
 	}
+	
+	//*************************** SqrtExpr ***************************************
+	uint16_t SqrtExpr::getTopSpacing() {
+		return exprHeight / 2;
+	}
+	void SqrtExpr::computeWidth() {
+		exprWidth = SAFE_EXEC(contents, getWidth) + 8;
+	}
+	void SqrtExpr::computeHeight() {
+		exprHeight = SAFE_EXEC(contents, getHeight) + 2;
+	}
+	void SqrtExpr::draw(lcd::LCD12864 &dest, uint16_t x, uint16_t y) {
+		if(!contents) {
+			return;
+		}
+		dest.drawLine(x, y + exprHeight - 1 - 2, x + 2, y + exprHeight - 1);
+		dest.drawLine(x + 2, y + exprHeight - 1, x + 6, 0);
+		dest.drawLine(x + 6, 0, x + exprWidth - 1, 0);
+		
+		contents->draw(dest, x + 7, y + 2);
+	}
+	Expr* SqrtExpr::getContents() {
+		return contents;
+	}
+	void SqrtExpr::setContents(Expr *contents) {
+		this->contents = contents;
+	}
 }
 
 #undef SAFE_EXEC

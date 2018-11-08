@@ -196,6 +196,31 @@ namespace neda {
 		
 		Expr* getContents();
 		void setContents(Expr*);
+		
+	protected:
+		Expr *contents;
+	};
+	
+	//An expression in a square root symbol
+	class SqrtExpr : public Expr {
+	public:
+		SqrtExpr(Expr *contents) : contents(contents) {
+			computeWidth();
+			computeHeight();
+		}
+		SqrtExpr() : contents(nullptr) {
+			computeWidth();
+			computeHeight();
+		}
+		
+		virtual uint16_t getTopSpacing() override;
+		virtual void computeWidth() override;
+		virtual void computeHeight() override;
+		virtual void draw(lcd::LCD12864&, uint16_t, uint16_t) override;
+		
+		Expr *getContents();
+		void setContents(Expr*);
+		
 	protected:
 		Expr *contents;
 	};
