@@ -157,7 +157,7 @@ namespace lcd {
 		std::memset(drawBuf, 0, sizeof(drawBuf));
 	}
 	
-	void LCD12864::setPixel(uint8_t x, uint8_t y, bool state) {
+	void LCD12864::setPixel(uint16_t x, uint16_t y, bool state) {
 		if(x >= 128 || y >= 64) {
 			return;
 		}
@@ -184,7 +184,7 @@ namespace lcd {
 		}
 	}
 	
-	void LCD12864::setDrawBufferByte(uint8_t x, uint8_t y, uint8_t data) {
+	void LCD12864::setDrawBufferByte(uint16_t x, uint16_t y, uint8_t data) {
 		if(x >= 16 || y >= 64) {
 			return;
 		}
@@ -197,7 +197,11 @@ namespace lcd {
 		drawBuf[row][col] |= x % 2 == 0 ? data << 8 : data;
 	}
 	
-	void LCD12864::drawImage(uint8_t x, uint8_t y, const LCD12864Image &img) {
+	void LCD12864::drawImage(uint16_t x, uint16_t y, const LCD12864Image &img) {
+        if(x >= 128 || y >= 64) {
+            return;
+        }
+
 		uint8_t baseByte = x / 8;
 		uint8_t offset = x % 8;
 		for(uint8_t row = 0; row < img.height; row ++) {
