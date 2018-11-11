@@ -161,6 +161,8 @@ namespace neda {
 			computeHeight();
 		}
 		
+		static const int BASE_EXPONENT_OVERLAP = 4;
+		
         virtual uint16_t getTopSpacing() override;
 		virtual void computeWidth() override;
 		virtual void computeHeight() override;
@@ -223,6 +225,35 @@ namespace neda {
 		
 	protected:
 		Expr *contents;
+	};
+	
+	//n-th root expression
+	class RadicalExpr : public Expr {
+	public:
+		RadicalExpr(Expr *contents, Expr *n) : contents(contents), n(n) {
+			computeWidth();
+			computeHeight();
+		}
+		RadicalExpr() : contents(nullptr), n(nullptr) {
+			computeWidth();
+			computeHeight();
+		}
+		
+		static const int CONTENTS_N_OVERLAP = 7;
+		static const int SIGN_N_OVERLAP = 1;
+		
+		virtual uint16_t getTopSpacing() override;
+		virtual void computeWidth() override;
+		virtual void computeHeight() override;
+		virtual void draw(lcd::LCD12864&, uint16_t, uint16_t) override;
+		
+		Expr* getContents();
+		Expr* getN();
+		void setContents(Expr*);
+		void setN(Expr*);
+	
+	protected:
+		Expr *contents, *n;
 	};
 }
 

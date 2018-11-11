@@ -233,7 +233,7 @@ namespace neda {
 		uint16_t baseHeight = SAFE_EXEC(base, getHeight);
 		uint16_t exponentHeight = exponent ? exponent->getHeight() : 0;
 		//Make sure this is positive
-		exprHeight = MAX(0, baseHeight + exponentHeight - 4);
+		exprHeight = MAX(0, baseHeight + exponentHeight - BASE_EXPONENT_OVERLAP);
 	}
 	void ExponentExpr::draw(lcd::LCD12864 &dest, uint16_t x, uint16_t y) {
 		if(!base || !exponent) {
@@ -241,7 +241,7 @@ namespace neda {
 		}
 		uint16_t baseWidth = base->getWidth();
 		uint16_t exponentHeight = exponent->getHeight();
-		base->draw(dest, x, y + exponentHeight - 4);
+		base->draw(dest, x, y + MAX(0, exponentHeight - BASE_EXPONENT_OVERLAP));
 		exponent->draw(dest, x + baseWidth + 2, y);
 	}
 	Expr* ExponentExpr::getBase() {
@@ -252,9 +252,13 @@ namespace neda {
 	}
 	void ExponentExpr::setBase(Expr *base) {
 		this->base = base;
+		computeWidth();
+		computeHeight();
 	}
 	void ExponentExpr::setExponent(Expr *exponent) {
 		this->exponent = exponent;
+		computeWidth();
+		computeHeight();
 	}
 	ExponentExpr::~ExponentExpr() {
 		if(base) {
@@ -267,7 +271,8 @@ namespace neda {
 	
 	//*************************** BracketExpr ***************************************
 	uint16_t BracketExpr::getTopSpacing() {
-		return exprHeight / 2; 
+		//Return the top spacing of the stuff inside, instead of half the height so that things in and out the brackets line up nicely
+		return SAFE_EXEC(contents, getTopSpacing) + 1;
 	}
 	void BracketExpr::computeWidth() {
 		//+6 for the brackets themselves
@@ -299,7 +304,7 @@ namespace neda {
 	
 	//*************************** SqrtExpr ***************************************
 	uint16_t SqrtExpr::getTopSpacing() {
-		return exprHeight / 2;
+		return SAFE_EXEC(contents, getTopSpacing) + 2;
 	}
 	void SqrtExpr::computeWidth() {
 		exprWidth = SAFE_EXEC(contents, getWidth) + 8;
@@ -322,6 +327,69 @@ namespace neda {
 	}
 	void SqrtExpr::setContents(Expr *contents) {
 		this->contents = contents;
+		computeWidth();
+		computeHeight();
+	}
+	
+	//*************************** RadicalExpr ***************************************
+	uint16_t RadicalExpr::getTopSpacing() {
+		if(!n) {
+			return SAFE_EXEC(contents, getTopSpacing) + 2;
+		}
+		uint16_t regularTopSpacing = SAFE_EXEC(contents, getTopSpacing) + 2;
+		return regularTopSpacing + MAX(0, n->getHeight() - CONTENTS_N_OVERLAP);
+	}
+	void RadicalExpr::computeWidth() {
+		if(!n) {
+			exprWidth = SAFE_EXEC(contents, getWidth) + 8;
+			return;
+		}
+		exprWidth = MAX(0, n->getWidth() - SIGN_N_OVERLAP) + SAFE_EXEC(contents, getWidth) + 8;
+	}
+	void RadicalExpr::computeHeight() {
+		if(!n) {
+			exprHeight = SAFE_EXEC(contents, getHeight) + 2;
+			return;
+		}
+		exprHeight = MAX(0, n->getHeight() - CONTENTS_N_OVERLAP) + SAFE_EXEC(contents, getHeight) + 2;
+	}
+	void RadicalExpr::draw(lcd::LCD12864 &dest, uint16_t x, uint16_t y) {
+		if(!n) {
+			if(!contents) {
+				return;
+			}
+			dest.drawLine(x, y + exprHeight - 1 - 2, x + 2, y + exprHeight - 1);
+			dest.drawLine(x + 2, y + exprHeight - 1, x + 6, 0);
+			dest.drawLine(x + 6, 0, x + exprWidth - 1, 0);
+			
+			contents->draw(dest, x + 7, y + 2);
+		}
+		else {
+			n->draw(dest, 0, 0);
+			uint16_t xoffset = MAX(0, n->getWidth() - SIGN_N_OVERLAP);
+			uint16_t yoffset = MAX(0, n->getHeight() - CONTENTS_N_OVERLAP);
+			dest.drawLine(x + xoffset, y + exprHeight - 1 - 2, x + 2 + xoffset, y + exprHeight - 1);
+			dest.drawLine(x + 2 + xoffset, y + exprHeight - 1, x + 6 + xoffset, 0 + yoffset);
+			dest.drawLine(x + 6 + xoffset, 0 + yoffset, x + exprWidth - 1 + xoffset, 0 + yoffset);
+			
+			contents->draw(dest, x + 7 + xoffset, y + 2 + yoffset);
+		}
+	}
+	Expr* RadicalExpr::getContents() {
+		return contents;
+	}
+	Expr* RadicalExpr::getN() {
+		return n;
+	}
+	void RadicalExpr::setContents(Expr *contents) {
+		this->contents = contents;
+		computeWidth();
+		computeHeight();
+	}
+	void RadicalExpr::setN(Expr *n) {
+		this->n = n;
+		computeWidth();
+		computeHeight();
 	}
 }
 

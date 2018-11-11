@@ -83,6 +83,7 @@ int main() {
 	sbdi::Receiver receiver(SBDI_EN, SBDI_DATA, SBDI_CLK);
 	receiver.init();
 	receiver.onReceive([](uint32_t data) {
+		usart::printf("%d\r\n", data);
 		//Store keystroke into buffer
 		//If there is already data in the buffer then shift that data left to make room
 		if(keyDataBuffer != 0) {
@@ -118,6 +119,27 @@ int main() {
 //	cont->draw(display, 0, 0);
 //	display.updateDrawing();
 //	
+//	delete cont;
+	
+//	using namespace neda;
+//	StringExpr *s1 = new StringExpr("1+2");
+//	StringExpr *s2 = new StringExpr("X");
+//	StringExpr *s3 = new StringExpr("2");
+//	StringExpr *s4 = new StringExpr("=");
+//	StringExpr *s5 = new StringExpr("\x10");
+//	StringExpr *s6 = new StringExpr("3");
+//	FractionExpr *frac = new FractionExpr(s1, s2);
+//	BracketExpr *brac = new BracketExpr(frac);
+//	ExponentExpr *exp = new ExponentExpr(brac, s3);
+//	RadicalExpr *rad = new RadicalExpr;
+//	rad->setContents(exp);
+//	rad->setN(s6);
+//	ContainerExpr *cont = new ContainerExpr;
+//	cont->addExpr(rad);
+//	cont->addExpr(s4);
+//	cont->addExpr(s5);
+//	cont->draw(display, 0, 0);
+//	display.updateDrawing();
 //	delete cont;
 	
 	char ch = LCD_CHARSET_LOWBOUND;

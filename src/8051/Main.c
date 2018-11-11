@@ -2,15 +2,39 @@
 #include "sbdi.h"
 #include "adc.h"
 
-sbit BUTTON = P1 ^ 2;
-#define CHANNEL_X_AXIS 0
-#define CHANNEL_Y_AXIS 1
+sbit BUTTON = P1 ^ 0;
+#define CHANNEL_X_AXIS 1
+#define CHANNEL_Y_AXIS 2
 
 void delay (unsigned int a){
 	unsigned int i;
 	while( --a != 0){
 		for(i = 0; i < 600; i++);
 	}
+}
+
+sbit ROW1 = P1 ^ 7;
+sbit ROW2 = P2 ^ 0;
+sbit ROW3 = P2 ^ 1;
+sbit ROW4 = P2 ^ 6;
+sbit ROW5 = P2 ^ 7;
+sbit ROW6 = P3 ^ 7;
+sbit COL1 = P2 ^ 2;
+sbit COL2 = P2 ^ 3;
+sbit COL3 = P3 ^ 0;
+sbit COL4 = P3 ^ 1;
+sbit COL5 = P3 ^ 2;
+sbit COL6 = P3 ^ 3;
+sbit COL7 = P3 ^ 4;
+sbit COL8 = P3 ^ 5;
+sbit COL9 = P2 ^ 4;
+sbit COL10 = P2 ^ 5;
+
+void resetRows() {
+	ROW1 = ROW2 = ROW3 = ROW4 = ROW5 = ROW6 = 1;
+}
+void resetCols() {
+	COL1 = COL2 = COL3 = COL4 = COL5 = COL6 = COL7 = COL8 = COL9 = COL10 = 1;
 }
 
 const unsigned short MIN_THRESH = 192;
@@ -37,8 +61,8 @@ void main(void) {
 	
 	delay(1000);
 	//Set input pins to high impedance mode
-	P1M0 |= 0x03; //0000 0011
-	P1M1 &= 0xFC; //1111 1100
+	P1M0 |= 0x06; //0000 0110
+	P1M1 &= 0xF9; //1111 1001
 	//Turn on ADC power
 	ADC_CONTR |= 0x80;
 	//Configure ADC
@@ -48,6 +72,8 @@ void main(void) {
 	ADC_CONTR &= 0xEF; //1110 1111
 	
 	BUTTON = 1;
+	resetRows();
+	resetCols();
 	while(1) {
 		//Check for left and right
 		ADC_StartConv(CHANNEL_X_AXIS);
@@ -82,6 +108,21 @@ void main(void) {
 			delay(10);
 			sendKey(KEY_CENTER);
 			while(!BUTTON);
+			delay(10);
+		}
+		
+		resetRows();
+		ROW1 = 0;
+		if(!COL1) {
+			delay(10);
+			sendKey(KEY_LEFT);
+			while(!COL1);
+			delay(10);
+		}
+		if(!COL2) {
+			delay(10);
+			sendKey(KEY_RIGHT);
+			while(!COL2);
 			delay(10);
 		}
 	}
