@@ -203,30 +203,6 @@ namespace neda {
 		Expr *contents;
 	};
 	
-	//An expression in a square root symbol
-	class SqrtExpr : public Expr {
-	public:
-		SqrtExpr(Expr *contents) : contents(contents) {
-			computeWidth();
-			computeHeight();
-		}
-		SqrtExpr() : contents(nullptr) {
-			computeWidth();
-			computeHeight();
-		}
-		
-		virtual uint16_t getTopSpacing() override;
-		virtual void computeWidth() override;
-		virtual void computeHeight() override;
-		virtual void draw(lcd::LCD12864&, uint16_t, uint16_t) override;
-		
-		Expr *getContents();
-		void setContents(Expr*);
-		
-	protected:
-		Expr *contents;
-	};
-	
 	//n-th root expression
 	class RadicalExpr : public Expr {
 	public:
@@ -254,6 +230,34 @@ namespace neda {
 	
 	protected:
 		Expr *contents, *n;
+	};
+	
+	//Subscript
+	class SubscriptExpr : public Expr {
+	public:
+		SubscriptExpr(Expr *contents, Expr *subscript) : contents(contents), subscript(subscript) {
+			computeWidth();
+			computeHeight();
+		}
+		SubscriptExpr() : contents(nullptr), subscript(nullptr) {
+			computeWidth();
+			computeHeight();
+		}
+		
+		static const int CONTENTS_SUBSCRIPT_OVERLAP = 4;
+		
+		virtual uint16_t getTopSpacing() override;
+		virtual void computeWidth() override;
+		virtual void computeHeight() override;
+		virtual void draw(lcd::LCD12864&, uint16_t, uint16_t) override;
+		
+		Expr* getContents();
+		Expr* getSubscript();
+		void setContents(Expr*);
+		void setSubscript(Expr*);
+		
+	protected:
+		Expr *contents, *subscript;
 	};
 }
 
