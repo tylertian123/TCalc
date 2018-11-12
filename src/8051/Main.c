@@ -1,6 +1,7 @@
 #include <stc/STC12C5630AD.h>
 #include "sbdi.h"
 #include "adc.h"
+#include "keydef.h"
 
 sbit BUTTON = P1 ^ 0;
 #define CHANNEL_X_AXIS 1
@@ -39,13 +40,6 @@ void resetCols() {
 
 const unsigned short MIN_THRESH = 192;
 const unsigned short MAX_THRESH = 832;
-
-#define KEY_NULL	0x0000
-#define KEY_UP		0x0001
-#define KEY_DOWN	0x0002
-#define KEY_LEFT	0x0003
-#define KEY_RIGHT	0x0004
-#define KEY_CENTER	0x0005
 
 void sendKey(unsigned short key) {
 	SBDI_BeginTransmission();
