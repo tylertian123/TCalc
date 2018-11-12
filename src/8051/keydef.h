@@ -103,11 +103,10 @@
 #define KEY_LOGN      0x0063
 #define KEY_APPROX    0x0064
 #define KEY_NTHROOT   0x0065
-#define KEY_E         0x0066
+#define KEY_EULER     0x0066
 #define KEY_GRAPH     0x0067
 #define KEY_MIXNUM    0x0068
 #define KEY_EQUAL     0x0069
 #define KEY_CONST     0x006A
-
 
 #endif

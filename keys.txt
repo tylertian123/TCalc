@@ -100,7 +100,7 @@ ln
 logn
 approx
 nthroot
-e
+euler
 graph
 mixnum
 equal
