@@ -301,6 +301,11 @@ namespace neda {
 		dest.setPixel(x + exprWidth - 1 - 2, y + exprHeight - 1, true);
 		contents->draw(dest, x + 4, y + 1);
 	}
+	BracketExpr::~BracketExpr() {
+		if(contents) {
+			delete contents;
+		}
+	}
 	
 	//*************************** RadicalExpr ***************************************
 	uint16_t RadicalExpr::getTopSpacing() {
@@ -362,6 +367,14 @@ namespace neda {
 		computeWidth();
 		computeHeight();
 	}
+	RadicalExpr::~RadicalExpr() {
+		if(contents) {
+			delete contents;
+		}
+		if(n) {
+			delete n;
+		}
+	}
 	
 	//*************************** SubscriptExpr ***************************************
 	uint16_t SubscriptExpr::getTopSpacing() {
@@ -409,6 +422,22 @@ namespace neda {
 		computeWidth();
 		computeHeight();
 	}
+	SubscriptExpr::~SubscriptExpr() {
+		if(subscript) {
+			delete subscript;
+		}
+		if(contents) {
+			delete contents;
+		}
+	}
+	
+	//*************************** SigmaPiExpr ***************************************
+	uint16_t SigmaPiExpr::getTopSpacing() {
+		uint16_t a = SAFE_EXEC(start, getHeight) + 2 + symbol.height / 2;
+		uint16_t b = SAFE_EXEC(contents, getTopSpacing);
+		return MAX(a, b);
+	}
+	
 }
 
 #undef SAFE_EXEC

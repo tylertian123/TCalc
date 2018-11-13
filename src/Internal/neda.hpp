@@ -199,6 +199,8 @@ namespace neda {
 		Expr* getContents();
 		void setContents(Expr*);
 		
+		virtual ~BracketExpr();
+		
 	protected:
 		Expr *contents;
 	};
@@ -227,6 +229,8 @@ namespace neda {
 		Expr* getN();
 		void setContents(Expr*);
 		void setN(Expr*);
+		
+		virtual ~RadicalExpr();
 	
 	protected:
 		Expr *contents, *n;
@@ -256,9 +260,42 @@ namespace neda {
 		void setContents(Expr*);
 		void setSubscript(Expr*);
 		
+		virtual ~SubscriptExpr();
+		
 	protected:
 		Expr *contents, *subscript;
 	};
+	
+	//Summation (Sigma) or Product (Pi)
+	class SigmaPiExpr : public Expr {
+	public:
+		SigmaPiExpr(const lcd::LCD12864Image &symbol, Expr *start, Expr *finish, Expr *contents) : symbol(symbol), start(start), finish(finish) {
+			computeWidth();
+			computeHeight();
+		}
+		SigmaPiExpr(const lcd::LCD12864Image &symbol) : symbol(symbol) {
+			computeWidth();
+			computeHeight();
+		}
+		
+		virtual uint16_t getTopSpacing() override;
+		virtual void computeWidth() override;
+		virtual void computeHeight() override;
+		virtual void draw(lcd::LCD12864&, uint16_t, uint16_t) override;
+		
+		Expr* getStart();
+		Expr* getFinish();
+		Expr* getContents();
+		void setStart(Expr *start);
+		void setFinish(Expr *finish);
+		void setContents(Expr *contents);
+		
+		virtual ~SigmaPiExpr();
+		
+	protected:
+		const lcd::LCD12864Image &symbol;
+		Expr *start, *finish, *contents;
+	}
 }
 
 #endif

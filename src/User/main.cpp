@@ -52,24 +52,6 @@ uint16_t fetchKey() {
 		return KEY_NULL;
 	}
 }
-void handleKey(uint16_t key) {
-	switch(key) {
-	case KEY_SHIFT:
-		shiftLED = !shiftLED;
-		return;
-	case KEY_CTRL:
-		ctrlLED = !ctrlLED;
-		return;
-	default: break;
-	}
-	
-	display.clear();
-	display.writeData(key / 10000 + 0x30);
-	display.writeData((key % 10000) / 1000 + 0x30);
-	display.writeData((key % 1000) / 100 + 0x30);
-	display.writeData((key % 100) / 10 + 0x30);
-	display.writeData(key % 10 + 0x30);
-}
 
 int main() {
 	
@@ -127,7 +109,22 @@ int main() {
 	
     while(true) {
 		if((key = fetchKey()) != KEY_NULL) {
-			handleKey(key);
+			switch(key) {
+			case KEY_SHIFT:
+				shiftLED = !shiftLED;
+				return;
+			case KEY_CTRL:
+				ctrlLED = !ctrlLED;
+				return;
+			default: break;
+			}
+			
+			display.clear();
+			display.writeData(key / 10000 + 0x30);
+			display.writeData((key % 10000) / 1000 + 0x30);
+			display.writeData((key % 1000) / 100 + 0x30);
+			display.writeData((key % 100) / 10 + 0x30);
+			display.writeData(key % 10 + 0x30);
 		}
     }
 }
