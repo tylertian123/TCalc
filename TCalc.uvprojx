@@ -337,7 +337,7 @@
               <MiscControls>--cpp11</MiscControls>
               <Define>USE_STDPERIPH_DRIVER,STM32F10X_MD</Define>
               <Undefine></Undefine>
-              <IncludePath>.\src\CMSIS;.\src\Hardware;.\src\Internal;.\src\Lib\inc;.\src\Startup;.\src\User</IncludePath>
+              <IncludePath>.\src\CMSIS;.\src\Hardware;.\src\Internal;.\src\Lib\inc;.\src\Startup;.\src\User;.\src\8051</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>

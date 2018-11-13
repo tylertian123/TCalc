@@ -113,6 +113,9 @@ namespace lcd {
 	extern const Img CHAR_PI;
 	extern const Img CHAR_MUL;
 	extern const Img CHAR_DIV;
+	
+	extern const Img CHAR_SUMMATION;
+	extern const Img CHAR_PRODUCT;
 
     const Img CHAR_NUMBERS[] = {
         CHAR_0,

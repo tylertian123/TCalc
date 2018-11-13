@@ -37,6 +37,50 @@ void resetRows() {
 void resetCols() {
 	COL1 = COL2 = COL3 = COL4 = COL5 = COL6 = COL7 = COL8 = COL9 = COL10 = 1;
 }
+#define DEBOUNCE(pin) delay(10); while(!(pin)); delay(10)
+unsigned char checkCols() {
+	if(!COL1) {
+		DEBOUNCE(COL1);
+		return 0;
+	}
+	if(!COL2) {
+		DEBOUNCE(COL2);
+		return 1;
+	}
+	if(!COL3) {
+		DEBOUNCE(COL3);
+		return 2;
+	}
+	if(!COL4) {
+		DEBOUNCE(COL4);
+		return 3;
+	}
+	if(!COL5) {
+		DEBOUNCE(COL5);
+		return 4;
+	}
+	if(!COL6) {
+		DEBOUNCE(COL6);
+		return 5;
+	}
+	if(!COL7) {
+		DEBOUNCE(COL7);
+		return 6;
+	}
+	if(!COL8) {
+		DEBOUNCE(COL8);
+		return 7;
+	}
+	if(!COL9) {
+		DEBOUNCE(COL9);
+		return 8;
+	}
+	if(!COL10) {
+		DEBOUNCE(COL10);
+		return 9;
+	}
+	return 0xFF;
+}
 
 const unsigned short MIN_THRESH = 192;
 const unsigned short MAX_THRESH = 832;
@@ -66,11 +110,47 @@ const unsigned short code KEYMAP_CTRL[6][10] = {
 	{ KEY_EXP, KEY_LOG10, KEY_1, KEY_2, KEY_3, KEY_EE, KEY_ANS, KEY_EQUAL, KEY_ROOT, KEY_CONST },
 };
 
+bit shift = 0;
+bit ctrl = 0;
+
 void sendKey(unsigned short key) {
 	SBDI_BeginTransmission();
 	SBDI_SendByte(key >> 8);
 	SBDI_SendByte(key & 0x00FF);
 	SBDI_EndTransmission();
+}
+void checkAndSend(unsigned char row) {
+	unsigned char col = checkCols();
+	if(col == 0xFF) {
+		return;
+	}
+	
+	if(KEYMAP_NORMAL[row][col] == KEY_SHIFT) {
+		shift = !shift;
+		sendKey(KEY_SHIFT);
+		return;
+	}
+	else if(KEYMAP_NORMAL[row][col] == KEY_CTRL) {
+		ctrl = !ctrl;
+		sendKey(KEY_CTRL);
+		return;
+	}
+	
+	if(shift) {
+		sendKey(KEYMAP_SHIFT[row][col]);
+		delay(10);
+		sendKey(KEY_SHIFT);
+		shift = 0;
+	}
+	else if(ctrl) {
+		sendKey(KEYMAP_CTRL[row][col]);
+		delay(10);
+		sendKey(KEY_CTRL);
+		ctrl = 0;
+	}
+	else {
+		sendKey(KEYMAP_NORMAL[row][col]);
+	}
 }
 
 void main(void) {
@@ -94,6 +174,8 @@ void main(void) {
 	resetRows();
 	resetCols();
 	while(1) {
+//		delay(100);
+//		sendKey(result ++);
 		//Check for left and right
 		ADC_StartConv(CHANNEL_X_AXIS);
 		while(!ADC_ConvFin());
@@ -124,13 +206,28 @@ void main(void) {
 		lastYResult = result;
 		
 		if(!BUTTON) {
-			delay(10);
+			DEBOUNCE(BUTTON);
 			sendKey(KEY_CENTER);
-			while(!BUTTON);
-			delay(10);
 		}
 		
 		resetRows();
-		
+		ROW1 = 0;
+		checkAndSend(0);
+		resetRows();
+		ROW2 = 0;
+		checkAndSend(1);
+		resetRows();
+		ROW3 = 0;
+		checkAndSend(2);
+		resetRows();
+		ROW4 = 0;
+		checkAndSend(3);
+		resetRows();
+		ROW5 = 0;
+		checkAndSend(4);
+		resetRows();
+		ROW6 = 0;
+		checkAndSend(5);
+		resetRows();
 	}
 }
