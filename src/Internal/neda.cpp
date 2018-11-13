@@ -1,12 +1,17 @@
 #include "neda.hpp"
 #include "lcd12864_charset.hpp"
 
-#ifndef MAX
-#define MAX(a, b) (((b) > (a)) ? (b) : (a))
-#endif
-
 //Execute method on obj with no arguments if obj is not null, otherwise 0
 #define SAFE_EXEC(obj, method) ((obj) ? (obj->method()) : 0)
+
+template <typename T>
+inline const T& max(const T &a, const T &b) {
+	return b > a ? b : a;
+}
+template <typename T>
+inline const T& min(const T &a, const T &b) {
+    return b < a ? b : a;
+}
 
 namespace neda {
 	
@@ -98,7 +103,7 @@ namespace neda {
 		//Take the max of all the top spacings
 		for(Expr *ex : contents) {
 			uint16_t ts = ex->getTopSpacing();
-			maxTopSpacing = MAX(ts, maxTopSpacing);
+			maxTopSpacing = max(ts, maxTopSpacing);
 		}
         //Now with the max top spacing we can compute the heights and see what the max is
         uint16_t maxHeight = 0;
@@ -109,7 +114,7 @@ namespace neda {
             //Therefore, its height is just the height. In other cases, it will be increased by the difference between the max top
             //spacing and the top spacing.
             uint16_t height = (ex->getHeight() - ex->getTopSpacing()) + maxTopSpacing;
-            maxHeight = MAX(height, maxHeight);
+            maxHeight = max(height, maxHeight);
         }
         exprHeight = maxHeight;
 	}
@@ -131,7 +136,7 @@ namespace neda {
         //Take the max of all the top spacings; this will be used to compute the top padding for each expression later.
         for(Expr *ex : contents) {
             uint16_t ts = ex->getTopSpacing();
-            maxTopSpacing = MAX(ts, maxTopSpacing);
+            maxTopSpacing = max(ts, maxTopSpacing);
         }
 		
 		for(Expr *ex : contents) {
@@ -168,7 +173,7 @@ namespace neda {
 		//Take the greater of the widths and add 2 for the spacing at the sides
         uint16_t numeratorWidth = SAFE_EXEC(numerator, getWidth);
 		uint16_t denominatorWidth = SAFE_EXEC(denominator, getWidth);
-		exprWidth = MAX(numeratorWidth, denominatorWidth) + 2;
+		exprWidth = max(numeratorWidth, denominatorWidth) + 2;
 	}
 	void FractionExpr::computeHeight() {
 		uint16_t numeratorHeight = SAFE_EXEC(numerator, getHeight);
@@ -233,7 +238,7 @@ namespace neda {
 		uint16_t baseHeight = SAFE_EXEC(base, getHeight);
 		uint16_t exponentHeight = SAFE_EXEC(exponent, getHeight);
 		//Make sure this is positive
-		exprHeight = MAX(0, baseHeight + exponentHeight - BASE_EXPONENT_OVERLAP);
+		exprHeight = max(0, baseHeight + exponentHeight - BASE_EXPONENT_OVERLAP);
 	}
 	void ExponentExpr::draw(lcd::LCD12864 &dest, uint16_t x, uint16_t y) {
 		if(!base || !exponent) {
@@ -241,7 +246,7 @@ namespace neda {
 		}
 		uint16_t baseWidth = base->getWidth();
 		uint16_t exponentHeight = exponent->getHeight();
-		base->draw(dest, x, y + MAX(0, exponentHeight - BASE_EXPONENT_OVERLAP));
+		base->draw(dest, x, y + max(0, exponentHeight - BASE_EXPONENT_OVERLAP));
 		exponent->draw(dest, x + baseWidth + 2, y);
 	}
 	Expr* ExponentExpr::getBase() {
@@ -313,21 +318,21 @@ namespace neda {
 			return SAFE_EXEC(contents, getTopSpacing) + 2;
 		}
 		uint16_t regularTopSpacing = SAFE_EXEC(contents, getTopSpacing) + 2;
-		return regularTopSpacing + MAX(0, n->getHeight() - CONTENTS_N_OVERLAP);
+		return regularTopSpacing + max(0, n->getHeight() - CONTENTS_N_OVERLAP);
 	}
 	void RadicalExpr::computeWidth() {
 		if(!n) {
 			exprWidth = SAFE_EXEC(contents, getWidth) + 8;
 			return;
 		}
-		exprWidth = MAX(0, n->getWidth() - SIGN_N_OVERLAP) + SAFE_EXEC(contents, getWidth) + 8;
+		exprWidth = max(0, n->getWidth() - SIGN_N_OVERLAP) + SAFE_EXEC(contents, getWidth) + 8;
 	}
 	void RadicalExpr::computeHeight() {
 		if(!n) {
 			exprHeight = SAFE_EXEC(contents, getHeight) + 2;
 			return;
 		}
-		exprHeight = MAX(0, n->getHeight() - CONTENTS_N_OVERLAP) + SAFE_EXEC(contents, getHeight) + 2;
+		exprHeight = max(0, n->getHeight() - CONTENTS_N_OVERLAP) + SAFE_EXEC(contents, getHeight) + 2;
 	}
 	void RadicalExpr::draw(lcd::LCD12864 &dest, uint16_t x, uint16_t y) {
 		if(!n) {
@@ -342,8 +347,8 @@ namespace neda {
 		}
 		else {
 			n->draw(dest, 0, 0);
-			uint16_t xoffset = MAX(0, n->getWidth() - SIGN_N_OVERLAP);
-			uint16_t yoffset = MAX(0, n->getHeight() - CONTENTS_N_OVERLAP);
+			uint16_t xoffset = max(0, n->getWidth() - SIGN_N_OVERLAP);
+			uint16_t yoffset = max(0, n->getHeight() - CONTENTS_N_OVERLAP);
 			dest.drawLine(x + xoffset, y + exprHeight - 1 - 2, x + 2 + xoffset, y + exprHeight - 1);
 			dest.drawLine(x + 2 + xoffset, y + exprHeight - 1, x + 6 + xoffset, 0 + yoffset);
 			dest.drawLine(x + 6 + xoffset, 0 + yoffset, x + exprWidth - 1 + xoffset, 0 + yoffset);
@@ -435,7 +440,7 @@ namespace neda {
 	uint16_t SigmaPiExpr::getTopSpacing() {
 		uint16_t a = SAFE_EXEC(start, getHeight) + 2 + symbol.height / 2;
 		uint16_t b = SAFE_EXEC(contents, getTopSpacing);
-		return MAX(a, b);
+		return max(a, b);
 	}
 	
 }
