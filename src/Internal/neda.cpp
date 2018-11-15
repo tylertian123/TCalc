@@ -3,6 +3,7 @@
 
 //Execute method on obj with no arguments if obj is not null, otherwise 0
 #define SAFE_EXEC(obj, method) ((obj) ? (obj->method()) : 0)
+#define ASSERT_NONNULL(obj) if(!obj) return
 
 template <typename T>
 inline const T& max(const T &a, const T &b) {
@@ -140,7 +141,6 @@ namespace neda {
         }
 		
 		for(Expr *ex : contents) {
-			uint16_t exHeight = ex->getHeight();
 			//For each expression, its top padding is the difference between the max top spacing and its top spacing.
             //E.g. A tall expression like 1^2 would have a higher top spacing than 3, so the max top spacing would be its top spacing;
             //So when drawing the 1^2, there is no difference between the max top spacing and the top spacing, and therefore it has
@@ -183,9 +183,8 @@ namespace neda {
 	}
 	void FractionExpr::draw(lcd::LCD12864 &dest, uint16_t x, uint16_t y) {
 		//Watch out for null pointers
-		if(!numerator || !denominator) {
-			return;
-		}
+        ASSERT_NONNULL(numerator);
+        ASSERT_NONNULL(denominator);
 		
 		uint16_t width = getWidth();
 		//Center horizontally
@@ -241,9 +240,8 @@ namespace neda {
 		exprHeight = max(0, baseHeight + exponentHeight - BASE_EXPONENT_OVERLAP);
 	}
 	void ExponentExpr::draw(lcd::LCD12864 &dest, uint16_t x, uint16_t y) {
-		if(!base || !exponent) {
-			return;
-		}
+		ASSERT_NONNULL(base);
+        ASSERT_NONNULL(exponent);
 		uint16_t baseWidth = base->getWidth();
 		uint16_t exponentHeight = exponent->getHeight();
 		base->draw(dest, x, y + max(0, exponentHeight - BASE_EXPONENT_OVERLAP));
@@ -288,9 +286,7 @@ namespace neda {
 		exprHeight = SAFE_EXEC(contents, getHeight) + 2;
 	}
 	void BracketExpr::draw(lcd::LCD12864 &dest, uint16_t x, uint16_t y) {
-		if(!contents) {
-			return;
-		}
+		ASSERT_NONNULL(contents);
 		//Bracket
 		dest.setPixel(x + 2, y, true);
 		dest.setPixel(x + 1, y + 1, true);
@@ -314,7 +310,7 @@ namespace neda {
 	
 	//*************************** RadicalExpr ***************************************
 	uint16_t RadicalExpr::getTopSpacing() {
-		if(!n) {
+		if(!n) { 
 			return SAFE_EXEC(contents, getTopSpacing) + 2;
 		}
 		uint16_t regularTopSpacing = SAFE_EXEC(contents, getTopSpacing) + 2;
@@ -336,9 +332,7 @@ namespace neda {
 	}
 	void RadicalExpr::draw(lcd::LCD12864 &dest, uint16_t x, uint16_t y) {
 		if(!n) {
-			if(!contents) {
-				return;
-			}
+			ASSERT_NONNULL(contents);
 			dest.drawLine(x, y + exprHeight - 1 - 2, x + 2, y + exprHeight - 1);
 			dest.drawLine(x + 2, y + exprHeight - 1, x + 6, 0);
 			dest.drawLine(x + 6, 0, x + exprWidth - 1, 0);
@@ -438,11 +432,56 @@ namespace neda {
 	
 	//*************************** SigmaPiExpr ***************************************
 	uint16_t SigmaPiExpr::getTopSpacing() {
-		uint16_t a = SAFE_EXEC(start, getHeight) + 2 + symbol.height / 2;
+        //The top spacing of this expr can be split into two cases: when the contents are tall and when the contents are short.
+        //When the contents are tall enough, the result is simply the top spacing of the contents (b)
+        //Otherwise, it is the distance from the top to the middle of the base of the contents.
+        //Therefore, we add up the heights of the expr at the top, the spacing, and the overlap between the symbol and the contents,
+        //then subtract half of the base height of the contents (height - top spacing)
+		uint16_t a = SAFE_EXEC(finish, getHeight) + 2 + CONTENT_SYMBOL_OVERLAP 
+                - (SAFE_EXEC(contents, getHeight) - SAFE_EXEC(contents, getTopSpacing));
 		uint16_t b = SAFE_EXEC(contents, getTopSpacing);
 		return max(a, b);
 	}
-	
+	void SigmaPiExpr::computeWidth() {
+		uint16_t topWidth = SAFE_EXEC(finish, getWidth);
+		uint16_t bottomWidth = SAFE_EXEC(start, getWidth);
+		exprWidth = max(symbol.width, max(topWidth, bottomWidth)) + 3 + SAFE_EXEC(contents, getWidth);
+	}
+	void SigmaPiExpr::computeHeight() {
+        //Top spacings - Taken from neda::SigmaPiExpr::getTopSpacing()
+        uint16_t a = SAFE_EXEC(finish, getHeight) + 2 + CONTENT_SYMBOL_OVERLAP 
+                - (SAFE_EXEC(contents, getHeight) - SAFE_EXEC(contents, getTopSpacing));
+        uint16_t b = SAFE_EXEC(contents, getTopSpacing);
+        uint16_t maxTopSpacing = max(a, b);
+        //Logic same as neda::ContainerExpr::getHeight()
+        uint16_t symbolHeight = SAFE_EXEC(finish, getHeight) + 2 + symbol.height + 2 + SAFE_EXEC(start, getHeight)
+                + maxTopSpacing - a;
+        uint16_t bodyHeight = SAFE_EXEC(contents, getHeight) + maxTopSpacing - b;
+
+		exprHeight = max(symbolHeight, bodyHeight);
+	}
+	void SigmaPiExpr::draw(lcd::LCD12864 &dest, uint16_t x, uint16_t y) { //NEEDS TO CHANGE
+		ASSERT_NONNULL(start);
+        ASSERT_NONNULL(finish);
+        ASSERT_NONNULL(contents);
+        
+        //Top spacings - Taken from neda::SigmaPiExpr::getTopSpacing()
+        uint16_t a = SAFE_EXEC(finish, getHeight) + 2 + CONTENT_SYMBOL_OVERLAP 
+                - (SAFE_EXEC(contents, getHeight) - SAFE_EXEC(contents, getTopSpacing));
+        uint16_t b = SAFE_EXEC(contents, getTopSpacing);
+        uint16_t maxTopSpacing = max(a, b);
+        //Logic same as neda::ContainerExpr::draw()
+        uint16_t symbolYOffset = maxTopSpacing - a;
+        uint16_t contentsYOffset = maxTopSpacing - b;
+
+        //Center the top, the bottom and the symbol
+        uint16_t widest = max(start->getWidth(), max(finish->getWidth(), symbol.width));
+        finish->draw(dest, x + (widest - finish->getWidth()) / 2, y + symbolYOffset);
+        dest.drawImage(x + (widest - symbol.width) / 2, y + finish->getHeight() + 2 + symbolYOffset, symbol);
+        start->draw(dest, x + (widest - start->getWidth()) / 2, y + finish->getHeight() + 2 + symbol.height + 2 + symbolYOffset);
+
+        contents->draw(dest, widest + 3, y + contentsYOffset);
+	}
 }
 
 #undef SAFE_EXEC

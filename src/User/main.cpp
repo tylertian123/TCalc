@@ -112,10 +112,8 @@ int main() {
 			switch(key) {
 			case KEY_SHIFT:
 				shiftLED = !shiftLED;
-				return;
 			case KEY_CTRL:
 				ctrlLED = !ctrlLED;
-				return;
 			default: break;
 			}
 			

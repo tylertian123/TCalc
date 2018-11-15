@@ -277,6 +277,8 @@ namespace neda {
 			computeWidth();
 			computeHeight();
 		}
+
+        static const int CONTENT_SYMBOL_OVERLAP = 10;//FIX THIS TYPE!
 		
 		virtual uint16_t getTopSpacing() override;
 		virtual void computeWidth() override;
@@ -295,7 +297,7 @@ namespace neda {
 	protected:
 		const lcd::LCD12864Image &symbol;
 		Expr *start, *finish, *contents;
-	}
+	};
 }
 
 #endif
