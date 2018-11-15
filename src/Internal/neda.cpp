@@ -1,9 +1,10 @@
 #include "neda.hpp"
 #include "lcd12864_charset.hpp"
 
-//Execute method on obj with no arguments if obj is not null, otherwise 0
-#define SAFE_EXEC(obj, method) ((obj) ? (obj->method()) : 0)
+//Execute method on obj with arguments if obj is not null, otherwise 0
+#define SAFE_EXEC(obj, method, ...) ((obj) ? (obj->method(__VA_ARGS__)) : 0)
 #define ASSERT_NONNULL(obj) if(!obj) return
+#define DESTROY_IF_NONNULL(obj) if(obj) delete obj
 
 template <typename T>
 inline const T& max(const T &a, const T &b) {
@@ -159,7 +160,7 @@ namespace neda {
 	}
 	ContainerExpr::~ContainerExpr() {
 		for(Expr *ex : contents) {
-			delete ex;
+			DESTROY_IF_NONNULL(ex);
 		}
 	}
 	
@@ -213,12 +214,8 @@ namespace neda {
 		computeHeight();
 	}
 	FractionExpr::~FractionExpr() {
-		if(numerator) {
-			delete numerator;
-		}
-		if(denominator) {
-			delete denominator;
-		}
+        DESTROY_IF_NONNULL(numerator);
+        DESTROY_IF_NONNULL(denominator);
 	}
 	
 	//*************************** ExponentExpr ***************************************
@@ -264,12 +261,8 @@ namespace neda {
 		computeHeight();
 	}
 	ExponentExpr::~ExponentExpr() {
-		if(base) {
-			delete base;
-		}
-		if(exponent) {
-			delete exponent;
-		}
+        DESTROY_IF_NONNULL(base);
+        DESTROY_IF_NONNULL(exponent);
 	}
 	
 	//*************************** BracketExpr ***************************************
@@ -303,9 +296,7 @@ namespace neda {
 		contents->draw(dest, x + 4, y + 1);
 	}
 	BracketExpr::~BracketExpr() {
-		if(contents) {
-			delete contents;
-		}
+		DESTROY_IF_NONNULL(contents);
 	}
 	
 	//*************************** RadicalExpr ***************************************
@@ -367,12 +358,8 @@ namespace neda {
 		computeHeight();
 	}
 	RadicalExpr::~RadicalExpr() {
-		if(contents) {
-			delete contents;
-		}
-		if(n) {
-			delete n;
-		}
+        DESTROY_IF_NONNULL(contents);
+        DESTROY_IF_NONNULL(n);
 	}
 	
 	//*************************** SubscriptExpr ***************************************
@@ -422,12 +409,8 @@ namespace neda {
 		computeHeight();
 	}
 	SubscriptExpr::~SubscriptExpr() {
-		if(subscript) {
-			delete subscript;
-		}
-		if(contents) {
-			delete contents;
-		}
+        DESTROY_IF_NONNULL(subscript);
+        DESTROY_IF_NONNULL(contents);
 	}
 	
 	//*************************** SigmaPiExpr ***************************************
@@ -482,6 +465,37 @@ namespace neda {
 
         contents->draw(dest, widest + 3, y + contentsYOffset);
 	}
+    Expr* SigmaPiExpr::getStart() {
+        return start;
+    }
+    Expr* SigmaPiExpr::getFinish() {
+        return finish;
+    }
+    Expr* SigmaPiExpr::getContents() {
+        return contents;
+    }
+    void SigmaPiExpr::setStart(Expr *start) {
+        this->start = start;
+        computeWidth();
+        computeHeight();
+    }
+    void SigmaPiExpr::setFinish(Expr *finish) {
+        this->finish = finish;
+        computeWidth();
+        computeHeight();
+    }
+    void SigmaPiExpr::setContents(Expr *contents) {
+        this->contents = contents;
+        computeWidth();
+        computeHeight();
+    }
+    SigmaPiExpr::~SigmaPiExpr() {
+        DESTROY_IF_NONNULL(start);
+        DESTROY_IF_NONNULL(finish);
+        DESTROY_IF_NONNULL(contents);
+    }
 }
 
 #undef SAFE_EXEC
+#undef ASSERT_NONNULL
+#undef DESTROY_IF_NONNULL
