@@ -69,6 +69,9 @@ namespace neda {
 			computeWidth();
 			computeHeight();
 		}
+
+        static const uint16_t EMPTY_STRING_WIDTH = 5;
+        static const uint16_t EMPTY_STRING_HEIGHT = 9;
 		
 		void addChar(char);
 		
@@ -103,9 +106,6 @@ namespace neda {
 			computeWidth();
 			computeHeight();
 		}
-
-        static const uint16_t EMPTY_CONTAINER_WIDTH = 5;
-        static const uint16_t EMPTY_CONTAINER_HEIGHT = 9;
 		
 		void addExpr(Expr*);
 			

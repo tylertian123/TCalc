@@ -32,7 +32,7 @@ namespace neda {
     }
 	void StringExpr::computeWidth() {
 		if(contents.length() == 0) {
-			exprWidth = 0;
+			exprWidth = EMPTY_STRING_WIDTH;
 			return;
 		}
 		
@@ -45,6 +45,10 @@ namespace neda {
 		exprWidth += contents.length() - 1;
 	}
 	void StringExpr::computeHeight() {
+        if(contents.length() == 0) {
+            exprHeight = EMPTY_STRING_HEIGHT;
+            return;
+        }
 		uint16_t max = 0;
 		//Take the max of all the heights
 		for(char ch : contents) {
@@ -53,7 +57,18 @@ namespace neda {
 		exprHeight = max;
 	}
 	void StringExpr::draw(lcd::LCD12864 &dest, uint16_t x, uint16_t y) {
-		uint16_t height = getHeight();
+        if(contents.length() == 0) {
+            //Empty container shows up as a box
+            for(uint16_t w = 0; w < exprWidth; w ++) {
+                dest.setPixel(x + w, y, true);
+                dest.setPixel(x + w, y + exprHeight, true);
+            }
+            for(uint16_t h = 0; h <= exprHeight; h ++) {
+                dest.setPixel(x, y + h, true);
+                dest.setPixel(x + exprWidth, y + h, true);
+            }
+        }
+
 		for(char ch : contents) {
 			if(x >= 128 || y >= 64) {
 				return;
@@ -61,7 +76,7 @@ namespace neda {
 			const lcd::Img &charImg = lcd::getChar(ch);
 			//To make sure everything is bottom aligned, the max height is added to the y coordinate and the height subtracted from it
 			//This is so that characters less than the max height are still displayed properly.
-			dest.drawImage(x, y + height - charImg.height, charImg);
+			dest.drawImage(x, y + exprHeight - charImg.height, charImg);
 			//Increment x and leave one pixel's spacing
 			x += charImg.width + 1;
 		}
@@ -80,8 +95,8 @@ namespace neda {
 	void ContainerExpr::computeWidth() {
 		//An empty ContainerExpr has a default width and height
 		if(contents.length() == 0) {
-			exprWidth = EMPTY_CONTAINER_WIDTH;
-			return;
+			exprWidth = 0;
+            return;
 		}
 		
 		//Add up all the Expressions's widths
@@ -94,7 +109,7 @@ namespace neda {
 	}
 	void ContainerExpr::computeHeight() {
 		if(contents.length() == 0) {
-			exprHeight = EMPTY_CONTAINER_HEIGHT;
+			exprHeight = 0;
 			return;
 		}
 
@@ -121,17 +136,10 @@ namespace neda {
         exprHeight = maxHeight;
 	}
 	void ContainerExpr::draw(lcd::LCD12864 &dest, uint16_t x, uint16_t y) {
-		if(contents.length() == 0) {
-			//Empty container shows up as a box
-			for(uint16_t w = 0; w < getWidth(); w ++) {
-				dest.setPixel(x + w, y, true);
-				dest.setPixel(x + w, y + getHeight(), true);
-			}
-			for(uint16_t h = 0; h <= getHeight(); h ++) {
-				dest.setPixel(x, y + h, true);
-				dest.setPixel(x + getWidth(), y + h, true);
-			}
-		}
+
+        if(contents.length() == 0) {
+            return;
+        }
 		
         //Special logic in drawing to make sure everything lines up
         uint16_t maxTopSpacing = 0;
