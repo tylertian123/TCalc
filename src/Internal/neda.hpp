@@ -104,8 +104,8 @@ namespace neda {
 			computeHeight();
 		}
 
-        static const int EMPTY_CONTAINER_WIDTH = 5;
-        static const int EMPTY_CONTAINER_HEIGHT = 9;
+        static const uint16_t EMPTY_CONTAINER_WIDTH = 5;
+        static const uint16_t EMPTY_CONTAINER_HEIGHT = 9;
 		
 		void addExpr(Expr*);
 			
@@ -161,7 +161,7 @@ namespace neda {
 			computeHeight();
 		}
 		
-		static const int BASE_EXPONENT_OVERLAP = 4;
+		static const uint16_t BASE_EXPONENT_OVERLAP = 4;
 		
         virtual uint16_t getTopSpacing() override;
 		virtual void computeWidth() override;
@@ -217,8 +217,8 @@ namespace neda {
 			computeHeight();
 		}
 		
-		static const int CONTENTS_N_OVERLAP = 7;
-		static const int SIGN_N_OVERLAP = 1;
+		static const uint16_t CONTENTS_N_OVERLAP = 7;
+		static const uint16_t SIGN_N_OVERLAP = 1;
 		
 		virtual uint16_t getTopSpacing() override;
 		virtual void computeWidth() override;
@@ -248,7 +248,7 @@ namespace neda {
 			computeHeight();
 		}
 		
-		static const int CONTENTS_SUBSCRIPT_OVERLAP = 4;
+		static const uint16_t CONTENTS_SUBSCRIPT_OVERLAP = 4;
 		
 		virtual uint16_t getTopSpacing() override;
 		virtual void computeWidth() override;
@@ -278,7 +278,7 @@ namespace neda {
 			computeHeight();
 		}
 
-        static const int CONTENT_SYMBOL_OVERLAP = 10;//FIX THIS TYPE!
+        static const uint16_t CONTENT_SYMBOL_OVERLAP = 12;
 		
 		virtual uint16_t getTopSpacing() override;
 		virtual void computeWidth() override;

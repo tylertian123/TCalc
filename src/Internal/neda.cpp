@@ -443,7 +443,7 @@ namespace neda {
 
 		exprHeight = max(symbolHeight, bodyHeight);
 	}
-	void SigmaPiExpr::draw(lcd::LCD12864 &dest, uint16_t x, uint16_t y) { //NEEDS TO CHANGE
+	void SigmaPiExpr::draw(lcd::LCD12864 &dest, uint16_t x, uint16_t y) {
 		ASSERT_NONNULL(start);
         ASSERT_NONNULL(finish);
         ASSERT_NONNULL(contents);
