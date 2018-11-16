@@ -64,6 +64,20 @@ public:
 		}
 		contents[len - 1] = elem;
 	}
+    void insert(const T &elem, uint32_t where) {
+        len ++;
+        if(len > maxLen) {
+            //Default impl: reallocate only what's needed
+            maxLen = len;
+            realloc(contents, sizeof(T) * len);
+        }
+        //Iterate backwards to move the elements
+        //This way we don't have to keep a buffer
+        for(uint32_t i = len - 1; i > where; i --) {
+            contents[i] = contents[i - 1];
+        }
+        contents[where] = elem;
+    }
 	void removeLast() {
 		if(len == 0) {
 			//Ignore if there are no elements

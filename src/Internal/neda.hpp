@@ -18,6 +18,23 @@
  * DO NOT ALLOCATE WITH malloc
  */
 namespace neda {
+
+    class StringExpr;
+    /*
+     * This struct represents the location of the cursor. 
+     * Cursors can only be inside StringExprs as they make no sense elsewhere.
+     */
+    struct Cursor {
+        StringExpr *expr;
+        uint16_t index;
+        
+        void draw() {
+            expr->drawCursor(*this);
+        }
+        void addChar(char ch) {
+            expr->addAtCursor(ch, *this);
+        }
+    };
 	
 	/*
      * This is the base Expression class.
@@ -74,6 +91,8 @@ namespace neda {
         static const uint16_t EMPTY_STRING_HEIGHT = 9;
 		
 		void addChar(char);
+        void addAtCursor(char, const Cursor&);
+        void drawCursor(const Cursor&);
 		
 		virtual void computeWidth() override;
 		virtual void computeHeight() override;

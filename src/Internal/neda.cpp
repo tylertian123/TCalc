@@ -93,6 +93,12 @@ namespace neda {
 		computeWidth();
 		computeHeight();
 	}
+    void StringExpr::addAtCursor(char ch, const Cursor &cursor) {
+        contents.insert(ch, cursor.index);
+    }
+    void StringExpr::drawCursor(const Cursor &cursor) {
+        
+    }
 	
 	//*************************** ContainerExpr ***************************************
     uint16_t ContainerExpr::getTopSpacing() {
