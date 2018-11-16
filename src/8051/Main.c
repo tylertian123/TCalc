@@ -2,10 +2,17 @@
 #include "sbdi.h"
 #include "adc.h"
 #include "keydef.h"
+#include "bmat.h"
 
 sbit BUTTON = P1 ^ 0;
 #define CHANNEL_X_AXIS 1
 #define CHANNEL_Y_AXIS 2
+
+//Configs
+#define MIN_THRESH 192
+#define MAX_THRESH 832
+#define REPEAT_KEY_DELAY 150
+#define HOLD_COUNTER_MAX 80
 
 void delay (unsigned int a){
 	unsigned int i;
@@ -14,77 +21,7 @@ void delay (unsigned int a){
 	}
 }
 
-sbit ROW1 = P1 ^ 7;
-sbit ROW2 = P2 ^ 0;
-sbit ROW3 = P2 ^ 1;
-sbit ROW4 = P2 ^ 6;
-sbit ROW5 = P2 ^ 7;
-sbit ROW6 = P3 ^ 7;
-sbit COL1 = P2 ^ 2;
-sbit COL2 = P2 ^ 3;
-sbit COL3 = P3 ^ 0;
-sbit COL4 = P3 ^ 1;
-sbit COL5 = P3 ^ 2;
-sbit COL6 = P3 ^ 3;
-sbit COL7 = P3 ^ 4;
-sbit COL8 = P3 ^ 5;
-sbit COL9 = P2 ^ 4;
-sbit COL10 = P2 ^ 5;
-
-void resetRows() {
-	ROW1 = ROW2 = ROW3 = ROW4 = ROW5 = ROW6 = 1;
-}
-void resetCols() {
-	COL1 = COL2 = COL3 = COL4 = COL5 = COL6 = COL7 = COL8 = COL9 = COL10 = 1;
-}
-#define DEBOUNCE(pin) delay(10); while(!(pin)); delay(10)
-unsigned char checkCols() {
-	if(!COL1) {
-		DEBOUNCE(COL1);
-		return 0;
-	}
-	if(!COL2) {
-		DEBOUNCE(COL2);
-		return 1;
-	}
-	if(!COL3) {
-		DEBOUNCE(COL3);
-		return 2;
-	}
-	if(!COL4) {
-		DEBOUNCE(COL4);
-		return 3;
-	}
-	if(!COL5) {
-		DEBOUNCE(COL5);
-		return 4;
-	}
-	if(!COL6) {
-		DEBOUNCE(COL6);
-		return 5;
-	}
-	if(!COL7) {
-		DEBOUNCE(COL7);
-		return 6;
-	}
-	if(!COL8) {
-		DEBOUNCE(COL8);
-		return 7;
-	}
-	if(!COL9) {
-		DEBOUNCE(COL9);
-		return 8;
-	}
-	if(!COL10) {
-		DEBOUNCE(COL10);
-		return 9;
-	}
-	return 0xFF;
-}
-
-const unsigned short MIN_THRESH = 192;
-const unsigned short MAX_THRESH = 832;
-
+//Keymaps
 const unsigned short code KEYMAP_NORMAL[6][10] = {
 	{ KEY_LCQ, KEY_LCW, KEY_LCE, KEY_LCR, KEY_LCT, KEY_LCY, KEY_LCU, KEY_LCI, KEY_LCO, KEY_LCP },
 	{ KEY_LCA, KEY_LCS, KEY_LCD, KEY_LCF, KEY_LCG, KEY_LCH, KEY_LCJ, KEY_LCK, KEY_LCL, KEY_SPACE },
@@ -155,8 +92,7 @@ void checkAndSend(unsigned char row) {
 
 void main(void) {
 	unsigned short result = 0;
-	unsigned short lastXResult = 512;
-	unsigned short lastYResult = 512;
+	unsigned char holdCounter = 0;
 	
 	delay(1000);
 	//Set input pins to high impedance mode
@@ -174,36 +110,72 @@ void main(void) {
 	resetRows();
 	resetCols();
 	while(1) {
-//		delay(100);
-//		sendKey(result ++);
 		//Check for left and right
-		ADC_StartConv(CHANNEL_X_AXIS);
-		while(!ADC_ConvFin());
-		result = ADC_GetResult();
+		result = ADC_SyncConv(CHANNEL_X_AXIS);
 		//Check if the value is below the min threshold, and that the last time we checked it was above
-		if(result < MIN_THRESH && lastXResult >= MIN_THRESH) {
+		if(result < MIN_THRESH) {
+			//First send the key
 			sendKey(KEY_LEFT);
-			delay(20);
+			//Then check if the stick is held down
+			while(ADC_SyncConv(CHANNEL_X_AXIS) < MIN_THRESH) {
+				//While holding down and the counter does not exceed the max, increment the counter and delay
+				if(holdCounter <= HOLD_COUNTER_MAX) {
+					holdCounter ++;
+					delay(10);
+				}
+				//Otherwise send the key and delay
+				else {
+					sendKey(KEY_LEFT);
+					delay(REPEAT_KEY_DELAY);
+				}
+			}
+			holdCounter = 0;
 		}
-		else if(result > MAX_THRESH && lastXResult <= MAX_THRESH) {
+		else if(result > MAX_THRESH) {
 			sendKey(KEY_RIGHT);
-			delay(20);
+			while(ADC_SyncConv(CHANNEL_X_AXIS) > MAX_THRESH) {
+				if(holdCounter <= HOLD_COUNTER_MAX) {
+					holdCounter ++;
+					delay(10);
+				}
+				else {
+					sendKey(KEY_RIGHT);
+					delay(REPEAT_KEY_DELAY);
+				}
+			}
+			holdCounter = 0;
 		}
-		lastXResult = result;
 		
 		//Check for up and down
-		ADC_StartConv(CHANNEL_Y_AXIS);
-		while(!ADC_ConvFin());
-		result = ADC_GetResult();
-		if(result < MIN_THRESH && lastYResult >= MIN_THRESH) {
+		result = ADC_SyncConv(CHANNEL_Y_AXIS);
+		if(result < MIN_THRESH) {
 			sendKey(KEY_UP);
-			delay(20);
+			while(ADC_SyncConv(CHANNEL_Y_AXIS) < MIN_THRESH) {
+				if(holdCounter <= HOLD_COUNTER_MAX) {
+					holdCounter ++;
+					delay(10);
+				}
+				else {
+					sendKey(KEY_UP);
+					delay(REPEAT_KEY_DELAY);
+				}
+			}
+			holdCounter = 0;
 		}
-		else if(result > MAX_THRESH && lastYResult <= MAX_THRESH) {
+		else if(result > MAX_THRESH) {
 			sendKey(KEY_DOWN);
-			delay(20);
+			while(ADC_SyncConv(CHANNEL_Y_AXIS) > MAX_THRESH) {
+				if(holdCounter <= HOLD_COUNTER_MAX) {
+					holdCounter ++;
+					delay(10);
+				}
+				else {
+					sendKey(KEY_DOWN);
+					delay(REPEAT_KEY_DELAY);
+				}
+			}
+			holdCounter = 0;
 		}
-		lastYResult = result;
 		
 		if(!BUTTON) {
 			DEBOUNCE(BUTTON);

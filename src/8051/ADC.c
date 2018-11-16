@@ -35,3 +35,8 @@ unsigned short ADC_GetResult() {
 	_nop_();
 	return result;
 }
+unsigned short ADC_SyncConv(unsigned char channel) {
+	ADC_StartConv(channel);
+	while(!ADC_ConvFin());
+	return ADC_GetResult();
+}

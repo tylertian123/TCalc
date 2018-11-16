@@ -391,6 +391,11 @@
               <FileType>1</FileType>
               <FilePath>.\src\8051\ADC.c</FilePath>
             </File>
+            <File>
+              <FileName>bmat.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\8051\bmat.c</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>
