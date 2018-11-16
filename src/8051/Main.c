@@ -56,12 +56,8 @@ void sendKey(unsigned short key) {
 	SBDI_SendByte(key & 0x00FF);
 	SBDI_EndTransmission();
 }
-void checkAndSend(unsigned char row) {
-	unsigned char col = checkCols();
-	if(col == 0xFF) {
-		return;
-	}
-	
+void send(unsigned char row, unsigned char col) {
+	//Handle shift and ctrl keys separately
 	if(KEYMAP_NORMAL[row][col] == KEY_SHIFT) {
 		shift = !shift;
 		sendKey(KEY_SHIFT);
@@ -73,7 +69,9 @@ void checkAndSend(unsigned char row) {
 		return;
 	}
 	
+	//Check if shift and ctrl keys are down
 	if(shift) {
+		//Send the key, delay and deactivate shift and ctrl
 		sendKey(KEYMAP_SHIFT[row][col]);
 		delay(10);
 		sendKey(KEY_SHIFT);
@@ -87,6 +85,26 @@ void checkAndSend(unsigned char row) {
 	}
 	else {
 		sendKey(KEYMAP_NORMAL[row][col]);
+	}
+}
+void checkAndSend(unsigned char row) {
+	unsigned char col = checkCols();
+	unsigned char holdCounter = 0;
+	if(col == 0xFF) {
+		return;
+	}
+	
+	//Key hold checker same logic as joystick's
+	send(row, col);
+	while(checkCols() == col) {
+		if(holdCounter <= HOLD_COUNTER_MAX) {
+			holdCounter ++;
+			delay(10);
+		}
+		else {
+			send(row, col);
+			delay(REPEAT_KEY_DELAY);
+		}
 	}
 }
 
