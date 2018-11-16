@@ -50,21 +50,30 @@ namespace neda {
      */
 	class Expr {
 	public:
+        //The width, height, x and y coordinates are all cached
 		virtual void computeWidth() = 0;
 		virtual void computeHeight() = 0;
 	
-		virtual uint16_t getWidth();
-		virtual uint16_t getHeight();
+		uint16_t getWidth();
+		uint16_t getHeight();
+
+        void setX(int16_t x);
+        void setY(int16_t y);
 	
 		virtual uint16_t getTopSpacing() = 0;
 	
+        //Draws the expr at the specified coords, updating the cached x and y as it goes
 		virtual void draw(lcd::LCD12864&, int16_t, int16_t) = 0;
+        //Draws the expr at the cached coords
+        void draw(lcd::LCD12864&);
 	
 		virtual ~Expr() {};
 	
 	protected:
 		uint16_t exprWidth;
 		uint16_t exprHeight;
+        int16_t x;
+        int16_t y;
 	};
 	
 	/*

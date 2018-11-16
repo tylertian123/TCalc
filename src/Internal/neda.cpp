@@ -25,6 +25,15 @@ namespace neda {
 	uint16_t Expr::getHeight() {
 		return exprHeight;
 	}
+    void Expr::draw(lcd::LCD12864 &dest) {
+        draw(dest, x, y);
+    }
+    void Expr::setX(int16_t x) {
+        this->x = x;
+    }
+    void Expr::setY(int16_t y) {
+        this->y = y;
+    }
 	
 	//*************************** StringExpr ***************************************
     uint16_t StringExpr::getTopSpacing() {
@@ -58,6 +67,8 @@ namespace neda {
 		exprHeight = max;
 	}
 	void StringExpr::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
+        this->x = x;
+        this->y = y;
         VERIFY_INBOUNDS(x, y);
 
         if(contents.length() == 0) {
@@ -149,6 +160,8 @@ namespace neda {
         exprHeight = maxHeight;
 	}
 	void ContainerExpr::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
+        this->x = x;
+        this->y = y;
         VERIFY_INBOUNDS(x, y);
 
         if(contents.length() == 0) {
@@ -205,6 +218,8 @@ namespace neda {
 		exprHeight = numeratorHeight + denominatorHeight + 3;
 	}
 	void FractionExpr::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
+        this->x = x;
+        this->y = y;
         VERIFY_INBOUNDS(x, y);
 		//Watch out for null pointers
         ASSERT_NONNULL(numerator);
@@ -260,6 +275,8 @@ namespace neda {
 		exprHeight = max(0, baseHeight + exponentHeight - BASE_EXPONENT_OVERLAP);
 	}
 	void ExponentExpr::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
+        this->x = x;
+        this->y = y;
         VERIFY_INBOUNDS(x, y);
 		ASSERT_NONNULL(base);
         ASSERT_NONNULL(exponent);
@@ -303,6 +320,8 @@ namespace neda {
 		exprHeight = SAFE_EXEC(contents, getHeight) + 2;
 	}
 	void BracketExpr::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
+        this->x = x;
+        this->y = y;
         VERIFY_INBOUNDS(x, y);
 		ASSERT_NONNULL(contents);
 		//Bracket
@@ -347,6 +366,8 @@ namespace neda {
 		exprHeight = max(0, n->getHeight() - CONTENTS_N_OVERLAP) + SAFE_EXEC(contents, getHeight) + 2;
 	}
 	void RadicalExpr::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
+        this->x = x;
+        this->y = y;
         VERIFY_INBOUNDS(x, y);
 		if(!n) {
 			ASSERT_NONNULL(contents);
@@ -409,6 +430,8 @@ namespace neda {
 		}
 	}
 	void SubscriptExpr::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
+        this->x = x;
+        this->y = y;
         VERIFY_INBOUNDS(x, y);
 		if (!contents) {
 			return;
@@ -471,6 +494,8 @@ namespace neda {
 		exprHeight = max(symbolHeight, bodyHeight);
 	}
 	void SigmaPiExpr::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
+        this->x = x;
+        this->y = y;
         VERIFY_INBOUNDS(x, y);
 		ASSERT_NONNULL(start);
         ASSERT_NONNULL(finish);
