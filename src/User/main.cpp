@@ -92,9 +92,12 @@ int main() {
 		statusLED = !statusLED;
 	});
 	
-	//display.useExtended();
-	//display.startDraw();
-	//display.clearDrawing();
+	display.useExtended();
+	display.startDraw();
+	display.clearDrawing();
+	
+	display.drawImage(-1, -3, lcd::CHAR_SUMMATION);
+	display.updateDrawing();
 
 	//neda::StringExpression strExp2("B");
 //	neda::StringExpression strExp("A");
@@ -105,24 +108,24 @@ int main() {
 	//expr.getHeight();
 	
 	//char ch = LCD_CHARSET_LOWBOUND;
-	uint16_t key = 0;
+	//uint16_t key = 0;
 	
     while(true) {
-		if((key = fetchKey()) != KEY_NULL) {
-			switch(key) {
-			case KEY_SHIFT:
-				shiftLED = !shiftLED;
-			case KEY_CTRL:
-				ctrlLED = !ctrlLED;
-			default: break;
-			}
-			
-			display.clear();
-			display.writeData(key / 10000 + 0x30);
-			display.writeData((key % 10000) / 1000 + 0x30);
-			display.writeData((key % 1000) / 100 + 0x30);
-			display.writeData((key % 100) / 10 + 0x30);
-			display.writeData(key % 10 + 0x30);
-		}
+//		if((key = fetchKey()) != KEY_NULL) {
+//			switch(key) {
+//			case KEY_SHIFT:
+//				shiftLED = !shiftLED;
+//			case KEY_CTRL:
+//				ctrlLED = !ctrlLED;
+//			default: break;
+//			}
+//			
+//			display.clear();
+//			display.writeData(key / 10000 + 0x30);
+//			display.writeData((key % 10000) / 1000 + 0x30);
+//			display.writeData((key % 1000) / 100 + 0x30);
+//			display.writeData((key % 100) / 10 + 0x30);
+//			display.writeData(key % 10 + 0x30);
+//		}
     }
 }

@@ -1,8 +1,17 @@
 #include "lcd12864.hpp"
 
-#ifndef ABS
-#define ABS(x) ((x) >= 0 ? (x) : -(x))
-#endif
+template <typename T>
+inline T abs(T x) {
+    return x >= 0 ? x : -x;
+}
+template <typename T>
+inline T positiveMod(T a, T b) {
+    return a % b + (a < 0 ? b : 0);
+}
+template <typename T>
+inline T floorDiv(T a, T b) {
+    return a > 0 ? a / b : (a - b + 1) / b;
+}
 
 namespace lcd {
 	
@@ -161,8 +170,8 @@ namespace lcd {
 		std::memset(drawBuf, 0, sizeof(drawBuf));
 	}
 	
-	void LCD12864::setPixel(uint16_t x, uint16_t y, bool state) {
-		if(x >= 128 || y >= 64) {
+	void LCD12864::setPixel(int16_t x, int16_t y, bool state) {
+		if(x >= 128 || y >= 64 || x < 0 || y < 0) {
 			return;
 		}
 		
@@ -201,23 +210,35 @@ namespace lcd {
 		drawBuf[row][col] |= x % 2 == 0 ? data << 8 : data;
 	}
 	
-	void LCD12864::drawImage(uint16_t x, uint16_t y, const LCD12864Image &img) {
+	void LCD12864::drawImage(int16_t x, int16_t y, const LCD12864Image &img) {
+        //Check for out of bounds
         if(x >= 128 || y >= 64) {
             return;
         }
+        if(x + img.width < 0 || y + img.height < 0) {
+            return;
+        }
 
-		uint8_t baseByte = x / 8;
-		uint8_t offset = x % 8;
-		for(uint8_t row = 0; row < img.height; row ++) {
+		int16_t baseByte = floorDiv(x, static_cast<int16_t>(8));
+        int8_t offset = positiveMod(x, static_cast<int16_t>(8));
+		for(int16_t row = 0; row < img.height; row ++) {
 			//If the byte we're drawing into is out of bounds vertically then break this outer loop
 			if(row + y >= 64) {
 				break;
 			}
-			for(uint8_t byte = 0; byte < img.bytesWide; byte ++) {
+            //If the byte is too high up, skip this row
+            if(row + y < 0) {
+                continue;
+            }
+			for(int16_t byte = 0; byte < img.bytesWide; byte ++) {
 				//If the byte we're drawing into is out of bounds horizontally then break this inner loop
 				if(baseByte + byte >= 16) {
 					break;
 				}
+                //If the byte we're drawing into is too far left, skip it
+                if(baseByte + byte < 0) {
+                    continue;
+                }
 				
 				//The bytes have to be shifted
 				uint8_t currentByte = img.data[row * img.bytesWide + byte] >> offset;
@@ -307,8 +328,8 @@ namespace lcd {
 
 		}
 	}
-	void LCD12864::drawLine(uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2) {
-		if (ABS(y2 - y1) <= ABS(x2 - x1)) {
+	void LCD12864::drawLine(int16_t x1, int16_t y1, int16_t x2, int16_t y2) {
+		if (abs(y2 - y1) <= abs(x2 - x1)) {
 			if (x2 > x1) {
 				drawLineLow(*this, x1, y1, x2, y2);
 			}
