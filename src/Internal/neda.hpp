@@ -41,7 +41,7 @@ namespace neda {
 	
 		virtual uint16_t getTopSpacing() = 0;
 	
-		virtual void draw(lcd::LCD12864&, uint16_t, uint16_t) = 0;
+		virtual void draw(lcd::LCD12864&, int16_t, int16_t) = 0;
 	
 		virtual ~Expr() {};
 	
@@ -78,7 +78,7 @@ namespace neda {
 		virtual void computeWidth() override;
 		virtual void computeHeight() override;
         virtual uint16_t getTopSpacing() override;
-		virtual void draw(lcd::LCD12864&, uint16_t, uint16_t) override;
+		virtual void draw(lcd::LCD12864&, int16_t, int16_t) override;
 		
 		//StringExprs don't need special handling because it doesn't have any children
 		virtual ~StringExpr() {}
@@ -112,7 +112,7 @@ namespace neda {
         virtual uint16_t getTopSpacing() override;
 		virtual void computeWidth() override;
 		virtual void computeHeight() override;
-		virtual void draw(lcd::LCD12864&, uint16_t, uint16_t) override;
+		virtual void draw(lcd::LCD12864&, int16_t, int16_t) override;
 		
 		virtual ~ContainerExpr();
 	
@@ -135,7 +135,7 @@ namespace neda {
         virtual uint16_t getTopSpacing() override;
 		virtual void computeWidth() override;
 		virtual void computeHeight() override;
-		virtual void draw(lcd::LCD12864&, uint16_t, uint16_t) override;
+		virtual void draw(lcd::LCD12864&, int16_t, int16_t) override;
 			
 		Expr* getNumerator();
 		Expr* getDenominator();
@@ -166,7 +166,7 @@ namespace neda {
         virtual uint16_t getTopSpacing() override;
 		virtual void computeWidth() override;
 		virtual void computeHeight() override;
-		virtual void draw(lcd::LCD12864&, uint16_t, uint16_t) override;
+		virtual void draw(lcd::LCD12864&, int16_t, int16_t) override;
 		
 		Expr* getBase();
 		Expr* getExponent();
@@ -194,7 +194,7 @@ namespace neda {
 		virtual uint16_t getTopSpacing() override;
 		virtual void computeWidth() override;
 		virtual void computeHeight() override;
-		virtual void draw(lcd::LCD12864&, uint16_t, uint16_t) override;
+		virtual void draw(lcd::LCD12864&, int16_t, int16_t) override;
 		
 		Expr* getContents();
 		void setContents(Expr*);
@@ -223,7 +223,7 @@ namespace neda {
 		virtual uint16_t getTopSpacing() override;
 		virtual void computeWidth() override;
 		virtual void computeHeight() override;
-		virtual void draw(lcd::LCD12864&, uint16_t, uint16_t) override;
+		virtual void draw(lcd::LCD12864&, int16_t, int16_t) override;
 		
 		Expr* getContents();
 		Expr* getN();
@@ -253,7 +253,7 @@ namespace neda {
 		virtual uint16_t getTopSpacing() override;
 		virtual void computeWidth() override;
 		virtual void computeHeight() override;
-		virtual void draw(lcd::LCD12864&, uint16_t, uint16_t) override;
+		virtual void draw(lcd::LCD12864&, int16_t, int16_t) override;
 		
 		Expr* getContents();
 		Expr* getSubscript();
@@ -283,7 +283,7 @@ namespace neda {
 		virtual uint16_t getTopSpacing() override;
 		virtual void computeWidth() override;
 		virtual void computeHeight() override;
-		virtual void draw(lcd::LCD12864&, uint16_t, uint16_t) override;
+		virtual void draw(lcd::LCD12864&, int16_t, int16_t) override;
 		
 		Expr* getStart();
 		Expr* getFinish();

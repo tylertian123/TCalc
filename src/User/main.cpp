@@ -96,8 +96,15 @@ int main() {
 	display.startDraw();
 	display.clearDrawing();
 	
-	display.drawImage(-1, -3, lcd::CHAR_SUMMATION);
-	display.updateDrawing();
+	neda::StringExpr *a = new neda::StringExpr("1");
+    neda::StringExpr *b = new neda::StringExpr("2");
+    neda::StringExpr *c = new neda::StringExpr("3");
+    neda::FractionExpr *d = new neda::FractionExpr(a, b);
+    neda::BracketExpr *e = new neda::BracketExpr(d);
+    neda::ExponentExpr *f = new neda::ExponentExpr(e, c);
+    f->draw(display, -3, -4);
+    display.updateDrawing();
+    delete f;
 
 	//neda::StringExpression strExp2("B");
 //	neda::StringExpression strExp("A");

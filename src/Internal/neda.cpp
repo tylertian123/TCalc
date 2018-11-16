@@ -3,6 +3,7 @@
 
 //Execute method on obj with arguments if obj is not null, otherwise 0
 #define SAFE_EXEC(obj, method, ...) ((obj) ? (obj->method(__VA_ARGS__)) : 0)
+#define VERIFY_INBOUNDS(x, y) if(x >= 128 || y >= 64 || x + exprWidth < 0 || y + exprHeight < 0) return
 #define ASSERT_NONNULL(obj) if(!obj) return
 #define DESTROY_IF_NONNULL(obj) if(obj) delete obj
 
@@ -56,7 +57,9 @@ namespace neda {
 		}
 		exprHeight = max;
 	}
-	void StringExpr::draw(lcd::LCD12864 &dest, uint16_t x, uint16_t y) {
+	void StringExpr::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
+        VERIFY_INBOUNDS(x, y);
+
         if(contents.length() == 0) {
             //Empty container shows up as a box
             for(uint16_t w = 0; w < exprWidth; w ++) {
@@ -73,7 +76,11 @@ namespace neda {
 			if(x >= 128 || y >= 64) {
 				return;
 			}
+            
 			const lcd::Img &charImg = lcd::getChar(ch);
+            if(x + charImg.width < 0 || y + charImg.height < 0) {
+                continue;
+            }
 			//To make sure everything is bottom aligned, the max height is added to the y coordinate and the height subtracted from it
 			//This is so that characters less than the max height are still displayed properly.
 			dest.drawImage(x, y + exprHeight - charImg.height, charImg);
@@ -135,7 +142,8 @@ namespace neda {
         }
         exprHeight = maxHeight;
 	}
-	void ContainerExpr::draw(lcd::LCD12864 &dest, uint16_t x, uint16_t y) {
+	void ContainerExpr::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
+        VERIFY_INBOUNDS(x, y);
 
         if(contents.length() == 0) {
             return;
@@ -190,7 +198,8 @@ namespace neda {
 		//Take the sum of the heights and add 3 for the fraction line
 		exprHeight = numeratorHeight + denominatorHeight + 3;
 	}
-	void FractionExpr::draw(lcd::LCD12864 &dest, uint16_t x, uint16_t y) {
+	void FractionExpr::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
+        VERIFY_INBOUNDS(x, y);
 		//Watch out for null pointers
         ASSERT_NONNULL(numerator);
         ASSERT_NONNULL(denominator);
@@ -244,7 +253,8 @@ namespace neda {
 		//Make sure this is positive
 		exprHeight = max(0, baseHeight + exponentHeight - BASE_EXPONENT_OVERLAP);
 	}
-	void ExponentExpr::draw(lcd::LCD12864 &dest, uint16_t x, uint16_t y) {
+	void ExponentExpr::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
+        VERIFY_INBOUNDS(x, y);
 		ASSERT_NONNULL(base);
         ASSERT_NONNULL(exponent);
 		uint16_t baseWidth = base->getWidth();
@@ -286,7 +296,8 @@ namespace neda {
 		//+2 for the padding at the top and bottom
 		exprHeight = SAFE_EXEC(contents, getHeight) + 2;
 	}
-	void BracketExpr::draw(lcd::LCD12864 &dest, uint16_t x, uint16_t y) {
+	void BracketExpr::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
+        VERIFY_INBOUNDS(x, y);
 		ASSERT_NONNULL(contents);
 		//Bracket
 		dest.setPixel(x + 2, y, true);
@@ -329,7 +340,8 @@ namespace neda {
 		}
 		exprHeight = max(0, n->getHeight() - CONTENTS_N_OVERLAP) + SAFE_EXEC(contents, getHeight) + 2;
 	}
-	void RadicalExpr::draw(lcd::LCD12864 &dest, uint16_t x, uint16_t y) {
+	void RadicalExpr::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
+        VERIFY_INBOUNDS(x, y);
 		if(!n) {
 			ASSERT_NONNULL(contents);
 			dest.drawLine(x, y + exprHeight - 1 - 2, x + 2, y + exprHeight - 1);
@@ -390,7 +402,8 @@ namespace neda {
 			exprHeight = SAFE_EXEC(contents, getHeight);
 		}
 	}
-	void SubscriptExpr::draw(lcd::LCD12864 &dest, uint16_t x, uint16_t y) {
+	void SubscriptExpr::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
+        VERIFY_INBOUNDS(x, y);
 		if (!contents) {
 			return;
 		}
@@ -451,7 +464,8 @@ namespace neda {
 
 		exprHeight = max(symbolHeight, bodyHeight);
 	}
-	void SigmaPiExpr::draw(lcd::LCD12864 &dest, uint16_t x, uint16_t y) {
+	void SigmaPiExpr::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
+        VERIFY_INBOUNDS(x, y);
 		ASSERT_NONNULL(start);
         ASSERT_NONNULL(finish);
         ASSERT_NONNULL(contents);
@@ -505,5 +519,6 @@ namespace neda {
 }
 
 #undef SAFE_EXEC
+#undef VERIFY_INBOUNDS
 #undef ASSERT_NONNULL
 #undef DESTROY_IF_NONNULL
