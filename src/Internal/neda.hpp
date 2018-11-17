@@ -20,21 +20,6 @@
 namespace neda {
 
     class StringExpr;
-    /*
-     * This struct represents the location of the cursor. 
-     * Cursors can only be inside StringExprs as they make no sense elsewhere.
-     */
-    struct Cursor {
-        StringExpr *expr;
-        uint16_t index;
-        
-        void draw() {
-            expr->drawCursor(*this);
-        }
-        void addChar(char ch) {
-            expr->addAtCursor(ch, *this);
-        }
-    };
 	
 	/*
      * This is the base Expression class.
@@ -76,6 +61,7 @@ namespace neda {
         int16_t y;
 	};
 	
+    struct Cursor;
 	/*
      * The StringExpr is a bottom-level expression that is simply a string, and in this case, implemented with a DynamicArray<char>.
      * Being so basic, StringExpr does not have any children; its contents are simply a string and nothing else.
@@ -101,7 +87,7 @@ namespace neda {
 		
 		void addChar(char);
         void addAtCursor(char, const Cursor&);
-        void drawCursor(const Cursor&);
+        void drawCursor(lcd::LCD12864&, const Cursor&);
 		
 		virtual void computeWidth() override;
 		virtual void computeHeight() override;
@@ -326,6 +312,22 @@ namespace neda {
 		const lcd::LCD12864Image &symbol;
 		Expr *start, *finish, *contents;
 	};
+
+    /*
+     * This struct represents the location of the cursor. 
+     * Cursors can only be inside StringExprs as they make no sense elsewhere.
+     */
+    struct Cursor {
+        StringExpr *expr;
+        uint16_t index;
+
+        void draw(lcd::LCD12864& dest) {
+            expr->drawCursor(dest, *this);
+        }
+        void addChar(char ch) {
+            expr->addAtCursor(ch, *this);
+        }
+    };
 }
 
 #endif

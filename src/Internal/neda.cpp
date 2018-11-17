@@ -107,8 +107,15 @@ namespace neda {
     void StringExpr::addAtCursor(char ch, const Cursor &cursor) {
         contents.insert(ch, cursor.index);
     }
-    void StringExpr::drawCursor(const Cursor &cursor) {
-        
+    void StringExpr::drawCursor(lcd::LCD12864 &dest, const Cursor &cursor) {
+        int16_t cursorX = x;
+        for(uint16_t i = 0; i < cursor.index && i < contents.length(); i ++) {
+            cursorX += lcd::getChar(contents[i]).width + 1; //+1 for spacing
+        }
+        for(int16_t i = 0; i < exprHeight; i ++) {
+            dest.setPixel(cursorX, y + i, true);
+            dest.setPixel(cursorX + 1, y + i, true);
+        }
     }
 	
 	//*************************** ContainerExpr ***************************************
