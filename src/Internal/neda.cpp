@@ -110,12 +110,18 @@ namespace neda {
     void StringExpr::drawCursor(lcd::LCD12864 &dest, const Cursor &cursor) {
         int16_t cursorX = x;
         for(uint16_t i = 0; i < cursor.index && i < contents.length(); i ++) {
-            cursorX += lcd::getChar(contents[i]).width + 1; //+1 for spacing
+            cursorX += lcd::getChar(contents[i]).width;
+        }
+        if(cursor.index != 0) {
+            cursorX += cursor.index - 1;
         }
         for(int16_t i = 0; i < exprHeight; i ++) {
             dest.setPixel(cursorX, y + i, true);
             dest.setPixel(cursorX + 1, y + i, true);
         }
+    }
+    bool StringExpr::inBounds(const Cursor &cursor) {
+        return cursor.index <= contents.length();
     }
 	
 	//*************************** ContainerExpr ***************************************
@@ -250,11 +256,13 @@ namespace neda {
 	}
 	void FractionExpr::setNumerator(Expr *numerator) {
 		this->numerator = numerator;
+        numerator->parent = this;
 		computeWidth();
 		computeHeight();
 	}
 	void FractionExpr::setDenominator(Expr *denominator) {
 		this->denominator = denominator;
+        denominator->parent = this;
 		computeWidth();
 		computeHeight();
 	}
@@ -300,11 +308,13 @@ namespace neda {
 	}
 	void ExponentExpr::setBase(Expr *base) {
 		this->base = base;
+        base->parent = this;
 		computeWidth();
 		computeHeight();
 	}
 	void ExponentExpr::setExponent(Expr *exponent) {
 		this->exponent = exponent;
+        exponent->parent = this;
 		computeWidth();
 		computeHeight();
 	}
@@ -403,11 +413,13 @@ namespace neda {
 	}
 	void RadicalExpr::setContents(Expr *contents) {
 		this->contents = contents;
+        contents->parent = this;
 		computeWidth();
 		computeHeight();
 	}
 	void RadicalExpr::setN(Expr *n) {
 		this->n = n;
+        n->parent = this;
 		computeWidth();
 		computeHeight();
 	}
@@ -457,11 +469,13 @@ namespace neda {
 	}
 	void SubscriptExpr::setContents(Expr *contents) {
 		this->contents = contents;
+        contents->parent = this;
 		computeWidth();
 		computeHeight();
 	}
 	void SubscriptExpr::setSubscript(Expr *subscript) {
 		this->subscript = subscript;
+        subscript->parent = this;
 		computeWidth();
 		computeHeight();
 	}
@@ -536,16 +550,19 @@ namespace neda {
     }
     void SigmaPiExpr::setStart(Expr *start) {
         this->start = start;
+        start->parent = this;
         computeWidth();
         computeHeight();
     }
     void SigmaPiExpr::setFinish(Expr *finish) {
         this->finish = finish;
+        finish->parent = this;
         computeWidth();
         computeHeight();
     }
     void SigmaPiExpr::setContents(Expr *contents) {
         this->contents = contents;
+        contents->parent = this;
         computeWidth();
         computeHeight();
     }

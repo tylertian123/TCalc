@@ -19,7 +19,7 @@
  */
 namespace neda {
 
-    class StringExpr;
+    struct Cursor;
 	
 	/*
      * This is the base Expression class.
@@ -53,6 +53,13 @@ namespace neda {
         void draw(lcd::LCD12864&);
 	
 		virtual ~Expr() {};
+
+        Expr *parent;
+        virtual void left(Expr*, Cursor&) = 0;
+        virtual void right(Expr*, Cursor&) = 0;
+        virtual void up(Expr*, Cursor&) = 0;
+        virtual void down(Expr*, Cursor&) = 0;
+        virtual void getCursor(Cursor&) = 0;
 	
 	protected:
 		uint16_t exprWidth;
@@ -61,7 +68,6 @@ namespace neda {
         int16_t y;
 	};
 	
-    struct Cursor;
 	/*
      * The StringExpr is a bottom-level expression that is simply a string, and in this case, implemented with a DynamicArray<char>.
      * Being so basic, StringExpr does not have any children; its contents are simply a string and nothing else.
@@ -88,6 +94,7 @@ namespace neda {
 		void addChar(char);
         void addAtCursor(char, const Cursor&);
         void drawCursor(lcd::LCD12864&, const Cursor&);
+        bool inBounds(const Cursor&);
 		
 		virtual void computeWidth() override;
 		virtual void computeHeight() override;
@@ -96,6 +103,12 @@ namespace neda {
 		
 		//StringExprs don't need special handling because it doesn't have any children
 		virtual ~StringExpr() {}
+
+        virtual void left(Expr*, Cursor&) override;
+        virtual void right(Expr*, Cursor&) override;
+        virtual void up(Expr*, Cursor&) override;
+        virtual void down(Expr*, Cursor&) override;
+        virtual void getCursor(Cursor&) override;
 	
 	protected:
 		DynamicArray<char> contents;
@@ -108,11 +121,17 @@ namespace neda {
 	class ContainerExpr : public Expr {
 	public:
 		//Constructor from dynamic array of Expression pointers, copy constructor and default constructor
-		ContainerExpr(const DynamicArray<Expr*> &Exprs) : contents(Exprs) {
+		ContainerExpr(const DynamicArray<Expr*> &exprs) : contents(exprs) {
+            for(Expr* ex : exprs) {
+                ex->parent = this;
+            }
 			computeWidth();
 			computeHeight();
 		}
 		ContainerExpr(const ContainerExpr &other) : contents(other.contents) {
+            for(Expr* ex : contents) {
+                ex->parent = this;
+            }
 			computeWidth();
 			computeHeight();
 		}
@@ -129,6 +148,12 @@ namespace neda {
 		virtual void draw(lcd::LCD12864&, int16_t, int16_t) override;
 		
 		virtual ~ContainerExpr();
+
+        virtual void left(Expr*, Cursor&) override;
+        virtual void right(Expr*, Cursor&) override;
+        virtual void up(Expr*, Cursor&) override;
+        virtual void down(Expr*, Cursor&) override;
+        virtual void getCursor(Cursor&) override;
 	
 	protected:
 		DynamicArray<Expr*> contents;
@@ -138,6 +163,8 @@ namespace neda {
 	class FractionExpr : public Expr {
 	public:
 		FractionExpr(Expr *numerator, Expr *denominator) : numerator(numerator), denominator(denominator) {
+            numerator->parent = this;
+            denominator->parent = this;
 			computeWidth();
 			computeHeight();
 		}
@@ -157,6 +184,12 @@ namespace neda {
 		void setDenominator(Expr*);
 		
 		virtual ~FractionExpr();
+
+        virtual void left(Expr*, Cursor&) override;
+        virtual void right(Expr*, Cursor&) override;
+        virtual void up(Expr*, Cursor&) override;
+        virtual void down(Expr*, Cursor&) override;
+        virtual void getCursor(Cursor&) override;
 	
 	protected:
 		Expr *numerator;
@@ -167,6 +200,8 @@ namespace neda {
 	class ExponentExpr : public Expr {
 	public:
 		ExponentExpr(Expr *base, Expr *exponent) : base(base), exponent(exponent) {
+            base->parent = this;
+            exponent->parent = this;
 			computeWidth();
 			computeHeight();
 		}
@@ -188,6 +223,13 @@ namespace neda {
 		void setExponent(Expr*);
 		
 		virtual ~ExponentExpr();
+
+        virtual void left(Expr*, Cursor&) override;
+        virtual void right(Expr*, Cursor&) override;
+        virtual void up(Expr*, Cursor&) override;
+        virtual void down(Expr*, Cursor&) override;
+        virtual void getCursor(Cursor&) override;
+
 	protected:
 		Expr *base;
 		Expr *exponent;
@@ -197,6 +239,7 @@ namespace neda {
 	class BracketExpr : public Expr {
 	public:
 		BracketExpr(Expr *contents) : contents(contents) {
+            contents->parent = this;
 			computeWidth();
 			computeHeight();
 		}
@@ -214,6 +257,12 @@ namespace neda {
 		void setContents(Expr*);
 		
 		virtual ~BracketExpr();
+
+        virtual void left(Expr*, Cursor&) override;
+        virtual void right(Expr*, Cursor&) override;
+        virtual void up(Expr*, Cursor&) override;
+        virtual void down(Expr*, Cursor&) override;
+        virtual void getCursor(Cursor&) override;
 		
 	protected:
 		Expr *contents;
@@ -223,6 +272,8 @@ namespace neda {
 	class RadicalExpr : public Expr {
 	public:
 		RadicalExpr(Expr *contents, Expr *n) : contents(contents), n(n) {
+            contents->parent = this;
+            n->parent = this;
 			computeWidth();
 			computeHeight();
 		}
@@ -245,6 +296,12 @@ namespace neda {
 		void setN(Expr*);
 		
 		virtual ~RadicalExpr();
+
+        virtual void left(Expr*, Cursor&) override;
+        virtual void right(Expr*, Cursor&) override;
+        virtual void up(Expr*, Cursor&) override;
+        virtual void down(Expr*, Cursor&) override;
+        virtual void getCursor(Cursor&) override;
 	
 	protected:
 		Expr *contents, *n;
@@ -254,6 +311,8 @@ namespace neda {
 	class SubscriptExpr : public Expr {
 	public:
 		SubscriptExpr(Expr *contents, Expr *subscript) : contents(contents), subscript(subscript) {
+            contents->parent = this;
+            subscript->parent = this;
 			computeWidth();
 			computeHeight();
 		}
@@ -275,6 +334,12 @@ namespace neda {
 		void setSubscript(Expr*);
 		
 		virtual ~SubscriptExpr();
+
+        virtual void left(Expr*, Cursor&) override;
+        virtual void right(Expr*, Cursor&) override;
+        virtual void up(Expr*, Cursor&) override;
+        virtual void down(Expr*, Cursor&) override;
+        virtual void getCursor(Cursor&) override;
 		
 	protected:
 		Expr *contents, *subscript;
@@ -284,10 +349,13 @@ namespace neda {
 	class SigmaPiExpr : public Expr {
 	public:
 		SigmaPiExpr(const lcd::LCD12864Image &symbol, Expr *start, Expr *finish, Expr *contents) : symbol(symbol), start(start), finish(finish) {
-			computeWidth();
+			start->parent = this;
+            finish->parent = this;
+            contents->parent = this;
+            computeWidth();
 			computeHeight();
 		}
-		SigmaPiExpr(const lcd::LCD12864Image &symbol) : symbol(symbol) {
+		SigmaPiExpr(const lcd::LCD12864Image &symbol) : symbol(symbol), start(nullptr), finish(nullptr), contents(nullptr) {
 			computeWidth();
 			computeHeight();
 		}
@@ -307,6 +375,12 @@ namespace neda {
 		void setContents(Expr *contents);
 		
 		virtual ~SigmaPiExpr();
+
+        virtual void left(Expr*, Cursor&) override;
+        virtual void right(Expr*, Cursor&) override;
+        virtual void up(Expr*, Cursor&) override;
+        virtual void down(Expr*, Cursor&) override;
+        virtual void getCursor(Cursor&) override;
 		
 	protected:
 		const lcd::LCD12864Image &symbol;
