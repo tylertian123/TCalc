@@ -59,7 +59,7 @@ void initCursorTimer() {
 	initStruct.TIM_CounterMode = TIM_CounterMode_Up;
 	initStruct.TIM_ClockDivision = TIM_CKD_DIV4;
 	initStruct.TIM_Prescaler = 17999;
-	initStruct.TIM_Period = 1500;
+	initStruct.TIM_Period = 2000;
 	initStruct.TIM_RepetitionCounter = 0;
 	TIM_TimeBaseInit(TIM3, &initStruct);
 	//Set up interrupts
@@ -105,7 +105,7 @@ int main() {
 	
 	//Disable JTAG so we can use PB3 and 4
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
-	GPIO_PinRemapConfig(GPIO_Remap_SWJ_Disable, ENABLE);
+	GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable, ENABLE);
 	
 	//1s startup delay
 	delay::sec(1);
@@ -180,6 +180,9 @@ int main() {
 				break;
 			case KEY_DOWN:
 				cursor->down();
+				break;
+			case KEY_DELETE:
+				cursor->removeChar();
 				break;
 			default: break;
 			}

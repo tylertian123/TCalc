@@ -97,7 +97,8 @@ namespace neda {
         static const uint16_t EMPTY_STRING_HEIGHT = 9;
 		
 		void addChar(char);
-        void addAtCursor(char, const Cursor&);
+        void addAtCursor(char, Cursor&);
+        void removeAtCursor(Cursor&);
         void drawCursor(lcd::LCD12864&, const Cursor&);
         bool inBounds(const Cursor&);
 		
@@ -390,6 +391,9 @@ namespace neda {
         }
         void addChar(char ch) {
             expr->addAtCursor(ch, *this);
+        }
+        void removeChar() {
+            expr->removeAtCursor(*this);
         }
         void left() {
             expr->left(nullptr, *this);

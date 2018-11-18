@@ -78,6 +78,17 @@ public:
         }
         contents[where] = elem;
     }
+    void removeAt(uint32_t where) {
+        //Ignore if out of bounds
+        if(where >= len) {
+            return;
+        }
+        len --;
+        //Shift all elements after the index back
+        for(uint32_t i = where; i < len; i ++) {
+            contents[i] = contents[i + 1];
+        }
+    }
 	void removeLast() {
 		if(len == 0) {
 			//Ignore if there are no elements

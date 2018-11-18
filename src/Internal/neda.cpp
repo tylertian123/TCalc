@@ -126,8 +126,18 @@ namespace neda {
 		computeWidth();
 		computeHeight();
 	}
-    void StringExpr::addAtCursor(char ch, const Cursor &cursor) {
+    void StringExpr::addAtCursor(char ch, Cursor &cursor) {
         contents.insert(ch, cursor.index);
+		cursor.index ++;
+		computeWidth();
+		computeHeight();
+    }
+    void StringExpr::removeAtCursor(Cursor &cursor) {
+        if(cursor.index != 0) {
+            contents.removeAt(--cursor.index);
+        }
+		computeWidth();
+		computeHeight();
     }
     void StringExpr::drawCursor(lcd::LCD12864 &dest, const Cursor &cursor) {
         int16_t cursorX = x;
@@ -139,7 +149,7 @@ namespace neda {
         }
         for(int16_t i = 0; i < exprHeight; i ++) {
             dest.setPixel(cursorX, y + i, true);
-            //dest.setPixel(cursorX + 1, y + i, true);
+            dest.setPixel(cursorX + 1, y + i, true);
         }
     }
     bool StringExpr::inBounds(const Cursor &cursor) {
