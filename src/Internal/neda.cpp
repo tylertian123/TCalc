@@ -243,6 +243,7 @@ namespace neda {
 		}
 	}
 	void ContainerExpr::addExpr(Expr *expr) {
+		expr->parent = this;
 		contents.add(expr);
 		
 		computeWidth();
