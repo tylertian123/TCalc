@@ -139,7 +139,7 @@ namespace neda {
         }
         for(int16_t i = 0; i < exprHeight; i ++) {
             dest.setPixel(cursorX, y + i, true);
-            dest.setPixel(cursorX + 1, y + i, true);
+            //dest.setPixel(cursorX + 1, y + i, true);
         }
     }
     bool StringExpr::inBounds(const Cursor &cursor) {

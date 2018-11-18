@@ -57,10 +57,9 @@ void initCursorTimer() {
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
 	TIM_TimeBaseInitTypeDef initStruct;
 	initStruct.TIM_CounterMode = TIM_CounterMode_Up;
-	//Clock div 4 and prescaler of 1/18000 yields one increment per ms
 	initStruct.TIM_ClockDivision = TIM_CKD_DIV4;
 	initStruct.TIM_Prescaler = 17999;
-	initStruct.TIM_Period = 500;
+	initStruct.TIM_Period = 1500;
 	initStruct.TIM_RepetitionCounter = 0;
 	TIM_TimeBaseInit(TIM3, &initStruct);
 	//Set up interrupts
@@ -87,6 +86,7 @@ extern "C" void TIM3_IRQHandler() {
 		if(cursorOn) {
 			cursor->draw(display);
 		}
+		display.updateDrawing();
 	}
 }
 
@@ -136,8 +136,6 @@ int main() {
 	
 	//Create cursor
 	cursor = new neda::Cursor;
-	//Start blink
-	initCursorTimer();
 	
 	neda::ContainerExpr *master = new neda::ContainerExpr;
 	neda::StringExpr *a = new neda::StringExpr("1");
@@ -152,6 +150,9 @@ int main() {
 	master->draw(display, 0, 0);
 	cursor->draw(display);
 	display.updateDrawing();
+	
+	//Start blink
+	initCursorTimer();
 	
 	uint16_t key = 0;
 	
