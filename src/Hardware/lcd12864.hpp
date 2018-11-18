@@ -84,7 +84,8 @@ namespace lcd {
 		bool updateDrawing();
 		void clearDrawingBuffer();
 		void setPixel(int16_t, int16_t, bool);
-		void setDrawBufferByte(uint16_t, uint16_t, uint8_t);
+		void ORDrawBufferByte(uint16_t, uint16_t, uint8_t);
+        void ANDDrawBufferByte(uint16_t, uint16_t, uint8_t);
 		void drawImage(int16_t, int16_t, const LCD12864Image&);
 		void drawLine(int16_t, int16_t, int16_t, int16_t);
 	

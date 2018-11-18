@@ -53,6 +53,43 @@ uint16_t fetchKey() {
 	}
 }
 
+void initCursorTimer() {
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
+	TIM_TimeBaseInitTypeDef initStruct;
+	initStruct.TIM_CounterMode = TIM_CounterMode_Up;
+	//Clock div 4 and prescaler of 1/18000 yields one increment per ms
+	initStruct.TIM_ClockDivision = TIM_CKD_DIV4;
+	initStruct.TIM_Prescaler = 17999;
+	initStruct.TIM_Period = 500;
+	initStruct.TIM_RepetitionCounter = 0;
+	TIM_TimeBaseInit(TIM3, &initStruct);
+	//Set up interrupts
+	NVIC_InitTypeDef nvicInit;
+	nvicInit.NVIC_IRQChannel = TIM3_IRQn;
+	nvicInit.NVIC_IRQChannelCmd = ENABLE;
+	nvicInit.NVIC_IRQChannelPreemptionPriority = 0x04;
+	nvicInit.NVIC_IRQChannelSubPriority = 0x01;
+	NVIC_Init(&nvicInit);
+	//Enable timer and interrupts
+	TIM_Cmd(TIM3, ENABLE);
+	TIM_ITConfig(TIM3, TIM_IT_Update, ENABLE);
+}
+
+bool cursorOn = false;
+neda::Cursor *cursor;
+extern "C" void TIM3_IRQHandler() {
+	if(TIM_GetITStatus(TIM3, TIM_IT_Update)) {
+		TIM_ClearITPendingBit(TIM3, TIM_IT_Update);
+		cursorOn = !cursorOn;
+		display.clearDrawingBuffer();
+		//Redraw the entire expr
+		cursor->expr->Expr::drawConnected(display);
+		if(cursorOn) {
+			cursor->draw(display);
+		}
+	}
+}
+
 int main() {
 	
 	sys::initRCC();
@@ -92,47 +129,62 @@ int main() {
 		statusLED = !statusLED;
 	});
 	
+	//Init display
 	display.useExtended();
 	display.startDraw();
 	display.clearDrawing();
 	
+	//Create cursor
+	cursor = new neda::Cursor;
+	//Start blink
+	initCursorTimer();
+	
+	neda::ContainerExpr *master = new neda::ContainerExpr;
 	neda::StringExpr *a = new neda::StringExpr("1");
     neda::StringExpr *b = new neda::StringExpr("2");
     neda::StringExpr *c = new neda::StringExpr("3");
     neda::FractionExpr *d = new neda::FractionExpr(a, b);
     neda::BracketExpr *e = new neda::BracketExpr(d);
     neda::ExponentExpr *f = new neda::ExponentExpr(e, c);
-    f->draw(display, -3, -4);
-    display.updateDrawing();
-    delete f;
-
-	//neda::StringExpression strExp2("B");
-//	neda::StringExpression strExp("A");
-//	neda::ContainerExpression expr;
-//	expr.addExpr(&strExp);
-//	neda::StringExpression strExp2("B");
-//	expr.addExpr(&strExp2);
-	//expr.getHeight();
+	master->addExpr(f);
 	
-	//char ch = LCD_CHARSET_LOWBOUND;
-	//uint16_t key = 0;
+	master->getCursor(*cursor, neda::CURSORLOCATION_START);
+	master->draw(display, 0, 0);
+	cursor->draw(display);
+	display.updateDrawing();
+	
+	uint16_t key = 0;
 	
     while(true) {
-//		if((key = fetchKey()) != KEY_NULL) {
-//			switch(key) {
-//			case KEY_SHIFT:
-//				shiftLED = !shiftLED;
-//			case KEY_CTRL:
-//				ctrlLED = !ctrlLED;
-//			default: break;
-//			}
-//			
-//			display.clear();
-//			display.writeData(key / 10000 + 0x30);
-//			display.writeData((key % 10000) / 1000 + 0x30);
-//			display.writeData((key % 1000) / 100 + 0x30);
-//			display.writeData((key % 100) / 10 + 0x30);
-//			display.writeData(key % 10 + 0x30);
-//		}
+		if((key = fetchKey()) != KEY_NULL) {
+			
+			switch(key) {
+			case KEY_SHIFT:
+				shiftLED = !shiftLED;
+				break;
+			case KEY_CTRL:
+				ctrlLED = !ctrlLED;
+				break;
+			case KEY_LEFT:
+				cursor->left();
+				break;
+			case KEY_RIGHT:
+				cursor->right();
+				break;
+			case KEY_UP:
+				cursor->up();
+				break;
+			case KEY_DOWN:
+				cursor->down();
+				break;
+			default: break;
+			}
+			
+			display.clearDrawingBuffer();
+			master->draw(display, 0, 0);
+			cursor->draw(display);
+			display.updateDrawing();
+			
+		}
     }
 }

@@ -54,6 +54,8 @@ namespace neda {
 		virtual void draw(lcd::LCD12864&, int16_t, int16_t) = 0;
         //Draws the expr at the cached coords
         void draw(lcd::LCD12864&);
+        //Draws all expressions that are connected in some way to this one. e.g. its parents, siblings, grandparents, etc.
+        void drawConnected(lcd::LCD12864&);
 	
 		virtual ~Expr() {};
 
@@ -388,6 +390,18 @@ namespace neda {
         }
         void addChar(char ch) {
             expr->addAtCursor(ch, *this);
+        }
+        void left() {
+            expr->left(nullptr, *this);
+        }
+        void right() {
+            expr->right(nullptr, *this);
+        }
+        void up() {
+            expr->up(nullptr, *this);
+        }
+        void down() {
+            expr->down(nullptr, *this);
         }
     };
 }

@@ -48,6 +48,14 @@ namespace neda {
     void Expr::down(Expr *ex, Cursor &cursor) {
         SAFE_EXEC(parent,down, this, cursor);
     }
+    void Expr::drawConnected(lcd::LCD12864 &dest) {
+        if(parent) {
+            parent->drawConnected(dest);
+        }
+        else {
+            draw(dest);
+        }
+    }
 	
 	//*************************** StringExpr ***************************************
     uint16_t StringExpr::getTopSpacing() {
