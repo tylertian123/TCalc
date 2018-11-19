@@ -433,7 +433,16 @@ namespace neda {
 		const lcd::LCD12864Image &symbol;
 		Expr *start, *finish, *contents;
 	};
-
+	
+	/*
+	 * This struct contains info about the cursor's position and size.
+	 */
+	struct CursorInfo {
+        int16_t x;
+        int16_t y;
+        uint16_t width;
+        uint16_t height;
+    };
     /*
      * This struct represents the location of the cursor. 
      * Cursors can only be inside StringExprs as they make no sense elsewhere.
@@ -463,17 +472,9 @@ namespace neda {
         void down() {
             expr->down(nullptr, *this);
         }
-        CursorInfo getInfo() {
-            CursorInfo info;
+        void getInfo(CursorInfo &info) {
             expr->getCursorInfo(*this, info);
-            return info;
         }
-    };
-    struct CursorInfo {
-        int16_t x;
-        int16_t y;
-        uint16_t width;
-        uint16_t height;
     };
 }
 
