@@ -64,7 +64,7 @@ namespace neda {
     }
 	void StringExpr::computeWidth() {
 		if(contents.length() == 0) {
-			exprWidth = EMPTY_STRING_WIDTH;
+			exprWidth = 0;
 			return;
 		}
 		
@@ -78,7 +78,7 @@ namespace neda {
 	}
 	void StringExpr::computeHeight() {
         if(contents.length() == 0) {
-            exprHeight = EMPTY_STRING_HEIGHT;
+            exprHeight = 0;
             return;
         }
 		uint16_t max = 0;
@@ -94,15 +94,7 @@ namespace neda {
         VERIFY_INBOUNDS(x, y);
 
         if(contents.length() == 0) {
-            //Empty container shows up as a box
-            for(uint16_t w = 0; w < exprWidth; w ++) {
-                dest.setPixel(x + w, y, true);
-                dest.setPixel(x + w, y + exprHeight - 1, true);
-            }
-            for(uint16_t h = 0; h < exprHeight; h ++) {
-                dest.setPixel(x, y + h, true);
-                dest.setPixel(x + exprWidth - 1, y + h, true);
-            }
+            return;
         }
 
 		for(char ch : contents) {
@@ -184,7 +176,7 @@ namespace neda {
 	void ContainerExpr::computeWidth() {
 		//An empty ContainerExpr has a default width and height
 		if(contents.length() == 0) {
-			exprWidth = 0;
+			exprWidth = EMPTY_EXPR_WIDTH;
             return;
 		}
 		
@@ -198,7 +190,7 @@ namespace neda {
 	}
 	void ContainerExpr::computeHeight() {
 		if(contents.length() == 0) {
-			exprHeight = 0;
+			exprHeight = EMPTY_EXPR_HEIGHT;
 			return;
 		}
 
@@ -230,6 +222,15 @@ namespace neda {
         VERIFY_INBOUNDS(x, y);
 
         if(contents.length() == 0) {
+            //Empty container shows up as a box
+            for(uint16_t w = 0; w < exprWidth; w ++) {
+                dest.setPixel(x + w, y, true);
+                dest.setPixel(x + w, y + exprHeight - 1, true);
+            }
+            for(uint16_t h = 0; h < exprHeight; h ++) {
+                dest.setPixel(x, y + h, true);
+                dest.setPixel(x + exprWidth - 1, y + h, true);
+            }
             return;
         }
 		
