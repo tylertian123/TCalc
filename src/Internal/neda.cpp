@@ -78,7 +78,7 @@ namespace neda {
 	}
 	void StringExpr::computeHeight() {
         if(contents.length() == 0) {
-            exprHeight = 0;
+            exprHeight = ContainerExpr::EMPTY_EXPR_HEIGHT;
             return;
         }
 		uint16_t max = 0;
