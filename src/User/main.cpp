@@ -10,7 +10,9 @@
 #include "dynamarr.hpp"
 #include "neda.hpp"
 #include "keydef.h"
+#include "util.hpp"
 
+/********** GPIO Pins and other pin defs **********/
 GPIOPin RS(GPIOB, GPIO_Pin_12), RW(GPIOB, GPIO_Pin_13), E(GPIOB, GPIO_Pin_14),
 			D7(GPIOA, GPIO_Pin_15), D6(GPIOB, GPIO_Pin_3), D5(GPIOB, GPIO_Pin_4), D4(GPIOB, GPIO_Pin_5),
 			D3(GPIOB, GPIO_Pin_6), D2(GPIOB, GPIO_Pin_7), D1(GPIOB, GPIO_Pin_8), D0(GPIOB, GPIO_Pin_9);
@@ -27,6 +29,7 @@ GPIOPin statusLED(GPIOC, GPIO_Pin_13);
 GPIOPin shiftLED(GPIOA, GPIO_Pin_3);
 GPIOPin ctrlLED(GPIOA, GPIO_Pin_2);
 
+/********** Keyboard stuff **********/
 uint32_t keyDataBuffer = 0;
 
 uint16_t fetchKey() {
@@ -53,6 +56,7 @@ uint16_t fetchKey() {
 	}
 }
 
+/********** Cursor processing **********/
 void initCursorTimer() {
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
 	TIM_TimeBaseInitTypeDef initStruct;
@@ -90,12 +94,40 @@ extern "C" void TIM3_IRQHandler() {
 	}
 }
 
-int main() {
+#define CURSOR_HORIZ_SPACING 5
+#define CURSOR_VERT_SPACING 3
+//Moves ex so that the cursor is in the display
+void adjustExpr(neda::Expr *ex, neda::Cursor *cursorRef) {
+	neda::CursorInfo info;
+	cursorRef->getInfo(info);
+	if(info.x + info.width > CURSOR_HORIZ_SPACING && info.y + info.height > CURSOR_VERT_SPACING
+			&& info.x + info.width + CURSOR_HORIZ_SPACING < 128 && info.y + info.height + CURSOR_VERT_SPACING < 64) {
+		return;
+	}
 	
+	int16_t xdiff = 0, ydiff = 0;
+	if(info.x + info.width <= CURSOR_HORIZ_SPACING) {
+		xdiff = CURSOR_HORIZ_SPACING + 1 - (info.x + info.width);
+	}
+	else if(info.x + info.width + CURSOR_HORIZ_SPACING >= 128) {
+		xdiff = 127 - (info.x + info.width + CURSOR_HORIZ_SPACING);
+	}
+	if(info.y + info.height <= CURSOR_VERT_SPACING) {
+		ydiff = CURSOR_VERT_SPACING + 1 - (info.y + info.height);
+	}
+	else if(info.y + info.height + CURSOR_VERT_SPACING >= 64) {
+		ydiff = 63 - (info.y + info.height + CURSOR_VERT_SPACING);
+	}
+	ex->setX(ex->getX() + xdiff);
+	ex->setY(ex->getY() + ydiff);
+}
+
+int main() {
+	//Init system
 	sys::initRCC();
 	sys::initNVIC();
 	usart::init(115200);
-	
+	//Init LEDs
 	statusLED.init(GPIO_Mode_Out_PP, GPIO_Speed_2MHz);
 	shiftLED.init(GPIO_Mode_Out_PP, GPIO_Speed_2MHz);
 	ctrlLED.init(GPIO_Mode_Out_PP, GPIO_Speed_2MHz);
@@ -112,6 +144,9 @@ int main() {
 	
 	//Initialize display and backlight control
 	display.init();
+	display.useExtended();
+	display.startDraw();
+	display.clearDrawing();
 	
 	backlight.startTimer();
 	backlight.set(0xA0);
@@ -129,11 +164,6 @@ int main() {
 		statusLED = !statusLED;
 	});
 	
-	//Init display
-	display.useExtended();
-	display.startDraw();
-	display.clearDrawing();
-	
 	//Create cursor
 	cursor = new neda::Cursor;
 	
@@ -142,7 +172,8 @@ int main() {
 	master->addExpr(new neda::StringExpr);
 	
 	master->getCursor(*cursor, neda::CURSORLOCATION_START);
-	master->draw(display, 0, 0);
+	adjustExpr(master, cursor);
+	master->Expr::draw(display);
 	cursor->draw(display);
 	display.updateDrawing();
 	
@@ -375,7 +406,8 @@ int main() {
 			}
 			
 			display.clearDrawingBuffer();
-			master->draw(display, 0, 0);
+			adjustExpr(master, cursor);
+			master->Expr::draw(display);
 			cursor->draw(display);
 			display.updateDrawing();
 			
