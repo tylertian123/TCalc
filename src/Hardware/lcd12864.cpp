@@ -1,17 +1,5 @@
 #include "lcd12864.hpp"
-
-template <typename T>
-inline T abs(T x) {
-    return x >= 0 ? x : -x;
-}
-template <typename T>
-inline T positiveMod(T a, T b) {
-    return a % b + (a < 0 ? b : 0);
-}
-template <typename T>
-inline T floorDiv(T a, T b) {
-    return a > 0 ? a / b : (a - b + 1) / b;
-}
+#include "util.hpp"
 
 namespace lcd {
 	
