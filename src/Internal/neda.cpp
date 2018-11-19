@@ -97,11 +97,11 @@ namespace neda {
             //Empty container shows up as a box
             for(uint16_t w = 0; w < exprWidth; w ++) {
                 dest.setPixel(x + w, y, true);
-                dest.setPixel(x + w, y + exprHeight, true);
+                dest.setPixel(x + w, y + exprHeight - 1, true);
             }
-            for(uint16_t h = 0; h <= exprHeight; h ++) {
+            for(uint16_t h = 0; h < exprHeight; h ++) {
                 dest.setPixel(x, y + h, true);
-                dest.setPixel(x + exprWidth, y + h, true);
+                dest.setPixel(x + exprWidth - 1, y + h, true);
             }
         }
 
