@@ -35,6 +35,12 @@ namespace neda {
     void Expr::setY(int16_t y) {
         this->y = y;
     }
+    int16_t Expr::getX() {
+        return x;
+    }
+    int16_t Expr::getY() {
+        return y;
+    }
     //Default impl: Call the parent's cursor method, if it has one
     void Expr::left(Expr *ex, Cursor &cursor) {
         SAFE_EXEC(parent, left, this, cursor);

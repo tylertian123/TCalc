@@ -62,6 +62,8 @@ namespace neda {
 
         void setX(int16_t x);
         void setY(int16_t y);
+        int16_t getX();
+        int16_t getY();
 	
 		virtual uint16_t getTopSpacing() = 0;
 	

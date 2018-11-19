@@ -137,6 +137,7 @@ int main() {
 	//Create cursor
 	cursor = new neda::Cursor;
 	
+	//Set up basic expression
 	neda::ContainerExpr *master = new neda::ContainerExpr;
 	master->addExpr(new neda::StringExpr);
 	
