@@ -118,8 +118,7 @@ void adjustExpr(neda::Expr *ex, neda::Cursor *cursorRef) {
 	else if(info.y + info.height + CURSOR_VERT_SPACING >= 64) {
 		ydiff = 63 - (info.y + info.height + CURSOR_VERT_SPACING);
 	}
-	ex->setX(ex->getX() + xdiff);
-	ex->setY(ex->getY() + ydiff);
+	ex->updatePosition(xdiff, ydiff);
 }
 
 int main() {

@@ -21,12 +21,6 @@ namespace neda {
     void Expr::draw(lcd::LCD12864 &dest) {
         draw(dest, x, y);
     }
-    void Expr::setX(int16_t x) {
-        this->x = x;
-    }
-    void Expr::setY(int16_t y) {
-        this->y = y;
-    }
     int16_t Expr::getX() {
         return x;
     }
@@ -178,6 +172,10 @@ namespace neda {
         cursor.expr = this;
         cursor.index = location == CURSORLOCATION_START ? 0 : contents.length();
     }
+    void StringExpr::updatePosition(int16_t dx, int16_t dy) {
+        this->x += dx;
+        this->y += dy;
+    }
 	
 	//*************************** ContainerExpr ***************************************
     uint16_t ContainerExpr::getTopSpacing() {
@@ -197,7 +195,7 @@ namespace neda {
 		//Add up all the Expressions's widths
 		exprWidth = 0;
 		for(Expr *ex : contents) {
-			exprWidth += ex->getWidth();
+			exprWidth += SAFE_EXEC_0(ex, getWidth);
 		}
 		//Add up all length - 1 spaces between the Exprs
 		exprWidth += (contents.length() - 1) * 3;
@@ -216,7 +214,7 @@ namespace neda {
 		uint16_t maxTopSpacing = 0;
 		//Take the max of all the top spacings
 		for(Expr *ex : contents) {
-			uint16_t ts = ex->getTopSpacing();
+			uint16_t ts = SAFE_EXEC_0(ex, getTopSpacing);
 			maxTopSpacing = max(ts, maxTopSpacing);
 		}
         //Now with the max top spacing we can compute the heights and see what the max is
@@ -227,7 +225,7 @@ namespace neda {
             //When that expression's top spacing is the max top spacing, the expression will be touching the top of the container.
             //Therefore, its height is just the height. In other cases, it will be increased by the difference between the max top
             //spacing and the top spacing.
-            uint16_t height = (ex->getHeight() - ex->getTopSpacing()) + maxTopSpacing;
+            uint16_t height = (SAFE_EXEC_0(ex, getHeight) - SAFE_EXEC_0(ex, getTopSpacing)) + maxTopSpacing;
             maxHeight = max(height, maxHeight);
         }
         exprHeight = maxHeight;
@@ -256,11 +254,14 @@ namespace neda {
         uint16_t maxTopSpacing = 0;
         //Take the max of all the top spacings; this will be used to compute the top padding for each expression later.
         for(Expr *ex : contents) {
-            uint16_t ts = ex->getTopSpacing();
+            uint16_t ts = SAFE_EXEC_0(ex, getTopSpacing);
             maxTopSpacing = max(ts, maxTopSpacing);
         }
 		
 		for(Expr *ex : contents) {
+            if(!ex) {
+                continue;
+            }
 			//For each expression, its top padding is the difference between the max top spacing and its top spacing.
             //E.g. A tall expression like 1^2 would have a higher top spacing than 3, so the max top spacing would be its top spacing;
             //So when drawing the 1^2, there is no difference between the max top spacing and the top spacing, and therefore it has
@@ -320,6 +321,13 @@ namespace neda {
         }
         else {
             contents[contents.length() - 1]->getCursor(cursor, location);
+        }
+    }
+    void ContainerExpr::updatePosition(int16_t dx, int16_t dy) {
+        this->x += dx;
+        this->y += dy;
+        for(Expr *ex : contents) {
+            SAFE_EXEC(ex, updatePosition, dx, dy);
         }
     }
 	
@@ -404,6 +412,12 @@ namespace neda {
         else {
             SAFE_EXEC(denominator, getCursor, cursor, location);
         }
+    }
+    void FractionExpr::updatePosition(int16_t dx, int16_t dy) {
+        this->x += dx;
+        this->y += dy;
+        SAFE_EXEC(numerator, updatePosition, dx, dy);
+        SAFE_EXEC(denominator, updatePosition, dx, dy);
     }
 	
 	//*************************** ExponentExpr ***************************************
@@ -497,6 +511,12 @@ namespace neda {
             SAFE_EXEC(exponent, getCursor, cursor, location);
         }
     }
+    void ExponentExpr::updatePosition(int16_t dx, int16_t dy) {
+        this->x += dx;
+        this->y += dy;
+        SAFE_EXEC(base, updatePosition, dx, dy);
+        SAFE_EXEC(exponent, updatePosition, dx, dy);
+    }
 	
 	//*************************** BracketExpr ***************************************
 	uint16_t BracketExpr::getTopSpacing() {
@@ -536,6 +556,11 @@ namespace neda {
 	}
     void BracketExpr::getCursor(Cursor &cursor, CursorLocation location) {
         SAFE_EXEC(contents, getCursor, cursor, location);
+    }
+    void BracketExpr::updatePosition(int16_t dx, int16_t dy) {
+        this->x += dx;
+        this->y += dy;
+        SAFE_EXEC(contents, updatePosition, dx, dy);
     }
 	
 	//*************************** RadicalExpr ***************************************
@@ -635,6 +660,12 @@ namespace neda {
             SAFE_EXEC(contents, getCursor, cursor, location);
         }
     }
+    void RadicalExpr::updatePosition(int16_t dx, int16_t dy) {
+        this->x += dx;
+        this->y += dy;
+        SAFE_EXEC(contents, updatePosition, dx, dy);
+        SAFE_EXEC(n, updatePosition, dx, dy);
+    }
 	
 	//*************************** SubscriptExpr ***************************************
 	uint16_t SubscriptExpr::getTopSpacing() {
@@ -724,6 +755,12 @@ namespace neda {
                 SAFE_EXEC(contents, getCursor, cursor, location);
             }
         }
+    }
+    void SubscriptExpr::updatePosition(int16_t dx, int16_t dy) {
+        this->x += dx;
+        this->y += dy;
+        SAFE_EXEC(contents, updatePosition, dx, dy);
+        SAFE_EXEC(subscript, updatePosition, dx, dy);
     }
 	
 	//*************************** SigmaPiExpr ***************************************
@@ -845,6 +882,13 @@ namespace neda {
     }
     void SigmaPiExpr::getCursor(Cursor &cursor, CursorLocation location) {
         SAFE_EXEC(contents, getCursor, cursor, location);
+    }
+    void SigmaPiExpr::updatePosition(int16_t dx, int16_t dy) {
+        this->x += dx;
+        this->y += dy;
+        SAFE_EXEC(contents, updatePosition, dx, dy);
+        SAFE_EXEC(start, updatePosition, dx, dy);
+        SAFE_EXEC(finish, updatePosition, dx, dy);
     }
 }
 

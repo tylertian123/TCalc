@@ -60,8 +60,7 @@ namespace neda {
 		uint16_t getWidth();
 		uint16_t getHeight();
 
-        void setX(int16_t x);
-        void setY(int16_t y);
+        virtual void updatePosition(int16_t, int16_t) = 0;
         int16_t getX();
         int16_t getY();
 	
@@ -135,6 +134,8 @@ namespace neda {
         virtual ExprType getType() override {
             return ExprType::STRING;
         }
+
+        virtual void updatePosition(int16_t, int16_t) override;
 	
 	protected:
 		DynamicArray<char> contents;
@@ -188,6 +189,8 @@ namespace neda {
         virtual ExprType getType() override {
             return ExprType::CONTAINER;
         }
+
+        virtual void updatePosition(int16_t, int16_t) override;
 	
 	protected:
 		DynamicArray<Expr*> contents;
@@ -226,6 +229,8 @@ namespace neda {
         virtual ExprType getType() override {
             return ExprType::FRACTION;
         }
+
+        virtual void updatePosition(int16_t, int16_t) override;
 	
 	protected:
 		Expr *numerator;
@@ -270,6 +275,8 @@ namespace neda {
             return ExprType::EXPONENT;
         }
 
+        virtual void updatePosition(int16_t, int16_t) override;
+
 	protected:
 		Expr *base;
 		Expr *exponent;
@@ -303,6 +310,8 @@ namespace neda {
         virtual ExprType getType() override {
             return ExprType::BRACKET;
         }
+
+        virtual void updatePosition(int16_t, int16_t) override;
 		
 	protected:
 		Expr *contents;
@@ -344,6 +353,8 @@ namespace neda {
         virtual ExprType getType() override {
             return ExprType::RADICAL;
         }
+
+        virtual void updatePosition(int16_t, int16_t) override;
 	
 	protected:
 		Expr *contents, *n;
@@ -384,6 +395,8 @@ namespace neda {
         virtual ExprType getType() override {
             return ExprType::SUBSCRIPT;
         }
+
+        virtual void updatePosition(int16_t, int16_t) override;
 		
 	protected:
 		Expr *contents, *subscript;
@@ -428,6 +441,8 @@ namespace neda {
         virtual ExprType getType() override {
             return ExprType::SIGMA_PI;
         }
+
+        virtual void updatePosition(int16_t, int16_t) override;
 		
 	protected:
 		const lcd::LCD12864Image &symbol;
