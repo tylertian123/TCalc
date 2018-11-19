@@ -131,6 +131,9 @@ namespace neda {
 	
 	protected:
 		DynamicArray<char> contents;
+
+        //ContainerExpr needs to know the length of contents for its empty box behavior
+        friend class ContainerExpr;
 	};
 	
 	/*

@@ -148,7 +148,7 @@ int main() {
 	//Start blink
 	initCursorTimer();
 	
-	uint16_t key = 0;
+	uint16_t key = KEY_NULL;
 	
     while(true) {
 		if((key = fetchKey()) != KEY_NULL) {

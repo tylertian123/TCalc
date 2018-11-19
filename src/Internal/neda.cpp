@@ -175,7 +175,10 @@ namespace neda {
     }
 	void ContainerExpr::computeWidth() {
 		//An empty ContainerExpr has a default width and height
-		if(contents.length() == 0) {
+        //A ContainerExpr with only an empty StringExpr inside also has a default width and height
+		if(contents.length() == 0
+                || (contents.length() == 1 && contents[0]->getType() == ExprType::STRING
+                        && ((StringExpr*) contents[0])->contents.length() == 0)) {
 			exprWidth = EMPTY_EXPR_WIDTH;
             return;
 		}
@@ -189,7 +192,9 @@ namespace neda {
 		exprWidth += (contents.length() - 1) * 3;
 	}
 	void ContainerExpr::computeHeight() {
-		if(contents.length() == 0) {
+		if(contents.length() == 0
+                || (contents.length() == 1 && contents[0]->getType() == ExprType::STRING
+                        && ((StringExpr*) contents[0])->contents.length() == 0)) {
 			exprHeight = EMPTY_EXPR_HEIGHT;
 			return;
 		}
@@ -221,7 +226,9 @@ namespace neda {
         this->y = y;
         VERIFY_INBOUNDS(x, y);
 
-        if(contents.length() == 0) {
+        if(contents.length() == 0
+            || (contents.length() == 1 && contents[0]->getType() == ExprType::STRING
+                    && ((StringExpr*) contents[0])->contents.length() == 0)) {
             //Empty container shows up as a box
             for(uint16_t w = 0; w < exprWidth; w ++) {
                 dest.setPixel(x + w, y, true);
