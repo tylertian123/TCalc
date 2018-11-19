@@ -144,6 +144,19 @@ namespace neda {
             dest.setPixel(cursorX + 1, y + i, true);
         }
     }
+    void StringExpr::getCursorInfo(const Cursor &cursor, CursorInfo &out) {
+        int16_t cursorX = x;
+        for(uint16_t i = 0; i < cursor.index && i < contents.length(); i ++) {
+            cursorX += lcd::getChar(contents[i]).width;
+        }
+        if(cursor.index != 0) {
+            cursorX += cursor.index - 1;
+        }
+        out.x = cursorX;
+        out.y = y;
+        out.width = 2;
+        out.height = exprHeight;
+    }
     bool StringExpr::inBounds(const Cursor &cursor) {
         return cursor.index <= contents.length();
     }

@@ -20,6 +20,9 @@
 namespace neda {
 
     struct Cursor;
+    //Note: CursorInfo is the specific position of the cursor on the display, with x and y coordinates
+    //CursorLocation can either be START or END and is used to get a cursor at the start or end of the expr.
+    struct CursorInfo;
     typedef bool CursorLocation;
     constexpr CursorLocation CURSORLOCATION_START = 0;
     constexpr CursorLocation CURSORLOCATION_END = 1;
@@ -111,6 +114,8 @@ namespace neda {
         void addAtCursor(char, Cursor&);
         void removeAtCursor(Cursor&);
         void drawCursor(lcd::LCD12864&, const Cursor&);
+        void getCursorInfo(const Cursor&, CursorInfo&);
+        
         bool inBounds(const Cursor&);
 		
 		virtual void computeWidth() override;
@@ -456,6 +461,17 @@ namespace neda {
         void down() {
             expr->down(nullptr, *this);
         }
+        CursorInfo getInfo() {
+            CursorInfo info;
+            expr->getCursorInfo(*this, info);
+            return info;
+        }
+    };
+    struct CursorInfo {
+        int16_t x;
+        int16_t y;
+        uint16_t width;
+        uint16_t height;
     };
 }
 
