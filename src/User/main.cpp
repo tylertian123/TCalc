@@ -137,17 +137,8 @@ int main() {
 	//Create cursor
 	cursor = new neda::Cursor;
 	
-	neda::StringExpr *g = new neda::StringExpr("Test");
-	neda::StringExpr *a = new neda::StringExpr("1");
-    neda::StringExpr *b = new neda::StringExpr("2");
-    neda::StringExpr *c = new neda::StringExpr("3");
-    neda::FractionExpr *d = new neda::FractionExpr(a, b);
-    neda::BracketExpr *e = new neda::BracketExpr(d);
-    neda::ExponentExpr *f = new neda::ExponentExpr(e, c);
-	
 	neda::ContainerExpr *master = new neda::ContainerExpr;
-	master->addExpr(f);
-	master->addExpr(g);
+	master->addExpr(new neda::StringExpr);
 	
 	master->getCursor(*cursor, neda::CURSORLOCATION_START);
 	master->draw(display, 0, 0);

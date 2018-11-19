@@ -23,6 +23,18 @@ namespace neda {
     typedef bool CursorLocation;
     constexpr CursorLocation CURSORLOCATION_START = 0;
     constexpr CursorLocation CURSORLOCATION_END = 1;
+
+    enum class ExprType : uint8_t {
+        NULL_TYPE,
+        STRING,
+        CONTAINER,
+        FRACTION,
+        EXPONENT,
+        BRACKET,
+        RADICAL,
+        SUBSCRIPT,
+        SIGMA_PI,
+    };
 	
 	/*
      * This is the base Expression class.
@@ -65,6 +77,8 @@ namespace neda {
         virtual void up(Expr*, Cursor&);
         virtual void down(Expr*, Cursor&);
         virtual void getCursor(Cursor&, CursorLocation) = 0;
+
+        virtual ExprType getType() = 0;
 	
 	protected:
 		uint16_t exprWidth;
@@ -110,6 +124,10 @@ namespace neda {
         virtual void left(Expr*, Cursor&) override;
         virtual void right(Expr*, Cursor&) override;
         virtual void getCursor(Cursor&, CursorLocation) override;
+
+        virtual ExprType getType() override {
+            return ExprType::STRING;
+        }
 	
 	protected:
 		DynamicArray<char> contents;
@@ -156,6 +174,10 @@ namespace neda {
         virtual void left(Expr*, Cursor&) override;
         virtual void right(Expr*, Cursor&) override;
         virtual void getCursor(Cursor&, CursorLocation) override;
+
+        virtual ExprType getType() override {
+            return ExprType::CONTAINER;
+        }
 	
 	protected:
 		DynamicArray<Expr*> contents;
@@ -190,6 +212,10 @@ namespace neda {
         virtual void up(Expr*, Cursor&) override;
         virtual void down(Expr*, Cursor&) override;
         virtual void getCursor(Cursor&, CursorLocation) override;
+
+        virtual ExprType getType() override {
+            return ExprType::FRACTION;
+        }
 	
 	protected:
 		Expr *numerator;
@@ -230,6 +256,10 @@ namespace neda {
         virtual void down(Expr*, Cursor&) override;
         virtual void getCursor(Cursor&, CursorLocation) override;
 
+        virtual ExprType getType() override {
+            return ExprType::EXPONENT;
+        }
+
 	protected:
 		Expr *base;
 		Expr *exponent;
@@ -259,6 +289,10 @@ namespace neda {
 		virtual ~BracketExpr();
 
         virtual void getCursor(Cursor&, CursorLocation) override;
+
+        virtual ExprType getType() override {
+            return ExprType::BRACKET;
+        }
 		
 	protected:
 		Expr *contents;
@@ -296,6 +330,10 @@ namespace neda {
         virtual void left(Expr*, Cursor&) override;
         virtual void right(Expr*, Cursor&) override;
         virtual void getCursor(Cursor&, CursorLocation) override;
+
+        virtual ExprType getType() override {
+            return ExprType::RADICAL;
+        }
 	
 	protected:
 		Expr *contents, *n;
@@ -332,6 +370,10 @@ namespace neda {
         virtual void left(Expr*, Cursor&) override;
         virtual void right(Expr*, Cursor&) override;
         virtual void getCursor(Cursor&, CursorLocation) override;
+
+        virtual ExprType getType() override {
+            return ExprType::SUBSCRIPT;
+        }
 		
 	protected:
 		Expr *contents, *subscript;
@@ -372,6 +414,10 @@ namespace neda {
         virtual void up(Expr*, Cursor&) override;
         virtual void down(Expr*, Cursor&) override;
         virtual void getCursor(Cursor&, CursorLocation) override;
+
+        virtual ExprType getType() override {
+            return ExprType::SIGMA_PI;
+        }
 		
 	protected:
 		const lcd::LCD12864Image &symbol;
