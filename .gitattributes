@@ -1,4 +1,4 @@
-src/CMSIS linguist-generated=true
-src/Lib linguist-generated=true
-src/Startup linguist-generated=true
-src/User/stm32f10x_*.* linguist-generated=true
+src/CMSIS linguist-vendored
+src/Lib linguist-vendored
+src/Startup linguist-vendored
+src/User/stm32f10x_*.* linguist-vendored
