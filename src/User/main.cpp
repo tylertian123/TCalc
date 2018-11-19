@@ -100,20 +100,20 @@ extern "C" void TIM3_IRQHandler() {
 void adjustExpr(neda::Expr *ex, neda::Cursor *cursorRef) {
 	neda::CursorInfo info;
 	cursorRef->getInfo(info);
-	if(info.x + info.width > CURSOR_HORIZ_SPACING && info.y + info.height > CURSOR_VERT_SPACING
+	if(info.x > CURSOR_HORIZ_SPACING && info.y > CURSOR_VERT_SPACING
 			&& info.x + info.width + CURSOR_HORIZ_SPACING < 128 && info.y + info.height + CURSOR_VERT_SPACING < 64) {
 		return;
 	}
 	
 	int16_t xdiff = 0, ydiff = 0;
-	if(info.x + info.width <= CURSOR_HORIZ_SPACING) {
-		xdiff = CURSOR_HORIZ_SPACING + 1 - (info.x + info.width);
+	if(info.x <= CURSOR_HORIZ_SPACING) {
+		xdiff = CURSOR_HORIZ_SPACING + 1 - info.x;
 	}
 	else if(info.x + info.width + CURSOR_HORIZ_SPACING >= 128) {
 		xdiff = 127 - (info.x + info.width + CURSOR_HORIZ_SPACING);
 	}
-	if(info.y + info.height <= CURSOR_VERT_SPACING) {
-		ydiff = CURSOR_VERT_SPACING + 1 - (info.y + info.height);
+	if(info.y <= CURSOR_VERT_SPACING) {
+		ydiff = CURSOR_VERT_SPACING + 1 - info.y;
 	}
 	else if(info.y + info.height + CURSOR_VERT_SPACING >= 64) {
 		ydiff = 63 - (info.y + info.height + CURSOR_VERT_SPACING);
