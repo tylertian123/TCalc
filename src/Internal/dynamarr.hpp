@@ -51,7 +51,8 @@ public:
 	uint32_t maxLength() {
 		return maxLen;
 	}
-	void resize(uint32_t newSize) {
+	bool resize(uint32_t newSize) {
+        uint32_t oldSize = maxLen;
 		//Ignore if the new size is less than the length
 		if(newSize < len) {
 			return;
@@ -59,28 +60,51 @@ public:
 		//Otherwise reallocate memory
 		maxLen = newSize;
 		//Make sure the length is multipled by the size of T
-		realloc(contents, sizeof(T) * newSize);
+		void *tmp = realloc(contents, sizeof(T) * newSize);
+        //Oh crap we ran out of memory
+        if(!tmp) {
+            //Reset max len
+            maxLen = oldSize;
+            return false;
+        }
+        contents = (T*) tmp;
+        return true;
 	}
 	void minimize() {
 		resize(len);
 	}
 	
-	void add(const T &elem) {
+	bool add(const T &elem) {
 		len ++;
 		//If the new length is more than what we can store then reallocate
 		if(len > maxLen) {
 			//Default implementation: reallocate only what's needed
 			maxLen = len;
-			realloc(contents, sizeof(T) * len);
+			void *tmp = realloc(contents, sizeof(T) * len);
+            if(!tmp) {
+                //Oh crap we ran out of memory, have a panic attack here
+                len --;
+                maxLen --;
+                return false;
+            }
+            contents = (T*) tmp;
 		}
 		contents[len - 1] = elem;
+        return true;
 	}
-    void insert(const T &elem, uint32_t where) {
+    bool insert(const T &elem, uint32_t where) {
         len ++;
         if(len > maxLen) {
             //Default impl: reallocate only what's needed
             maxLen = len;
-            realloc(contents, sizeof(T) * len);
+            void *tmp = realloc(contents, sizeof(T) * len);
+            if(!tmp) {
+                //Oh crap we ran out of memory
+                len --;
+                maxLen --;
+                return false;
+            }
+            contents = (T*) tmp;
         }
         //Iterate backwards to move the elements
         //This way we don't have to keep a buffer
@@ -88,6 +112,7 @@ public:
             contents[i] = contents[i - 1];
         }
         contents[where] = elem;
+        return true;
     }
     void removeAt(uint32_t where) {
         //Ignore if out of bounds
