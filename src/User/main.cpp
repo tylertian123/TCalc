@@ -83,14 +83,14 @@ neda::Cursor *cursor;
 extern "C" void TIM3_IRQHandler() {
 	if(TIM_GetITStatus(TIM3, TIM_IT_Update)) {
 		TIM_ClearITPendingBit(TIM3, TIM_IT_Update);
-		cursorOn = !cursorOn;
-		display.clearDrawingBuffer();
-		//Redraw the entire expr
-		cursor->expr->Expr::drawConnected(display);
-		if(cursorOn) {
-			cursor->draw(display);
-		}
-		display.updateDrawing();
+//		cursorOn = !cursorOn;
+//		display.clearDrawingBuffer();
+//		//Redraw the entire expr
+//		cursor->expr->Expr::drawConnected(display);
+//		if(cursorOn) {
+//			cursor->draw(display);
+//		}
+//		display.updateDrawing();
 	}
 }
 
@@ -409,6 +409,7 @@ int main() {
 			master->Expr::draw(display);
 			cursor->draw(display);
 			display.updateDrawing();
+			usart::printf("Width: %d, Height: %d\r\n", master->getWidth(), master->getHeight());
 			
 		}
     }

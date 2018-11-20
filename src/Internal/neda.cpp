@@ -1,5 +1,6 @@
 #include "neda.hpp"
 #include "util.hpp"
+#include "usart.hpp"
 #include "lcd12864_charset.hpp"
 
 //Execute method on obj with arguments if obj is not null, otherwise 0
@@ -81,6 +82,7 @@ namespace neda {
 		exprHeight = max;
 	}
 	void StringExpr::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
+		usart::printf("Drawing at (%d, %d)\r\n", x, y);
         this->x = x;
         this->y = y;
         VERIFY_INBOUNDS(x, y);
@@ -90,6 +92,7 @@ namespace neda {
         }
 
 		for(char ch : contents) {
+			usart::printf("Draw %c at (%d, %d)\r\n", ch, x, y);
 			if(x >= 128 || y >= 64) {
 				return;
 			}
