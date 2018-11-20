@@ -144,11 +144,11 @@ namespace neda {
         }
     }
     StringExpr* StringExpr::beforeCursor(const Cursor &cursor) {
-        DynamicArray<char> *a = new DynamicArray(contents->begin(), contents->begin() + cursor.index);
+        DynamicArray<char> *a = new DynamicArray<char>(contents->begin(), contents->begin() + cursor.index);
         return new StringExpr(a);
     }
     StringExpr* StringExpr::afterCursor(const Cursor &cursor) {
-        DynamicArray<char> *b = new DynamicArray(contents->begin() + cursor.index + 1, contents->end());
+        DynamicArray<char> *b = new DynamicArray<char>(contents->begin() + cursor.index + 1, contents->end());
         return new StringExpr(b);
     }
     void StringExpr::getCursorInfo(const Cursor &cursor, CursorInfo &out) {

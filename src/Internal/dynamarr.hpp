@@ -55,7 +55,7 @@ public:
         uint32_t oldSize = maxLen;
 		//Ignore if the new size is less than the length
 		if(newSize < len) {
-			return;
+			return true;
 		}
 		//Otherwise reallocate memory
 		maxLen = newSize;
