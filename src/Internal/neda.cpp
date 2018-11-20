@@ -55,7 +55,7 @@ namespace neda {
         return exprHeight / 2;
     }
 	void StringExpr::computeWidth() {
-		if(contents.length() == 0) {
+		if(contents->length() == 0) {
 			exprWidth = 0;
             SAFE_EXEC(parent, computeWidth);
 			return;
@@ -63,22 +63,22 @@ namespace neda {
 		
 		//Add up all the character's widths
 		exprWidth = 0;
-		for(char ch : contents) {
+		for(char ch : *contents) {
 			exprWidth += lcd::getChar(ch).width;
 		}
 		//Add up all length - 1 spaces between the characters
-		exprWidth += contents.length() - 1;
+		exprWidth += contents->length() - 1;
         SAFE_EXEC(parent, computeWidth);
 	}
 	void StringExpr::computeHeight() {
-        if(contents.length() == 0) {
+        if(contents->length() == 0) {
             exprHeight = ContainerExpr::EMPTY_EXPR_HEIGHT;
             SAFE_EXEC(parent, computeHeight);
             return;
         }
 		uint16_t max = 0;
 		//Take the max of all the heights
-		for(char ch : contents) {
+		for(char ch : *contents) {
 			max = lcd::getChar(ch).height > max ? lcd::getChar(ch).height : max;
 		}
 		exprHeight = max;
@@ -89,11 +89,11 @@ namespace neda {
         this->y = y;
         VERIFY_INBOUNDS(x, y);
 
-        if(contents.length() == 0) {
+        if(contents->length() == 0) {
             return;
         }
 
-		for(char ch : contents) {
+		for(char ch : *contents) {
 			if(x >= 128 || y >= 64) {
 				return;
 			}
@@ -113,27 +113,27 @@ namespace neda {
 		}
 	}
 	void StringExpr::addChar(char ch) {
-		contents.add(ch);
+		contents->add(ch);
 		computeWidth();
 		computeHeight();
 	}
     void StringExpr::addAtCursor(char ch, Cursor &cursor) {
-        contents.insert(ch, cursor.index);
+        contents->insert(ch, cursor.index);
 		cursor.index ++;
 		computeWidth();
 		computeHeight();
     }
     void StringExpr::removeAtCursor(Cursor &cursor) {
         if(cursor.index != 0) {
-            contents.removeAt(--cursor.index);
+            contents->removeAt(--cursor.index);
         }
 		computeWidth();
 		computeHeight();
     }
     void StringExpr::drawCursor(lcd::LCD12864 &dest, const Cursor &cursor) {
         int16_t cursorX = x;
-        for(uint16_t i = 0; i < cursor.index && i < contents.length(); i ++) {
-            cursorX += lcd::getChar(contents[i]).width;
+        for(uint16_t i = 0; i < cursor.index && i < contents->length(); i ++) {
+            cursorX += lcd::getChar((*contents)[i]).width;
         }
         if(cursor.index != 0) {
             cursorX += cursor.index - 1;
@@ -143,10 +143,13 @@ namespace neda {
             dest.setPixel(cursorX + 1, y + i, true);
         }
     }
+    void StringExpr::splitAtCursor(const Cursor &cursor, StringExpr *first, StringExpr *second) {
+        
+    }
     void StringExpr::getCursorInfo(const Cursor &cursor, CursorInfo &out) {
         int16_t cursorX = x;
-        for(uint16_t i = 0; i < cursor.index && i < contents.length(); i ++) {
-            cursorX += lcd::getChar(contents[i]).width;
+        for(uint16_t i = 0; i < cursor.index && i < contents->length(); i ++) {
+            cursorX += lcd::getChar((*contents)[i]).width;
         }
         if(cursor.index != 0) {
             cursorX += cursor.index - 1;
@@ -157,7 +160,10 @@ namespace neda {
         out.height = exprHeight;
     }
     bool StringExpr::inBounds(const Cursor &cursor) {
-        return cursor.index <= contents.length();
+        return cursor.index <= contents->length();
+    }
+    StringExpr::~StringExpr() {
+        delete contents;
     }
     void StringExpr::left(Expr *ex, Cursor &cursor) {
         if(cursor.index == 0) {
@@ -168,7 +174,7 @@ namespace neda {
         }
     }
     void StringExpr::right(Expr *ex, Cursor &cursor) {
-        if(cursor.index == contents.length()) {
+        if(cursor.index == contents->length()) {
             SAFE_EXEC(parent, right, this, cursor);
         }
         else {
@@ -177,7 +183,7 @@ namespace neda {
     }
     void StringExpr::getCursor(Cursor &cursor, CursorLocation location) {
         cursor.expr = this;
-        cursor.index = location == CURSORLOCATION_START ? 0 : contents.length();
+        cursor.index = location == CURSORLOCATION_START ? 0 : contents->length();
     }
     void StringExpr::updatePosition(int16_t dx, int16_t dy) {
         this->x += dx;
@@ -194,7 +200,7 @@ namespace neda {
         //A ContainerExpr with only an empty StringExpr inside also has a default width and height
 		if(contents.length() == 0
                 || (contents.length() == 1 && contents[0]->getType() == ExprType::STRING
-                        && ((StringExpr*) contents[0])->contents.length() == 0)) {
+                        && ((StringExpr*) contents[0])->contents->length() == 0)) {
 			exprWidth = EMPTY_EXPR_WIDTH;
             SAFE_EXEC(parent, computeWidth);
             return;
@@ -212,7 +218,7 @@ namespace neda {
 	void ContainerExpr::computeHeight() {
 		if(contents.length() == 0
                 || (contents.length() == 1 && contents[0]->getType() == ExprType::STRING
-                        && ((StringExpr*) contents[0])->contents.length() == 0)) {
+                        && ((StringExpr*) contents[0])->contents->length() == 0)) {
 			exprHeight = EMPTY_EXPR_HEIGHT;
             SAFE_EXEC(parent, computeHeight);
 			return;
@@ -248,7 +254,7 @@ namespace neda {
 
         if(contents.length() == 0
             || (contents.length() == 1 && contents[0]->getType() == ExprType::STRING
-                    && ((StringExpr*) contents[0])->contents.length() == 0)) {
+                    && ((StringExpr*) contents[0])->contents->length() == 0)) {
             //Empty container shows up as a box
             for(uint16_t w = 0; w < exprWidth; w ++) {
                 dest.setPixel(x + w, y, true);

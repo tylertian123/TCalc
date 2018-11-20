@@ -98,7 +98,7 @@ namespace neda {
 	class StringExpr : public Expr {
 	public:
 		//Constructor from string, copy constructor and default constructor
-		StringExpr(const char *contents) : contents(contents, strlen(contents)) {
+		StringExpr(const char *contents) : contents(new DynamicArray<char>(contents, strlen(contents))) {
 			computeWidth();
 			computeHeight();
 		}
@@ -106,7 +106,7 @@ namespace neda {
 			computeWidth();
 			computeHeight();
 		}
-		StringExpr() : contents() {
+		StringExpr() : contents(new DynamicArray<char>()) {
 			computeWidth();
 			computeHeight();
 		}
@@ -116,6 +116,7 @@ namespace neda {
         void removeAtCursor(Cursor&);
         void drawCursor(lcd::LCD12864&, const Cursor&);
         void getCursorInfo(const Cursor&, CursorInfo&);
+        void splitAtCursor(const Cursor&, StringExpr*, StringExpr*);
         
         bool inBounds(const Cursor&);
 		
@@ -124,8 +125,7 @@ namespace neda {
         virtual uint16_t getTopSpacing() override;
 		virtual void draw(lcd::LCD12864&, int16_t, int16_t) override;
 		
-		//StringExprs don't need special handling because it doesn't have any children
-		virtual ~StringExpr() {}
+		virtual ~StringExpr() override;
 
         virtual void left(Expr*, Cursor&) override;
         virtual void right(Expr*, Cursor&) override;
@@ -138,7 +138,7 @@ namespace neda {
         virtual void updatePosition(int16_t, int16_t) override;
 	
 	protected:
-		DynamicArray<char> contents;
+		DynamicArray<char> *contents;
 
         //ContainerExpr needs to know the length of contents for its empty box behavior
         friend class ContainerExpr;
