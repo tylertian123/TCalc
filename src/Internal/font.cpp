@@ -1158,6 +1158,18 @@ namespace lcd {
 	const Img CHAR_UNKNOWN(CHAR_UNKNOWN_DATA, 4, 30, 9);
 	
 	//Special characters
+    const uint8_t CHAR_THETA_DATA[] = {
+        0x70,
+        0x88,
+        0x88,
+        0x88,
+        0xf8,
+        0x88,
+        0x88,
+        0x88,
+        0x70,
+    };
+    const Img CHAR_THETA(CHAR_THETA_DATA, 1, 5, 9);
 	const uint8_t CHAR_SERR_DATA[] = {
 		0x28, 0x00, 0x82, 0x00, 0x00,
 		0x49, 0x02, 0x42, 0x00, 0x88,
