@@ -204,6 +204,7 @@ int main() {
 				cursor->down();
 				break;
 			case KEY_DELETE:
+				//Additional processing required - to be added later
 				cursor->removeChar();
 				break;
 			/* LETTER KEYS */
@@ -399,6 +400,14 @@ int main() {
 				break;
 			case KEY_COMMA:
 				cursor->addChar(',');
+				break;
+			case KEY_DOT:
+				cursor->addChar('.');
+				break;
+			
+			/* EXPRESSIONS */
+			case KEY_LBRACKET:
+				
 				break;
 			
 			default: break;

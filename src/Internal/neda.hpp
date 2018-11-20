@@ -174,6 +174,9 @@ namespace neda {
         static const uint16_t EMPTY_EXPR_HEIGHT = 9;
 		
 		void addExpr(Expr*);
+        void removeExpr(Expr*);
+        void addBeforeExpr(Expr*, Expr*);
+        void addAfterExpr(Expr*, Expr*);
 			
         virtual uint16_t getTopSpacing() override;
 		virtual void computeWidth() override;

@@ -290,6 +290,28 @@ namespace neda {
 		computeWidth();
 		computeHeight();
 	}
+    void ContainerExpr::removeExpr(Expr *expr) {
+        for(uint16_t i = 0; i < contents.length(); i ++) {
+            if(contents[i] == expr) {
+                contents.removeAt(i);
+                break;
+            }
+        }
+    }
+    void ContainerExpr::addBeforeExpr(Expr *exprToAdd, Expr *expr) {
+        for(uint16_t i = 0; i < contents.length(); i ++) {
+            if(contents[i] == expr) {
+                contents.insert(exprToAdd, i);
+            }
+        }
+    }
+    void ContainerExpr::addAfterExpr(Expr *exprToAdd, Expr *expr) {
+        for(uint16_t i = 0; i < contents.length(); i ++) {
+            if(contents[i] == expr) {
+                contents.insert(exprToAdd, i + 1);
+            }
+        }
+    }
 	ContainerExpr::~ContainerExpr() {
 		for(Expr *ex : contents) {
 			DESTROY_IF_NONNULL(ex);
