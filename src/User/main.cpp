@@ -94,8 +94,8 @@ extern "C" void TIM3_IRQHandler() {
 	}
 }
 
-#define CURSOR_HORIZ_SPACING 5
-#define CURSOR_VERT_SPACING 3
+#define CURSOR_HORIZ_SPACING 2
+#define CURSOR_VERT_SPACING 2
 //Moves ex so that the cursor is in the display
 void adjustExpr(neda::Expr *ex, neda::Cursor *cursorRef) {
 	neda::CursorInfo info;
@@ -168,7 +168,7 @@ int main() {
 	
 	//Set up basic expression
 	neda::ContainerExpr *master = new neda::ContainerExpr;
-	master->addExpr(new neda::StringExpr);
+	master->addExpr(new neda::StringExpr());
 	
 	master->getCursor(*cursor, neda::CURSORLOCATION_START);
 	adjustExpr(master, cursor);

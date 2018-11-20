@@ -95,7 +95,10 @@ namespace neda {
 			}
             
 			const lcd::Img &charImg = lcd::getChar(ch);
+            //Skip this char and increment if it's outside the range
             if(x + charImg.width < 0 || y + charImg.height < 0) {
+                //Increment x and leave one pixel's spacing
+                x += charImg.width + 1;
                 continue;
             }
 			//To make sure everything is bottom aligned, the max height is added to the y coordinate and the height subtracted from it
