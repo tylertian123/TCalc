@@ -106,6 +106,10 @@ namespace neda {
 			computeWidth();
 			computeHeight();
 		}
+        StringExpr(DynamicArray<char> *contents) : contents(contents) {
+            computeWidth();
+            computeHeight();
+        }
 		StringExpr() : contents(new DynamicArray<char>()) {
 			computeWidth();
 			computeHeight();
@@ -116,7 +120,8 @@ namespace neda {
         void removeAtCursor(Cursor&);
         void drawCursor(lcd::LCD12864&, const Cursor&);
         void getCursorInfo(const Cursor&, CursorInfo&);
-        void splitAtCursor(const Cursor&, StringExpr*, StringExpr*);
+        StringExpr* beforeCursor(const Cursor&);
+        StringExpr* afterCursor(const Cursor&);
         
         bool inBounds(const Cursor&);
 		

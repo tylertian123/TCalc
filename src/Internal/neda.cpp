@@ -143,8 +143,13 @@ namespace neda {
             dest.setPixel(cursorX + 1, y + i, true);
         }
     }
-    void StringExpr::splitAtCursor(const Cursor &cursor, StringExpr *first, StringExpr *second) {
-        
+    StringExpr* StringExpr::beforeCursor(const Cursor &cursor) {
+        DynamicArray<char> *a = new DynamicArray(contents->begin(), contents->begin() + cursor.index);
+        return new StringExpr(a);
+    }
+    StringExpr* StringExpr::afterCursor(const Cursor &cursor) {
+        DynamicArray<char> *b = new DynamicArray(contents->begin() + cursor.index + 1, contents->end());
+        return new StringExpr(b);
     }
     void StringExpr::getCursorInfo(const Cursor &cursor, CursorInfo &out) {
         int16_t cursorX = x;
