@@ -21,7 +21,18 @@ public:
 		for(uint32_t i = 0; i < len; i ++) {
 			contents[i] = other.contents[i];
 		}
-	}
+    }
+	typedef T* iterator;
+	typedef const T* const_iterator;
+    //Iterator constructor
+    DynamicArray(const_iterator start, const_iterator fin) : len(fin - start), maxLen(fin - start) {
+        contents = (T*) malloc(sizeof(T) * maxLen);
+
+        for(iterator i = begin(); i != end(); i ++) {
+            //Go through every elem and initialize its value
+            *i = *(start ++);
+        }
+    }
 	//Array constructor
 	DynamicArray(const T *arr, uint32_t len) : len(len), maxLen(len) {
 		contents = (T*) malloc(sizeof(T) * maxLen);
@@ -113,8 +124,6 @@ public:
 		return *this;
 	}
 	
-	typedef T* iterator;
-	typedef const T* const_iterator;
 	iterator begin() {
 		return &contents[0];
 	}
