@@ -58,6 +58,7 @@ namespace neda {
 	void StringExpr::computeWidth() {
 		if(contents.length() == 0) {
 			exprWidth = 0;
+            SAFE_EXEC(parent, computeWidth);
 			return;
 		}
 		
@@ -68,10 +69,12 @@ namespace neda {
 		}
 		//Add up all length - 1 spaces between the characters
 		exprWidth += contents.length() - 1;
+        SAFE_EXEC(parent, computeWidth);
 	}
 	void StringExpr::computeHeight() {
         if(contents.length() == 0) {
             exprHeight = ContainerExpr::EMPTY_EXPR_HEIGHT;
+            SAFE_EXEC(parent, computeHeight);
             return;
         }
 		uint16_t max = 0;
@@ -80,6 +83,7 @@ namespace neda {
 			max = lcd::getChar(ch).height > max ? lcd::getChar(ch).height : max;
 		}
 		exprHeight = max;
+        SAFE_EXEC(parent, computeHeight);
 	}
 	void StringExpr::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
 		usart::printf("Drawing at (%d, %d)\r\n", x, y);
@@ -195,6 +199,7 @@ namespace neda {
                 || (contents.length() == 1 && contents[0]->getType() == ExprType::STRING
                         && ((StringExpr*) contents[0])->contents.length() == 0)) {
 			exprWidth = EMPTY_EXPR_WIDTH;
+            SAFE_EXEC(parent, computeWidth);
             return;
 		}
 		
@@ -205,12 +210,14 @@ namespace neda {
 		}
 		//Add up all length - 1 spaces between the Exprs
 		exprWidth += (contents.length() - 1) * 3;
+        SAFE_EXEC(parent, computeWidth);
 	}
 	void ContainerExpr::computeHeight() {
 		if(contents.length() == 0
                 || (contents.length() == 1 && contents[0]->getType() == ExprType::STRING
                         && ((StringExpr*) contents[0])->contents.length() == 0)) {
 			exprHeight = EMPTY_EXPR_HEIGHT;
+            SAFE_EXEC(parent, computeHeight);
 			return;
 		}
 
@@ -235,6 +242,7 @@ namespace neda {
             maxHeight = max(height, maxHeight);
         }
         exprHeight = maxHeight;
+        SAFE_EXEC(parent, computeHeight);
 	}
 	void ContainerExpr::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
         this->x = x;
@@ -348,12 +356,14 @@ namespace neda {
         uint16_t numeratorWidth = SAFE_EXEC_0(numerator, getWidth);
 		uint16_t denominatorWidth = SAFE_EXEC_0(denominator, getWidth);
 		exprWidth = max(numeratorWidth, denominatorWidth) + 2;
+        SAFE_EXEC(parent, computeWidth);
 	}
 	void FractionExpr::computeHeight() {
 		uint16_t numeratorHeight = SAFE_EXEC_0(numerator, getHeight);
 		uint16_t denominatorHeight = SAFE_EXEC_0(denominator, getHeight);
 		//Take the sum of the heights and add 3 for the fraction line
 		exprHeight = numeratorHeight + denominatorHeight + 3;
+        SAFE_EXEC(parent, computeHeight);
 	}
 	void FractionExpr::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
         this->x = x;
@@ -437,12 +447,14 @@ namespace neda {
 		uint16_t baseWidth = SAFE_EXEC_0(base, getWidth);
 		uint16_t exponentWidth = SAFE_EXEC_0(exponent, getWidth);
 		exprWidth = baseWidth + exponentWidth + 2;
+        SAFE_EXEC(parent, computeWidth);
 	}
 	void ExponentExpr::computeHeight() {
 		uint16_t baseHeight = SAFE_EXEC_0(base, getHeight);
 		uint16_t exponentHeight = SAFE_EXEC_0(exponent, getHeight);
 		//Make sure this is positive
 		exprHeight = max(0, baseHeight + exponentHeight - BASE_EXPONENT_OVERLAP);
+        SAFE_EXEC(parent, computeHeight);
 	}
 	void ExponentExpr::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
         this->x = x;
@@ -532,10 +544,12 @@ namespace neda {
 	void BracketExpr::computeWidth() {
 		//+6 for the brackets themselves and +2 for the spacing
 		exprWidth = SAFE_EXEC_0(contents, getWidth) + 8;
+        SAFE_EXEC(parent, computeWidth);
 	}
 	void BracketExpr::computeHeight() {
 		//+2 for the padding at the top and bottom
 		exprHeight = SAFE_EXEC_0(contents, getHeight) + 2;
+        SAFE_EXEC(parent, computeHeight);
 	}
 	void BracketExpr::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
         this->x = x;
@@ -580,16 +594,20 @@ namespace neda {
 	void RadicalExpr::computeWidth() {
 		if(!n) {
 			exprWidth = SAFE_EXEC_0(contents, getWidth) + 8;
+            SAFE_EXEC(parent, computeWidth);
 			return;
 		}
 		exprWidth = max(0, n->getWidth() - SIGN_N_OVERLAP) + SAFE_EXEC_0(contents, getWidth) + 8;
+        SAFE_EXEC(parent, computeWidth);
 	}
 	void RadicalExpr::computeHeight() {
 		if(!n) {
 			exprHeight = SAFE_EXEC_0(contents, getHeight) + 2;
+            SAFE_EXEC(parent, computeHeight);
 			return;
 		}
 		exprHeight = max(0, n->getHeight() - CONTENTS_N_OVERLAP) + SAFE_EXEC_0(contents, getHeight) + 2;
+        SAFE_EXEC(parent, computeHeight);
 	}
 	void RadicalExpr::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
         this->x = x;
@@ -684,6 +702,7 @@ namespace neda {
 		else {
 			exprWidth = SAFE_EXEC_0(contents, getWidth);
 		}
+        SAFE_EXEC(parent, computeWidth);
 	}
 	void SubscriptExpr::computeHeight() {
 		if (subscript) {
@@ -692,6 +711,7 @@ namespace neda {
 		else {
 			exprHeight = SAFE_EXEC_0(contents, getHeight);
 		}
+        SAFE_EXEC(parent, computeHeight);
 	}
 	void SubscriptExpr::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
         this->x = x;
@@ -785,6 +805,7 @@ namespace neda {
 		uint16_t topWidth = SAFE_EXEC_0(finish, getWidth);
 		uint16_t bottomWidth = SAFE_EXEC_0(start, getWidth);
 		exprWidth = max(symbol.width, max(topWidth, bottomWidth)) + 3 + SAFE_EXEC_0(contents, getWidth);
+        SAFE_EXEC(parent, computeWidth);
 	}
 	void SigmaPiExpr::computeHeight() {
         //Top spacings - Taken from neda::SigmaPiExpr::getTopSpacing()
@@ -798,6 +819,7 @@ namespace neda {
         uint16_t bodyHeight = SAFE_EXEC_0(contents, getHeight) + maxTopSpacing - b;
 
 		exprHeight = max(symbolHeight, bodyHeight);
+        SAFE_EXEC(parent, computeHeight);
 	}
 	void SigmaPiExpr::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
         this->x = x;
