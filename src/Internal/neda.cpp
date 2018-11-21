@@ -48,6 +48,9 @@ namespace neda {
             draw(dest);
         }
     }
+    Expr* Expr::getTopLevelExpr() {
+        return parent ? parent->getTopLevelExpr() : this;
+    }
 	
 	//*************************** StringExpr ***************************************
     uint16_t StringExpr::getTopSpacing() {

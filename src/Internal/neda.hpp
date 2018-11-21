@@ -72,6 +72,8 @@ namespace neda {
         void draw(lcd::LCD12864&);
         //Draws all expressions that are connected in some way to this one. e.g. its parents, siblings, grandparents, etc.
         void drawConnected(lcd::LCD12864&);
+        //Gets the one top-level expr, a direct parent of this expr that has no parent
+        Expr* getTopLevelExpr();
 	
 		virtual ~Expr() {};
 
