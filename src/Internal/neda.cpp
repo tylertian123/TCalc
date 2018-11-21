@@ -215,8 +215,8 @@ namespace neda {
         for(auto it = contents.begin(); it != contents.end(); it ++) {
             Expr *ex = *it;
             exprWidth += SAFE_EXEC_0(ex, getWidth);
-            //For every expression except the first or an empty StringExpr, add 3 for spacing
-            if(it != contents.begin() && !isEmptyString(ex)) {
+            //For every expression except for the last, or if the expression or the next one is an empty StringExpr, add 3 for spacing
+            if(it + 1 != contents.end() && !isEmptyString(ex) && !isEmptyString(*(it + 1))) {
                 exprWidth += 3;
             }
         }
@@ -297,8 +297,9 @@ namespace neda {
 			ex->draw(dest, x, y + (maxTopSpacing - ex->getTopSpacing()));
             //Increase x so nothing overlaps
             //Add 3 for a gap between different expressions
-            //Except when this is the last expression, or when the expression is an empty StringExpr
-            if(it + 1 != contents.end() && !isEmptyString(ex)) {
+            //Except when this is the last expression, or when the expression is an empty StringExpr, or when the expression after it 
+            //is an empty StringExpr
+            if(it + 1 != contents.end() && !isEmptyString(ex) && !isEmptyString(*(it + 1))) {
 			    x += ex->getWidth() + 3;
             }
             else {
