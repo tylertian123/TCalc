@@ -143,10 +143,6 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 	case KEY_DOWN:
 		cursor->down();
 		break;
-	case KEY_DELETE:
-		//Additional processing required - to be added later
-		cursor->removeChar();
-		break;
 	/* LETTER KEYS */
 	case KEY_A:
 		cursor->addChar('A');
@@ -371,10 +367,11 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 		//The parent of a StringExpr must always be a ContainerExpr
 		//If not, then, well, someone's getting fired.
 		neda::ContainerExpr *container = (neda::ContainerExpr*) cursor->expr->parent;
+		uint16_t index = container->indexOf(cursor->expr);
 		//Insert the expressions back in
-		container->replaceExpr(cursor->expr, first);
-		container->addAfter(first, brackets);
-		container->addAfter(brackets, second);
+		container->replaceExpr(index ++, first);
+		container->addAt(index ++, brackets);
+		container->addAt(index ++, second);
 		//SUPER IMPORTANT: DELETE ORIGINAL STRING!!!
 		//Keep a copy of original so we can get the new cursor before deleting the old one (so that interrupts don't cause errors)
 		neda::StringExpr *original = cursor->expr;
@@ -382,6 +379,18 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 		delete original;
 		//Use draw to figure out the approx location of the new cursor so adjustExpr won't mess up the display
 		container->Expr::draw(display);
+		break;
+	}
+	/* OTHER */
+	case KEY_DELETE:
+	{
+		//Simple case: There are still characters left
+		if(cursor->index != 0) {
+			cursor->removeChar();
+			break;
+		}
+		//If there are no more characters to delete:
+		//Is there an expr in front?
 		break;
 	}
 	
