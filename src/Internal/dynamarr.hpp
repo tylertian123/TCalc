@@ -10,7 +10,7 @@ public:
 	//Default constructor with length 0
 	DynamicArray() : contents((T*) malloc(0)), len(0), maxLen(0) {}
 	//Constructor with initial capacity
-	DynamicArray(uint32_t initialCapacity) : len(0), maxLen(initialCapacity) {
+	DynamicArray(uint16_t initialCapacity) : len(0), maxLen(initialCapacity) {
 		//Make sure the length is multipled by the size of T
 		contents = (T*) malloc(sizeof(T) * initialCapacity);
 	}
@@ -18,7 +18,7 @@ public:
 	DynamicArray(const DynamicArray &other) : len(other.len), maxLen(other.maxLen) {
 		contents = (T*) malloc(sizeof(T) * maxLen);
 		
-		for(uint32_t i = 0; i < len; i ++) {
+		for(uint16_t i = 0; i < len; i ++) {
 			contents[i] = other.contents[i];
 		}
     }
@@ -34,10 +34,10 @@ public:
         }
     }
 	//Array constructor
-	DynamicArray(const T *arr, uint32_t len) : len(len), maxLen(len) {
+	DynamicArray(const T *arr, uint16_t len) : len(len), maxLen(len) {
 		contents = (T*) malloc(sizeof(T) * maxLen);
 		
-		for(uint32_t i = 0; i < len; i ++) {
+		for(uint16_t i = 0; i < len; i ++) {
 			contents[i] = arr[i];
 		}
 	}
@@ -45,14 +45,14 @@ public:
 		free(contents);
 	}
 	
-	uint32_t length() {
+	uint16_t length() {
 		return len;
 	}
-	uint32_t maxLength() {
+	uint16_t maxLength() {
 		return maxLen;
 	}
-	bool resize(uint32_t newSize) {
-        uint32_t oldSize = maxLen;
+	bool resize(uint16_t newSize) {
+        uint16_t oldSize = maxLen;
 		//Ignore if the new size is less than the length
 		if(newSize < len) {
 			return true;
@@ -92,7 +92,7 @@ public:
 		contents[len - 1] = elem;
         return true;
 	}
-    bool insert(const T &elem, uint32_t where) {
+    bool insert(const T &elem, uint16_t where) {
         len ++;
         if(len > maxLen) {
             //Default impl: reallocate only what's needed
@@ -108,20 +108,20 @@ public:
         }
         //Iterate backwards to move the elements
         //This way we don't have to keep a buffer
-        for(uint32_t i = len - 1; i > where; i --) {
+        for(uint16_t i = len - 1; i > where; i --) {
             contents[i] = contents[i - 1];
         }
         contents[where] = elem;
         return true;
     }
-    void removeAt(uint32_t where) {
+    void removeAt(uint16_t where) {
         //Ignore if out of bounds
         if(where >= len) {
             return;
         }
         len --;
         //Shift all elements after the index back
-        for(uint32_t i = where; i < len; i ++) {
+        for(uint16_t i = where; i < len; i ++) {
             contents[i] = contents[i + 1];
         }
     }
@@ -138,10 +138,10 @@ public:
 	}
 	
 	//WARNING: Does not check for out of bounds!
-	const T& operator[](uint32_t i) const {
+	const T& operator[](uint16_t i) const {
 		return contents[i];
 	}
-	T& operator[](uint32_t i) {
+	T& operator[](uint16_t i) {
 		return contents[i];
 	}
 	DynamicArray& operator+=(const T &elem) {
@@ -164,8 +164,8 @@ public:
 
 protected:
 	T *contents;
-	uint32_t len;
-	uint32_t maxLen;
+	uint16_t len;
+	uint16_t maxLen;
 };
 
 #endif
