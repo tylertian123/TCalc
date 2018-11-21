@@ -164,9 +164,6 @@ namespace neda {
         out.width = 2;
         out.height = exprHeight;
     }
-    bool StringExpr::inBounds(const Cursor &cursor) {
-        return cursor.index <= contents->length();
-    }
     StringExpr::~StringExpr() {
         delete contents;
     }
@@ -306,13 +303,6 @@ namespace neda {
             if(contents[i] == expr) {
                 contents.removeAt(i);
                 break;
-            }
-        }
-    }
-    void ContainerExpr::addBeforeExpr(Expr *exprToAdd, Expr *expr) {
-        for(uint16_t i = 0; i < contents.length(); i ++) {
-            if(contents[i] == expr) {
-                contents.insert(exprToAdd, i);
             }
         }
     }

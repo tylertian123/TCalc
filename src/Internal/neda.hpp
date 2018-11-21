@@ -122,8 +122,6 @@ namespace neda {
         void getCursorInfo(const Cursor&, CursorInfo&);
         StringExpr* beforeCursor(const Cursor&);
         StringExpr* afterCursor(const Cursor&);
-        
-        bool inBounds(const Cursor&);
 		
 		virtual void computeWidth() override;
 		virtual void computeHeight() override;
@@ -181,7 +179,6 @@ namespace neda {
 		void addExpr(Expr*);
         void removeExpr(Expr*);
         void addBeforeExpr(Expr*, Expr*);
-        void addAfterExpr(Expr*, Expr*);
 			
         virtual uint16_t getTopSpacing() override;
 		virtual void computeWidth() override;
