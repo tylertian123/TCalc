@@ -344,6 +344,18 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 	case KEY_DOT:
 		cursor->addChar('.');
 		break;
+	case KEY_PLUS:
+		cursor->addChar('+');
+		break;
+	case KEY_MINUS:
+		cursor->addChar('-');
+		break;
+	case KEY_MUL:
+		cursor->addChar(LCD_CHAR_MUL);
+		break;
+	case KEY_DIV:
+		cursor->addChar(LCD_CHAR_DIV);
+		break;
 	
 	/* EXPRESSIONS */
 	case KEY_LBRACKET:

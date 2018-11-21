@@ -786,14 +786,14 @@ namespace lcd {
     const Img CHAR_BKTK(CHAR_BKTK_DATA, 1, 5, 9);
     const uint8_t CHAR_LCA_DATA[] = {
         0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x70,
-        0x08,
-        0x78,
-        0x88,
-        0x78,
+		0x00,
+		0x00,
+		0x00,
+		0x78,
+		0x88,
+		0x88,
+		0x98,
+		0x68,
     };
     const Img CHAR_LCA(CHAR_LCA_DATA, 1, 5, 9);
     const uint8_t CHAR_LCB_DATA[] = {

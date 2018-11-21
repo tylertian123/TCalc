@@ -3,11 +3,16 @@
 #include "lcd12864.hpp"
 
 #define LCD_CHARSET_LOWBOUND 0x1B
-#define LCD_CHAR_THETA "\x1b"
-#define LCD_CHAR_SERR "\x1c"
-#define LCD_CHAR_PI "\x1d"
-#define LCD_CHAR_MUL "\x1e"
-#define LCD_CHAR_DIV "\x1f"
+#define LCD_STR_THETA "\x1b"
+#define LCD_STR_SERR "\x1c"
+#define LCD_STR_PI "\x1d"
+#define LCD_STR_MUL "\x1e"
+#define LCD_STR_DIV "\x1f"
+#define LCD_CHAR_THETA '\x1b'
+#define LCD_CHAR_SERR '\x1c'
+#define LCD_CHAR_PI '\x1d'
+#define LCD_CHAR_MUL '\x1e'
+#define LCD_CHAR_DIV '\x1f'
 
 namespace lcd {
 
