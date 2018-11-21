@@ -193,6 +193,9 @@ namespace neda {
     }
 	
 	//*************************** ContainerExpr ***************************************
+    bool isEmptyString(Expr *ex) {
+        return ex->getType() == ExprType::STRING && ((StringExpr*) ex)->contents->length() == 0;
+    }
     uint16_t ContainerExpr::getTopSpacing() {
         //ContainerExprs don't contain any special parts; they're just rectangles
         return exprHeight / 2;
@@ -201,8 +204,7 @@ namespace neda {
 		//An empty ContainerExpr has a default width and height
         //A ContainerExpr with only an empty StringExpr inside also has a default width and height
 		if(contents.length() == 0
-                || (contents.length() == 1 && contents[0]->getType() == ExprType::STRING
-                        && ((StringExpr*) contents[0])->contents->length() == 0)) {
+                || (contents.length() == 1 && isEmptyString(contents[0]))) {
 			exprWidth = EMPTY_EXPR_WIDTH;
             SAFE_EXEC(parent, computeWidth);
             return;
@@ -214,7 +216,7 @@ namespace neda {
             Expr *ex = *it;
             exprWidth += SAFE_EXEC_0(ex, getWidth);
             //For every expression except the first or an empty StringExpr, add 3 for spacing
-            if(it != contents.begin() && (ex->getType() == ExprType::STRING && ((StringExpr*) ex)->contents->length() == 0)) {
+            if(it != contents.begin() && !isEmptyString(ex)) {
                 exprWidth += 3;
             }
         }
@@ -222,8 +224,7 @@ namespace neda {
 	}
 	void ContainerExpr::computeHeight() {
 		if(contents.length() == 0
-                || (contents.length() == 1 && contents[0]->getType() == ExprType::STRING
-                        && ((StringExpr*) contents[0])->contents->length() == 0)) {
+                || (contents.length() == 1 && isEmptyString(contents[0]))) {
 			exprHeight = EMPTY_EXPR_HEIGHT;
             SAFE_EXEC(parent, computeHeight);
 			return;
@@ -258,8 +259,7 @@ namespace neda {
         VERIFY_INBOUNDS(x, y);
 
         if(contents.length() == 0
-            || (contents.length() == 1 && contents[0]->getType() == ExprType::STRING
-                    && ((StringExpr*) contents[0])->contents->length() == 0)) {
+            || (contents.length() == 1 && isEmptyString(contents[0]))) {
             //Empty container shows up as a box
             for(uint16_t w = 0; w < exprWidth; w ++) {
                 dest.setPixel(x + w, y, true);
@@ -284,9 +284,10 @@ namespace neda {
             maxTopSpacing = max(ts, maxTopSpacing);
         }
 		
-		for(Expr *ex : contents) {
+		for(auto it = contents.begin(); it != contents.end(); it ++) {
+            Expr *ex = *it;
             //Skip the expression if it's null, or if it's an empty StringExpr
-            if(!ex || (ex->getType == ExprType::STRING && ((StringExpr*) ex)->contents->length() == 0)) {
+            if(!ex) {
                 continue;
             }
 			//For each expression, its top padding is the difference between the max top spacing and its top spacing.
@@ -296,7 +297,13 @@ namespace neda {
 			ex->draw(dest, x, y + (maxTopSpacing - ex->getTopSpacing()));
             //Increase x so nothing overlaps
             //Add 3 for a gap between different expressions
-			x += ex->getWidth() + 3;
+            //Except when this is the last expression, or when the expression is an empty StringExpr
+            if(it + 1 != contents.end() && !isEmptyString(ex)) {
+			    x += ex->getWidth() + 3;
+            }
+            else {
+                x += ex->getWidth();
+            }
 		}
 	}
 	void ContainerExpr::addExpr(Expr *expr) {
