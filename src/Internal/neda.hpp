@@ -180,7 +180,6 @@ namespace neda {
         void removeExpr(Expr*);
         void replaceExpr(Expr*, Expr*);
         void addAfter(Expr*, Expr*);
-        void addAfter(Expr*, Expr**, uint16_t);
 			
         virtual uint16_t getTopSpacing() override;
 		virtual void computeWidth() override;
