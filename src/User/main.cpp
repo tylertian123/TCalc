@@ -428,6 +428,8 @@ int main() {
 				neda::StringExpr *original = cursor->expr;
 				contents->getCursor(*cursor, neda::CURSORLOCATION_START);
 				delete original;
+				//Use draw to figure out the approx location of the new cursor so adjustExpr won't mess up the display
+				container->Expr::draw(display);
 				break;
 			}
 			

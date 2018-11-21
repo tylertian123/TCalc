@@ -219,6 +219,10 @@ namespace neda {
             if(it + 1 != contents.end() && !isEmptyString(ex) && !isEmptyString(*(it + 1))) {
                 exprWidth += 3;
             }
+            //Special case: if the expression is an empty string sandwitched between two non-empty-strings, add the 3 as well
+            else if(it - 1 >= contents.begin() && it + 1 != contents.end() && !isEmptyString(*(it - 1)) && !isEmptyString(*(it + 1))) {
+                exprWidth += 3;
+            }
         }
         SAFE_EXEC(parent, computeWidth);
 	}
@@ -296,14 +300,16 @@ namespace neda {
             //no top padding. But when drawing the 3, the difference between its top spacing and the max creates a top padding.
 			ex->draw(dest, x, y + (maxTopSpacing - ex->getTopSpacing()));
             //Increase x so nothing overlaps
+            x += ex->getWidth();
             //Add 3 for a gap between different expressions
             //Except when this is the last expression, or when the expression is an empty StringExpr, or when the expression after it 
             //is an empty StringExpr
             if(it + 1 != contents.end() && !isEmptyString(ex) && !isEmptyString(*(it + 1))) {
-			    x += ex->getWidth() + 3;
+			    x += 3;
             }
-            else {
-                x += ex->getWidth();
+            //Special case: if the expression is an empty string sandwitched between two non-empty-strings, add the 3 as well
+            else if(it - 1 >= contents.begin() && it + 1 != contents.end() && !isEmptyString(*(it - 1)) && !isEmptyString(*(it + 1))) {
+                x += 3;
             }
 		}
 	}
