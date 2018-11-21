@@ -323,35 +323,31 @@ namespace neda {
 		computeWidth();
 		computeHeight();
 	}
-    void ContainerExpr::removeExpr(Expr *expr) {
+    uint16_t ContainerExpr::indexOf(Expr *expr) {
         for(uint16_t i = 0; i < contents.length(); i ++) {
             if(contents[i] == expr) {
-                contents.removeAt(i);
-                break;
+                return i;
             }
         }
+        return 0xFFFF;
     }
-    void ContainerExpr::replaceExpr(Expr *exprToReplace, Expr *replacement) {
-        for(auto it = contents.begin(); it != contents.end(); it ++) {
-            if(*it == exprToReplace) {
-                *it = replacement;
-                replacement->parent = this;
-                computeWidth();
-                computeHeight();
-                break;
-            }
-        }
+    void ContainerExpr::removeExpr(uint16_t index) {
+        contents.removeAt(index);
     }
-    void ContainerExpr::addAfter(Expr *expr, Expr *exprToAdd) {
-        for(uint16_t i = 0; i < contents.length(); i ++) {
-            if(contents[i] == expr) {
-                contents.insert(exprToAdd, i + 1);
-                exprToAdd->parent = this;
-                computeWidth();
-                computeHeight();
-                break;
-            }
-        }
+    void ContainerExpr::replaceExpr(uint16_t index, Expr *replacement) {
+        contents[index] = replacement;
+        replacement->parent = this;
+        computeWidth();
+        computeHeight();
+    }
+    void ContainerExpr::addAt(uint16_t index, Expr *exprToAdd) {
+        contents.insert(exprToAdd, index);
+        exprToAdd->parent = this;
+        computeWidth();
+        computeHeight();
+    }
+    DynamicArray<Expr*>* ContainerExpr::getContents() {
+        return &contents;
     }
     
 	ContainerExpr::~ContainerExpr() {

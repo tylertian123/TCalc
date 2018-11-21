@@ -180,9 +180,11 @@ namespace neda {
         static const uint16_t EMPTY_EXPR_HEIGHT = 9;
 		
 		void addExpr(Expr*);
-        void removeExpr(Expr*);
-        void replaceExpr(Expr*, Expr*);
-        void addAfter(Expr*, Expr*);
+        void removeExpr(uint16_t);
+        void replaceExpr(uint16_t, Expr*);
+        void addAt(uint16_t, Expr*);
+        uint16_t indexOf(Expr*);
+        DynamicArray<Expr*>* getContents();
 			
         virtual uint16_t getTopSpacing() override;
 		virtual void computeWidth() override;
