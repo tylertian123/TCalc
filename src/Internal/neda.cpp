@@ -306,13 +306,28 @@ namespace neda {
             }
         }
     }
-    void ContainerExpr::addAfterExpr(Expr *exprToAdd, Expr *expr) {
+    void ContainerExpr::replaceExpr(Expr *exprToReplace, Expr *replacement) {
+        for(auto it = contents.begin(); it != contents.end(); it ++) {
+            if(*it == exprToReplace) {
+                *it = replacement;
+            }
+        }
+    }
+    void ContainerExpr::addAfter(Expr *expr, Expr *exprToAdd) {
         for(uint16_t i = 0; i < contents.length(); i ++) {
             if(contents[i] == expr) {
                 contents.insert(exprToAdd, i + 1);
             }
         }
     }
+    void ContainerExpr::addAfter(Expr *expr, Expr **exprsToAdd, uint16_t count) {
+        for(uint16_t i = 0; i < contents.length(); i ++) {
+            if(contents[i] == expr) {
+                contents.insert(exprsToAdd, count, i + 1);
+            }
+        }
+    }
+    
 	ContainerExpr::~ContainerExpr() {
 		for(Expr *ex : contents) {
 			DESTROY_IF_NONNULL(ex);

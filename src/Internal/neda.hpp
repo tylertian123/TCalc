@@ -178,7 +178,9 @@ namespace neda {
 		
 		void addExpr(Expr*);
         void removeExpr(Expr*);
-        void addBeforeExpr(Expr*, Expr*);
+        void replaceExpr(Expr*, Expr*);
+        void addAfter(Expr*, Expr*);
+        void addAfter(Expr*, Expr**, uint16_t);
 			
         virtual uint16_t getTopSpacing() override;
 		virtual void computeWidth() override;
