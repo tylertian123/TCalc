@@ -97,7 +97,7 @@
 #define KEY_SUM       0x005D
 #define KEY_CLEAR     0x005E
 #define KEY_PRODUCT   0x005F
-#define KEY_IMPROP    0x0060
+#define KEY_FRAC      0x0060
 #define KEY_CUBE      0x0061
 #define KEY_LN        0x0062
 #define KEY_LOGN      0x0063
@@ -105,7 +105,7 @@
 #define KEY_NTHROOT   0x0065
 #define KEY_EULER     0x0066
 #define KEY_GRAPH     0x0067
-#define KEY_MIXNUM    0x0068
+#define KEY_FRACFMT   0x0068
 #define KEY_EQUAL     0x0069
 #define KEY_CONST     0x006A
 

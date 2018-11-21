@@ -94,7 +94,7 @@ config
 sum
 clear
 product
-improp
+frac
 cube
 ln
 logn
@@ -102,6 +102,6 @@ approx
 nthroot
 euler
 graph
-mixnum
+fracfmt
 equal
 const
