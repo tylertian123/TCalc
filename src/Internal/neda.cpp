@@ -310,6 +310,10 @@ namespace neda {
         for(auto it = contents.begin(); it != contents.end(); it ++) {
             if(*it == exprToReplace) {
                 *it = replacement;
+                replacement->parent = this;
+                computeWidth();
+                computeHeight();
+                break;
             }
         }
     }
@@ -317,6 +321,10 @@ namespace neda {
         for(uint16_t i = 0; i < contents.length(); i ++) {
             if(contents[i] == expr) {
                 contents.insert(exprToAdd, i + 1);
+                exprToAdd->parent = this;
+                computeWidth();
+                computeHeight();
+                break;
             }
         }
     }
