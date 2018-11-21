@@ -148,7 +148,7 @@ namespace neda {
         return new StringExpr(a);
     }
     StringExpr* StringExpr::afterCursor(const Cursor &cursor) {
-        DynamicArray<char> *b = new DynamicArray<char>(contents->begin() + cursor.index + 1, contents->end());
+        DynamicArray<char> *b = new DynamicArray<char>(contents->begin() + cursor.index, contents->end());
         return new StringExpr(b);
     }
     void StringExpr::getCursorInfo(const Cursor &cursor, CursorInfo &out) {
@@ -210,11 +210,14 @@ namespace neda {
 		
 		//Add up all the Expressions's widths
 		exprWidth = 0;
-		for(Expr *ex : contents) {
-			exprWidth += SAFE_EXEC_0(ex, getWidth);
-		}
-		//Add up all length - 1 spaces between the Exprs
-		exprWidth += (contents.length() - 1) * 3;
+        for(auto it = contents.begin(); it != contents.end(); it ++) {
+            Expr *ex = *it;
+            exprWidth += SAFE_EXEC_0(ex, getWidth);
+            //For every expression except the first or an empty StringExpr, add 3 for spacing
+            if(it != contents.begin() && (ex->getType() == ExprType::STRING && ((StringExpr*) ex)->contents->length() == 0)) {
+                exprWidth += 3;
+            }
+        }
         SAFE_EXEC(parent, computeWidth);
 	}
 	void ContainerExpr::computeHeight() {
@@ -266,6 +269,10 @@ namespace neda {
                 dest.setPixel(x, y + h, true);
                 dest.setPixel(x + exprWidth - 1, y + h, true);
             }
+            //Special handling for empty StringExpr: the x and y still have to be set
+            if(contents.length() == 1) {
+                contents[0]->draw(dest, x, y);
+            }
             return;
         }
 		
@@ -278,7 +285,8 @@ namespace neda {
         }
 		
 		for(Expr *ex : contents) {
-            if(!ex) {
+            //Skip the expression if it's null, or if it's an empty StringExpr
+            if(!ex || (ex->getType == ExprType::STRING && ((StringExpr*) ex)->contents->length() == 0)) {
                 continue;
             }
 			//For each expression, its top padding is the difference between the max top spacing and its top spacing.

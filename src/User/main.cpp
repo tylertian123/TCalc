@@ -407,8 +407,29 @@ int main() {
 			
 			/* EXPRESSIONS */
 			case KEY_LBRACKET:
-				
+			{
+				//Split the original expression into 2 parts
+				neda::StringExpr *first = cursor->expr->beforeCursor(*cursor);
+				neda::StringExpr *second = cursor->expr->afterCursor(*cursor);
+				//Create a string inside a container inside brackets
+				neda::StringExpr *contents = new neda::StringExpr;
+				neda::ContainerExpr *contentsContainer = new neda::ContainerExpr;
+				contentsContainer->addExpr(contents);
+				neda::BracketExpr *brackets = new neda::BracketExpr(contentsContainer);
+				//The parent of a StringExpr must always be a ContainerExpr
+				//If not, then, well, someone's getting fired.
+				neda::ContainerExpr *container = (neda::ContainerExpr*) cursor->expr->parent;
+				//Insert the expressions back in
+				container->replaceExpr(cursor->expr, first);
+				container->addAfter(first, brackets);
+				container->addAfter(brackets, second);
+				//SUPER IMPORTANT: DELETE ORIGINAL STRING!!!
+				//Keep a copy of original so we can get the new cursor before deleting the old one (so that interrupts don't cause errors)
+				neda::StringExpr *original = cursor->expr;
+				contents->getCursor(*cursor, neda::CURSORLOCATION_START);
+				delete original;
 				break;
+			}
 			
 			default: break;
 			}
