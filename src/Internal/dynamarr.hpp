@@ -114,6 +114,29 @@ public:
         contents[where] = elem;
         return true;
     }
+    bool insertMultiple(const T elem[], uint16_t count, uint16_t where) {
+        len += count;
+        if(len > maxLen) {
+            uint16_t oldMaxLen = maxLen;
+            maxLen = len;
+            void *tmp = realloc(contents, sizeof(T) * len);
+            if(!tmp) {
+                len -= count;
+                maxLen = oldMaxLen;
+                return false;
+            }
+            contents = (T*) tmp;
+        }
+        //Iterate backwards to move the elements
+        //This way we don't have to keep a buffer
+        for(uint16_t i = len - 1; i > where; i --) {
+            contents[i] = contents[i - count];
+        }
+        for(uint16_t i = where; i < where + count; i ++) {
+            contents[i] = elem[i - where];
+        }
+        return true;
+    }
     void removeAt(uint16_t where) {
         //Ignore if out of bounds
         if(where >= len) {
