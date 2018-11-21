@@ -114,7 +114,7 @@ public:
         contents[where] = elem;
         return true;
     }
-    bool insertMultiple(const T elem[], uint16_t count, uint16_t where) {
+    bool insert(const T elem[], uint16_t count, uint16_t where) {
         len += count;
         if(len > maxLen) {
             uint16_t oldMaxLen = maxLen;
