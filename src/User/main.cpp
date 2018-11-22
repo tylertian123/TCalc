@@ -390,7 +390,22 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 			break;
 		}
 		//If there are no more characters to delete:
-		//Is there an expr in front?
+		neda::ContainerExpr *container = (neda::ContainerExpr*) cursor->expr->parent;
+		uint16_t index = container->indexOf(cursor->expr);
+		auto contents = container->getContents();
+		//If there is an expr in front of the cursor and that expression is not an empty string
+		if(index >= 1 && !neda::isEmptyString((*contents)[index - 1])) {
+			//Delete that expr in front of the cursor
+			neda::Expr *ex = (*contents)[index - 1];
+			container->removeExpr(index - 1);
+			delete ex;
+			//If there is an empty StringExpr in front of what we just removed, delete that too
+			if(index >= 2 && neda::isEmptyString((*contents)[index - 2])) {
+				neda::Expr *emptyEx = (*contents)[index - 2];
+				container->removeExpr(index - 2);
+				delete emptyEx;
+			}
+		}
 		break;
 	}
 	
