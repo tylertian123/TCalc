@@ -121,6 +121,27 @@ void adjustExpr(neda::Expr *ex, neda::Cursor *cursorRef) {
 	ex->updatePosition(xdiff, ydiff);
 }
 
+
+void insertExprAtCursor(neda::Expr *expr, neda::Cursor *cursor) {
+	//Split the original expression into 2 parts
+	neda::StringExpr *first = cursor->expr->beforeCursor(*cursor);
+	neda::StringExpr *second = cursor->expr->afterCursor(*cursor);
+	//The parent of a StringExpr must always be a ContainerExpr
+	//If not, then, well, someone's getting fired.
+	neda::ContainerExpr *container = (neda::ContainerExpr*) cursor->expr->parent;
+	uint16_t index = container->indexOf(cursor->expr);
+	//Insert the expressions back in
+	container->replaceExpr(index ++, first);
+	container->addAt(index ++, expr);
+	container->addAt(index ++, second);
+	//SUPER IMPORTANT: DELETE ORIGINAL STRING!!!
+	//Keep a copy of original so we can get the new cursor before deleting the old one (so that interrupts don't cause errors)
+	neda::StringExpr *original = cursor->expr;
+	expr->getCursor(*cursor, neda::CURSORLOCATION_START);
+	delete original;
+	//Use draw to figure out the approx location of the new cursor so adjustExpr won't mess up the display
+	container->Expr::draw(display);
+}
 //Key press handlers
 //Probably gonna make this name shorter, but couldn't bother.
 void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
@@ -356,29 +377,12 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 	/* EXPRESSIONS */
 	case KEY_LBRACKET:
 	{
-		//Split the original expression into 2 parts
-		neda::StringExpr *first = cursor->expr->beforeCursor(*cursor);
-		neda::StringExpr *second = cursor->expr->afterCursor(*cursor);
 		//Create a string inside a container inside brackets
 		neda::StringExpr *contents = new neda::StringExpr;
 		neda::ContainerExpr *contentsContainer = new neda::ContainerExpr;
 		contentsContainer->addExpr(contents);
 		neda::BracketExpr *brackets = new neda::BracketExpr(contentsContainer);
-		//The parent of a StringExpr must always be a ContainerExpr
-		//If not, then, well, someone's getting fired.
-		neda::ContainerExpr *container = (neda::ContainerExpr*) cursor->expr->parent;
-		uint16_t index = container->indexOf(cursor->expr);
-		//Insert the expressions back in
-		container->replaceExpr(index ++, first);
-		container->addAt(index ++, brackets);
-		container->addAt(index ++, second);
-		//SUPER IMPORTANT: DELETE ORIGINAL STRING!!!
-		//Keep a copy of original so we can get the new cursor before deleting the old one (so that interrupts don't cause errors)
-		neda::StringExpr *original = cursor->expr;
-		contents->getCursor(*cursor, neda::CURSORLOCATION_START);
-		delete original;
-		//Use draw to figure out the approx location of the new cursor so adjustExpr won't mess up the display
-		container->Expr::draw(display);
+		insertExprAtCursor(brackets, cursor);
 		break;
 	}
 	/* OTHER */
