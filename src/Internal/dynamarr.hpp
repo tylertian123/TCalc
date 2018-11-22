@@ -156,6 +156,7 @@ public:
         for(auto itOther = other->begin(); itThis != end() && itOther != other->end(); itThis ++, itOther ++) {
             *itThis = *itOther;
         }
+        return true;
     }
 	
 	//WARNING: Does not check for out of bounds!
