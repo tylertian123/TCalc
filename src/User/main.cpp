@@ -444,6 +444,21 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 		}
 		break;
 	}
+	case KEY_ALLCLEAR:
+	{
+		//Keep pointer of original
+		neda::Expr *original = cursor->expr->getTopLevelExpr();
+		//Create new expression and change cursor location
+		neda::ContainerExpr *container = new neda::ContainerExpr;
+		neda::StringExpr *str = new neda::StringExpr;
+		container->addExpr(str);
+		str->getCursor(*cursor, neda::CURSORLOCATION_START);
+		//Make sure the cursor's location is updated
+		container->draw(display, 0, 0);
+		//Delete old
+		delete original;
+		break;
+	}
 	
 	default: break;
 	}
