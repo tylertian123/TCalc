@@ -148,6 +148,12 @@ neda::ContainerExpr* createEmptyContainer() {
 	contentsContainer->addExpr(contents);
 	return contentsContainer;
 }
+neda::ContainerExpr* createEmptyContainer(const char *str) {
+	neda::StringExpr *contents = new neda::StringExpr(str);
+	neda::ContainerExpr *contentsContainer = new neda::ContainerExpr;
+	contentsContainer->addExpr(contents);
+	return contentsContainer;
+}
 //Key press handlers
 //Probably gonna make this name shorter, but couldn't bother.
 void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
@@ -394,6 +400,50 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 	case KEY_NTHROOT:
 	{
 		insertExprAtCursor(new neda::RadicalExpr(createEmptyContainer(), createEmptyContainer()), cursor);
+		break;
+	}
+	case KEY_SUM:
+	{
+		insertExprAtCursor(new neda::SigmaPiExpr(lcd::CHAR_SUMMATION, createEmptyContainer(), createEmptyContainer(), createEmptyContainer()), cursor);
+		break;
+	}
+	case KEY_PRODUCT:
+	{
+		insertExprAtCursor(new neda::SigmaPiExpr(lcd::CHAR_PRODUCT, createEmptyContainer(), createEmptyContainer(), createEmptyContainer()), cursor);
+		break;
+	}
+	case KEY_FRAC:
+	{
+		insertExprAtCursor(new neda::FractionExpr(createEmptyContainer(), createEmptyContainer()), cursor);
+		break;
+	}
+	case KEY_SQUARE:
+	case KEY_CUBE:
+	case KEY_EXPONENT:
+	{
+		if(cursor->index == 0) {
+			insertExprAtCursor(new neda::ExponentExpr(createEmptyContainer(), createEmptyContainer(key == KEY_SQUARE ? "2" : (key == KEY_CUBE ? "3" : ""))), cursor);
+			break;
+		}
+		//Split the original expression into 2 parts
+		neda::StringExpr *first = cursor->expr->beforeCursor(*cursor);
+		neda::StringExpr *second = cursor->expr->afterCursor(*cursor);
+		//The parent of a StringExpr must always be a ContainerExpr
+		//If not, then, well, someone's getting fired.
+		neda::ContainerExpr *container = (neda::ContainerExpr*) cursor->expr->parent;
+		uint16_t index = container->indexOf(cursor->expr);
+		//Insert the expressions back in
+		neda::Expr *temp = createEmptyContainer(key == KEY_SQUARE ? "2" : (key == KEY_CUBE ? "3" : ""));
+		neda::ExponentExpr *expr = new neda::ExponentExpr(first, temp);
+		container->replaceExpr(index ++, expr);
+		container->addAt(index ++, second);
+		//SUPER IMPORTANT: DELETE ORIGINAL STRING!!!
+		//Keep a copy of original so we can get the new cursor before deleting the old one (so that interrupts don't cause errors)
+		neda::StringExpr *original = cursor->expr;
+		temp->getCursor(*cursor, neda::CURSORLOCATION_START);
+		delete original;
+		//Use draw to figure out the approx location of the new cursor so adjustExpr won't mess up the display
+		container->Expr::draw(display);
 		break;
 	}
 	/* OTHER */
