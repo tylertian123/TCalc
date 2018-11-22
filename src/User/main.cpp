@@ -415,6 +415,33 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 				delete temp;
 			}
 		}
+		//Otherwise either there's no more stuff to delete or there's only an empty StringExpr in front
+		//Confirm that the cursor is not in the top-level expression
+		//So see if the cursor's StringExpr has a great-grandparent
+		//(StringExpr->ContainerExpr->(Some Other Expr)->ContainerExpr)
+		else if(cursor->expr->parent->parent && cursor->expr->parent->parent->parent) {
+			//First, to avoid errors, put the cursor in the StringExpr before (there should always be one)
+			neda::ContainerExpr *container = (neda::ContainerExpr*) cursor->expr->parent->parent->parent;
+			neda::Expr *exprToRemove = cursor->expr->parent->parent;
+			uint16_t index = container->indexOf(exprToRemove);
+			auto contents = container->getContents();
+			neda::Expr *frontExpr = (*contents)[index - 1];
+			frontExpr->getCursor(*cursor, neda::CURSORLOCATION_END);
+			//Remove and delete the expression
+			container->removeExpr(index);
+			delete exprToRemove;
+			//Merge if there are two StringExprs sandwiching it
+			//Since the expression is already removed, no need to +1
+			neda::Expr *backExpr = (*contents)[index];
+			if(frontExpr->getType() == neda::ExprType::STRING && backExpr->getType() == neda::ExprType::STRING) {
+				//Merge
+				((neda::StringExpr*) frontExpr)->merge((neda::StringExpr*) backExpr);
+				//Remove
+				container->removeExpr(index);
+				//Delete
+				delete backExpr;
+			}
+		}
 		break;
 	}
 	
