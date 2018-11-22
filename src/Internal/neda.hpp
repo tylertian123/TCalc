@@ -150,6 +150,7 @@ namespace neda {
         friend bool isEmptyString(Expr*);
 	};
 	
+    bool isEmptyString(Expr*);
 	/*
      * The ContainerExpr is an expression that serves as a container for a bunch of other expressions.
      * ContainerExprs have special logic in their drawing code that make sure everything lines up using the top spacing.

@@ -333,6 +333,8 @@ namespace neda {
     }
     void ContainerExpr::removeExpr(uint16_t index) {
         contents.removeAt(index);
+        computeWidth();
+        computeHeight();
     }
     void ContainerExpr::replaceExpr(uint16_t index, Expr *replacement) {
         contents[index] = replacement;
