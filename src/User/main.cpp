@@ -399,11 +399,20 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 			neda::Expr *ex = (*contents)[index - 1];
 			container->removeExpr(index - 1);
 			delete ex;
-			//If there is an empty StringExpr in front of what we just removed, delete that too
-			if(index >= 2 && neda::isEmptyString((*contents)[index - 2])) {
-				neda::Expr *emptyEx = (*contents)[index - 2];
-				container->removeExpr(index - 2);
-				delete emptyEx;
+			//If there's a StringExpr in front of what we just deleted, then merge them
+			neda::StringExpr *frontStr = ((neda::StringExpr*) (*contents)[index - 2]);
+			if(index >= 2 && frontStr->getType() == neda::ExprType::STRING) {
+				frontStr->merge(cursor->expr);
+				//Keep temp. copy of original expr
+				neda::StringExpr *temp = cursor->expr;
+				//Remove original
+				//Subtract 1 from the index because of the expression previously removed
+				container->removeExpr(index - 1);
+				//Reposition cursor
+				cursor->expr = frontStr;
+				cursor->index = frontStr->length() - temp->length();
+				//Delete original expr the cursor was in
+				delete temp;
 			}
 		}
 		break;
