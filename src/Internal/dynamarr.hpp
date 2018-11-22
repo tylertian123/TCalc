@@ -136,6 +136,27 @@ public:
 	void empty() {
 		len = 0;
 	}
+    bool merge(const DynamicArray<T> *other) {
+        //Keep a copy of this DynamicArray's end iterator for use later
+        auto itThis = end();
+        //Expand memory and stuff
+        len += other->len;
+        if(len > maxLen) {
+            uint16_t old = maxLen;
+            maxLen = len;
+            void *tmp = realloc(contents, sizeof(T) * maxLen);
+            if(!tmp) {
+                len -= other->len;
+                maxLen = old;
+                return false;
+            }
+            contents = (T*) tmp;
+        }
+        //Iterate and copy elements
+        for(auto itOther = other->begin(); itThis != end() && itOther != other->end(); itThis ++, itOther ++) {
+            *itThis = *itOther;
+        }
+    }
 	
 	//WARNING: Does not check for out of bounds!
 	const T& operator[](uint16_t i) const {
