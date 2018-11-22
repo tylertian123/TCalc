@@ -118,12 +118,15 @@ namespace neda {
 		}
 		
 		void addChar(char);
+        uint16_t length();
+
         void addAtCursor(char, Cursor&);
         void removeAtCursor(Cursor&);
         void drawCursor(lcd::LCD12864&, const Cursor&);
         void getCursorInfo(const Cursor&, CursorInfo&);
         StringExpr* beforeCursor(const Cursor&);
         StringExpr* afterCursor(const Cursor&);
+        void merge(const StringExpr*);
 		
 		virtual void computeWidth() override;
 		virtual void computeHeight() override;

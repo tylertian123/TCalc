@@ -120,6 +120,9 @@ namespace neda {
 		computeWidth();
 		computeHeight();
 	}
+    uint16_t StringExpr::length() {
+        return contents->length();
+    }
     void StringExpr::addAtCursor(char ch, Cursor &cursor) {
         contents->insert(ch, cursor.index);
 		cursor.index ++;
@@ -153,6 +156,11 @@ namespace neda {
     StringExpr* StringExpr::afterCursor(const Cursor &cursor) {
         DynamicArray<char> *b = new DynamicArray<char>(contents->begin() + cursor.index, contents->end());
         return new StringExpr(b);
+    }
+    void StringExpr::merge(const StringExpr *other) {
+        contents->merge(other->contents);
+        computeWidth();
+        computeHeight();
     }
     void StringExpr::getCursorInfo(const Cursor &cursor, CursorInfo &out) {
         int16_t cursorX = x;
