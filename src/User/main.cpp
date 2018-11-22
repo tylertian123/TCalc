@@ -142,6 +142,12 @@ void insertExprAtCursor(neda::Expr *expr, neda::Cursor *cursor) {
 	//Use draw to figure out the approx location of the new cursor so adjustExpr won't mess up the display
 	container->Expr::draw(display);
 }
+neda::ContainerExpr* createEmptyContainer() {
+	neda::StringExpr *contents = new neda::StringExpr;
+	neda::ContainerExpr *contentsContainer = new neda::ContainerExpr;
+	contentsContainer->addExpr(contents);
+	return contentsContainer;
+}
 //Key press handlers
 //Probably gonna make this name shorter, but couldn't bother.
 void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
@@ -377,12 +383,17 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 	/* EXPRESSIONS */
 	case KEY_LBRACKET:
 	{
-		//Create a string inside a container inside brackets
-		neda::StringExpr *contents = new neda::StringExpr;
-		neda::ContainerExpr *contentsContainer = new neda::ContainerExpr;
-		contentsContainer->addExpr(contents);
-		neda::BracketExpr *brackets = new neda::BracketExpr(contentsContainer);
-		insertExprAtCursor(brackets, cursor);
+		insertExprAtCursor(new neda::BracketExpr(createEmptyContainer()), cursor);
+		break;
+	}
+	case KEY_ROOT:
+	{
+		insertExprAtCursor(new neda::RadicalExpr(createEmptyContainer(), nullptr), cursor);
+		break;
+	}
+	case KEY_NTHROOT:
+	{
+		insertExprAtCursor(new neda::RadicalExpr(createEmptyContainer(), createEmptyContainer()), cursor);
 		break;
 	}
 	/* OTHER */
