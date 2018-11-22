@@ -681,18 +681,18 @@ namespace neda {
 		if(!n) {
 			ASSERT_NONNULL(contents);
 			dest.drawLine(x, y + exprHeight - 1 - 2, x + 2, y + exprHeight - 1);
-			dest.drawLine(x + 2, y + exprHeight - 1, x + 6, 0);
-			dest.drawLine(x + 6, 0, x + exprWidth - 1, 0);
+			dest.drawLine(x + 2, y + exprHeight - 1, x + 6, y);
+			dest.drawLine(x + 6, y, x + exprWidth - 1, y);
 			
 			contents->draw(dest, x + 7, y + 2);
 		}
 		else {
-			n->draw(dest, 0, 0);
+			n->draw(dest, x, y);
 			uint16_t xoffset = max(0, n->getWidth() - SIGN_N_OVERLAP);
 			uint16_t yoffset = max(0, n->getHeight() - CONTENTS_N_OVERLAP);
 			dest.drawLine(x + xoffset, y + exprHeight - 1 - 2, x + 2 + xoffset, y + exprHeight - 1);
-			dest.drawLine(x + 2 + xoffset, y + exprHeight - 1, x + 6 + xoffset, 0 + yoffset);
-			dest.drawLine(x + 6 + xoffset, 0 + yoffset, x + exprWidth - 1 + xoffset, 0 + yoffset);
+			dest.drawLine(x + 2 + xoffset, y + exprHeight - 1, x + 6 + xoffset, y + yoffset);
+			dest.drawLine(x + 6 + xoffset, y + yoffset, x + exprWidth - 1, y + yoffset);
 			
 			contents->draw(dest, x + 7 + xoffset, y + 2 + yoffset);
 		}
