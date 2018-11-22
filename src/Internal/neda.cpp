@@ -223,18 +223,16 @@ namespace neda {
 		
 		//Add up all the Expressions's widths
 		exprWidth = 0;
+        uint16_t spacingCount = 0;
         for(auto it = contents.begin(); it != contents.end(); it ++) {
             Expr *ex = *it;
             exprWidth += SAFE_EXEC_0(ex, getWidth);
-            //For every expression except for the last, or if the expression or the next one is an empty StringExpr, add 3 for spacing
-            if(it + 1 != contents.end() && !isEmptyString(ex) && !isEmptyString(*(it + 1))) {
-                exprWidth += 3;
-            }
-            //Special case: if the expression is an empty string sandwitched between two non-empty-strings, add the 3 as well
-            else if(it - 1 >= contents.begin() && it + 1 != contents.end() && !isEmptyString(*(it - 1)) && !isEmptyString(*(it + 1))) {
-                exprWidth += 3;
+            //For every expression that isn't an empty string, add 1 to the spacing count
+            if(!isEmptyString(ex)) {
+                spacingCount ++;
             }
         }
+        exprWidth += max(0, (spacingCount - 1) * 3);
         SAFE_EXEC(parent, computeWidth);
 	}
 	void ContainerExpr::computeHeight() {
@@ -301,7 +299,7 @@ namespace neda {
 		
 		for(auto it = contents.begin(); it != contents.end(); it ++) {
             Expr *ex = *it;
-            //Skip the expression if it's null, or if it's an empty StringExpr
+            //Skip the expression if it's null
             if(!ex) {
                 continue;
             }
