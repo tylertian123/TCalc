@@ -2,9 +2,6 @@
 #include "util.hpp"
 #include "lcd12864_charset.hpp"
 
-//Execute method on obj with arguments if obj is not null, otherwise 0
-#define SAFE_EXEC(obj, method, ...) if(obj) (obj)->method(__VA_ARGS__)
-#define SAFE_EXEC_0(obj, method, ...) ((obj) ? (obj->method(__VA_ARGS__)) : 0)
 #define VERIFY_INBOUNDS(x, y) if(x >= 128 || y >= 64 || x + exprWidth < 0 || y + exprHeight < 0) return
 #define ASSERT_NONNULL(obj) if(!obj) return
 #define DESTROY_IF_NONNULL(obj) if(obj) delete obj
@@ -1033,8 +1030,6 @@ namespace neda {
     }
 }
 
-#undef SAFE_EXEC
-#undef SAFE_EXEC_0
 #undef VERIFY_INBOUNDS
 #undef ASSERT_NONNULL
 #undef DESTROY_IF_NONNULL
