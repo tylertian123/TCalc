@@ -48,20 +48,20 @@ namespace neda {
             draw(dest);
         }
     }
-    Expr* Expr::getTopLevelExpr() {
-        return parent ? parent->getTopLevelExpr() : this;
+    Expr* Expr::getTopLevel() {
+        return parent ? parent->getTopLevel() : this;
     }
     void Expr::updatePosition(int16_t dx, int16_t dy) {
         x += dx;
         y += dy;
     }
 	
-	//*************************** StringExpr ***************************************
-    uint16_t StringExpr::getTopSpacing() {
-        //Because of its basic nature, StringExpr doesn't need any special processing
+	//*************************** String ***************************************
+    uint16_t String::getTopSpacing() {
+        //Because of its basic nature, String doesn't need any special processing
         return exprHeight / 2;
     }
-	void StringExpr::computeWidth() {
+	void String::computeWidth() {
 		if(contents->length() == 0) {
 			exprWidth = 0;
             SAFE_EXEC(parent, computeWidth);
@@ -77,9 +77,9 @@ namespace neda {
 		exprWidth += contents->length() - 1;
         SAFE_EXEC(parent, computeWidth);
 	}
-	void StringExpr::computeHeight() {
+	void String::computeHeight() {
         if(contents->length() == 0) {
-            exprHeight = ContainerExpr::EMPTY_EXPR_HEIGHT;
+            exprHeight = Container::EMPTY_EXPR_HEIGHT;
             SAFE_EXEC(parent, computeHeight);
             return;
         }
@@ -91,7 +91,7 @@ namespace neda {
 		exprHeight = max;
         SAFE_EXEC(parent, computeHeight);
 	}
-	void StringExpr::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
+	void String::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
         this->x = x;
         this->y = y;
         VERIFY_INBOUNDS(x, y);
@@ -119,28 +119,28 @@ namespace neda {
 			x += charImg.width + 1;
 		}
 	}
-	void StringExpr::addChar(char ch) {
+	void String::addChar(char ch) {
 		contents->add(ch);
 		computeWidth();
 		computeHeight();
 	}
-    uint16_t StringExpr::length() {
+    uint16_t String::length() {
         return contents->length();
     }
-    void StringExpr::addAtCursor(char ch, Cursor &cursor) {
+    void String::addAtCursor(char ch, Cursor &cursor) {
         contents->insert(ch, cursor.index);
 		cursor.index ++;
 		computeWidth();
 		computeHeight();
     }
-    void StringExpr::removeAtCursor(Cursor &cursor) {
+    void String::removeAtCursor(Cursor &cursor) {
         if(cursor.index != 0) {
             contents->removeAt(--cursor.index);
         }
 		computeWidth();
 		computeHeight();
     }
-    void StringExpr::drawCursor(lcd::LCD12864 &dest, const Cursor &cursor) {
+    void String::drawCursor(lcd::LCD12864 &dest, const Cursor &cursor) {
         int16_t cursorX = x;
         for(uint16_t i = 0; i < cursor.index && i < contents->length(); i ++) {
             cursorX += lcd::getChar((*contents)[i]).width;
@@ -153,20 +153,20 @@ namespace neda {
             dest.setPixel(cursorX + 1, y + i, true);
         }
     }
-    StringExpr* StringExpr::beforeCursor(const Cursor &cursor) {
+    String* String::beforeCursor(const Cursor &cursor) {
         DynamicArray<char> *a = new DynamicArray<char>(contents->begin(), contents->begin() + cursor.index);
-        return new StringExpr(a);
+        return new String(a);
     }
-    StringExpr* StringExpr::afterCursor(const Cursor &cursor) {
+    String* String::afterCursor(const Cursor &cursor) {
         DynamicArray<char> *b = new DynamicArray<char>(contents->begin() + cursor.index, contents->end());
-        return new StringExpr(b);
+        return new String(b);
     }
-    void StringExpr::merge(const StringExpr *other) {
+    void String::merge(const String *other) {
         contents->merge(other->contents);
         computeWidth();
         computeHeight();
     }
-    void StringExpr::getCursorInfo(const Cursor &cursor, CursorInfo &out) {
+    void String::getCursorInfo(const Cursor &cursor, CursorInfo &out) {
         int16_t cursorX = x;
         for(uint16_t i = 0; i < cursor.index && i < contents->length(); i ++) {
             cursorX += lcd::getChar((*contents)[i]).width;
@@ -179,10 +179,10 @@ namespace neda {
         out.width = 2;
         out.height = exprHeight;
     }
-    StringExpr::~StringExpr() {
+    String::~String() {
         delete contents;
     }
-    void StringExpr::left(Expr *ex, Cursor &cursor) {
+    void String::left(Expr *ex, Cursor &cursor) {
         if(cursor.index == 0) {
             SAFE_EXEC(parent, left, this, cursor);
         }
@@ -190,7 +190,7 @@ namespace neda {
             cursor.index --;
         }
     }
-    void StringExpr::right(Expr *ex, Cursor &cursor) {
+    void String::right(Expr *ex, Cursor &cursor) {
         if(cursor.index == contents->length()) {
             SAFE_EXEC(parent, right, this, cursor);
         }
@@ -198,20 +198,20 @@ namespace neda {
             cursor.index ++;
         }
     }
-    void StringExpr::getCursor(Cursor &cursor, CursorLocation location) {
+    void String::getCursor(Cursor &cursor, CursorLocation location) {
         cursor.expr = this;
         cursor.index = location == CURSORLOCATION_START ? 0 : contents->length();
     }
-    void StringExpr::updatePosition(int16_t dx, int16_t dy) {
+    void String::updatePosition(int16_t dx, int16_t dy) {
         this->x += dx;
         this->y += dy;
     }
 	
-	//*************************** ContainerExpr ***************************************
+	//*************************** Container ***************************************
     bool isEmptyString(Expr *ex) {
-        return ex->getType() == ExprType::STRING && ((StringExpr*) ex)->contents->length() == 0;
+        return ex->getType() == ExprType::STRING && ((String*) ex)->contents->length() == 0;
     }
-    uint16_t ContainerExpr::getTopSpacing() {
+    uint16_t Container::getTopSpacing() {
         uint16_t maxTopSpacing = 0;
         //Take the max of all the top spacings
         for(Expr *ex : contents) {
@@ -220,9 +220,9 @@ namespace neda {
         }
         return maxTopSpacing;
     }
-	void ContainerExpr::computeWidth() {
-		//An empty ContainerExpr has a default width and height
-        //A ContainerExpr with only an empty StringExpr inside also has a default width and height
+	void Container::computeWidth() {
+		//An empty Container has a default width and height
+        //A Container with only an empty String inside also has a default width and height
 		if(contents.length() == 0
                 || (contents.length() == 1 && isEmptyString(contents[0]))) {
 			exprWidth = EMPTY_EXPR_WIDTH;
@@ -244,7 +244,7 @@ namespace neda {
         exprWidth += max(0, (spacingCount - 1) * 3);
         SAFE_EXEC(parent, computeWidth);
 	}
-	void ContainerExpr::computeHeight() {
+	void Container::computeHeight() {
 		if(contents.length() == 0
                 || (contents.length() == 1 && isEmptyString(contents[0]))) {
 			exprHeight = EMPTY_EXPR_HEIGHT;
@@ -272,7 +272,7 @@ namespace neda {
         exprHeight = maxHeight;
         SAFE_EXEC(parent, computeHeight);
 	}
-	void ContainerExpr::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
+	void Container::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
         this->x = x;
         this->y = y;
         VERIFY_INBOUNDS(x, y);
@@ -288,7 +288,7 @@ namespace neda {
                 dest.setPixel(x, y + h, true);
                 dest.setPixel(x + exprWidth - 1, y + h, true);
             }
-            //Special handling for empty StringExpr: the x and y still have to be set
+            //Special handling for empty String: the x and y still have to be set
             if(contents.length() == 1) {
                 contents[0]->draw(dest, x, y);
             }
@@ -312,8 +312,8 @@ namespace neda {
             //Increase x so nothing overlaps
             x += ex->getWidth();
             //Add 3 for a gap between different expressions
-            //Except when this is the last expression, or when the expression is an empty StringExpr, or when the expression after it 
-            //is an empty StringExpr
+            //Except when this is the last expression, or when the expression is an empty String, or when the expression after it 
+            //is an empty String
             if(it + 1 != contents.end() && !isEmptyString(ex) && !isEmptyString(*(it + 1))) {
 			    x += 3;
             }
@@ -323,14 +323,14 @@ namespace neda {
             }
 		}
 	}
-	void ContainerExpr::addExpr(Expr *expr) {
+	void Container::add(Expr *expr) {
 		expr->parent = this;
 		contents.add(expr);
 		
 		computeWidth();
 		computeHeight();
 	}
-    uint16_t ContainerExpr::indexOf(Expr *expr) {
+    uint16_t Container::indexOf(Expr *expr) {
         for(uint16_t i = 0; i < contents.length(); i ++) {
             if(contents[i] == expr) {
                 return i;
@@ -338,33 +338,33 @@ namespace neda {
         }
         return 0xFFFF;
     }
-    void ContainerExpr::removeExpr(uint16_t index) {
+    void Container::remove(uint16_t index) {
         contents.removeAt(index);
         computeWidth();
         computeHeight();
     }
-    void ContainerExpr::replaceExpr(uint16_t index, Expr *replacement) {
+    void Container::replace(uint16_t index, Expr *replacement) {
         contents[index] = replacement;
         replacement->parent = this;
         computeWidth();
         computeHeight();
     }
-    void ContainerExpr::addAt(uint16_t index, Expr *exprToAdd) {
+    void Container::addAt(uint16_t index, Expr *exprToAdd) {
         contents.insert(exprToAdd, index);
         exprToAdd->parent = this;
         computeWidth();
         computeHeight();
     }
-    DynamicArray<Expr*>* ContainerExpr::getContents() {
+    DynamicArray<Expr*>* Container::getContents() {
         return &contents;
     }
     
-	ContainerExpr::~ContainerExpr() {
+	Container::~Container() {
 		for(Expr *ex : contents) {
 			DESTROY_IF_NONNULL(ex);
 		}
 	}
-    void ContainerExpr::left(Expr *ex, Cursor &cursor) {
+    void Container::left(Expr *ex, Cursor &cursor) {
         //First check if the cursor is already in the leftmost element
         if(contents.length() > 0 && ex == contents[0]) {
             SAFE_EXEC(parent, left, this, cursor);
@@ -379,7 +379,7 @@ namespace neda {
             }
         }
     }
-    void ContainerExpr::right(Expr *ex, Cursor &cursor) {
+    void Container::right(Expr *ex, Cursor &cursor) {
         if(contents.length() > 0 && ex == contents[contents.length() - 1]) {
             SAFE_EXEC(parent, right, this, cursor);
             return;
@@ -392,7 +392,7 @@ namespace neda {
             }
         }
     }
-    void ContainerExpr::getCursor(Cursor &cursor, CursorLocation location) {
+    void Container::getCursor(Cursor &cursor, CursorLocation location) {
         if(contents.length() == 0) {
             return;
         }
@@ -403,7 +403,7 @@ namespace neda {
             contents[contents.length() - 1]->getCursor(cursor, location);
         }
     }
-    void ContainerExpr::updatePosition(int16_t dx, int16_t dy) {
+    void Container::updatePosition(int16_t dx, int16_t dy) {
         this->x += dx;
         this->y += dy;
         for(Expr *ex : contents) {
@@ -411,27 +411,27 @@ namespace neda {
         }
     }
 	
-	//*************************** FractionExpr ***************************************
-    uint16_t FractionExpr::getTopSpacing() {
+	//*************************** Fraction ***************************************
+    uint16_t Fraction::getTopSpacing() {
         //The top spacing of a fraction is equal to the height of its numerator, plus a pixel of spacing between the numerator and
         //the fraction line.
         return SAFE_EXEC_0(numerator, getHeight) + 1;
     }
-	void FractionExpr::computeWidth() {
+	void Fraction::computeWidth() {
 		//Take the greater of the widths and add 2 for the spacing at the sides
         uint16_t numeratorWidth = SAFE_EXEC_0(numerator, getWidth);
 		uint16_t denominatorWidth = SAFE_EXEC_0(denominator, getWidth);
 		exprWidth = max(numeratorWidth, denominatorWidth) + 2;
         SAFE_EXEC(parent, computeWidth);
 	}
-	void FractionExpr::computeHeight() {
+	void Fraction::computeHeight() {
 		uint16_t numeratorHeight = SAFE_EXEC_0(numerator, getHeight);
 		uint16_t denominatorHeight = SAFE_EXEC_0(denominator, getHeight);
 		//Take the sum of the heights and add 3 for the fraction line
 		exprHeight = numeratorHeight + denominatorHeight + 3;
         SAFE_EXEC(parent, computeHeight);
 	}
-	void FractionExpr::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
+	void Fraction::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
         this->x = x;
         this->y = y;
         VERIFY_INBOUNDS(x, y);
@@ -449,29 +449,29 @@ namespace neda {
 		}
 		denominator->draw(dest, x + (width - denominator->getWidth()) / 2, y + numHeight + 3);
 	}
-	Expr* FractionExpr::getNumerator() {
+	Expr* Fraction::getNumerator() {
 		return numerator;
 	}
-	Expr* FractionExpr::getDenominator() {
+	Expr* Fraction::getDenominator() {
 		return denominator;
 	}
-	void FractionExpr::setNumerator(Expr *numerator) {
+	void Fraction::setNumerator(Expr *numerator) {
 		this->numerator = numerator;
         numerator->parent = this;
 		computeWidth();
 		computeHeight();
 	}
-	void FractionExpr::setDenominator(Expr *denominator) {
+	void Fraction::setDenominator(Expr *denominator) {
 		this->denominator = denominator;
         denominator->parent = this;
 		computeWidth();
 		computeHeight();
 	}
-	FractionExpr::~FractionExpr() {
+	Fraction::~Fraction() {
         DESTROY_IF_NONNULL(numerator);
         DESTROY_IF_NONNULL(denominator);
 	}
-    void FractionExpr::up(Expr *ex, Cursor &cursor) {
+    void Fraction::up(Expr *ex, Cursor &cursor) {
         if(ex == denominator) {
             SAFE_EXEC(numerator, getCursor, cursor, CURSORLOCATION_END);
         }
@@ -479,7 +479,7 @@ namespace neda {
             SAFE_EXEC(parent, up, this, cursor);
         }
     }
-    void FractionExpr::down(Expr *ex, Cursor &cursor) {
+    void Fraction::down(Expr *ex, Cursor &cursor) {
         if(ex == numerator) {
             SAFE_EXEC(denominator, getCursor, cursor, CURSORLOCATION_START);
         }
@@ -487,7 +487,7 @@ namespace neda {
             SAFE_EXEC(parent, down, this, cursor);
         }
     }
-    void FractionExpr::getCursor(Cursor &cursor, CursorLocation location) {
+    void Fraction::getCursor(Cursor &cursor, CursorLocation location) {
         if(location == CURSORLOCATION_START) {
             SAFE_EXEC(numerator, getCursor, cursor, location);
         }
@@ -495,34 +495,34 @@ namespace neda {
             SAFE_EXEC(denominator, getCursor, cursor, location);
         }
     }
-    void FractionExpr::updatePosition(int16_t dx, int16_t dy) {
+    void Fraction::updatePosition(int16_t dx, int16_t dy) {
         this->x += dx;
         this->y += dy;
         SAFE_EXEC(numerator, updatePosition, dx, dy);
         SAFE_EXEC(denominator, updatePosition, dx, dy);
     }
 	
-	//*************************** ExponentExpr ***************************************
-    uint16_t ExponentExpr::getTopSpacing() {
+	//*************************** Exponent ***************************************
+    uint16_t Exponent::getTopSpacing() {
         //The top spacing for exponents is the height minus half of the height of the base
 		uint16_t baseHeight = SAFE_EXEC_0(base, getHeight);
 		//Round down
         return exprHeight - (baseHeight % 2 == 0 ? baseHeight / 2 : baseHeight / 2 + 1);
     }
-	void ExponentExpr::computeWidth() {
+	void Exponent::computeWidth() {
 		uint16_t baseWidth = SAFE_EXEC_0(base, getWidth);
 		uint16_t exponentWidth = SAFE_EXEC_0(exponent, getWidth);
 		exprWidth = baseWidth + exponentWidth + 2;
         SAFE_EXEC(parent, computeWidth);
 	}
-	void ExponentExpr::computeHeight() {
+	void Exponent::computeHeight() {
 		uint16_t baseHeight = SAFE_EXEC_0(base, getHeight);
 		uint16_t exponentHeight = SAFE_EXEC_0(exponent, getHeight);
 		//Make sure this is positive
 		exprHeight = max(0, baseHeight + exponentHeight - BASE_EXPONENT_OVERLAP);
         SAFE_EXEC(parent, computeHeight);
 	}
-	void ExponentExpr::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
+	void Exponent::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
         this->x = x;
         this->y = y;
         VERIFY_INBOUNDS(x, y);
@@ -533,29 +533,29 @@ namespace neda {
 		base->draw(dest, x, y + max(0, exponentHeight - BASE_EXPONENT_OVERLAP));
 		exponent->draw(dest, x + baseWidth + 2, y);
 	}
-	Expr* ExponentExpr::getBase() {
+	Expr* Exponent::getBase() {
 		return base;
 	}
-	Expr* ExponentExpr::getExponent() {
+	Expr* Exponent::getExponent() {
 		return exponent;
 	}
-	void ExponentExpr::setBase(Expr *base) {
+	void Exponent::setBase(Expr *base) {
 		this->base = base;
         base->parent = this;
 		computeWidth();
 		computeHeight();
 	}
-	void ExponentExpr::setExponent(Expr *exponent) {
+	void Exponent::setExponent(Expr *exponent) {
 		this->exponent = exponent;
         exponent->parent = this;
 		computeWidth();
 		computeHeight();
 	}
-	ExponentExpr::~ExponentExpr() {
+	Exponent::~Exponent() {
         DESTROY_IF_NONNULL(base);
         DESTROY_IF_NONNULL(exponent);
 	}
-    void ExponentExpr::left(Expr *ex, Cursor &cursor) {
+    void Exponent::left(Expr *ex, Cursor &cursor) {
         if(ex == exponent) {
             SAFE_EXEC(base, getCursor, cursor, CURSORLOCATION_END);
         }
@@ -563,7 +563,7 @@ namespace neda {
             SAFE_EXEC(parent, left, this, cursor);
         }
     }
-    void ExponentExpr::right(Expr *ex, Cursor &cursor) {
+    void Exponent::right(Expr *ex, Cursor &cursor) {
         if(ex == base) {
             SAFE_EXEC(exponent, getCursor, cursor, CURSORLOCATION_START);
         }
@@ -571,7 +571,7 @@ namespace neda {
             SAFE_EXEC(parent, right, this, cursor);
         }
     }
-    void ExponentExpr::up(Expr *ex, Cursor &cursor) {
+    void Exponent::up(Expr *ex, Cursor &cursor) {
         if(ex == base) {
             SAFE_EXEC(exponent, getCursor, cursor, CURSORLOCATION_START);
         }
@@ -579,7 +579,7 @@ namespace neda {
             SAFE_EXEC(parent, up, this, cursor);
         }
     }
-    void ExponentExpr::down(Expr *ex, Cursor &cursor) {
+    void Exponent::down(Expr *ex, Cursor &cursor) {
         if(ex == exponent) {
             SAFE_EXEC(base, getCursor, cursor, CURSORLOCATION_END);
         }
@@ -587,7 +587,7 @@ namespace neda {
             SAFE_EXEC(parent, down, this, cursor);
         }
     }
-    void ExponentExpr::getCursor(Cursor &cursor, CursorLocation location) {
+    void Exponent::getCursor(Cursor &cursor, CursorLocation location) {
         if(location == CURSORLOCATION_START) {
             SAFE_EXEC(base, getCursor, cursor, location);
         }
@@ -595,7 +595,7 @@ namespace neda {
             SAFE_EXEC(exponent, getCursor, cursor, location);
         }
     }
-    void ExponentExpr::updatePosition(int16_t dx, int16_t dy) {
+    void Exponent::updatePosition(int16_t dx, int16_t dy) {
         this->x += dx;
         this->y += dy;
         SAFE_EXEC(base, updatePosition, dx, dy);
@@ -603,13 +603,12 @@ namespace neda {
     }
 	
 	//*************************** LeftBracket ***************************************
-    
     uint16_t LeftBracket::getTopSpacing() {
-        //Parent must be a ContainerExpr
+        //Parent must be a Container
         if(!parent) {
             return 0xFFFF;
         }
-        ContainerExpr *parentContainer = (ContainerExpr*) parent;
+        Container *parentContainer = (Container*) parent;
         auto parentContents = parentContainer->getContents();
         uint16_t index = parentContainer->indexOf(this);
         uint16_t maxSpacing = 0;
@@ -617,7 +616,7 @@ namespace neda {
             maxSpacing = max(maxSpacing, (*it)->getTopSpacing());
         }
         //If there is nothing after this left bracket, give it a default
-        return maxSpacing ? maxSpacing : ContainerExpr::EMPTY_EXPR_HEIGHT / 2;
+        return maxSpacing ? maxSpacing : Container::EMPTY_EXPR_HEIGHT / 2;
     }
     void LeftBracket::computeWidth() {
         exprWidth = 3;
@@ -625,11 +624,11 @@ namespace neda {
     void LeftBracket::computeHeight() {
         if(!parent) {
             //Default
-            exprHeight = ContainerExpr::EMPTY_EXPR_HEIGHT;
+            exprHeight = Container::EMPTY_EXPR_HEIGHT;
             return;
         }
-        //Parent must be a ContainerExpr
-        ContainerExpr *parentContainer = (ContainerExpr*) parent;
+        //Parent must be a Container
+        Container *parentContainer = (Container*) parent;
         auto parentContents = parentContainer->getContents();
         uint16_t index = parentContainer->indexOf(this);
         uint16_t maxHeight = 0;
@@ -637,7 +636,7 @@ namespace neda {
             maxHeight = max(maxHeight, (*it)->getHeight());
         }
         //If there is nothing after this left bracket, give it a default
-        exprHeight = maxHeight ? maxHeight : ContainerExpr::EMPTY_EXPR_HEIGHT;
+        exprHeight = maxHeight ? maxHeight : Container::EMPTY_EXPR_HEIGHT;
     }
     void LeftBracket::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
         dest.setPixel(x + 2, y, true);
@@ -649,15 +648,15 @@ namespace neda {
         dest.setPixel(x + 2, y + exprHeight - 1, true);
     }
 	
-	//*************************** RadicalExpr ***************************************
-	uint16_t RadicalExpr::getTopSpacing() {
+	//*************************** Radical ***************************************
+	uint16_t Radical::getTopSpacing() {
 		if(!n) { 
 			return SAFE_EXEC_0(contents, getTopSpacing) + 2;
 		}
 		uint16_t regularTopSpacing = SAFE_EXEC_0(contents, getTopSpacing) + 2;
 		return regularTopSpacing + max(0, n->getHeight() - CONTENTS_N_OVERLAP);
 	}
-	void RadicalExpr::computeWidth() {
+	void Radical::computeWidth() {
 		if(!n) {
 			exprWidth = SAFE_EXEC_0(contents, getWidth) + 8;
             SAFE_EXEC(parent, computeWidth);
@@ -666,7 +665,7 @@ namespace neda {
 		exprWidth = max(0, n->getWidth() - SIGN_N_OVERLAP) + SAFE_EXEC_0(contents, getWidth) + 8;
         SAFE_EXEC(parent, computeWidth);
 	}
-	void RadicalExpr::computeHeight() {
+	void Radical::computeHeight() {
 		if(!n) {
 			exprHeight = SAFE_EXEC_0(contents, getHeight) + 2;
             SAFE_EXEC(parent, computeHeight);
@@ -675,7 +674,7 @@ namespace neda {
 		exprHeight = max(0, n->getHeight() - CONTENTS_N_OVERLAP) + SAFE_EXEC_0(contents, getHeight) + 2;
         SAFE_EXEC(parent, computeHeight);
 	}
-	void RadicalExpr::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
+	void Radical::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
         this->x = x;
         this->y = y;
         VERIFY_INBOUNDS(x, y);
@@ -698,29 +697,29 @@ namespace neda {
 			contents->draw(dest, x + 7 + xoffset, y + 2 + yoffset);
 		}
 	}
-	Expr* RadicalExpr::getContents() {
+	Expr* Radical::getContents() {
 		return contents;
 	}
-	Expr* RadicalExpr::getN() {
+	Expr* Radical::getN() {
 		return n;
 	}
-	void RadicalExpr::setContents(Expr *contents) {
+	void Radical::setContents(Expr *contents) {
 		this->contents = contents;
         contents->parent = this;
 		computeWidth();
 		computeHeight();
 	}
-	void RadicalExpr::setN(Expr *n) {
+	void Radical::setN(Expr *n) {
 		this->n = n;
         n->parent = this;
 		computeWidth();
 		computeHeight();
 	}
-	RadicalExpr::~RadicalExpr() {
+	Radical::~Radical() {
         DESTROY_IF_NONNULL(contents);
         DESTROY_IF_NONNULL(n);
 	}
-    void RadicalExpr::left(Expr *ex, Cursor &cursor) {
+    void Radical::left(Expr *ex, Cursor &cursor) {
         //Move cursor to n only if the cursor is currently under the radical sign, and n is non-null
         if(ex == contents && n) {
             SAFE_EXEC(n, getCursor, cursor, CURSORLOCATION_END);
@@ -729,7 +728,7 @@ namespace neda {
             SAFE_EXEC(parent, left, this, cursor);
         }
     }
-    void RadicalExpr::right(Expr *ex, Cursor &cursor) {
+    void Radical::right(Expr *ex, Cursor &cursor) {
         if(ex == n) {
             SAFE_EXEC(contents, getCursor, cursor, CURSORLOCATION_START);
         }
@@ -737,7 +736,7 @@ namespace neda {
             SAFE_EXEC(parent, right, this, cursor);
         }
     }
-    void RadicalExpr::getCursor(Cursor &cursor, CursorLocation location) {
+    void Radical::getCursor(Cursor &cursor, CursorLocation location) {
         if(location == CURSORLOCATION_START) {
             if(n) {
                 n->getCursor(cursor, location);
@@ -750,18 +749,18 @@ namespace neda {
             SAFE_EXEC(contents, getCursor, cursor, location);
         }
     }
-    void RadicalExpr::updatePosition(int16_t dx, int16_t dy) {
+    void Radical::updatePosition(int16_t dx, int16_t dy) {
         this->x += dx;
         this->y += dy;
         SAFE_EXEC(contents, updatePosition, dx, dy);
         SAFE_EXEC(n, updatePosition, dx, dy);
     }
 	
-	//*************************** SubscriptExpr ***************************************
-	uint16_t SubscriptExpr::getTopSpacing() {
+	//*************************** Subscript ***************************************
+	uint16_t Subscript::getTopSpacing() {
 		return SAFE_EXEC_0(contents, getHeight) / 2;
 	}
-	void SubscriptExpr::computeWidth() {
+	void Subscript::computeWidth() {
 		if (subscript) {
 			exprWidth = SAFE_EXEC_0(contents, getWidth) + subscript->getWidth() + 2;
 		}
@@ -770,7 +769,7 @@ namespace neda {
 		}
         SAFE_EXEC(parent, computeWidth);
 	}
-	void SubscriptExpr::computeHeight() {
+	void Subscript::computeHeight() {
 		if (subscript) {
 			exprHeight = SAFE_EXEC_0(contents, getHeight) + SAFE_EXEC_0(subscript, getHeight) - CONTENTS_SUBSCRIPT_OVERLAP;
 		}
@@ -779,7 +778,7 @@ namespace neda {
 		}
         SAFE_EXEC(parent, computeHeight);
 	}
-	void SubscriptExpr::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
+	void Subscript::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
         this->x = x;
         this->y = y;
         VERIFY_INBOUNDS(x, y);
@@ -792,29 +791,29 @@ namespace neda {
 		}
 		subscript->draw(dest, x + contents->getWidth() + 2, y + contents->getHeight() - CONTENTS_SUBSCRIPT_OVERLAP);
 	}
-	Expr* SubscriptExpr::getContents() {
+	Expr* Subscript::getContents() {
 		return contents;
 	}
-	Expr* SubscriptExpr::getSubscript() {
+	Expr* Subscript::getSubscript() {
 		return subscript;
 	}
-	void SubscriptExpr::setContents(Expr *contents) {
+	void Subscript::setContents(Expr *contents) {
 		this->contents = contents;
         contents->parent = this;
 		computeWidth();
 		computeHeight();
 	}
-	void SubscriptExpr::setSubscript(Expr *subscript) {
+	void Subscript::setSubscript(Expr *subscript) {
 		this->subscript = subscript;
         subscript->parent = this;
 		computeWidth();
 		computeHeight();
 	}
-	SubscriptExpr::~SubscriptExpr() {
+	Subscript::~Subscript() {
         DESTROY_IF_NONNULL(subscript);
         DESTROY_IF_NONNULL(contents);
 	}
-    void SubscriptExpr::left(Expr *ex, Cursor &cursor) {
+    void Subscript::left(Expr *ex, Cursor &cursor) {
         if(ex == subscript) {
             SAFE_EXEC(contents, getCursor, cursor, CURSORLOCATION_END);
         }
@@ -822,7 +821,7 @@ namespace neda {
             SAFE_EXEC(parent, left, this, cursor);
         }
     }
-    void SubscriptExpr::right(Expr *ex, Cursor &cursor) {
+    void Subscript::right(Expr *ex, Cursor &cursor) {
         if(ex == contents) {
             if(subscript) {
                 subscript->getCursor(cursor, CURSORLOCATION_START);
@@ -835,7 +834,7 @@ namespace neda {
             SAFE_EXEC(parent, right, this, cursor);
         }
     }
-    void SubscriptExpr::getCursor(Cursor &cursor, CursorLocation location) {
+    void Subscript::getCursor(Cursor &cursor, CursorLocation location) {
         if(location == CURSORLOCATION_START) {
             SAFE_EXEC(contents, getCursor, cursor, location);
         }
@@ -848,15 +847,15 @@ namespace neda {
             }
         }
     }
-    void SubscriptExpr::updatePosition(int16_t dx, int16_t dy) {
+    void Subscript::updatePosition(int16_t dx, int16_t dy) {
         this->x += dx;
         this->y += dy;
         SAFE_EXEC(contents, updatePosition, dx, dy);
         SAFE_EXEC(subscript, updatePosition, dx, dy);
     }
 	
-	//*************************** SigmaPiExpr ***************************************
-	uint16_t SigmaPiExpr::getTopSpacing() {
+	//*************************** SigmaPi ***************************************
+	uint16_t SigmaPi::getTopSpacing() {
         //The top spacing of this expr can be split into two cases: when the contents are tall and when the contents are short.
         //When the contents are tall enough, the result is simply the top spacing of the contents (b)
         //Otherwise, it is the distance from the top to the middle of the base of the contents.
@@ -867,19 +866,19 @@ namespace neda {
 		uint16_t b = SAFE_EXEC_0(contents, getTopSpacing);
 		return max(a, b);
 	}
-	void SigmaPiExpr::computeWidth() {
+	void SigmaPi::computeWidth() {
 		uint16_t topWidth = SAFE_EXEC_0(finish, getWidth);
 		uint16_t bottomWidth = SAFE_EXEC_0(start, getWidth);
 		exprWidth = max(symbol.width, max(topWidth, bottomWidth)) + 3 + SAFE_EXEC_0(contents, getWidth);
         SAFE_EXEC(parent, computeWidth);
 	}
-	void SigmaPiExpr::computeHeight() {
-        //Top spacings - Taken from neda::SigmaPiExpr::getTopSpacing()
+	void SigmaPi::computeHeight() {
+        //Top spacings - Taken from neda::SigmaPi::getTopSpacing()
         uint16_t a = SAFE_EXEC_0(finish, getHeight) + 2 + CONTENT_SYMBOL_OVERLAP 
                 - (SAFE_EXEC_0(contents, getHeight) - SAFE_EXEC_0(contents, getTopSpacing));
         uint16_t b = SAFE_EXEC_0(contents, getTopSpacing);
         uint16_t maxTopSpacing = max(a, b);
-        //Logic same as neda::ContainerExpr::getHeight()
+        //Logic same as neda::Container::getHeight()
         uint16_t symbolHeight = SAFE_EXEC_0(finish, getHeight) + 2 + symbol.height + 2 + SAFE_EXEC_0(start, getHeight)
                 + maxTopSpacing - a;
         uint16_t bodyHeight = SAFE_EXEC_0(contents, getHeight) + maxTopSpacing - b;
@@ -887,7 +886,7 @@ namespace neda {
 		exprHeight = max(symbolHeight, bodyHeight);
         SAFE_EXEC(parent, computeHeight);
 	}
-	void SigmaPiExpr::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
+	void SigmaPi::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
         this->x = x;
         this->y = y;
         VERIFY_INBOUNDS(x, y);
@@ -895,12 +894,12 @@ namespace neda {
         ASSERT_NONNULL(finish);
         ASSERT_NONNULL(contents);
         
-        //Top spacings - Taken from neda::SigmaPiExpr::getTopSpacing()
+        //Top spacings - Taken from neda::SigmaPi::getTopSpacing()
         uint16_t a = SAFE_EXEC_0(finish, getHeight) + 2 + CONTENT_SYMBOL_OVERLAP 
                 - (SAFE_EXEC_0(contents, getHeight) - SAFE_EXEC_0(contents, getTopSpacing));
         uint16_t b = SAFE_EXEC_0(contents, getTopSpacing);
         uint16_t maxTopSpacing = max(a, b);
-        //Logic same as neda::ContainerExpr::draw()
+        //Logic same as neda::Container::draw()
         uint16_t symbolYOffset = maxTopSpacing - a;
         uint16_t contentsYOffset = maxTopSpacing - b;
 
@@ -912,39 +911,39 @@ namespace neda {
 
         contents->draw(dest, widest + 3, y + contentsYOffset);
 	}
-    Expr* SigmaPiExpr::getStart() {
+    Expr* SigmaPi::getStart() {
         return start;
     }
-    Expr* SigmaPiExpr::getFinish() {
+    Expr* SigmaPi::getFinish() {
         return finish;
     }
-    Expr* SigmaPiExpr::getContents() {
+    Expr* SigmaPi::getContents() {
         return contents;
     }
-    void SigmaPiExpr::setStart(Expr *start) {
+    void SigmaPi::setStart(Expr *start) {
         this->start = start;
         start->parent = this;
         computeWidth();
         computeHeight();
     }
-    void SigmaPiExpr::setFinish(Expr *finish) {
+    void SigmaPi::setFinish(Expr *finish) {
         this->finish = finish;
         finish->parent = this;
         computeWidth();
         computeHeight();
     }
-    void SigmaPiExpr::setContents(Expr *contents) {
+    void SigmaPi::setContents(Expr *contents) {
         this->contents = contents;
         contents->parent = this;
         computeWidth();
         computeHeight();
     }
-    SigmaPiExpr::~SigmaPiExpr() {
+    SigmaPi::~SigmaPi() {
         DESTROY_IF_NONNULL(start);
         DESTROY_IF_NONNULL(finish);
         DESTROY_IF_NONNULL(contents);
     }
-    void SigmaPiExpr::right(Expr *ex, Cursor &cursor) {
+    void SigmaPi::right(Expr *ex, Cursor &cursor) {
         if(ex == start || ex == finish) {
             SAFE_EXEC(contents, getCursor, cursor, CURSORLOCATION_START);
         }
@@ -952,7 +951,7 @@ namespace neda {
             SAFE_EXEC(parent, right, this, cursor);
         }
     }
-    void SigmaPiExpr::up(Expr *ex, Cursor &cursor) {
+    void SigmaPi::up(Expr *ex, Cursor &cursor) {
         if(ex == finish) {
             SAFE_EXEC(parent, up, this, cursor);
         }
@@ -963,7 +962,7 @@ namespace neda {
             SAFE_EXEC(finish, getCursor, cursor, CURSORLOCATION_END);
         }
     }
-    void SigmaPiExpr::down(Expr *ex, Cursor &cursor) {
+    void SigmaPi::down(Expr *ex, Cursor &cursor) {
         if(ex == finish) {
             SAFE_EXEC(contents, getCursor, cursor, CURSORLOCATION_START);
         }
@@ -974,10 +973,10 @@ namespace neda {
             SAFE_EXEC(start, getCursor, cursor, CURSORLOCATION_END);
         }
     }
-    void SigmaPiExpr::getCursor(Cursor &cursor, CursorLocation location) {
+    void SigmaPi::getCursor(Cursor &cursor, CursorLocation location) {
         SAFE_EXEC(contents, getCursor, cursor, location);
     }
-    void SigmaPiExpr::updatePosition(int16_t dx, int16_t dy) {
+    void SigmaPi::updatePosition(int16_t dx, int16_t dy) {
         this->x += dx;
         this->y += dy;
         SAFE_EXEC(contents, updatePosition, dx, dy);
