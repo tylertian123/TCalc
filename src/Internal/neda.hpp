@@ -144,16 +144,13 @@ namespace neda {
         }
 
         virtual void updatePosition(int16_t, int16_t) override;
+
+        static bool isEmptyString(Expr*);
 	
 	protected:
 		DynamicArray<char> *contents;
-
-        //These funcs needs to know the length of contents for its empty box behavior
-        friend class Container;
-        friend bool isEmptyString(Expr*);
 	};
 	
-    bool isEmptyString(Expr*);
 	/*
      * The Container is an expression that serves as a container for a bunch of other expressions.
      * ContainerExprs have special logic in their drawing code that make sure everything lines up using the top spacing.

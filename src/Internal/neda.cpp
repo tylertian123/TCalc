@@ -206,11 +206,11 @@ namespace neda {
         this->x += dx;
         this->y += dy;
     }
+    bool String::isEmptyString(Expr *str) {
+        return str->getType() == ExprType::STRING && ((String*) str)->contents->length() == 0;
+    }
 	
 	//*************************** Container ***************************************
-    bool isEmptyString(Expr *ex) {
-        return ex->getType() == ExprType::STRING && ((String*) ex)->contents->length() == 0;
-    }
     uint16_t Container::getTopSpacing() {
         uint16_t maxTopSpacing = 0;
         //Take the max of all the top spacings
@@ -224,7 +224,7 @@ namespace neda {
 		//An empty Container has a default width and height
         //A Container with only an empty String inside also has a default width and height
 		if(contents.length() == 0
-                || (contents.length() == 1 && isEmptyString(contents[0]))) {
+                || (contents.length() == 1 && String::isEmptyString(contents[0]))) {
 			exprWidth = EMPTY_EXPR_WIDTH;
             SAFE_EXEC(parent, computeWidth);
             return;
@@ -237,7 +237,7 @@ namespace neda {
             Expr *ex = *it;
             exprWidth += SAFE_EXEC_0(ex, getWidth);
             //For every expression that isn't an empty string, add 1 to the spacing count
-            if(!isEmptyString(ex)) {
+            if(!String::isEmptyString(ex)) {
                 spacingCount ++;
             }
         }
@@ -246,7 +246,7 @@ namespace neda {
 	}
 	void Container::computeHeight() {
 		if(contents.length() == 0
-                || (contents.length() == 1 && isEmptyString(contents[0]))) {
+                || (contents.length() == 1 && String::isEmptyString(contents[0]))) {
 			exprHeight = EMPTY_EXPR_HEIGHT;
             SAFE_EXEC(parent, computeHeight);
 			return;
@@ -278,7 +278,7 @@ namespace neda {
         VERIFY_INBOUNDS(x, y);
 
         if(contents.length() == 0
-            || (contents.length() == 1 && isEmptyString(contents[0]))) {
+            || (contents.length() == 1 && String::isEmptyString(contents[0]))) {
             //Empty container shows up as a box
             for(uint16_t w = 0; w < exprWidth; w ++) {
                 dest.setPixel(x + w, y, true);
@@ -314,11 +314,11 @@ namespace neda {
             //Add 3 for a gap between different expressions
             //Except when this is the last expression, or when the expression is an empty String, or when the expression after it 
             //is an empty String
-            if(it + 1 != contents.end() && !isEmptyString(ex) && !isEmptyString(*(it + 1))) {
+            if(it + 1 != contents.end() && !String::isEmptyString(ex) && !String::isEmptyString(*(it + 1))) {
 			    x += 3;
             }
             //Special case: if the expression is an empty string sandwitched between two non-empty-strings, add the 3 as well
-            else if(it - 1 >= contents.begin() && it + 1 != contents.end() && !isEmptyString(*(it - 1)) && !isEmptyString(*(it + 1))) {
+            else if(it - 1 >= contents.begin() && it + 1 != contents.end() && !String::isEmptyString(*(it - 1)) && !String::isEmptyString(*(it + 1))) {
                 x += 3;
             }
 		}
