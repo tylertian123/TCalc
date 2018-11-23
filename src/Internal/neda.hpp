@@ -205,7 +205,8 @@ namespace neda {
 	
 	protected:
 		DynamicArray<Expr*> contents;
-        void recomputeBrackets();
+        //Recomputes the heights of all expressions that have heights dependent on others
+        void recomputeHeights();
 	};
 	
 	//Fraction

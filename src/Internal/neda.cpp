@@ -333,9 +333,10 @@ namespace neda {
             }
 		}
 	}
-    void Container::recomputeBrackets() {
+    void Container::recomputeHeights() {
         for(Expr *ex : contents) {
-            if(ex->getType() == ExprType::L_BRACKET || ex->getType() == ExprType::R_BRACKET) {
+            if(ex->getType() == ExprType::L_BRACKET || ex->getType() == ExprType::R_BRACKET || ex->getType() == ExprType::SUPERSCRIPT
+                    || ex->getType() == ExprType::SUBSCRIPT) {
                 ex->computeHeight();
             }
         }
@@ -344,7 +345,7 @@ namespace neda {
 		expr->parent = this;
 		contents.add(expr);
 		
-        recomputeBrackets();
+        recomputeHeights();
 		computeWidth();
 		computeHeight();
 	}
@@ -359,7 +360,7 @@ namespace neda {
     void Container::removeExpr(uint16_t index) {
         contents.removeAt(index);
 
-        recomputeBrackets();
+        recomputeHeights();
         computeWidth();
         computeHeight();
     }
@@ -367,7 +368,7 @@ namespace neda {
         contents[index] = replacement;
         replacement->parent = this;
 
-        recomputeBrackets();
+        recomputeHeights();
         computeWidth();
         computeHeight();
     }
@@ -375,7 +376,7 @@ namespace neda {
         contents.insert(exprToAdd, index);
         exprToAdd->parent = this;
 
-        recomputeBrackets();
+        recomputeHeights();
         computeWidth();
         computeHeight();
     }
