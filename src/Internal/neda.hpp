@@ -207,6 +207,7 @@ namespace neda {
 	
 	protected:
 		DynamicArray<Expr*> contents;
+        void recomputeBrackets();
 	};
 	
 	//Fraction

@@ -323,10 +323,18 @@ namespace neda {
             }
 		}
 	}
+    void Container::recomputeBrackets() {
+        for(Expr *ex : contents) {
+            if(ex->getType() == ExprType::L_BRACKET || ex->getType() == ExprType::R_BRACKET) {
+                ex->computeHeight();
+            }
+        }
+    }
 	void Container::addExpr(Expr *expr) {
 		expr->parent = this;
 		contents.add(expr);
 		
+        recomputeBrackets();
 		computeWidth();
 		computeHeight();
 	}
@@ -340,18 +348,24 @@ namespace neda {
     }
     void Container::removeExpr(uint16_t index) {
         contents.removeAt(index);
+
+        recomputeBrackets();
         computeWidth();
         computeHeight();
     }
     void Container::replaceExpr(uint16_t index, Expr *replacement) {
         contents[index] = replacement;
         replacement->parent = this;
+
+        recomputeBrackets();
         computeWidth();
         computeHeight();
     }
     void Container::addAt(uint16_t index, Expr *exprToAdd) {
         contents.insert(exprToAdd, index);
         exprToAdd->parent = this;
+
+        recomputeBrackets();
         computeWidth();
         computeHeight();
     }
