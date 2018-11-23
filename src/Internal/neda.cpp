@@ -262,170 +262,170 @@ namespace neda {
             //Therefore, its height is just the height. In other cases, it will be increased by the difference between the max top
             //spacing and the top spacing.
             uint16_t height = (SAFE_ACCESS_0(ex, exprHeight) - SAFE_EXEC_0(ex, getTopSpacing)) + maxTopSpacing;
-                    maxHeight = max(height, maxHeight);
-                }
-                exprHeight = maxHeight;
-                SAFE_EXEC(parent, computeHeight);
-            }
-            void Container::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
-                this->x = x;
-                this->y = y;
-                VERIFY_INBOUNDS(x, y);
+            maxHeight = max(height, maxHeight);
+        }
+        exprHeight = maxHeight;
+        SAFE_EXEC(parent, computeHeight);
+    }
+    void Container::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
+        this->x = x;
+        this->y = y;
+        VERIFY_INBOUNDS(x, y);
 
-                if(contents.length() == 0
-                    || (contents.length() == 1 && String::isEmptyString(contents[0]))) {
-                    //Empty container shows up as a box
-                    for(uint16_t w = 0; w < exprWidth; w ++) {
-                        dest.setPixel(x + w, y, true);
-                        dest.setPixel(x + w, y + exprHeight - 1, true);
-                    }
-                    for(uint16_t h = 0; h < exprHeight; h ++) {
-                        dest.setPixel(x, y + h, true);
-                        dest.setPixel(x + exprWidth - 1, y + h, true);
-                    }
-                    //Special handling for empty String: the x and y still have to be set
-                    if(contents.length() == 1) {
-                        contents[0]->draw(dest, x, y);
-                    }
-                    return;
-                }
+        if(contents.length() == 0
+            || (contents.length() == 1 && String::isEmptyString(contents[0]))) {
+            //Empty container shows up as a box
+            for(uint16_t w = 0; w < exprWidth; w ++) {
+                dest.setPixel(x + w, y, true);
+                dest.setPixel(x + w, y + exprHeight - 1, true);
+            }
+            for(uint16_t h = 0; h < exprHeight; h ++) {
+                dest.setPixel(x, y + h, true);
+                dest.setPixel(x + exprWidth - 1, y + h, true);
+            }
+            //Special handling for empty String: the x and y still have to be set
+            if(contents.length() == 1) {
+                contents[0]->draw(dest, x, y);
+            }
+            return;
+        }
 
-                //Special logic in drawing to make sure everything lines up
-                uint16_t maxTopSpacing = getTopSpacing();
+        //Special logic in drawing to make sure everything lines up
+        uint16_t maxTopSpacing = getTopSpacing();
 
-                for(auto it = contents.begin(); it != contents.end(); it ++) {
-                    Expr *ex = *it;
-                    //Skip the expression if it's null
-                    if(!ex) {
-                        continue;
-                    }
-                    //For each expression, its top padding is the difference between the max top spacing and its top spacing.
-                    //E.g. A tall expression like 1^2 would have a higher top spacing than 3, so the max top spacing would be its top spacing;
-                    //So when drawing the 1^2, there is no difference between the max top spacing and the top spacing, and therefore it has
-                    //no top padding. But when drawing the 3, the difference between its top spacing and the max creates a top padding.
-                    ex->draw(dest, x, y + (maxTopSpacing - ex->getTopSpacing()));
-                    //Increase x so nothing overlaps
-                    x += ex->exprWidth;
-                    //Add 3 for a gap between different expressions
-                    //Except when this is the last expression, or when the expression is an empty String, or when the expression after it 
-                    //is an empty String
-                    if(it + 1 != contents.end() && !String::isEmptyString(ex) && !String::isEmptyString(*(it + 1))) {
-                        x += 3;
-                    }
-                    //Special case: if the expression is an empty string sandwitched between two non-empty-strings, add the 3 as well
-                    else if(it - 1 >= contents.begin() && it + 1 != contents.end() && !String::isEmptyString(*(it - 1)) && !String::isEmptyString(*(it + 1))) {
-                        x += 3;
-                    }
-                }
+        for(auto it = contents.begin(); it != contents.end(); it ++) {
+            Expr *ex = *it;
+            //Skip the expression if it's null
+            if(!ex) {
+                continue;
             }
-            void Container::recomputeHeights() {
-                for(Expr *ex : contents) {
-                    if(ex->getType() == ExprType::L_BRACKET || ex->getType() == ExprType::R_BRACKET || ex->getType() == ExprType::SUPERSCRIPT
-                            || ex->getType() == ExprType::SUBSCRIPT) {
-                        ex->computeHeight();
-                    }
-                }
+            //For each expression, its top padding is the difference between the max top spacing and its top spacing.
+            //E.g. A tall expression like 1^2 would have a higher top spacing than 3, so the max top spacing would be its top spacing;
+            //So when drawing the 1^2, there is no difference between the max top spacing and the top spacing, and therefore it has
+            //no top padding. But when drawing the 3, the difference between its top spacing and the max creates a top padding.
+            ex->draw(dest, x, y + (maxTopSpacing - ex->getTopSpacing()));
+            //Increase x so nothing overlaps
+            x += ex->exprWidth;
+            //Add 3 for a gap between different expressions
+            //Except when this is the last expression, or when the expression is an empty String, or when the expression after it 
+            //is an empty String
+            if(it + 1 != contents.end() && !String::isEmptyString(ex) && !String::isEmptyString(*(it + 1))) {
+                x += 3;
             }
-            void Container::addExpr(Expr *expr) {
-                expr->parent = this;
-                contents.add(expr);
+            //Special case: if the expression is an empty string sandwitched between two non-empty-strings, add the 3 as well
+            else if(it - 1 >= contents.begin() && it + 1 != contents.end() && !String::isEmptyString(*(it - 1)) && !String::isEmptyString(*(it + 1))) {
+                x += 3;
+            }
+        }
+    }
+    void Container::recomputeHeights() {
+        for(Expr *ex : contents) {
+            if(ex->getType() == ExprType::L_BRACKET || ex->getType() == ExprType::R_BRACKET || ex->getType() == ExprType::SUPERSCRIPT
+                    || ex->getType() == ExprType::SUBSCRIPT) {
+                ex->computeHeight();
+            }
+        }
+    }
+    void Container::addExpr(Expr *expr) {
+        expr->parent = this;
+        contents.add(expr);
 
-                recomputeHeights();
-                computeWidth();
-                computeHeight();
+        recomputeHeights();
+        computeWidth();
+        computeHeight();
+    }
+    uint16_t Container::indexOf(Expr *expr) {
+        for(uint16_t i = 0; i < contents.length(); i ++) {
+            if(contents[i] == expr) {
+                return i;
             }
-            uint16_t Container::indexOf(Expr *expr) {
-                for(uint16_t i = 0; i < contents.length(); i ++) {
-                    if(contents[i] == expr) {
-                        return i;
-                    }
-                }
-                return 0xFFFF;
-            }
-            void Container::removeExpr(uint16_t index) {
-                contents.removeAt(index);
+        }
+        return 0xFFFF;
+    }
+    void Container::removeExpr(uint16_t index) {
+        contents.removeAt(index);
 
-                recomputeHeights();
-                computeWidth();
-                computeHeight();
-            }
-            void Container::replaceExpr(uint16_t index, Expr *replacement) {
-                contents[index] = replacement;
-                replacement->parent = this;
+        recomputeHeights();
+        computeWidth();
+        computeHeight();
+    }
+    void Container::replaceExpr(uint16_t index, Expr *replacement) {
+        contents[index] = replacement;
+        replacement->parent = this;
 
-                recomputeHeights();
-                computeWidth();
-                computeHeight();
-            }
-            void Container::addAt(uint16_t index, Expr *exprToAdd) {
-                contents.insert(exprToAdd, index);
-                exprToAdd->parent = this;
+        recomputeHeights();
+        computeWidth();
+        computeHeight();
+    }
+    void Container::addAt(uint16_t index, Expr *exprToAdd) {
+        contents.insert(exprToAdd, index);
+        exprToAdd->parent = this;
 
-                recomputeHeights();
-                computeWidth();
-                computeHeight();
-            }
-            DynamicArray<Expr*>* Container::getContents() {
-                return &contents;
-            }
+        recomputeHeights();
+        computeWidth();
+        computeHeight();
+    }
+    DynamicArray<Expr*>* Container::getContents() {
+        return &contents;
+    }
 
-            Container::~Container() {
-                for(Expr *ex : contents) {
-                    DESTROY_IF_NONNULL(ex);
+    Container::~Container() {
+        for(Expr *ex : contents) {
+            DESTROY_IF_NONNULL(ex);
+        }
+    }
+    void Container::left(Expr *ex, Cursor &cursor) {
+        //First check if the cursor is already in the leftmost element
+        if(contents.length() > 0 && ex == contents[0]) {
+            SAFE_EXEC(parent, left, this, cursor);
+        }
+        else {
+            //Compare ex to all elements
+            for(uint16_t i = 1; i < contents.length(); i ++) {
+                if(contents[i] == ex) {
+                    //Move the cursor to the end of the element before
+                    contents[i - 1]->getCursor(cursor, CURSORLOCATION_END);
                 }
             }
-            void Container::left(Expr *ex, Cursor &cursor) {
-                //First check if the cursor is already in the leftmost element
-                if(contents.length() > 0 && ex == contents[0]) {
-                    SAFE_EXEC(parent, left, this, cursor);
-                }
-                else {
-                    //Compare ex to all elements
-                    for(uint16_t i = 1; i < contents.length(); i ++) {
-                        if(contents[i] == ex) {
-                            //Move the cursor to the end of the element before
-                            contents[i - 1]->getCursor(cursor, CURSORLOCATION_END);
-                        }
-                    }
+        }
+    }
+    void Container::right(Expr *ex, Cursor &cursor) {
+        if(contents.length() > 0 && ex == contents[contents.length() - 1]) {
+            SAFE_EXEC(parent, right, this, cursor);
+            return;
+        }
+        else {
+            for(uint16_t i = 0; i < contents.length() - 1; i ++) {
+                if(contents[i] == ex) {
+                    contents[i + 1]->getCursor(cursor, CURSORLOCATION_START);
                 }
             }
-            void Container::right(Expr *ex, Cursor &cursor) {
-                if(contents.length() > 0 && ex == contents[contents.length() - 1]) {
-                    SAFE_EXEC(parent, right, this, cursor);
-                    return;
-                }
-                else {
-                    for(uint16_t i = 0; i < contents.length() - 1; i ++) {
-                        if(contents[i] == ex) {
-                            contents[i + 1]->getCursor(cursor, CURSORLOCATION_START);
-                        }
-                    }
-                }
-            }
-            void Container::getCursor(Cursor &cursor, CursorLocation location) {
-                if(contents.length() == 0) {
-                    return;
-                }
-                if(location == CURSORLOCATION_START) {
-                    contents[0]->getCursor(cursor, location);
-                }
-                else {
-                    contents[contents.length() - 1]->getCursor(cursor, location);
-                }
-            }
-            void Container::updatePosition(int16_t dx, int16_t dy) {
-                this->x += dx;
-                this->y += dy;
-                for(Expr *ex : contents) {
-                    SAFE_EXEC(ex, updatePosition, dx, dy);
-                }
-            }
+        }
+    }
+    void Container::getCursor(Cursor &cursor, CursorLocation location) {
+        if(contents.length() == 0) {
+            return;
+        }
+        if(location == CURSORLOCATION_START) {
+            contents[0]->getCursor(cursor, location);
+        }
+        else {
+            contents[contents.length() - 1]->getCursor(cursor, location);
+        }
+    }
+    void Container::updatePosition(int16_t dx, int16_t dy) {
+        this->x += dx;
+        this->y += dy;
+        for(Expr *ex : contents) {
+            SAFE_EXEC(ex, updatePosition, dx, dy);
+        }
+    }
 
-            //*************************** Fraction ***************************************
-            uint16_t Fraction::getTopSpacing() {
-                //The top spacing of a fraction is equal to the height of its numerator, plus a pixel of spacing between the numerator and
-                //the fraction line.
-                return SAFE_ACCESS_0(numerator, exprHeight) + 1;
+    //*************************** Fraction ***************************************
+    uint16_t Fraction::getTopSpacing() {
+        //The top spacing of a fraction is equal to the height of its numerator, plus a pixel of spacing between the numerator and
+        //the fraction line.
+        return SAFE_ACCESS_0(numerator, exprHeight) + 1;
     }
 	void Fraction::computeWidth() {
 		//Take the greater of the widths and add 2 for the spacing at the sides

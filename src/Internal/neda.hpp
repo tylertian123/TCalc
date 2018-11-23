@@ -192,6 +192,11 @@ namespace neda {
         virtual void right(Expr*, Cursor&) override;
         virtual void getCursor(Cursor&, CursorLocation) override;
 
+        void drawCursor(lcd::LCD12864&, const Cursor&);
+        void addAtCursor(Expr*, Cursor&);
+        void removeAtCursor(Cursor&);
+        void getCursorInfo(const Cursor&, CursorInfo&);
+
         virtual ExprType getType() override {
             return ExprType::CONTAINER;
         }
@@ -457,13 +462,14 @@ namespace neda {
     };
     /*
      * This struct represents the location of the cursor. 
-     * Cursors can only be inside Strings as they make no sense elsewhere.
+     * Cursors can only be in ContainerExprs and StringExprs.
      */
     struct Cursor {
-        String *expr;
+        Expr *expr;
         uint16_t index;
 
         void draw(lcd::LCD12864& dest) {
+
             expr->drawCursor(dest, *this);
         }
         void addChar(char ch) {
