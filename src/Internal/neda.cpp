@@ -668,7 +668,7 @@ namespace neda {
             if(ex->getType() == ExprType::L_BRACKET) {
                 nesting ++;
             }
-            else  if(ex->getType() == ExprType::R_BRACKET) {
+            else if(ex->getType() == ExprType::R_BRACKET) {
                 nesting --;
                 if(!nesting) {
                     break;
@@ -682,6 +682,10 @@ namespace neda {
         exprHeight = maxHeight ? maxHeight : Container::EMPTY_EXPR_HEIGHT;
     }
     void LeftBracket::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
+        this->x = x;
+        this->y = y;
+        VERIFY_INBOUNDS(x, y);
+        
         dest.setPixel(x + 2, y, true);
         dest.setPixel(x + 1, y + 1, true);
         for(uint16_t i = 2; i < exprHeight - 2; i ++) {
@@ -689,6 +693,87 @@ namespace neda {
         }
         dest.setPixel(x + 1, y + exprHeight - 1 - 1, true);
         dest.setPixel(x + 2, y + exprHeight - 1, true);
+    }
+
+    //*************************** RightBracket ***************************************
+    uint16_t RightBracket::getTopSpacing() {
+        //Parent must be a Container
+        if(!parent) {
+            return 0xFFFF;
+        }
+        Container *parentContainer = (Container*) parent;
+        auto parentContents = parentContainer->getContents();
+        uint16_t index = parentContainer->indexOf(this);
+        uint16_t maxSpacing = 0;
+        //Used to find the end of the brackets
+        uint16_t nesting = 1;
+        //Iterate backwards
+        for(auto it = parentContents->begin() + index; it >= parentContents->begin(); -- it) {
+            Expr *ex = *it;
+            //Increase/Decrease the nesting depth if we see a bracket
+            if(ex->getType() == ExprType::R_BRACKET) {
+                nesting ++;
+            }
+            else if(ex->getType() == ExprType::L_BRACKET) {
+                nesting --;
+                //Exit if nesting depth is 0
+                if(!nesting) {
+                    break;
+                }
+            }
+            else {
+                maxSpacing = max(maxSpacing, ex->getTopSpacing());
+            }
+        }
+        //If there is nothing after this left bracket, give it a default
+        return maxSpacing ? maxSpacing : Container::EMPTY_EXPR_HEIGHT / 2;
+    }
+    void RightBracket::computeWidth() {
+        exprWidth = 3;
+    }
+    void RightBracket::computeHeight() {
+        if(!parent) {
+            //Default
+            exprHeight = Container::EMPTY_EXPR_HEIGHT;
+            return;
+        }
+        //Parent must be a Container
+        Container *parentContainer = (Container*) parent;
+        auto parentContents = parentContainer->getContents();
+        uint16_t index = parentContainer->indexOf(this);
+        uint16_t maxHeight = 0;
+        uint16_t nesting = 1;
+        //Iterate backwards
+        for(auto it = parentContents->begin() + index; it >= parentContents->begin(); -- it) {
+            Expr *ex = *it;
+            if(ex->getType() == ExprType::R_BRACKET) {
+                nesting ++;
+            }
+            else if(ex->getType() == ExprType::L_BRACKET) {
+                nesting --;
+                if(!nesting) {
+                    break;
+                }
+            }
+            else {
+                maxHeight = max(maxHeight, ex->getHeight());
+            }
+        }
+        //If there is nothing after this left bracket, give it a default
+        exprHeight = maxHeight ? maxHeight : Container::EMPTY_EXPR_HEIGHT;
+    }
+    void RightBracket::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
+        this->x = x;
+        this->y = y;
+        VERIFY_INBOUNDS(x, y);
+
+        dest.setPixel(x, y, true);
+        dest.setPixel(x + 1, y + 1, true);
+        for(uint16_t i = 2; i < exprHeight - 2; i ++) {
+            dest.setPixel(x + 2, y + i, true);
+        }
+        dest.setPixel(x + 1, y + exprHeight - 1 - 1, true);
+        dest.setPixel(x, y + exprHeight - 1, true);
     }
 	
 	//*************************** Radical ***************************************
