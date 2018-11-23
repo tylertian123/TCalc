@@ -9,6 +9,16 @@
 #define ASSERT_NONNULL(obj) if(!obj) return
 #define DESTROY_IF_NONNULL(obj) if(obj) delete obj
 
+/*
+* NEDA: Nested Expression Display Algorithm
+* 
+* This is the math display engine for the calculator.
+* 
+* WARNING: To prevent possible memory leaks, all NEDA classes have destructors that deletes all its children.
+* This means that all instances have to be allocated on the heap, with the new operator to prevent segmentation faults.
+* If allocated on the stack, the variable must never go out of scope.
+* DO NOT ALLOCATE WITH malloc
+*/
 namespace neda {
 	
 	//*************************** Expr ***************************************
@@ -829,25 +839,35 @@ namespace neda {
 	
 	//*************************** Subscript ***************************************
 	uint16_t Subscript::getTopSpacing() {
-		return SAFE_EXEC_0(contents, getHeight) / 2;
+		if(!parent) {
+            return Container::EMPTY_EXPR_HEIGHT / 2;
+        }
+        Container *parentContainer = (Container*) parent;
+        auto parentContents = parentContainer->getContents();
+        uint16_t index = parentContainer->indexOf(this);
+        //Look at the expression right before it. If there is no expression before, return the default
+        if(index == 0) {
+            return Container::EMPTY_EXPR_HEIGHT / 2;
+        }
+        return (*parentContents)[index - 1]->getHeight() / 2;
 	}
 	void Subscript::computeWidth() {
-		if (subscript) {
-			exprWidth = SAFE_EXEC_0(contents, getWidth) + subscript->getWidth() + 2;
-		}
-		else {
-			exprWidth = SAFE_EXEC_0(contents, getWidth);
-		}
-        SAFE_EXEC(parent, computeWidth);
+		exprWidth = SAFE_EXEC_0(contents, getWidth);
 	}
 	void Subscript::computeHeight() {
-		if (subscript) {
-			exprHeight = SAFE_EXEC_0(contents, getHeight) + SAFE_EXEC_0(subscript, getHeight) - CONTENTS_SUBSCRIPT_OVERLAP;
-		}
-		else {
-			exprHeight = SAFE_EXEC_0(contents, getHeight);
-		}
-        SAFE_EXEC(parent, computeHeight);
+		if(!parent) {
+            exprHeight = Container::EMPTY_EXPR_HEIGHT - OVERLAP + SAFE_EXEC_0(contents, getHeight);
+            return;
+        }
+        Container *parentContainer = (Container*) parent;
+        auto parentContents = parentContainer->getContents();
+        uint16_t index = parentContainer->indexOf(this);
+        //Look at the expression right before it. If there is no expression before, return the default
+        if(index == 0) {
+            exprHeight = Container::EMPTY_EXPR_HEIGHT - OVERLAP + SAFE_EXEC_0(contents, getHeight);
+            return;
+        }
+        exprHeight = (*parentContents)[index - 1]->getHeight() - OVERLAP + SAFE_EXEC_0(contents, getHeight);
 	}
 	void Subscript::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
         this->x = x;
@@ -856,17 +876,7 @@ namespace neda {
 		if (!contents) {
 			return;
 		}
-		contents->draw(dest, x, y);
-		if (!subscript) {
-			return;
-		}
-		subscript->draw(dest, x + contents->getWidth() + 2, y + contents->getHeight() - CONTENTS_SUBSCRIPT_OVERLAP);
-	}
-	Expr* Subscript::getContents() {
-		return contents;
-	}
-	Expr* Subscript::getSubscript() {
-		return subscript;
+		contents->draw(dest, x, y + exprHeight - contents->getHeight());
 	}
 	void Subscript::setContents(Expr *contents) {
 		this->contents = contents;
@@ -874,55 +884,21 @@ namespace neda {
 		computeWidth();
 		computeHeight();
 	}
-	void Subscript::setSubscript(Expr *subscript) {
-		this->subscript = subscript;
-        subscript->parent = this;
-		computeWidth();
-		computeHeight();
-	}
 	Subscript::~Subscript() {
-        DESTROY_IF_NONNULL(subscript);
         DESTROY_IF_NONNULL(contents);
 	}
-    void Subscript::left(Expr *ex, Cursor &cursor) {
-        if(ex == subscript) {
-            SAFE_EXEC(contents, getCursor, cursor, CURSORLOCATION_END);
-        }
-        else {
-            SAFE_EXEC(parent, left, this, cursor);
-        }
-    }
-    void Subscript::right(Expr *ex, Cursor &cursor) {
-        if(ex == contents) {
-            if(subscript) {
-                subscript->getCursor(cursor, CURSORLOCATION_START);
-            }
-            else {
-                SAFE_EXEC(parent, right, this, cursor);
-            }
-        }
-        else {
-            SAFE_EXEC(parent, right, this, cursor);
-        }
-    }
     void Subscript::getCursor(Cursor &cursor, CursorLocation location) {
         if(location == CURSORLOCATION_START) {
             SAFE_EXEC(contents, getCursor, cursor, location);
         }
         else {
-            if(subscript) {
-                subscript->getCursor(cursor, location);
-            }
-            else {
-                SAFE_EXEC(contents, getCursor, cursor, location);
-            }
+            SAFE_EXEC(contents, getCursor, cursor, location);
         }
     }
     void Subscript::updatePosition(int16_t dx, int16_t dy) {
         this->x += dx;
         this->y += dy;
         SAFE_EXEC(contents, updatePosition, dx, dy);
-        SAFE_EXEC(subscript, updatePosition, dx, dy);
     }
 	
 	//*************************** SigmaPi ***************************************

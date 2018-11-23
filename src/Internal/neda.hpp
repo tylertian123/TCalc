@@ -5,12 +5,10 @@
 #include "dynamarr.hpp"
 #include <string.h>
 
-//Nested Expression Display Algorithm
-//WARNING: All instances have to be allocated on the heap with new
-//If allocated on the stack the object must not go out of scope
-//DO NOT ALLOCATE USING malloc
 /*
  * NEDA: Nested Expression Display Algorithm
+ * 
+ * This is the math display engine for the calculator.
  * 
  * WARNING: To prevent possible memory leaks, all NEDA classes have destructors that deletes all its children.
  * This means that all instances have to be allocated on the heap, with the new operator to prevent segmentation faults.
@@ -32,7 +30,6 @@ namespace neda {
         STRING,
         CONTAINER,
         FRACTION,
-        EXPONENT,
         L_BRACKET,
         R_BRACKET,
         RADICAL,
@@ -333,11 +330,12 @@ namespace neda {
 	protected:
 		Expr *contents, *n;
 	};
-    
+
     //
     class Superscript : public Expr {
     public:
         Superscript(Expr *contents) : contents(contents) {
+            contents->parent = this;
             computeWidth();
             computeHeight();
         }
@@ -372,33 +370,27 @@ namespace neda {
 	//Subscript
 	class Subscript : public Expr {
 	public:
-		Subscript(Expr *contents, Expr *subscript) : contents(contents), subscript(subscript) {
+		Subscript(Expr *contents) : contents(contents) {
             contents->parent = this;
-            subscript->parent = this;
 			computeWidth();
 			computeHeight();
 		}
-		Subscript() : contents(nullptr), subscript(nullptr) {
+		Subscript() : contents(nullptr) {
 			computeWidth();
 			computeHeight();
 		}
 		
-		static const uint16_t CONTENTS_SUBSCRIPT_OVERLAP = 4;
+		static const uint16_t OVERLAP = 4;
 		
 		virtual uint16_t getTopSpacing() override;
 		virtual void computeWidth() override;
 		virtual void computeHeight() override;
 		virtual void draw(lcd::LCD12864&, int16_t, int16_t) override;
 		
-		Expr* getContents();
-		Expr* getSubscript();
 		void setContents(Expr*);
-		void setSubscript(Expr*);
 		
 		virtual ~Subscript();
 
-        virtual void left(Expr*, Cursor&) override;
-        virtual void right(Expr*, Cursor&) override;
         virtual void getCursor(Cursor&, CursorLocation) override;
 
         virtual ExprType getType() override {
@@ -408,7 +400,7 @@ namespace neda {
         virtual void updatePosition(int16_t, int16_t) override;
 		
 	protected:
-		Expr *contents, *subscript;
+		Expr *contents;
 	};
 	
 	//Summation (Sigma) or Product (Pi)
