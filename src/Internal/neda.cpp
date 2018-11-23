@@ -323,7 +323,7 @@ namespace neda {
             }
 		}
 	}
-	void Container::add(Expr *expr) {
+	void Container::addExpr(Expr *expr) {
 		expr->parent = this;
 		contents.add(expr);
 		
@@ -338,12 +338,12 @@ namespace neda {
         }
         return 0xFFFF;
     }
-    void Container::remove(uint16_t index) {
+    void Container::removeExpr(uint16_t index) {
         contents.removeAt(index);
         computeWidth();
         computeHeight();
     }
-    void Container::replace(uint16_t index, Expr *replacement) {
+    void Container::replaceExpr(uint16_t index, Expr *replacement) {
         contents[index] = replacement;
         replacement->parent = this;
         computeWidth();
@@ -603,6 +603,7 @@ namespace neda {
     }
 	
 	//*************************** LeftBracket ***************************************
+    
     uint16_t LeftBracket::getTopSpacing() {
         //Parent must be a Container
         if(!parent) {

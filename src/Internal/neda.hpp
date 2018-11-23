@@ -24,8 +24,8 @@ namespace neda {
     //CursorLocation can either be START or END and is used to get a cursor at the start or end of the expr.
     struct CursorInfo;
     typedef bool CursorLocation;
-    const CursorLocation CURSORLOCATION_START = 0;
-    const CursorLocation CURSORLOCATION_END = 1;
+    constexpr CursorLocation CURSORLOCATION_START = 0;
+    constexpr CursorLocation CURSORLOCATION_END = 1;
 
     enum class ExprType : uint8_t {
         NULL_TYPE,
@@ -153,7 +153,7 @@ namespace neda {
 	
 	/*
      * The Container is an expression that serves as a container for a bunch of other expressions.
-     * ContainerExprs have special logic in their drawing code that make sure everything lines up using the top spacing.
+     * Containers have special logic in their drawing code that make sure everything lines up using the top spacing.
      */
 	class Container : public Expr {
 	public:
@@ -180,9 +180,9 @@ namespace neda {
         static const uint16_t EMPTY_EXPR_WIDTH = 5;
         static const uint16_t EMPTY_EXPR_HEIGHT = 9;
 		
-		void add(Expr*);
-        void remove(uint16_t);
-        void replace(uint16_t, Expr*);
+		void addExpr(Expr*);
+        void removeExpr(uint16_t);
+        void replaceExpr(uint16_t, Expr*);
         void addAt(uint16_t, Expr*);
         uint16_t indexOf(Expr*);
         DynamicArray<Expr*>* getContents();
@@ -451,7 +451,7 @@ namespace neda {
     };
     /*
      * This struct represents the location of the cursor. 
-     * Cursors can only be inside StringExprs as they make no sense elsewhere.
+     * Cursors can only be inside Strings as they make no sense elsewhere.
      */
     struct Cursor {
         String *expr;
