@@ -516,106 +516,6 @@ namespace neda {
         SAFE_EXEC(denominator, updatePosition, dx, dy);
     }
 	
-	//*************************** Exponent ***************************************
-    uint16_t Exponent::getTopSpacing() {
-        //The top spacing for exponents is the height minus half of the height of the base
-		uint16_t baseHeight = SAFE_EXEC_0(base, getHeight);
-		//Round down
-        return exprHeight - (baseHeight % 2 == 0 ? baseHeight / 2 : baseHeight / 2 + 1);
-    }
-	void Exponent::computeWidth() {
-		uint16_t baseWidth = SAFE_EXEC_0(base, getWidth);
-		uint16_t exponentWidth = SAFE_EXEC_0(exponent, getWidth);
-		exprWidth = baseWidth + exponentWidth + 2;
-        SAFE_EXEC(parent, computeWidth);
-	}
-	void Exponent::computeHeight() {
-		uint16_t baseHeight = SAFE_EXEC_0(base, getHeight);
-		uint16_t exponentHeight = SAFE_EXEC_0(exponent, getHeight);
-		//Make sure this is positive
-		exprHeight = max(0, baseHeight + exponentHeight - BASE_EXPONENT_OVERLAP);
-        SAFE_EXEC(parent, computeHeight);
-	}
-	void Exponent::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
-        this->x = x;
-        this->y = y;
-        VERIFY_INBOUNDS(x, y);
-		ASSERT_NONNULL(base);
-        ASSERT_NONNULL(exponent);
-		uint16_t baseWidth = base->getWidth();
-		uint16_t exponentHeight = exponent->getHeight();
-		base->draw(dest, x, y + max(0, exponentHeight - BASE_EXPONENT_OVERLAP));
-		exponent->draw(dest, x + baseWidth + 2, y);
-	}
-	Expr* Exponent::getBase() {
-		return base;
-	}
-	Expr* Exponent::getExponent() {
-		return exponent;
-	}
-	void Exponent::setBase(Expr *base) {
-		this->base = base;
-        base->parent = this;
-		computeWidth();
-		computeHeight();
-	}
-	void Exponent::setExponent(Expr *exponent) {
-		this->exponent = exponent;
-        exponent->parent = this;
-		computeWidth();
-		computeHeight();
-	}
-	Exponent::~Exponent() {
-        DESTROY_IF_NONNULL(base);
-        DESTROY_IF_NONNULL(exponent);
-	}
-    void Exponent::left(Expr *ex, Cursor &cursor) {
-        if(ex == exponent) {
-            SAFE_EXEC(base, getCursor, cursor, CURSORLOCATION_END);
-        }
-        else {
-            SAFE_EXEC(parent, left, this, cursor);
-        }
-    }
-    void Exponent::right(Expr *ex, Cursor &cursor) {
-        if(ex == base) {
-            SAFE_EXEC(exponent, getCursor, cursor, CURSORLOCATION_START);
-        }
-        else {
-            SAFE_EXEC(parent, right, this, cursor);
-        }
-    }
-    void Exponent::up(Expr *ex, Cursor &cursor) {
-        if(ex == base) {
-            SAFE_EXEC(exponent, getCursor, cursor, CURSORLOCATION_START);
-        }
-        else {
-            SAFE_EXEC(parent, up, this, cursor);
-        }
-    }
-    void Exponent::down(Expr *ex, Cursor &cursor) {
-        if(ex == exponent) {
-            SAFE_EXEC(base, getCursor, cursor, CURSORLOCATION_END);
-        }
-        else {
-            SAFE_EXEC(parent, down, this, cursor);
-        }
-    }
-    void Exponent::getCursor(Cursor &cursor, CursorLocation location) {
-        if(location == CURSORLOCATION_START) {
-            SAFE_EXEC(base, getCursor, cursor, location);
-        }
-        else {
-            SAFE_EXEC(exponent, getCursor, cursor, location);
-        }
-    }
-    void Exponent::updatePosition(int16_t dx, int16_t dy) {
-        this->x += dx;
-        this->y += dy;
-        SAFE_EXEC(base, updatePosition, dx, dy);
-        SAFE_EXEC(exponent, updatePosition, dx, dy);
-    }
-	
 	//*************************** LeftBracket ***************************************
     uint16_t LeftBracket::getTopSpacing() {
         //Parent must be a Container
@@ -882,6 +782,146 @@ namespace neda {
         this->y += dy;
         SAFE_EXEC(contents, updatePosition, dx, dy);
         SAFE_EXEC(n, updatePosition, dx, dy);
+    }
+
+    //*************************** Exponent ***************************************
+    uint16_t Exponent::getTopSpacing() {
+        //The top spacing for exponents is the height minus half of the height of the base
+        uint16_t baseHeight = SAFE_EXEC_0(base, getHeight);
+        //Round down
+        return exprHeight - (baseHeight % 2 == 0 ? baseHeight / 2 : baseHeight / 2 + 1);
+    }
+    void Exponent::computeWidth() {
+        uint16_t baseWidth = SAFE_EXEC_0(base, getWidth);
+        uint16_t exponentWidth = SAFE_EXEC_0(exponent, getWidth);
+        exprWidth = baseWidth + exponentWidth + 2;
+        SAFE_EXEC(parent, computeWidth);
+    }
+    void Exponent::computeHeight() {
+        uint16_t baseHeight = SAFE_EXEC_0(base, getHeight);
+        uint16_t exponentHeight = SAFE_EXEC_0(exponent, getHeight);
+        //Make sure this is positive
+        exprHeight = max(0, baseHeight + exponentHeight - BASE_EXPONENT_OVERLAP);
+        SAFE_EXEC(parent, computeHeight);
+    }
+    void Exponent::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
+        this->x = x;
+        this->y = y;
+        VERIFY_INBOUNDS(x, y);
+        ASSERT_NONNULL(base);
+        ASSERT_NONNULL(exponent);
+        uint16_t baseWidth = base->getWidth();
+        uint16_t exponentHeight = exponent->getHeight();
+        base->draw(dest, x, y + max(0, exponentHeight - BASE_EXPONENT_OVERLAP));
+        exponent->draw(dest, x + baseWidth + 2, y);
+    }
+    Expr* Exponent::getBase() {
+        return base;
+    }
+    Expr* Exponent::getExponent() {
+        return exponent;
+    }
+    void Exponent::setBase(Expr *base) {
+        this->base = base;
+        base->parent = this;
+        computeWidth();
+        computeHeight();
+    }
+    void Exponent::setExponent(Expr *exponent) {
+        this->exponent = exponent;
+        exponent->parent = this;
+        computeWidth();
+        computeHeight();
+    }
+    Exponent::~Exponent() {
+        DESTROY_IF_NONNULL(base);
+        DESTROY_IF_NONNULL(exponent);
+    }
+    void Exponent::left(Expr *ex, Cursor &cursor) {
+        if(ex == exponent) {
+            SAFE_EXEC(base, getCursor, cursor, CURSORLOCATION_END);
+        }
+        else {
+            SAFE_EXEC(parent, left, this, cursor);
+        }
+    }
+    void Exponent::right(Expr *ex, Cursor &cursor) {
+        if(ex == base) {
+            SAFE_EXEC(exponent, getCursor, cursor, CURSORLOCATION_START);
+        }
+        else {
+            SAFE_EXEC(parent, right, this, cursor);
+        }
+    }
+    void Exponent::up(Expr *ex, Cursor &cursor) {
+        if(ex == base) {
+            SAFE_EXEC(exponent, getCursor, cursor, CURSORLOCATION_START);
+        }
+        else {
+            SAFE_EXEC(parent, up, this, cursor);
+        }
+    }
+    void Exponent::down(Expr *ex, Cursor &cursor) {
+        if(ex == exponent) {
+            SAFE_EXEC(base, getCursor, cursor, CURSORLOCATION_END);
+        }
+        else {
+            SAFE_EXEC(parent, down, this, cursor);
+        }
+    }
+    void Exponent::getCursor(Cursor &cursor, CursorLocation location) {
+        if(location == CURSORLOCATION_START) {
+            SAFE_EXEC(base, getCursor, cursor, location);
+        }
+        else {
+            SAFE_EXEC(exponent, getCursor, cursor, location);
+        }
+    }
+    void Exponent::updatePosition(int16_t dx, int16_t dy) {
+        this->x += dx;
+        this->y += dy;
+        SAFE_EXEC(base, updatePosition, dx, dy);
+        SAFE_EXEC(exponent, updatePosition, dx, dy);
+    }
+
+    //*************************** Superscript ***************************************
+    uint16_t Superscript::getTopSpacing() {
+        if(!parent) {
+            return SAFE_EXEC_0(contents, getHeight) + Container::EMPTY_EXPR_HEIGHT - OVERLAP;
+        }
+        Container *parentContainer = (Container*) parent;
+        auto parentContents = parentContainer->getContents();
+        uint16_t index = parentContainer->indexOf(this);
+        //Look at the expression right before it. If there is no expression before, return the default
+        if(index == 0) {
+            return SAFE_EXEC_0(contents, getHeight) + Container::EMPTY_EXPR_HEIGHT - OVERLAP;
+        }
+        return SAFE_EXEC_0(contents, getHeight) + (*parentContents)[index - 1]->getHeight() / 2 - OVERLAP;
+    }
+    void Superscript::computeWidth() {
+        exprWidth = SAFE_EXEC_0(contents, getWidth);
+    }
+    void Superscript::computeHeight() {
+        exprHeight = SAFE_EXEC_0(contents, getHeight);
+    }
+    void Superscript::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
+        this->x = x;
+        this->y = y;
+        VERIFY_INBOUNDS(x, y);
+        SAFE_EXEC(contents, draw, dest, x, y);
+    }
+    void Superscript::setContents(Expr *contents) {
+        this->contents = contents;
+        computeWidth();
+        computeHeight();
+    }
+    Superscript::~Superscript() {
+        DESTROY_IF_NONNULL(contents);
+    }
+    void Superscript::updatePosition(int16_t dx, int16_t dy) {
+        x += dx;
+        y += dy;
+        SAFE_EXEC(contents, updatePosition, dx, dy);
     }
 	
 	//*************************** Subscript ***************************************

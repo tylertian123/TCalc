@@ -36,6 +36,7 @@ namespace neda {
         L_BRACKET,
         R_BRACKET,
         RADICAL,
+        SUPERSCRIPT,
         SUBSCRIPT,
         SIGMA_PI,
     };
@@ -251,51 +252,6 @@ namespace neda {
 		Expr *denominator;
 	};
 	
-	//Exponent
-	class Exponent : public Expr {
-	public:
-		Exponent(Expr *base, Expr *exponent) : base(base), exponent(exponent) {
-            base->parent = this;
-            exponent->parent = this;
-			computeWidth();
-			computeHeight();
-		}
-		Exponent() : base(nullptr), exponent(nullptr) {
-			computeWidth();
-			computeHeight();
-		}
-		
-		static const uint16_t BASE_EXPONENT_OVERLAP = 4;
-		
-        virtual uint16_t getTopSpacing() override;
-		virtual void computeWidth() override;
-		virtual void computeHeight() override;
-		virtual void draw(lcd::LCD12864&, int16_t, int16_t) override;
-		
-		Expr* getBase();
-		Expr* getExponent();
-		void setBase(Expr*);
-		void setExponent(Expr*);
-		
-		virtual ~Exponent();
-
-        virtual void left(Expr*, Cursor&) override;
-        virtual void right(Expr*, Cursor&) override;
-        virtual void up(Expr*, Cursor&) override;
-        virtual void down(Expr*, Cursor&) override;
-        virtual void getCursor(Cursor&, CursorLocation) override;
-
-        virtual ExprType getType() override {
-            return ExprType::EXPONENT;
-        }
-
-        virtual void updatePosition(int16_t, int16_t) override;
-
-	protected:
-		Expr *base;
-		Expr *exponent;
-	};
-	
 	//
     class LeftBracket : public Expr {
     public:
@@ -378,6 +334,84 @@ namespace neda {
 		Expr *contents, *n;
 	};
 	
+    //Exponent
+    class Exponent : public Expr {
+    public:
+        Exponent(Expr *base, Expr *exponent) : base(base), exponent(exponent) {
+            base->parent = this;
+            exponent->parent = this;
+            computeWidth();
+            computeHeight();
+        }
+        Exponent() : base(nullptr), exponent(nullptr) {
+            computeWidth();
+            computeHeight();
+        }
+
+        static const uint16_t BASE_EXPONENT_OVERLAP = 4;
+
+        virtual uint16_t getTopSpacing() override;
+        virtual void computeWidth() override;
+        virtual void computeHeight() override;
+        virtual void draw(lcd::LCD12864&, int16_t, int16_t) override;
+
+        Expr* getBase();
+        Expr* getExponent();
+        void setBase(Expr*);
+        void setExponent(Expr*);
+
+        virtual ~Exponent();
+
+        virtual void left(Expr*, Cursor&) override;
+        virtual void right(Expr*, Cursor&) override;
+        virtual void up(Expr*, Cursor&) override;
+        virtual void down(Expr*, Cursor&) override;
+        virtual void getCursor(Cursor&, CursorLocation) override;
+
+        virtual ExprType getType() override {
+            return ExprType::EXPONENT;
+        }
+
+        virtual void updatePosition(int16_t, int16_t) override;
+
+    protected:
+        Expr *base;
+        Expr *exponent;
+    };
+    
+    //
+    class Superscript : public Expr {
+    public:
+        Superscript(Expr *contents) : contents(contents) {
+            computeWidth();
+            computeHeight();
+        }
+        Superscript() : contents(nullptr) {
+            computeWidth();
+            computeHeight();
+        }
+
+        static const uint16_t OVERLAP = 4;
+
+        virtual uint16_t getTopSpacing() override;
+        virtual void computeWidth() override;
+        virtual void computeHeight() override;
+        virtual void draw(lcd::LCD12864&, int16_t, int16_t) override;
+
+        void setContents(Expr*);
+
+        virtual ~Superscript();
+
+        virtual ExprType getType() override {
+            return ExprType::SUPERSCRIPT;
+        }
+
+        virtual void updatePosition(int16_t, int16_t) override;
+
+    protected:
+        Expr *contents;
+    };
+
 	//Subscript
 	class Subscript : public Expr {
 	public:
