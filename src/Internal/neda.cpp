@@ -603,7 +603,6 @@ namespace neda {
     }
 	
 	//*************************** LeftBracket ***************************************
-    
     uint16_t LeftBracket::getTopSpacing() {
         //Parent must be a Container
         if(!parent) {
@@ -613,8 +612,24 @@ namespace neda {
         auto parentContents = parentContainer->getContents();
         uint16_t index = parentContainer->indexOf(this);
         uint16_t maxSpacing = 0;
+        //Used to find the end of the brackets
+        uint16_t nesting = 1;
         for(auto it = parentContents->begin() + index; it != parentContents->end(); ++ it) {
-            maxSpacing = max(maxSpacing, (*it)->getTopSpacing());
+            Expr *ex = *it;
+            //Increase/Decrease the nesting depth if we see a bracket
+            if(ex->getType() == ExprType::L_BRACKET) {
+                nesting ++;
+            }
+            else if(ex->getType() == ExprType::R_BRACKET) {
+                nesting --;
+                //Exit if nesting depth is 0
+                if(!nesting) {
+                    break;
+                }
+            }
+            else {
+                maxSpacing = max(maxSpacing, ex->getTopSpacing());
+            }
         }
         //If there is nothing after this left bracket, give it a default
         return maxSpacing ? maxSpacing : Container::EMPTY_EXPR_HEIGHT / 2;
@@ -633,8 +648,21 @@ namespace neda {
         auto parentContents = parentContainer->getContents();
         uint16_t index = parentContainer->indexOf(this);
         uint16_t maxHeight = 0;
+        uint16_t nesting = 1;
         for(auto it = parentContents->begin() + index; it != parentContents->end(); ++ it) {
-            maxHeight = max(maxHeight, (*it)->getHeight());
+            Expr *ex = *it;
+            if(ex->getType() == ExprType::L_BRACKET) {
+                nesting ++;
+            }
+            else  if(ex->getType() == ExprType::R_BRACKET) {
+                nesting --;
+                if(!nesting) {
+                    break;
+                }
+            }
+            else {
+                maxHeight = max(maxHeight, ex->getHeight());
+            }
         }
         //If there is nothing after this left bracket, give it a default
         exprHeight = maxHeight ? maxHeight : Container::EMPTY_EXPR_HEIGHT;

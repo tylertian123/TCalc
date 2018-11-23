@@ -33,7 +33,8 @@ namespace neda {
         CONTAINER,
         FRACTION,
         EXPONENT,
-        BRACKET,
+        L_BRACKET,
+        R_BRACKET,
         RADICAL,
         SUBSCRIPT,
         SIGMA_PI,
@@ -306,7 +307,32 @@ namespace neda {
         virtual void computeWidth() override;
         virtual void computeHeight() override;
         virtual void draw(lcd::LCD12864&, int16_t, int16_t) override;
+        //Do nothing
+        //Realistically this method is never going to be called on LeftBracket anyways
+        virtual void getCursor(Cursor &cursor, CursorLocation location) override {}
+        virtual ExprType getType() override {
+            return ExprType::L_BRACKET;
+        }
     };
+    class RightBracket : public Expr {
+    public:
+        RightBracket() {
+            computeWidth();
+            computeHeight();
+        }
+
+        virtual uint16_t getTopSpacing() override;
+        virtual void computeWidth() override;
+        virtual void computeHeight() override;
+        virtual void draw(lcd::LCD12864&, int16_t, int16_t) override;
+        //Do nothing
+        //Realistically this method is never going to be called on RightBracket anyways
+        virtual void getCursor(Cursor &cursor, CursorLocation location) override {}
+        virtual ExprType getType() override {
+            return ExprType::R_BRACKET;
+        }
+    };
+
 	
 	//n-th root expression
 	class Radical : public Expr {
