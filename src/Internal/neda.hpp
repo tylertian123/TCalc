@@ -400,6 +400,8 @@ namespace neda {
 
         void setContents(Expr*);
 
+        virtual void getCursor(Cursor&, CursorLocation) override;
+
         virtual ~Superscript();
 
         virtual ExprType getType() override {

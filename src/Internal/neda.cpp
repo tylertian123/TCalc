@@ -923,6 +923,9 @@ namespace neda {
         y += dy;
         SAFE_EXEC(contents, updatePosition, dx, dy);
     }
+    void Superscript::getCursor(Cursor &cursor, CursorLocation location) {
+        SAFE_EXEC(contents, getCursor, cursor, location);
+    }
 	
 	//*************************** Subscript ***************************************
 	uint16_t Subscript::getTopSpacing() {
