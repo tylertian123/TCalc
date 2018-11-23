@@ -55,13 +55,8 @@ namespace neda {
         //The width, height, x and y coordinates are all cached
 		virtual void computeWidth() = 0;
 		virtual void computeHeight() = 0;
-	
-		uint16_t getWidth();
-		uint16_t getHeight();
 
         virtual void updatePosition(int16_t, int16_t);
-        int16_t getX();
-        int16_t getY();
 	
 		virtual uint16_t getTopSpacing() = 0;
 	
@@ -85,11 +80,11 @@ namespace neda {
 
         virtual ExprType getType() = 0;
 	
-	protected:
 		uint16_t exprWidth;
 		uint16_t exprHeight;
         int16_t x;
         int16_t y;
+	protected:
 	};
 	
 	/*
