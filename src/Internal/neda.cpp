@@ -51,6 +51,10 @@ namespace neda {
     Expr* Expr::getTopLevelExpr() {
         return parent ? parent->getTopLevelExpr() : this;
     }
+    void Expr::updatePosition(int16_t dx, int16_t dy) {
+        x += dx;
+        y += dy;
+    }
 	
 	//*************************** StringExpr ***************************************
     uint16_t StringExpr::getTopSpacing() {
@@ -208,8 +212,13 @@ namespace neda {
         return ex->getType() == ExprType::STRING && ((StringExpr*) ex)->contents->length() == 0;
     }
     uint16_t ContainerExpr::getTopSpacing() {
-        //ContainerExprs don't contain any special parts; they're just rectangles
-        return exprHeight / 2;
+        uint16_t maxTopSpacing = 0;
+        //Take the max of all the top spacings
+        for(Expr *ex : contents) {
+            uint16_t ts = SAFE_EXEC_0(ex, getTopSpacing);
+            maxTopSpacing = max(ts, maxTopSpacing);
+        }
+        return maxTopSpacing;
     }
 	void ContainerExpr::computeWidth() {
 		//An empty ContainerExpr has a default width and height
@@ -246,12 +255,9 @@ namespace neda {
         //Computing the height takes special logic as it is more than just taking the max of all the children's heights.
         //In the case of expressions such as 1^2+3_4, the height is greater than the max of all the children because the 1 and 3
         //have to line up.
-		uint16_t maxTopSpacing = 0;
+		uint16_t maxTopSpacing = getTopSpacing();
 		//Take the max of all the top spacings
-		for(Expr *ex : contents) {
-			uint16_t ts = SAFE_EXEC_0(ex, getTopSpacing);
-			maxTopSpacing = max(ts, maxTopSpacing);
-		}
+		
         //Now with the max top spacing we can compute the heights and see what the max is
         uint16_t maxHeight = 0;
         for(Expr *ex : contents) {
@@ -290,12 +296,7 @@ namespace neda {
         }
 		
         //Special logic in drawing to make sure everything lines up
-        uint16_t maxTopSpacing = 0;
-        //Take the max of all the top spacings; this will be used to compute the top padding for each expression later.
-        for(Expr *ex : contents) {
-            uint16_t ts = SAFE_EXEC_0(ex, getTopSpacing);
-            maxTopSpacing = max(ts, maxTopSpacing);
-        }
+        uint16_t maxTopSpacing = getTopSpacing();
 		
 		for(auto it = contents.begin(); it != contents.end(); it ++) {
             Expr *ex = *it;
@@ -601,51 +602,51 @@ namespace neda {
         SAFE_EXEC(exponent, updatePosition, dx, dy);
     }
 	
-	//*************************** BracketExpr ***************************************
-	uint16_t BracketExpr::getTopSpacing() {
-		//Return the top spacing of the stuff inside, instead of half the height so that things in and out the brackets line up nicely
-		return SAFE_EXEC_0(contents, getTopSpacing) + 1;
-	}
-	void BracketExpr::computeWidth() {
-		//+6 for the brackets themselves and +2 for the spacing
-		exprWidth = SAFE_EXEC_0(contents, getWidth) + 8;
-        SAFE_EXEC(parent, computeWidth);
-	}
-	void BracketExpr::computeHeight() {
-		//+2 for the padding at the top and bottom
-		exprHeight = SAFE_EXEC_0(contents, getHeight) + 2;
-        SAFE_EXEC(parent, computeHeight);
-	}
-	void BracketExpr::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
-        this->x = x;
-        this->y = y;
-        VERIFY_INBOUNDS(x, y);
-		ASSERT_NONNULL(contents);
-		//Bracket
-		dest.setPixel(x + 2, y, true);
-		dest.setPixel(x + 1, y + 1, true);
-		dest.setPixel(x + 1, y + exprHeight - 1 - 1, true);
-		dest.setPixel(x + 2, y + exprHeight - 1, true);
-		for(uint16_t i = 2; i < exprHeight - 2; i ++) {
-			dest.setPixel(x, y + i, true);
-			dest.setPixel(x + exprWidth - 1, y + i, true);
-		}
-		dest.setPixel(x + exprWidth - 1 - 2, y, true);
-		dest.setPixel(x + exprWidth - 1 - 1, y + 1, true);
-		dest.setPixel(x + exprWidth - 1 - 1, y + exprHeight - 1 - 1, true);
-		dest.setPixel(x + exprWidth - 1 - 2, y + exprHeight - 1, true);
-		contents->draw(dest, x + 4, y + 1);
-	}
-	BracketExpr::~BracketExpr() {
-		DESTROY_IF_NONNULL(contents);
-	}
-    void BracketExpr::getCursor(Cursor &cursor, CursorLocation location) {
-        SAFE_EXEC(contents, getCursor, cursor, location);
+	//*************************** LeftBracket ***************************************
+    
+    uint16_t LeftBracket::getTopSpacing() {
+        //Parent must be a ContainerExpr
+        if(!parent) {
+            return 0xFFFF;
+        }
+        ContainerExpr *parentContainer = (ContainerExpr*) parent;
+        auto parentContents = parentContainer->getContents();
+        uint16_t index = parentContainer->indexOf(this);
+        uint16_t maxSpacing = 0;
+        for(auto it = parentContents->begin() + index; it != parentContents->end(); ++ it) {
+            maxSpacing = max(maxSpacing, (*it)->getTopSpacing());
+        }
+        //If there is nothing after this left bracket, give it a default
+        return maxSpacing ? maxSpacing : ContainerExpr::EMPTY_EXPR_HEIGHT / 2;
     }
-    void BracketExpr::updatePosition(int16_t dx, int16_t dy) {
-        this->x += dx;
-        this->y += dy;
-        SAFE_EXEC(contents, updatePosition, dx, dy);
+    void LeftBracket::computeWidth() {
+        exprWidth = 3;
+    }
+    void LeftBracket::computeHeight() {
+        if(!parent) {
+            //Default
+            exprHeight = ContainerExpr::EMPTY_EXPR_HEIGHT;
+            return;
+        }
+        //Parent must be a ContainerExpr
+        ContainerExpr *parentContainer = (ContainerExpr*) parent;
+        auto parentContents = parentContainer->getContents();
+        uint16_t index = parentContainer->indexOf(this);
+        uint16_t maxHeight = 0;
+        for(auto it = parentContents->begin() + index; it != parentContents->end(); ++ it) {
+            maxHeight = max(maxHeight, (*it)->getHeight());
+        }
+        //If there is nothing after this left bracket, give it a default
+        exprHeight = maxHeight ? maxHeight : ContainerExpr::EMPTY_EXPR_HEIGHT;
+    }
+    void LeftBracket::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
+        dest.setPixel(x + 2, y, true);
+        dest.setPixel(x + 1, y + 1, true);
+        for(uint16_t i = 2; i < exprHeight - 2; i ++) {
+            dest.setPixel(x, y + i, true);
+        }
+        dest.setPixel(x + 1, y + exprHeight - 1 - 1, true);
+        dest.setPixel(x + 2, y + exprHeight - 1, true);
     }
 	
 	//*************************** RadicalExpr ***************************************

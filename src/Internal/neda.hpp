@@ -60,7 +60,7 @@ namespace neda {
 		uint16_t getWidth();
 		uint16_t getHeight();
 
-        virtual void updatePosition(int16_t, int16_t) = 0;
+        virtual void updatePosition(int16_t, int16_t);
         int16_t getX();
         int16_t getY();
 	
@@ -297,40 +297,19 @@ namespace neda {
 		Expr *exponent;
 	};
 	
-	//An expression in brackets
-	class BracketExpr : public Expr {
-	public:
-		BracketExpr(Expr *contents) : contents(contents) {
-            contents->parent = this;
-			computeWidth();
-			computeHeight();
-		}
-		BracketExpr() : contents(nullptr) {
-			computeWidth();
-			computeHeight();
-		}
-		
-		virtual uint16_t getTopSpacing() override;
-		virtual void computeWidth() override;
-		virtual void computeHeight() override;
-		virtual void draw(lcd::LCD12864&, int16_t, int16_t) override;
-		
-		Expr* getContents();
-		void setContents(Expr*);
-		
-		virtual ~BracketExpr();
-
-        virtual void getCursor(Cursor&, CursorLocation) override;
-
-        virtual ExprType getType() override {
-            return ExprType::BRACKET;
+	//
+    class LeftBracket : public Expr {
+    public:
+        LeftBracket() {
+            computeWidth();
+            computeHeight();
         }
 
-        virtual void updatePosition(int16_t, int16_t) override;
-		
-	protected:
-		Expr *contents;
-	};
+        virtual uint16_t getTopSpacing() override;
+        virtual void computeWidth() override;
+        virtual void computeHeight() override;
+        virtual void draw(lcd::LCD12864&, int16_t, int16_t) override;
+    };
 	
 	//n-th root expression
 	class RadicalExpr : public Expr {
