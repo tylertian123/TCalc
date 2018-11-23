@@ -628,7 +628,7 @@ namespace neda {
         uint16_t maxSpacing = 0;
         //Used to find the end of the brackets
         uint16_t nesting = 1;
-        for(auto it = parentContents->begin() + index; it != parentContents->end(); ++ it) {
+        for(auto it = parentContents->begin() + index + 1; it != parentContents->end(); ++ it) {
             Expr *ex = *it;
             //Increase/Decrease the nesting depth if we see a bracket
             if(ex->getType() == ExprType::L_BRACKET) {
@@ -663,7 +663,7 @@ namespace neda {
         uint16_t index = parentContainer->indexOf(this);
         uint16_t maxHeight = 0;
         uint16_t nesting = 1;
-        for(auto it = parentContents->begin() + index; it != parentContents->end(); ++ it) {
+        for(auto it = parentContents->begin() + index + 1; it != parentContents->end(); ++ it) {
             Expr *ex = *it;
             if(ex->getType() == ExprType::L_BRACKET) {
                 nesting ++;
@@ -708,7 +708,7 @@ namespace neda {
         //Used to find the end of the brackets
         uint16_t nesting = 1;
         //Iterate backwards
-        for(auto it = parentContents->begin() + index; it >= parentContents->begin(); -- it) {
+        for(auto it = parentContents->begin() + index - 1; it >= parentContents->begin(); -- it) {
             Expr *ex = *it;
             //Increase/Decrease the nesting depth if we see a bracket
             if(ex->getType() == ExprType::R_BRACKET) {
@@ -744,7 +744,7 @@ namespace neda {
         uint16_t maxHeight = 0;
         uint16_t nesting = 1;
         //Iterate backwards
-        for(auto it = parentContents->begin() + index; it >= parentContents->begin(); -- it) {
+        for(auto it = parentContents->begin() + index - 1; it >= parentContents->begin(); -- it) {
             Expr *ex = *it;
             if(ex->getType() == ExprType::R_BRACKET) {
                 nesting ++;
