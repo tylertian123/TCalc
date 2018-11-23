@@ -333,51 +333,6 @@ namespace neda {
 	protected:
 		Expr *contents, *n;
 	};
-	
-    //Exponent
-    class Exponent : public Expr {
-    public:
-        Exponent(Expr *base, Expr *exponent) : base(base), exponent(exponent) {
-            base->parent = this;
-            exponent->parent = this;
-            computeWidth();
-            computeHeight();
-        }
-        Exponent() : base(nullptr), exponent(nullptr) {
-            computeWidth();
-            computeHeight();
-        }
-
-        static const uint16_t BASE_EXPONENT_OVERLAP = 4;
-
-        virtual uint16_t getTopSpacing() override;
-        virtual void computeWidth() override;
-        virtual void computeHeight() override;
-        virtual void draw(lcd::LCD12864&, int16_t, int16_t) override;
-
-        Expr* getBase();
-        Expr* getExponent();
-        void setBase(Expr*);
-        void setExponent(Expr*);
-
-        virtual ~Exponent();
-
-        virtual void left(Expr*, Cursor&) override;
-        virtual void right(Expr*, Cursor&) override;
-        virtual void up(Expr*, Cursor&) override;
-        virtual void down(Expr*, Cursor&) override;
-        virtual void getCursor(Cursor&, CursorLocation) override;
-
-        virtual ExprType getType() override {
-            return ExprType::EXPONENT;
-        }
-
-        virtual void updatePosition(int16_t, int16_t) override;
-
-    protected:
-        Expr *base;
-        Expr *exponent;
-    };
     
     //
     class Superscript : public Expr {
