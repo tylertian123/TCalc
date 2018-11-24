@@ -124,11 +124,11 @@ void adjustExpr(neda::Expr *ex, neda::Cursor *cursorRef) {
 
 void insertExprAtCursor(neda::Expr *expr, neda::Cursor *cursor) {
 	//Split the original expression into 2 parts
-	neda::StringExpr *first = cursor->expr->beforeCursor(*cursor);
-	neda::StringExpr *second = cursor->expr->afterCursor(*cursor);
-	//The parent of a StringExpr must always be a ContainerExpr
+	neda::String *first = cursor->expr->beforeCursor(*cursor);
+	neda::String *second = cursor->expr->afterCursor(*cursor);
+	//The parent of a String must always be a Container
 	//If not, then, well, someone's getting fired.
-	neda::ContainerExpr *container = (neda::ContainerExpr*) cursor->expr->parent;
+	neda::Container *container = (neda::Container*) cursor->expr->parent;
 	uint16_t index = container->indexOf(cursor->expr);
 	//Insert the expressions back in
 	container->replaceExpr(index ++, first);
@@ -136,23 +136,25 @@ void insertExprAtCursor(neda::Expr *expr, neda::Cursor *cursor) {
 	container->addAt(index ++, second);
 	//SUPER IMPORTANT: DELETE ORIGINAL STRING!!!
 	//Keep a copy of original so we can get the new cursor before deleting the old one (so that interrupts don't cause errors)
-	neda::StringExpr *original = cursor->expr;
+	neda::String *original = cursor->expr;
 	expr->getCursor(*cursor, neda::CURSORLOCATION_START);
 	delete original;
 	//Use draw to figure out the approx location of the new cursor so adjustExpr won't mess up the display
 	container->Expr::draw(display);
 }
-neda::ContainerExpr* createEmptyContainer() {
-	neda::StringExpr *contents = new neda::StringExpr;
-	neda::ContainerExpr *contentsContainer = new neda::ContainerExpr;
-	contentsContainer->addExpr(contents);
-	return contentsContainer;
-}
-neda::ContainerExpr* createEmptyContainer(const char *str) {
-	neda::StringExpr *contents = new neda::StringExpr(str);
-	neda::ContainerExpr *contentsContainer = new neda::ContainerExpr;
-	contentsContainer->addExpr(contents);
-	return contentsContainer;
+//Adds a char at the cursor
+void addChar(neda::Cursor *cursor, char ch) {
+	if(cursor->expr->getType() == neda::ExprType::STRING) {
+		((neda::String*) cursor->expr)->addChar(ch);
+		return;
+	}
+	else if(cursor->expr->getType() == neda::ExprType::CONTAINER) {
+		neda::Container *container = (neda::Container*) cursor->expr;
+		neda::String *str = new neda::String;
+		str->addChar(ch);
+		container->addAtCursor(str, *cursor);
+		str->getCursor(*cursor, neda::CURSORLOCATION_START);
+	}
 }
 //Key press handlers
 //Probably gonna make this name shorter, but couldn't bother.
@@ -178,206 +180,206 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 		break;
 	/* LETTER KEYS */
 	case KEY_A:
-		cursor->addChar('A');
+		addChar(cursor, 'A');
 		break;
 	case KEY_B:
-		cursor->addChar('B');
+		addChar(cursor, 'B');
 		break;
 	case KEY_C:
-		cursor->addChar('C');
+		addChar(cursor, 'C');
 		break;
 	case KEY_D:
-		cursor->addChar('D');
+		addChar(cursor, 'D');
 		break;
 	case KEY_E:
-		cursor->addChar('E');
+		addChar(cursor, 'E');
 		break;
 	case KEY_F:
-		cursor->addChar('F');
+		addChar(cursor, 'F');
 		break;
 	case KEY_G:
-		cursor->addChar('G');
+		addChar(cursor, 'G');
 		break;
 	case KEY_H:
-		cursor->addChar('H');
+		addChar(cursor, 'H');
 		break;
 	case KEY_I:
-		cursor->addChar('I');
+		addChar(cursor, 'I');
 		break;
 	case KEY_J:
-		cursor->addChar('J');
+		addChar(cursor, 'J');
 		break;
 	case KEY_K:
-		cursor->addChar('K');
+		addChar(cursor, 'K');
 		break;
 	case KEY_L:
-		cursor->addChar('L');
+		addChar(cursor, 'L');
 		break;
 	case KEY_M:
-		cursor->addChar('M');
+		addChar(cursor, 'M');
 		break;
 	case KEY_N:
-		cursor->addChar('N');
+		addChar(cursor, 'N');
 		break;
 	case KEY_O:
-		cursor->addChar('O');
+		addChar(cursor, 'O');
 		break;
 	case KEY_P:
-		cursor->addChar('P');
+		addChar(cursor, 'P');
 		break;
 	case KEY_Q:
-		cursor->addChar('Q');
+		addChar(cursor, 'Q');
 		break;
 	case KEY_R:
-		cursor->addChar('R');
+		addChar(cursor, 'R');
 		break;
 	case KEY_S:
-		cursor->addChar('S');
+		addChar(cursor, 'S');
 		break;
 	case KEY_T:
-		cursor->addChar('T');
+		addChar(cursor, 'T');
 		break;
 	case KEY_U:
-		cursor->addChar('U');
+		addChar(cursor, 'U');
 		break;
 	case KEY_V:
-		cursor->addChar('V');
+		addChar(cursor, 'V');
 		break;
 	case KEY_W:
-		cursor->addChar('W');
+		addChar(cursor, 'W');
 		break;
 	case KEY_X:
-		cursor->addChar('X');
+		addChar(cursor, 'X');
 		break;
 	case KEY_Y:
-		cursor->addChar('Y');
+		addChar(cursor, 'Y');
 		break;
 	case KEY_Z:
-		cursor->addChar('Z');
+		addChar(cursor, 'Z');
 		break;
 	case KEY_LCA:
-		cursor->addChar('a');
+		addChar(cursor, 'a');
 		break;
 	case KEY_LCB:
-		cursor->addChar('b');
+		addChar(cursor, 'b');
 		break;
 	case KEY_LCC:
-		cursor->addChar('c');
+		addChar(cursor, 'c');
 		break;
 	case KEY_LCD:
-		cursor->addChar('d');
+		addChar(cursor, 'd');
 		break;
 	case KEY_LCE:
-		cursor->addChar('e');
+		addChar(cursor, 'e');
 		break;
 	case KEY_LCF:
-		cursor->addChar('f');
+		addChar(cursor, 'f');
 		break;
 	case KEY_LCG:
-		cursor->addChar('g');
+		addChar(cursor, 'g');
 		break;
 	case KEY_LCH:
-		cursor->addChar('h');
+		addChar(cursor, 'h');
 		break;
 	case KEY_LCI:
-		cursor->addChar('i');
+		addChar(cursor, 'i');
 		break;
 	case KEY_LCJ:
-		cursor->addChar('j');
+		addChar(cursor, 'j');
 		break;
 	case KEY_LCK:
-		cursor->addChar('k');
+		addChar(cursor, 'k');
 		break;
 	case KEY_LCL:
-		cursor->addChar('l');
+		addChar(cursor, 'l');
 		break;
 	case KEY_LCM:
-		cursor->addChar('m');
+		addChar(cursor, 'm');
 		break;
 	case KEY_LCN:
-		cursor->addChar('n');
+		addChar(cursor, 'n');
 		break;
 	case KEY_LCO:
-		cursor->addChar('o');
+		addChar(cursor, 'o');
 		break;
 	case KEY_LCP:
-		cursor->addChar('p');
+		addChar(cursor, 'p');
 		break;
 	case KEY_LCQ:
-		cursor->addChar('q');
+		addChar(cursor, 'q');
 		break;
 	case KEY_LCR:
-		cursor->addChar('r');
+		addChar(cursor, 'r');
 		break;
 	case KEY_LCS:
-		cursor->addChar('s');
+		addChar(cursor, 's');
 		break;
 	case KEY_LCT:
-		cursor->addChar('t');
+		addChar(cursor, 't');
 		break;
 	case KEY_LCU:
-		cursor->addChar('u');
+		addChar(cursor, 'u');
 		break;
 	case KEY_LCV:
-		cursor->addChar('v');
+		addChar(cursor, 'v');
 		break;
 	case KEY_LCW:
-		cursor->addChar('w');
+		addChar(cursor, 'w');
 		break;
 	case KEY_LCX:
-		cursor->addChar('x');
+		addChar(cursor, 'x');
 		break;
 	case KEY_LCY:
-		cursor->addChar('y');
+		addChar(cursor, 'y');
 		break;
 	case KEY_LCZ:
-		cursor->addChar('z');
+		addChar(cursor, 'z');
 		break;
 	/* OTHER KEYS WITH NO SPECIAL HANDLING */
 	case KEY_0:
-		cursor->addChar('0');
+		addChar(cursor, '0');
 		break;
 	case KEY_1:
-		cursor->addChar('1');
+		addChar(cursor, '1');
 		break;
 	case KEY_2:
-		cursor->addChar('2');
+		addChar(cursor, '2');
 		break;
 	case KEY_3:
-		cursor->addChar('3');
+		addChar(cursor, '3');
 		break;
 	case KEY_4:
-		cursor->addChar('4');
+		addChar(cursor, '4');
 		break;
 	case KEY_5:
-		cursor->addChar('5');
+		addChar(cursor, '5');
 		break;
 	case KEY_6:
-		cursor->addChar('6');
+		addChar(cursor, '6');
 		break;
 	case KEY_7:
-		cursor->addChar('7');
+		addChar(cursor, '7');
 		break;
 	case KEY_8:
-		cursor->addChar('8');
+		addChar(cursor, '8');
 		break;
 	case KEY_9:
-		cursor->addChar('9');
+		addChar(cursor, '9');
 		break;
 	case KEY_SPACE:
-		cursor->addChar(' ');
+		addChar(cursor, ' ');
 		break;
 	case KEY_COMMA:
-		cursor->addChar(',');
+		addChar(cursor, ',');
 		break;
 	case KEY_DOT:
-		cursor->addChar('.');
+		addChar(cursor, '.');
 		break;
 	case KEY_PLUS:
-		cursor->addChar('+');
+		addChar(cursor, '+');
 		break;
 	case KEY_MINUS:
-		cursor->addChar('-');
+		addChar(cursor, '-');
 		break;
 	case KEY_MUL:
 		cursor->addChar(LCD_CHAR_MUL);
@@ -389,32 +391,32 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 	/* EXPRESSIONS */
 	case KEY_LBRACKET:
 	{
-		insertExprAtCursor(new neda::BracketExpr(createEmptyContainer()), cursor);
+		insertExprAtCursor(new neda::Bracket(createEmptyContainer()), cursor);
 		break;
 	}
 	case KEY_ROOT:
 	{
-		insertExprAtCursor(new neda::RadicalExpr(createEmptyContainer(), nullptr), cursor);
+		insertExprAtCursor(new neda::Radical(createEmptyContainer(), nullptr), cursor);
 		break;
 	}
 	case KEY_NTHROOT:
 	{
-		insertExprAtCursor(new neda::RadicalExpr(createEmptyContainer(), createEmptyContainer()), cursor);
+		insertExprAtCursor(new neda::Radical(createEmptyContainer(), createEmptyContainer()), cursor);
 		break;
 	}
 	case KEY_SUM:
 	{
-		insertExprAtCursor(new neda::SigmaPiExpr(lcd::CHAR_SUMMATION, createEmptyContainer(), createEmptyContainer(), createEmptyContainer()), cursor);
+		insertExprAtCursor(new neda::SigmaPi(lcd::CHAR_SUMMATION, createEmptyContainer(), createEmptyContainer(), createEmptyContainer()), cursor);
 		break;
 	}
 	case KEY_PRODUCT:
 	{
-		insertExprAtCursor(new neda::SigmaPiExpr(lcd::CHAR_PRODUCT, createEmptyContainer(), createEmptyContainer(), createEmptyContainer()), cursor);
+		insertExprAtCursor(new neda::SigmaPi(lcd::CHAR_PRODUCT, createEmptyContainer(), createEmptyContainer(), createEmptyContainer()), cursor);
 		break;
 	}
 	case KEY_FRAC:
 	{
-		insertExprAtCursor(new neda::FractionExpr(createEmptyContainer(), createEmptyContainer()), cursor);
+		insertExprAtCursor(new neda::Fraction(createEmptyContainer(), createEmptyContainer()), cursor);
 		break;
 	}
 	case KEY_SQUARE:
@@ -422,24 +424,24 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 	case KEY_EXPONENT:
 	{
 		if(cursor->index == 0) {
-			insertExprAtCursor(new neda::ExponentExpr(createEmptyContainer(), createEmptyContainer(key == KEY_SQUARE ? "2" : (key == KEY_CUBE ? "3" : ""))), cursor);
+			insertExprAtCursor(new neda::Exponent(createEmptyContainer(), createEmptyContainer(key == KEY_SQUARE ? "2" : (key == KEY_CUBE ? "3" : ""))), cursor);
 			break;
 		}
 		//Split the original expression into 2 parts
-		neda::StringExpr *first = cursor->expr->beforeCursor(*cursor);
-		neda::StringExpr *second = cursor->expr->afterCursor(*cursor);
-		//The parent of a StringExpr must always be a ContainerExpr
+		neda::String *first = cursor->expr->beforeCursor(*cursor);
+		neda::String *second = cursor->expr->afterCursor(*cursor);
+		//The parent of a String must always be a Container
 		//If not, then, well, someone's getting fired.
-		neda::ContainerExpr *container = (neda::ContainerExpr*) cursor->expr->parent;
+		neda::Container *container = (neda::Container*) cursor->expr->parent;
 		uint16_t index = container->indexOf(cursor->expr);
 		//Insert the expressions back in
 		neda::Expr *temp = createEmptyContainer(key == KEY_SQUARE ? "2" : (key == KEY_CUBE ? "3" : ""));
-		neda::ExponentExpr *expr = new neda::ExponentExpr(first, temp);
+		neda::Exponent *expr = new neda::Exponent(first, temp);
 		container->replaceExpr(index ++, expr);
 		container->addAt(index ++, second);
 		//SUPER IMPORTANT: DELETE ORIGINAL STRING!!!
 		//Keep a copy of original so we can get the new cursor before deleting the old one (so that interrupts don't cause errors)
-		neda::StringExpr *original = cursor->expr;
+		neda::String *original = cursor->expr;
 		temp->getCursor(*cursor, neda::CURSORLOCATION_START);
 		delete original;
 		//Use draw to figure out the approx location of the new cursor so adjustExpr won't mess up the display
@@ -455,7 +457,7 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 			break;
 		}
 		//If there are no more characters to delete:
-		neda::ContainerExpr *container = (neda::ContainerExpr*) cursor->expr->parent;
+		neda::Container *container = (neda::Container*) cursor->expr->parent;
 		uint16_t index = container->indexOf(cursor->expr);
 		auto contents = container->getContents();
 		//If there is an expr in front of the cursor and that expression is not an empty string
@@ -464,12 +466,12 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 			neda::Expr *ex = (*contents)[index - 1];
 			container->removeExpr(index - 1);
 			delete ex;
-			//If there's a StringExpr in front of what we just deleted, then merge them
-			neda::StringExpr *frontStr = ((neda::StringExpr*) (*contents)[index - 2]);
+			//If there's a String in front of what we just deleted, then merge them
+			neda::String *frontStr = ((neda::String*) (*contents)[index - 2]);
 			if(index >= 2 && frontStr->getType() == neda::ExprType::STRING) {
 				frontStr->merge(cursor->expr);
 				//Keep temp. copy of original expr
-				neda::StringExpr *temp = cursor->expr;
+				neda::String *temp = cursor->expr;
 				//Remove original
 				//Subtract 1 from the index because of the expression previously removed
 				container->removeExpr(index - 1);
@@ -480,13 +482,13 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 				delete temp;
 			}
 		}
-		//Otherwise either there's no more stuff to delete or there's only an empty StringExpr in front
+		//Otherwise either there's no more stuff to delete or there's only an empty String in front
 		//Confirm that the cursor is not in the top-level expression
-		//So see if the cursor's StringExpr has a great-grandparent
-		//(StringExpr->ContainerExpr->(Some Other Expr)->ContainerExpr)
+		//So see if the cursor's String has a great-grandparent
+		//(String->Container->(Some Other Expr)->Container)
 		else if(cursor->expr->parent->parent && cursor->expr->parent->parent->parent) {
-			//First, to avoid errors, put the cursor in the StringExpr before (there should always be one)
-			neda::ContainerExpr *container = (neda::ContainerExpr*) cursor->expr->parent->parent->parent;
+			//First, to avoid errors, put the cursor in the String before (there should always be one)
+			neda::Container *container = (neda::Container*) cursor->expr->parent->parent->parent;
 			neda::Expr *exprToRemove = cursor->expr->parent->parent;
 			uint16_t index = container->indexOf(exprToRemove);
 			auto contents = container->getContents();
@@ -495,12 +497,12 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 			//Remove and delete the expression
 			container->removeExpr(index);
 			delete exprToRemove;
-			//Merge if there are two StringExprs sandwiching it
+			//Merge if there are two Strings sandwiching it
 			//Since the expression is already removed, no need to +1
 			neda::Expr *backExpr = (*contents)[index];
 			if(frontExpr->getType() == neda::ExprType::STRING && backExpr->getType() == neda::ExprType::STRING) {
 				//Merge
-				((neda::StringExpr*) frontExpr)->merge((neda::StringExpr*) backExpr);
+				((neda::String*) frontExpr)->merge((neda::String*) backExpr);
 				//Remove
 				container->removeExpr(index);
 				//Delete
@@ -512,10 +514,10 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 	case KEY_ALLCLEAR:
 	{
 		//Keep pointer of original
-		neda::Expr *original = cursor->expr->getTopLevelExpr();
+		neda::Expr *original = cursor->expr->getTopLevel();
 		//Create new expression and change cursor location
-		neda::ContainerExpr *container = new neda::ContainerExpr;
-		neda::StringExpr *str = new neda::StringExpr;
+		neda::Container *container = new neda::Container;
+		neda::String *str = new neda::String;
 		container->addExpr(str);
 		str->getCursor(*cursor, neda::CURSORLOCATION_START);
 		//Make sure the cursor's location is updated
@@ -529,7 +531,7 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 	}
 	
 	display.clearDrawingBuffer();
-	adjustExpr(cursor->expr->getTopLevelExpr(), cursor);
+	adjustExpr(cursor->expr->getTopLevel(), cursor);
 	cursor->expr->drawConnected(display);
 	cursor->draw(display);
 	display.updateDrawing();
@@ -581,8 +583,8 @@ int main() {
 	cursor = new neda::Cursor;
 	
 	//Set up basic expression
-	neda::ContainerExpr *master = new neda::ContainerExpr;
-	master->addExpr(new neda::StringExpr());
+	neda::Container *master = new neda::Container;
+	master->addExpr(new neda::String());
 	
 	master->getCursor(*cursor, neda::CURSORLOCATION_START);
 	adjustExpr(master, cursor);
