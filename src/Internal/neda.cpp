@@ -212,9 +212,7 @@ namespace neda {
     }
 	void Container::computeWidth() {
 		//An empty Container has a default width and height
-        //A Container with only an empty String inside also has a default width and height
-		if(contents.length() == 0
-                || (contents.length() == 1 && String::isEmptyString(contents[0]))) {
+		if(contents.length() == 0) {
 			exprWidth = EMPTY_EXPR_WIDTH;
             SAFE_EXEC(parent, computeWidth);
             return;
@@ -230,8 +228,7 @@ namespace neda {
         SAFE_EXEC(parent, computeWidth);
 	}
 	void Container::computeHeight() {
-		if(contents.length() == 0
-                || (contents.length() == 1 && String::isEmptyString(contents[0]))) {
+		if(contents.length() == 0) {
 			exprHeight = EMPTY_EXPR_HEIGHT;
             SAFE_EXEC(parent, computeHeight);
 			return;
@@ -262,8 +259,7 @@ namespace neda {
         this->y = y;
         VERIFY_INBOUNDS(x, y);
 
-        if(contents.length() == 0
-            || (contents.length() == 1 && String::isEmptyString(contents[0]))) {
+        if(contents.length() == 0) {
             //Empty container shows up as a box
             for(uint16_t w = 0; w < exprWidth; w ++) {
                 dest.setPixel(x + w, y, true);
