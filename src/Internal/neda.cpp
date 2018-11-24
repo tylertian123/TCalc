@@ -369,43 +369,20 @@ namespace neda {
         }
     }
     void Container::left(Expr *ex, Cursor &cursor) {
-        //First check if the cursor is already in the leftmost element
-        if(contents.length() > 0 && ex == contents[0]) {
+        if(cursor.index == 0) {
             SAFE_EXEC(parent, left, this, cursor);
         }
-        else {
-            //Compare ex to all elements
-            for(uint16_t i = 1; i < contents.length(); i ++) {
-                if(contents[i] == ex) {
-                    //Move the cursor to the end of the element before
-                    contents[i - 1]->getCursor(cursor, CURSORLOCATION_END);
-                }
-            }
-        }
+        contents[cursor.index - 1]->getCursor(cursor, CURSORLOCATION_END);
     }
     void Container::right(Expr *ex, Cursor &cursor) {
-        if(contents.length() > 0 && ex == contents[contents.length() - 1]) {
+        if(cursor.index == contents.length()) {
             SAFE_EXEC(parent, right, this, cursor);
-            return;
         }
-        else {
-            for(uint16_t i = 0; i < contents.length() - 1; i ++) {
-                if(contents[i] == ex) {
-                    contents[i + 1]->getCursor(cursor, CURSORLOCATION_START);
-                }
-            }
-        }
+        contents[cursor.index]->getCursor(cursor, CURSORLOCATION_START);
     }
     void Container::getCursor(Cursor &cursor, CursorLocation location) {
-        if(contents.length() == 0) {
-            return;
-        }
-        if(location == CURSORLOCATION_START) {
-            contents[0]->getCursor(cursor, location);
-        }
-        else {
-            contents[contents.length() - 1]->getCursor(cursor, location);
-        }
+        cursor.expr = this;
+        cursor.index = location == CURSORLOCATION_START ? 0 : contents.length();
     }
     void Container::getCursorInfo(const Cursor &cursor, CursorInfo &out) {
         int16_t cursorX = x;
