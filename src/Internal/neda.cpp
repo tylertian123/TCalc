@@ -222,16 +222,11 @@ namespace neda {
 		
 		//Add up all the Expressions's widths
 		exprWidth = 0;
-        uint16_t spacingCount = 0;
         for(auto it = contents.begin(); it != contents.end(); it ++) {
             Expr *ex = *it;
             exprWidth += SAFE_ACCESS_0(ex, exprWidth);
-            //For every expression that isn't an empty string, add 1 to the spacing count
-            if(!String::isEmptyString(ex)) {
-                spacingCount ++;
-            }
         }
-        exprWidth += max(0, (spacingCount - 1) * 3);
+        exprWidth += max(0, (contents.length() - 1) * 3);
         SAFE_EXEC(parent, computeWidth);
 	}
 	void Container::computeHeight() {
@@ -300,17 +295,7 @@ namespace neda {
             //no top padding. But when drawing the 3, the difference between its top spacing and the max creates a top padding.
             ex->draw(dest, x, y + (maxTopSpacing - ex->getTopSpacing()));
             //Increase x so nothing overlaps
-            x += ex->exprWidth;
-            //Add 3 for a gap between different expressions
-            //Except when this is the last expression, or when the expression is an empty String, or when the expression after it 
-            //is an empty String
-            if(it + 1 != contents.end() && !String::isEmptyString(ex) && !String::isEmptyString(*(it + 1))) {
-                x += 3;
-            }
-            //Special case: if the expression is an empty string sandwitched between two non-empty-strings, add the 3 as well
-            else if(it - 1 >= contents.begin() && it + 1 != contents.end() && !String::isEmptyString(*(it - 1)) && !String::isEmptyString(*(it + 1))) {
-                x += 3;
-            }
+            x += ex->exprWidth + 3;
         }
     }
     void Container::recomputeHeights() {
