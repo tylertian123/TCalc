@@ -173,6 +173,7 @@ namespace neda {
 
         static const uint16_t EMPTY_EXPR_WIDTH = 5;
         static const uint16_t EMPTY_EXPR_HEIGHT = 9;
+        static const uint16_t EXPR_SPACING = 3;
 		
 		void addExpr(Expr*);
         void removeExpr(uint16_t);

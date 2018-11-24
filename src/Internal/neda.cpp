@@ -226,7 +226,7 @@ namespace neda {
             Expr *ex = *it;
             exprWidth += SAFE_ACCESS_0(ex, exprWidth);
         }
-        exprWidth += max(0, (contents.length() - 1) * 3);
+        exprWidth += max(0, (contents.length() - 1) * EXPR_SPACING);
         SAFE_EXEC(parent, computeWidth);
 	}
 	void Container::computeHeight() {
@@ -295,7 +295,7 @@ namespace neda {
             //no top padding. But when drawing the 3, the difference between its top spacing and the max creates a top padding.
             ex->draw(dest, x, y + (maxTopSpacing - ex->getTopSpacing()));
             //Increase x so nothing overlaps
-            x += ex->exprWidth + 3;
+            x += ex->exprWidth + EXPR_SPACING;
         }
     }
     void Container::recomputeHeights() {
@@ -373,7 +373,7 @@ namespace neda {
         int16_t cursorX = x;
         uint16_t i = 0;
         for(auto it = contents.begin(); it != contents.end() && i < cursor.index; ++it, ++i) {
-            cursorX += (*it)->exprWidth + 3;
+            cursorX += (*it)->exprWidth + EXPR_SPACING;
         }
         out.x = cursorX;
         out.y = y;
