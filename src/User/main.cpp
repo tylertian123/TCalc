@@ -382,10 +382,10 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 		addChar(cursor, '-');
 		break;
 	case KEY_MUL:
-		cursor->addChar(LCD_CHAR_MUL);
+        addChar(cursor, LCD_CHAR_MUL);
 		break;
 	case KEY_DIV:
-		cursor->addChar(LCD_CHAR_DIV);
+        addChar(cursor, LCD_CHAR_DIV);
 		break;
 	
 	/* EXPRESSIONS */

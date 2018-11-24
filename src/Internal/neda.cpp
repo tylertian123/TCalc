@@ -350,16 +350,44 @@ namespace neda {
         }
     }
     void Container::left(Expr *ex, Cursor &cursor) {
-        if(cursor.index == 0) {
-            SAFE_EXEC(parent, left, this, cursor);
+        //Check if the cursor is already in this expr
+        if(!ex || cursor.expr == this) {
+            if(cursor.index == 0) {
+                SAFE_EXEC(parent, left, this, cursor);
+            }
+            contents[cursor.index - 1]->getCursor(cursor, CURSORLOCATION_END);
         }
-        contents[cursor.index - 1]->getCursor(cursor, CURSORLOCATION_END);
+        //Otherwise bring the cursor into this expr
+        else {
+            for(uint16_t i = 0; i < contents.length(); i ++) {
+                //Find the expr the request came from
+                if(contents[i] == ex) {
+                    //Set the expr the cursor is in
+                    cursor.expr = this;
+                    //Set the index
+                    cursor.index = i;
+                    break;
+                }
+            }
+        }
+        
     }
     void Container::right(Expr *ex, Cursor &cursor) {
-        if(cursor.index == contents.length()) {
-            SAFE_EXEC(parent, right, this, cursor);
+        if(!ex || cursor.expr == this) {
+            if(cursor.index == contents.length()) {
+                SAFE_EXEC(parent, right, this, cursor);
+            }
+            contents[cursor.index]->getCursor(cursor, CURSORLOCATION_START);
         }
-        contents[cursor.index]->getCursor(cursor, CURSORLOCATION_START);
+        else {
+            for(uint16_t i = 0; i < contents.length(); i ++) {
+                if(contents[i] == ex) {
+                    cursor.expr = this;
+                    cursor.index = i + 1;
+                    break;
+                }
+            }
+        }
     }
     void Container::getCursor(Cursor &cursor, CursorLocation location) {
         cursor.expr = this;
@@ -1001,6 +1029,24 @@ namespace neda {
         SAFE_EXEC(contents, updatePosition, dx, dy);
         SAFE_EXEC(start, updatePosition, dx, dy);
         SAFE_EXEC(finish, updatePosition, dx, dy);
+    }
+
+    //*************************** Cursor ***************************************
+    void Cursor::draw(lcd::LCD12864 &dest) {
+        if(expr->getType() == ExprType::STRING) {
+            ((String*) expr)->drawCursor(dest, *this);
+        }
+        else if(expr->getType() == ExprType::CONTAINER) {
+            ((Container*) expr)->drawCursor(dest, *this);
+        }
+    }
+    void Cursor::getInfo(CursorInfo &info) {
+        if(expr->getType() == ExprType::STRING) {
+            ((String*) expr)->getCursorInfo(*this, info);
+        }
+        else if(expr->getType() == ExprType::CONTAINER) {
+            ((Container*) expr)->getCursorInfo(*this, info);
+        }
     }
 }
 

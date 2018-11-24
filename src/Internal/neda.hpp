@@ -17,7 +17,7 @@
  */
 namespace neda {
 
-    struct Cursor;
+    class Cursor;
     //Note: CursorInfo is the specific position of the cursor on the display, with x and y coordinates
     //CursorLocation can either be START or END and is used to get a cursor at the start or end of the expr.
     struct CursorInfo;
@@ -465,38 +465,17 @@ namespace neda {
      * This struct represents the location of the cursor. 
      * Cursors can only be in ContainerExprs and StringExprs.
      */
-    struct Cursor {
+    class Cursor {
+    public:
         Expr *expr;
         uint16_t index;
 
-        void draw(lcd::LCD12864& dest) {
-            if(expr->getType() == ExprType::STRING) {
-                ((String*) expr)->drawCursor(dest, *this);
-            }
-            else if(expr->getType() == ExprType::CONTAINER) {
-                ((Container*) expr)->drawCursor(dest, *this);
-            }
-        }
-        void left() {
-            expr->left(nullptr, *this);
-        }
-        void right() {
-            expr->right(nullptr, *this);
-        }
-        void up() {
-            expr->up(nullptr, *this);
-        }
-        void down() {
-            expr->down(nullptr, *this);
-        }
-        void getInfo(CursorInfo &info) {
-            if(expr->getType() == ExprType::STRING) {
-                ((String*) expr)->getCursorInfo(*this, info);
-            }
-            else if(expr->getType() == ExprType::CONTAINER) {
-                ((Container*) expr)->getCursorInfo(*this, info);
-            }
-        }
+        void draw(lcd::LCD12864& dest);
+        void left();
+        void right();
+        void up();
+        void down();
+        void getInfo(CursorInfo &info);
     };
 }
 
