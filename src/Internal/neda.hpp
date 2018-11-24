@@ -470,14 +470,12 @@ namespace neda {
         uint16_t index;
 
         void draw(lcd::LCD12864& dest) {
-
-            expr->drawCursor(dest, *this);
-        }
-        void addChar(char ch) {
-            expr->addAtCursor(ch, *this);
-        }
-        void removeChar() {
-            expr->removeAtCursor(*this);
+            if(expr->getType() == ExprType::STRING) {
+                ((String*) expr)->drawCursor(dest, *this);
+            }
+            else if(expr->getType() == ExprType::CONTAINER) {
+                ((Container*) expr)->drawCursor(dest, *this);
+            }
         }
         void left() {
             expr->left(nullptr, *this);
@@ -492,7 +490,12 @@ namespace neda {
             expr->down(nullptr, *this);
         }
         void getInfo(CursorInfo &info) {
-            expr->getCursorInfo(*this, info);
+            if(expr->getType() == ExprType::STRING) {
+                ((String*) expr)->getCursorInfo(*this, info);
+            }
+            else if(expr->getType() == ExprType::CONTAINER) {
+                ((Container*) expr)->getCursorInfo(*this, info);
+            }
         }
     };
 }
