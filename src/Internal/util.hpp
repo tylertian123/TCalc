@@ -4,9 +4,9 @@
 //Execute method on obj with arguments if obj is not null
 #define SAFE_EXEC(obj, method, ...) if(obj) (obj)->method(__VA_ARGS__)
 //Execute method on obj with arguments and return the result if obj is not null, otherwise results in 0
-#define SAFE_EXEC_0(obj, method, ...) ((obj) ? (obj->method(__VA_ARGS__)) : 0)
+#define SAFE_EXEC_0(obj, method, ...) ((obj) ? ((obj)->method(__VA_ARGS__)) : 0)
 //Access field of obj if obj is not null, otherwise results in 0
-#define SAFE_ACCESS_0(obj, field) ((obj) ? (obj->field) : 0)
+#define SAFE_ACCESS_0(obj, field) ((obj) ? ((obj)->field) : 0)
 
 template <typename T>
 inline const T& max(const T &a, const T &b) {

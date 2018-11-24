@@ -136,16 +136,11 @@ namespace neda {
 		computeHeight();
     }
     void String::drawCursor(lcd::LCD12864 &dest, const Cursor &cursor) {
-        int16_t cursorX = x;
-        for(uint16_t i = 0; i < cursor.index && i < contents->length(); i ++) {
-            cursorX += lcd::getChar((*contents)[i]).width;
-        }
-        if(cursor.index != 0) {
-            cursorX += cursor.index - 1;
-        }
+        CursorInfo info;
+        getCursorInfo(cursor, info);
         for(int16_t i = 0; i < exprHeight; i ++) {
-            dest.setPixel(cursorX, y + i, true);
-            dest.setPixel(cursorX + 1, y + i, true);
+            dest.setPixel(info.x, y + i, true);
+            dest.setPixel(info.x + 1, y + i, true);
         }
     }
     String* String::beforeCursor(const Cursor &cursor) {
@@ -368,7 +363,6 @@ namespace neda {
     DynamicArray<Expr*>* Container::getContents() {
         return &contents;
     }
-
     Container::~Container() {
         for(Expr *ex : contents) {
             DESTROY_IF_NONNULL(ex);
@@ -412,6 +406,40 @@ namespace neda {
         else {
             contents[contents.length() - 1]->getCursor(cursor, location);
         }
+    }
+    void Container::getCursorInfo(const Cursor &cursor, CursorInfo &out) {
+        int16_t cursorX = x;
+        uint16_t i = 0;
+        for(auto it = contents.begin(); it != contents.end() && i < cursor.index; ++it, ++i) {
+            cursorX += (*it)->exprWidth + 3;
+        }
+        out.x = cursorX;
+        out.y = y;
+        out.width = 2;
+        out.height = exprHeight;
+    }
+    void Container::drawCursor(lcd::LCD12864 &dest, const Cursor &cursor) {
+        CursorInfo info;
+        getCursorInfo(cursor, info);
+        for(uint16_t i = 0; i < info.height; i ++) {
+            dest.setPixel(info.x, info.y + i, true);
+            dest.setPixel(info.x + 1, info.y + i, true);
+        }
+    }
+    void Container::addAtCursor(Expr *expr, Cursor &cursor) {
+        contents.insert(expr, cursor.index);
+        ++cursor.index;
+        recomputeHeights();
+        computeWidth();
+        computeHeight();
+    }
+    void Container::removeAtCursor(Cursor &cursor) {
+        if(cursor.index != 0) {
+            contents.removeAt(--cursor.index);
+        }
+        recomputeHeights();
+        computeWidth();
+        computeHeight();
     }
     void Container::updatePosition(int16_t dx, int16_t dy) {
         this->x += dx;
