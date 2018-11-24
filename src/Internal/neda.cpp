@@ -1048,6 +1048,18 @@ namespace neda {
             ((Container*) expr)->getCursorInfo(*this, info);
         }
     }
+    void Cursor::left() {
+        expr->left(nullptr, *this);
+    }
+    void Cursor::right() {
+        expr->right(nullptr, *this);
+    }
+    void Cursor::up() {
+        expr->up(nullptr, *this);
+    }
+    void Cursor::down() {
+        expr->down(nullptr, *this);
+    }
 }
 
 #undef VERIFY_INBOUNDS
