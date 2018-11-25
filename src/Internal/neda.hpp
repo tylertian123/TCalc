@@ -116,64 +116,6 @@ namespace neda {
 	};
 	
 	/*
-     * The String is a bottom-level expression that is simply a string, and in this case, implemented with a DynamicArray<char>.
-     * Being so basic, String does not have any children; its contents are simply a string and nothing else.
-     */
-	class String : public Expr {
-	public:
-		//Constructor from string, copy constructor and default constructor
-		String(const char *contents) : contents(new DynamicArray<char>(contents, strlen(contents))) {
-			computeWidth();
-			computeHeight();
-		}
-		String(const String &other) : contents(other.contents) {
-			computeWidth();
-			computeHeight();
-		}
-        String(DynamicArray<char> *contents) : contents(contents) {
-            computeWidth();
-            computeHeight();
-        }
-		String() : contents(new DynamicArray<char>()) {
-			computeWidth();
-			computeHeight();
-		}
-		
-		void addChar(char);
-        uint16_t length();
-
-        void addAtCursor(char, Cursor&);
-        void removeAtCursor(Cursor&);
-        void drawCursor(lcd::LCD12864&, const Cursor&);
-        void getCursorInfo(const Cursor&, CursorInfo&);
-        String* beforeCursor(const Cursor&);
-        String* afterCursor(const Cursor&);
-        void merge(const String*);
-		
-		virtual void computeWidth() override;
-		virtual void computeHeight() override;
-        virtual uint16_t getTopSpacing() override;
-		virtual void draw(lcd::LCD12864&, int16_t, int16_t) override;
-		
-		virtual ~String() override;
-
-        virtual void left(Expr*, Cursor&) override;
-        virtual void right(Expr*, Cursor&) override;
-        virtual void getCursor(Cursor&, CursorLocation) override;
-
-        virtual ObjType getType() override {
-            return ObjType::STRING;
-        }
-
-        virtual void updatePosition(int16_t, int16_t) override;
-
-        static bool isEmptyString(Expr*);
-	
-	protected:
-		DynamicArray<char> *contents;
-	};
-	
-	/*
      * The Container is an expression that serves as a container for a bunch of other expressions.
      * Containers have special logic in their drawing code that make sure everything lines up using the top spacing.
      */
