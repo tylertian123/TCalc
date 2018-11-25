@@ -452,7 +452,7 @@ namespace neda {
         void getInfo(CursorInfo &info);
         void add(NEDAObj*);
 
-        ObjType getType() override {
+        virtual ObjType getType() override {
             return ObjType::CURSOR_TYPE;
         }
     };

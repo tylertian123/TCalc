@@ -413,7 +413,7 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 	}
 	case KEY_PRODUCT:
 	{
-        neda::SigmaPi *product = new neda::SigmaPi(lcd::CHAR_PRODUCT, new neda::Container(), new neda::Container(), new neda::Container);		break;
+        neda::SigmaPi *product = new neda::SigmaPi(lcd::CHAR_PRODUCT, new neda::Container(), new neda::Container(), new neda::Container);
         cursor->add(product);
         product->getCursor(*cursor, neda::CURSORLOCATION_START);
         break;
@@ -465,9 +465,7 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 		neda::Expr *original = cursor->expr->getTopLevel();
 		//Create new expression and change cursor location
 		neda::Container *container = new neda::Container;
-		neda::String *str = new neda::String;
-		container->addExpr(str);
-		str->getCursor(*cursor, neda::CURSORLOCATION_START);
+		container->getCursor(*cursor, neda::CURSORLOCATION_START);
 		//Make sure the cursor's location is updated
 		container->draw(display, 0, 0);
 		//Delete old
@@ -531,9 +529,7 @@ int main() {
 	cursor = new neda::Cursor;
 
 	//Set up basic expression
-	neda::Container *master = new neda::Container;
-	master->addExpr(new neda::String());
-
+	neda::Container *master = new neda::Container();
 	master->getCursor(*cursor, neda::CURSORLOCATION_START);
 	adjustExpr(master, cursor);
 	master->Expr::draw(display);
