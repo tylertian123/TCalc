@@ -55,7 +55,7 @@ namespace neda {
     class Character : public NEDAObj {
     public:
         Character(const char ch) : ch(ch) {}
-        
+
         virtual ObjType getType() override {
             return ObjType::CHAR_TYPE;
         }
@@ -205,13 +205,12 @@ namespace neda {
 
         static const uint16_t EMPTY_EXPR_WIDTH = 5;
         static const uint16_t EMPTY_EXPR_HEIGHT = 9;
-        static const uint16_t EXPR_SPACING = 3;
+        static const uint16_t EXPR_SPACING = 1;
 		
-		void addExpr(Expr*);
-        void removeExpr(uint16_t);
-        void replaceExpr(uint16_t, Expr*);
-        void addAt(uint16_t, Expr*);
-        uint16_t indexOf(Expr*);
+		void add(NEDAObj*);
+        void remove(uint16_t);
+        void addAt(uint16_t, NEDAObj*);
+        uint16_t indexOf(NEDAObj*);
         DynamicArray<NEDAObj*>* getContents();
 			
         virtual uint16_t getTopSpacing() override;
@@ -226,7 +225,7 @@ namespace neda {
         virtual void getCursor(Cursor&, CursorLocation) override;
 
         void drawCursor(lcd::LCD12864&, const Cursor&);
-        void addAtCursor(Expr*, Cursor&);
+        void addAtCursor(NEDAObj*, Cursor&);
         void removeAtCursor(Cursor&);
         void getCursorInfo(const Cursor&, CursorInfo&);
 

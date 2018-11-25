@@ -215,9 +215,14 @@ namespace neda {
     uint16_t Container::getTopSpacing() {
         uint16_t maxTopSpacing = 0;
         //Take the max of all the top spacings
-        for(Expr *ex : contents) {
-            uint16_t ts = SAFE_EXEC_0(ex, getTopSpacing);
-            maxTopSpacing = max(ts, maxTopSpacing);
+        for(NEDAObj *ex : contents) {
+            if(ex->getType() == ObjType::CHAR_TYPE) {
+                maxTopSpacing = max(static_cast<uint16_t>(((Character*) ex)->getHeight() / 2), maxTopSpacing);
+            }
+            else {
+                uint16_t ts = SAFE_EXEC_0((Expr*) ex, getTopSpacing);
+                maxTopSpacing = max(ts, maxTopSpacing);
+            }
         }
         return maxTopSpacing;
     }
@@ -232,8 +237,13 @@ namespace neda {
 		//Add up all the Expressions's widths
 		exprWidth = 0;
         for(auto it = contents.begin(); it != contents.end(); it ++) {
-            Expr *ex = *it;
-            exprWidth += SAFE_ACCESS_0(ex, exprWidth);
+            NEDAObj *ex = *it;
+            if(ex->getType() == ObjType::CHAR_TYPE) {
+                exprWidth += ((Character*) ex)->getWidth();
+            }
+            else {
+                exprWidth += SAFE_ACCESS_0((Expr*) ex, exprWidth);
+            }
         }
         exprWidth += max(0, (contents.length() - 1) * EXPR_SPACING);
         SAFE_EXEC(parent, computeWidth);
@@ -253,13 +263,15 @@ namespace neda {
 		
         //Now with the max top spacing we can compute the heights and see what the max is
         uint16_t maxHeight = 0;
-        for(Expr *ex : contents) {
+        for(NEDAObj *ex : contents) {
             //To calculate the height of any expression in this container, we essentially "replace" the top spacing with the max top
             //spacing, so that there is now a padding on the top. This is done in the expression below.
             //When that expression's top spacing is the max top spacing, the expression will be touching the top of the container.
             //Therefore, its height is just the height. In other cases, it will be increased by the difference between the max top
             //spacing and the top spacing.
-            uint16_t height = (SAFE_ACCESS_0(ex, exprHeight) - SAFE_EXEC_0(ex, getTopSpacing)) + maxTopSpacing;
+            uint16_t height = ex->getType() == ObjType::CHAR_TYPE ? 
+                    ((Character*) ex)->getHeight() - ((Character*) ex)->getHeight() / 2 + maxTopSpacing
+                    : (SAFE_ACCESS_0((Expr*) ex, exprHeight) - SAFE_EXEC_0((Expr*) ex, getTopSpacing)) + maxTopSpacing;
             maxHeight = max(height, maxHeight);
         }
         exprHeight = maxHeight;
@@ -280,10 +292,6 @@ namespace neda {
                 dest.setPixel(x, y + h, true);
                 dest.setPixel(x + exprWidth - 1, y + h, true);
             }
-            //Special handling for empty String: the x and y still have to be set
-            if(contents.length() == 1) {
-                contents[0]->draw(dest, x, y);
-            }
             return;
         }
 
@@ -291,7 +299,7 @@ namespace neda {
         uint16_t maxTopSpacing = getTopSpacing();
 
         for(auto it = contents.begin(); it != contents.end(); it ++) {
-            Expr *ex = *it;
+            NEDAObj *ex = *it;
             //Skip the expression if it's null
             if(!ex) {
                 continue;
@@ -300,28 +308,38 @@ namespace neda {
             //E.g. A tall expression like 1^2 would have a higher top spacing than 3, so the max top spacing would be its top spacing;
             //So when drawing the 1^2, there is no difference between the max top spacing and the top spacing, and therefore it has
             //no top padding. But when drawing the 3, the difference between its top spacing and the max creates a top padding.
-            ex->draw(dest, x, y + (maxTopSpacing - ex->getTopSpacing()));
-            //Increase x so nothing overlaps
-            x += ex->exprWidth + EXPR_SPACING;
-        }
-    }
-    void Container::recomputeHeights() {
-        for(Expr *ex : contents) {
-            if(ex->getType() == ObjType::L_BRACKET || ex->getType() == ObjType::R_BRACKET || ex->getType() == ObjType::SUPERSCRIPT
-                    || ex->getType() == ObjType::SUBSCRIPT) {
-                ex->computeHeight();
+            if(ex->getType() == ObjType::CHAR_TYPE) {
+                Character *ch = (Character*) ex;
+                ch->draw(dest, x, y + (maxTopSpacing - ch->getHeight() / 2));
+                x += ch->getWidth() + EXPR_SPACING;
+            }
+            else {
+                Expr *expr = (Expr*) ex;
+                expr->draw(dest, x, y + (maxTopSpacing - expr->getTopSpacing()));
+                //Increase x so nothing overlaps
+                x += expr->exprWidth + EXPR_SPACING;
             }
         }
     }
-    void Container::addExpr(Expr *expr) {
-        expr->parent = this;
+    void Container::recomputeHeights() {
+        for(NEDAObj *ex : contents) {
+            if(ex->getType() == ObjType::L_BRACKET || ex->getType() == ObjType::R_BRACKET || ex->getType() == ObjType::SUPERSCRIPT
+                    || ex->getType() == ObjType::SUBSCRIPT) {
+                ((Expr*) ex)->computeHeight();
+            }
+        }
+    }
+    void Container::add(NEDAObj *expr) {
+        if(expr->getType() != ObjType::CHAR_TYPE) {
+            ((Expr*) expr)->parent = this;
+        }
         contents.add(expr);
 
         recomputeHeights();
         computeWidth();
         computeHeight();
     }
-    uint16_t Container::indexOf(Expr *expr) {
+    uint16_t Container::indexOf(NEDAObj *expr) {
         for(uint16_t i = 0; i < contents.length(); i ++) {
             if(contents[i] == expr) {
                 return i;
@@ -329,75 +347,45 @@ namespace neda {
         }
         return 0xFFFF;
     }
-    void Container::removeExpr(uint16_t index) {
+    void Container::remove(uint16_t index) {
         contents.removeAt(index);
 
         recomputeHeights();
         computeWidth();
         computeHeight();
     }
-    void Container::replaceExpr(uint16_t index, Expr *replacement) {
-        contents[index] = replacement;
-        replacement->parent = this;
-
-        recomputeHeights();
-        computeWidth();
-        computeHeight();
-    }
-    void Container::addAt(uint16_t index, Expr *exprToAdd) {
+    void Container::addAt(uint16_t index, NEDAObj *exprToAdd) {
         contents.insert(exprToAdd, index);
-        exprToAdd->parent = this;
+        if(exprToAdd->getType() != ObjType::CHAR_TYPE) {
+            ((Expr*) exprToAdd)->parent = this;
+        }
 
         recomputeHeights();
         computeWidth();
         computeHeight();
     }
-    DynamicArray<Expr*>* Container::getContents() {
+    DynamicArray<NEDAObj*>* Container::getContents() {
         return &contents;
     }
     Container::~Container() {
-        for(Expr *ex : contents) {
+        for(NEDAObj *ex : contents) {
             DESTROY_IF_NONNULL(ex);
         }
     }
     void Container::left(Expr *ex, Cursor &cursor) {
-        //Check if the cursor is already in this expr
-        if(!ex || cursor.expr == this) {
-            if(cursor.index == 0) {
-                SAFE_EXEC(parent, left, this, cursor);
-            }
-            contents[cursor.index - 1]->getCursor(cursor, CURSORLOCATION_END);
+        if(cursor.index == 0) {
+            SAFE_EXEC(parent, left, this, cursor);
         }
-        //Otherwise bring the cursor into this expr
         else {
-            for(uint16_t i = 0; i < contents.length(); i ++) {
-                //Find the expr the request came from
-                if(contents[i] == ex) {
-                    //Set the expr the cursor is in
-                    cursor.expr = this;
-                    //Set the index
-                    cursor.index = i;
-                    break;
-                }
-            }
+            --cursor.index;
         }
-        
     }
     void Container::right(Expr *ex, Cursor &cursor) {
-        if(!ex || cursor.expr == this) {
-            if(cursor.index == contents.length()) {
-                SAFE_EXEC(parent, right, this, cursor);
-            }
-            contents[cursor.index]->getCursor(cursor, CURSORLOCATION_START);
+        if(cursor.index == contents.length()) {
+            SAFE_EXEC(parent, right, this, cursor);
         }
         else {
-            for(uint16_t i = 0; i < contents.length(); i ++) {
-                if(contents[i] == ex) {
-                    cursor.expr = this;
-                    cursor.index = i + 1;
-                    break;
-                }
-            }
+            ++cursor.index;
         }
     }
     void Container::getCursor(Cursor &cursor, CursorLocation location) {
@@ -408,7 +396,8 @@ namespace neda {
         int16_t cursorX = x;
         uint16_t i = 0;
         for(auto it = contents.begin(); it != contents.end() && i < cursor.index; ++it, ++i) {
-            cursorX += (*it)->exprWidth + EXPR_SPACING;
+            cursorX += ((*it)->getType() == ObjType::CHAR_TYPE ? ((Character*) *it)->getWidth() : ((Expr*) *it)->exprWidth)
+                    + EXPR_SPACING;
         }
         out.x = cursorX;
         out.y = y;
@@ -423,7 +412,7 @@ namespace neda {
             dest.setPixel(info.x + 1, info.y + i, true);
         }
     }
-    void Container::addAtCursor(Expr *expr, Cursor &cursor) {
+    void Container::addAtCursor(NEDAObj *expr, Cursor &cursor) {
         contents.insert(expr, cursor.index);
         ++cursor.index;
         recomputeHeights();
@@ -441,8 +430,10 @@ namespace neda {
     void Container::updatePosition(int16_t dx, int16_t dy) {
         this->x += dx;
         this->y += dy;
-        for(Expr *ex : contents) {
-            SAFE_EXEC(ex, updatePosition, dx, dy);
+        for(NEDAObj *ex : contents) {
+            if(ex->getType() != ObjType::CHAR_TYPE) {
+                SAFE_EXEC((Expr*) ex, updatePosition, dx, dy);
+            }
         }
     }
 
@@ -550,7 +541,7 @@ namespace neda {
         //Used to find the end of the brackets
         uint16_t nesting = 1;
         for(auto it = parentContents->begin() + index + 1; it != parentContents->end(); ++ it) {
-            Expr *ex = *it;
+            NEDAObj *ex = *it;
             //Increase/Decrease the nesting depth if we see a bracket
             if(ex->getType() == ObjType::L_BRACKET) {
                 nesting ++;
@@ -563,7 +554,12 @@ namespace neda {
                 }
             }
             else {
-                maxSpacing = max(maxSpacing, ex->getTopSpacing());
+                if(ex->getType() == ObjType::CHAR_TYPE) {
+                    maxSpacing = max(maxSpacing, static_cast<uint16_t>(((Character*) ex)->getHeight() / 2));
+                }
+                else {
+                    maxSpacing = max(maxSpacing, ((Expr*) ex)->getTopSpacing());
+                }
             }
         }
         //If there is nothing after this left bracket, give it a default
