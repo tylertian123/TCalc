@@ -150,7 +150,7 @@ namespace neda {
         static const uint16_t EXPR_SPACING = 1;
 		
 		void add(NEDAObj*);
-        void remove(uint16_t);
+        NEDAObj* remove(uint16_t);
         void addAt(uint16_t, NEDAObj*);
         uint16_t indexOf(NEDAObj*);
         DynamicArray<NEDAObj*>* getContents();
@@ -170,7 +170,7 @@ namespace neda {
 
         void drawCursor(lcd::LCD12864&, const Cursor&);
         void addAtCursor(NEDAObj*, Cursor&);
-        void removeAtCursor(Cursor&);
+        NEDAObj* removeAtCursor(Cursor&);
         void getCursorInfo(const Cursor&, CursorInfo&);
 
         virtual ObjType getType() override {

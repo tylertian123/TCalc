@@ -198,12 +198,14 @@ namespace neda {
         }
         return 0xFFFF;
     }
-    void Container::remove(uint16_t index) {
+    NEDAObj* Container::remove(uint16_t index) {
+        NEDAObj *obj = contents[index];
         contents.removeAt(index);
 
         recomputeHeights();
         computeWidth();
         computeHeight();
+        return obj;
     }
     void Container::addAt(uint16_t index, NEDAObj *exprToAdd) {
         contents.insert(exprToAdd, index);
@@ -329,13 +331,17 @@ namespace neda {
         computeWidth();
         computeHeight();
     }
-    void Container::removeAtCursor(Cursor &cursor) {
+    //Returns the expression removed for deletion
+    NEDAObj* Container::removeAtCursor(Cursor &cursor) {
         if(cursor.index != 0) {
-            contents.removeAt(--cursor.index);
+            NEDAObj *obj = contents[--cursor.index];
+            contents.removeAt(cursor.index);
+            recomputeHeights();
+            computeWidth();
+            computeHeight();
+            return obj;
         }
-        recomputeHeights();
-        computeWidth();
-        computeHeight();
+        return nullptr;
     }
     void Container::updatePosition(int16_t dx, int16_t dy) {
         this->x += dx;
