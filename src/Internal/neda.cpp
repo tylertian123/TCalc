@@ -526,6 +526,7 @@ namespace neda {
         uint16_t index = parentContainer->indexOf(this);
         uint16_t maxHeight = 0;
         uint16_t nesting = 1;
+        uint16_t maxTopSpacing = getTopSpacing();
         for(auto it = parentContents->begin() + index + 1; it != parentContents->end(); ++ it) {
             NEDAObj *ex = *it;
             if(ex->getType() == ObjType::L_BRACKET) {
@@ -539,10 +540,10 @@ namespace neda {
             }
             else {
                 if(ex->getType() == ObjType::CHAR_TYPE) {
-                    maxHeight = max(maxHeight, static_cast<uint16_t>(((Character*) ex)->getHeight()));
+                    maxHeight = max(maxHeight, static_cast<uint16_t>(((Character*) ex)->getHeight() - ((Character*) ex)->getHeight() / 2 + maxTopSpacing));
                 }
                 else {
-                    maxHeight = max(maxHeight, ((Expr*) ex)->exprHeight);
+                    maxHeight = max(maxHeight, static_cast<uint16_t>(((Expr*) ex)->exprHeight - ((Expr*) ex)->getTopSpacing() + maxTopSpacing));
                 }
             }
         }
@@ -616,6 +617,7 @@ namespace neda {
         uint16_t index = parentContainer->indexOf(this);
         uint16_t maxHeight = 0;
         uint16_t nesting = 1;
+        uint16_t maxTopSpacing = getTopSpacing();
         //Iterate backwards
         for(auto it = parentContents->begin() + index - 1; it >= parentContents->begin(); -- it) {
             NEDAObj *ex = *it;
@@ -630,10 +632,10 @@ namespace neda {
             }
             else {
                 if(ex->getType() == ObjType::CHAR_TYPE) {
-                    maxHeight = max(maxHeight, static_cast<uint16_t>(((Character*) ex)->getHeight()));
+                    maxHeight = max(maxHeight, static_cast<uint16_t>(((Character*) ex)->getHeight() - ((Character*) ex)->getHeight() / 2 + maxTopSpacing));
                 }
                 else {
-                    maxHeight = max(maxHeight, ((Expr*) ex)->exprHeight);
+                    maxHeight = max(maxHeight, static_cast<uint16_t>(((Expr*) ex)->exprHeight - ((Expr*) ex)->getTopSpacing() + maxTopSpacing));
                 }
             }
         }
