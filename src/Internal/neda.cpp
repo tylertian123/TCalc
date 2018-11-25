@@ -17,6 +17,17 @@
 * DO NOT ALLOCATE WITH malloc
 */
 namespace neda {
+
+    //*************************** Character ***************************************
+    void Character::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
+        dest.drawImage(x, y, lcd::getChar(ch));
+    }
+    uint16_t Character::getWidth() {
+        return lcd::getChar(ch).width;
+    }
+    uint16_t Character::getHeight() {
+        return lcd::getChar(ch).height;
+    }
 	
 	//*************************** Expr ***************************************
     void Expr::draw(lcd::LCD12864 &dest) {

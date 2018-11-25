@@ -25,9 +25,11 @@ namespace neda {
     constexpr CursorLocation CURSORLOCATION_START = 0;
     constexpr CursorLocation CURSORLOCATION_END = 1;
 
-    enum class ExprType : uint8_t {
+    //Enum of all NEDA object types
+    enum class ObjType : uint8_t {
         NULL_TYPE,
         CHAR_TYPE,
+        CURSOR_TYPE,
         STRING,
         CONTAINER,
         FRACTION,
@@ -39,9 +41,29 @@ namespace neda {
         SIGMA_PI,
     };
 	
+    /*
+     * This is the base class all NEDA classes inherit from. 
+     */ 
     class NEDAObj {
     public:
-        virtual ExprType getType() = 0;
+        virtual ObjType getType() = 0;
+    };
+
+    /*
+     * This class represents a single character. It only inherits from NEDAObj and not Expr in order to save memory.
+     */
+    class Character : public NEDAObj {
+    public:
+        Character(const char ch) : ch(ch) {}
+        
+        virtual ObjType getType() override {
+            return ObjType::CHAR_TYPE;
+        }
+
+        const char ch;
+        void draw(lcd::LCD12864 &lcd, int16_t, int16_t);
+        uint16_t getWidth();
+        uint16_t getHeight();
     };
 
 	/*
@@ -84,7 +106,7 @@ namespace neda {
         virtual void down(Expr*, Cursor&);
         virtual void getCursor(Cursor&, CursorLocation) = 0;
 
-        virtual ExprType getType() = 0;
+        virtual ObjType getType() = 0;
 	
 		uint16_t exprWidth;
 		uint16_t exprHeight;
@@ -93,15 +115,6 @@ namespace neda {
 	protected:
 	};
 	
-    class Character : public NEDAObj {
-    public:
-        Character(const char ch) : ch(ch) {}
-        virtual ExprType getType() override {
-            return ExprType::CHAR_TYPE;
-        }
-
-        const char ch;
-    };
 	/*
      * The String is a bottom-level expression that is simply a string, and in this case, implemented with a DynamicArray<char>.
      * Being so basic, String does not have any children; its contents are simply a string and nothing else.
@@ -148,8 +161,8 @@ namespace neda {
         virtual void right(Expr*, Cursor&) override;
         virtual void getCursor(Cursor&, CursorLocation) override;
 
-        virtual ExprType getType() override {
-            return ExprType::STRING;
+        virtual ObjType getType() override {
+            return ObjType::STRING;
         }
 
         virtual void updatePosition(int16_t, int16_t) override;
@@ -169,7 +182,7 @@ namespace neda {
 		//Constructor from dynamic array of Expression pointers, copy constructor and default constructor
 		Container(const DynamicArray<NEDAObj*> &exprs) : contents(exprs) {
             for(NEDAObj* ex : contents) {
-                if(ex->getType() != ExprType::CHAR_TYPE) {
+                if(ex->getType() != ObjType::CHAR_TYPE) {
                     ((Expr*)ex)->parent = this;
                 }
             }
@@ -178,7 +191,7 @@ namespace neda {
 		}
 		Container(const Container &other) : contents(other.contents) {
             for(NEDAObj* ex : contents) {
-                if(ex->getType() != ExprType::CHAR_TYPE) {
+                if(ex->getType() != ObjType::CHAR_TYPE) {
                     ((Expr*)ex)->parent = this;
                 }
             }
@@ -217,8 +230,8 @@ namespace neda {
         void removeAtCursor(Cursor&);
         void getCursorInfo(const Cursor&, CursorInfo&);
 
-        virtual ExprType getType() override {
-            return ExprType::CONTAINER;
+        virtual ObjType getType() override {
+            return ObjType::CONTAINER;
         }
 
         virtual void updatePosition(int16_t, int16_t) override;
@@ -259,8 +272,8 @@ namespace neda {
         virtual void down(Expr*, Cursor&) override;
         virtual void getCursor(Cursor&, CursorLocation) override;
 
-        virtual ExprType getType() override {
-            return ExprType::FRACTION;
+        virtual ObjType getType() override {
+            return ObjType::FRACTION;
         }
 
         virtual void updatePosition(int16_t, int16_t) override;
@@ -285,8 +298,8 @@ namespace neda {
         //Do nothing
         //Realistically this method is never going to be called on LeftBracket anyways
         virtual void getCursor(Cursor &cursor, CursorLocation location) override {}
-        virtual ExprType getType() override {
-            return ExprType::L_BRACKET;
+        virtual ObjType getType() override {
+            return ObjType::L_BRACKET;
         }
     };
     class RightBracket : public Expr {
@@ -303,8 +316,8 @@ namespace neda {
         //Do nothing
         //Realistically this method is never going to be called on RightBracket anyways
         virtual void getCursor(Cursor &cursor, CursorLocation location) override {}
-        virtual ExprType getType() override {
-            return ExprType::R_BRACKET;
+        virtual ObjType getType() override {
+            return ObjType::R_BRACKET;
         }
     };
 
@@ -342,8 +355,8 @@ namespace neda {
         virtual void right(Expr*, Cursor&) override;
         virtual void getCursor(Cursor&, CursorLocation) override;
 
-        virtual ExprType getType() override {
-            return ExprType::RADICAL;
+        virtual ObjType getType() override {
+            return ObjType::RADICAL;
         }
 
         virtual void updatePosition(int16_t, int16_t) override;
@@ -378,8 +391,8 @@ namespace neda {
 
         virtual ~Superscript();
 
-        virtual ExprType getType() override {
-            return ExprType::SUPERSCRIPT;
+        virtual ObjType getType() override {
+            return ObjType::SUPERSCRIPT;
         }
 
         virtual void updatePosition(int16_t, int16_t) override;
@@ -414,8 +427,8 @@ namespace neda {
 
         virtual void getCursor(Cursor&, CursorLocation) override;
 
-        virtual ExprType getType() override {
-            return ExprType::SUBSCRIPT;
+        virtual ObjType getType() override {
+            return ObjType::SUBSCRIPT;
         }
 
         virtual void updatePosition(int16_t, int16_t) override;
@@ -460,8 +473,8 @@ namespace neda {
         virtual void down(Expr*, Cursor&) override;
         virtual void getCursor(Cursor&, CursorLocation) override;
 
-        virtual ExprType getType() override {
-            return ExprType::SIGMA_PI;
+        virtual ObjType getType() override {
+            return ObjType::SIGMA_PI;
         }
 
         virtual void updatePosition(int16_t, int16_t) override;
@@ -484,7 +497,7 @@ namespace neda {
      * This struct represents the location of the cursor. 
      * Cursors can only be in ContainerExprs and StringExprs.
      */
-    class Cursor {
+    class Cursor : public NEDAObj {
     public:
         Expr *expr;
         uint16_t index;
@@ -495,6 +508,10 @@ namespace neda {
         void up();
         void down();
         void getInfo(CursorInfo &info);
+
+        ObjType getType() override {
+            return ObjType::CURSOR_TYPE;
+        }
     };
 }
 
