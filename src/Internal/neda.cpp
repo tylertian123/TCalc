@@ -197,7 +197,7 @@ namespace neda {
         this->y += dy;
     }
     bool String::isEmptyString(Expr *str) {
-        return str->getType() == ExprType::STRING && ((String*) str)->contents->length() == 0;
+        return str->getType() == ObjType::STRING && ((String*) str)->contents->length() == 0;
     }
 	
 	//*************************** Container ***************************************
@@ -296,8 +296,8 @@ namespace neda {
     }
     void Container::recomputeHeights() {
         for(Expr *ex : contents) {
-            if(ex->getType() == ExprType::L_BRACKET || ex->getType() == ExprType::R_BRACKET || ex->getType() == ExprType::SUPERSCRIPT
-                    || ex->getType() == ExprType::SUBSCRIPT) {
+            if(ex->getType() == ObjType::L_BRACKET || ex->getType() == ObjType::R_BRACKET || ex->getType() == ObjType::SUPERSCRIPT
+                    || ex->getType() == ObjType::SUBSCRIPT) {
                 ex->computeHeight();
             }
         }
@@ -541,10 +541,10 @@ namespace neda {
         for(auto it = parentContents->begin() + index + 1; it != parentContents->end(); ++ it) {
             Expr *ex = *it;
             //Increase/Decrease the nesting depth if we see a bracket
-            if(ex->getType() == ExprType::L_BRACKET) {
+            if(ex->getType() == ObjType::L_BRACKET) {
                 nesting ++;
             }
-            else if(ex->getType() == ExprType::R_BRACKET) {
+            else if(ex->getType() == ObjType::R_BRACKET) {
                 nesting --;
                 //Exit if nesting depth is 0
                 if(!nesting) {
@@ -575,10 +575,10 @@ namespace neda {
         uint16_t nesting = 1;
         for(auto it = parentContents->begin() + index + 1; it != parentContents->end(); ++ it) {
             Expr *ex = *it;
-            if(ex->getType() == ExprType::L_BRACKET) {
+            if(ex->getType() == ObjType::L_BRACKET) {
                 nesting ++;
             }
-            else if(ex->getType() == ExprType::R_BRACKET) {
+            else if(ex->getType() == ObjType::R_BRACKET) {
                 nesting --;
                 if(!nesting) {
                     break;
@@ -621,10 +621,10 @@ namespace neda {
         for(auto it = parentContents->begin() + index - 1; it >= parentContents->begin(); -- it) {
             Expr *ex = *it;
             //Increase/Decrease the nesting depth if we see a bracket
-            if(ex->getType() == ExprType::R_BRACKET) {
+            if(ex->getType() == ObjType::R_BRACKET) {
                 nesting ++;
             }
-            else if(ex->getType() == ExprType::L_BRACKET) {
+            else if(ex->getType() == ObjType::L_BRACKET) {
                 nesting --;
                 //Exit if nesting depth is 0
                 if(!nesting) {
@@ -656,10 +656,10 @@ namespace neda {
         //Iterate backwards
         for(auto it = parentContents->begin() + index - 1; it >= parentContents->begin(); -- it) {
             Expr *ex = *it;
-            if(ex->getType() == ExprType::R_BRACKET) {
+            if(ex->getType() == ObjType::R_BRACKET) {
                 nesting ++;
             }
-            else if(ex->getType() == ExprType::L_BRACKET) {
+            else if(ex->getType() == ObjType::L_BRACKET) {
                 nesting --;
                 if(!nesting) {
                     break;
@@ -1033,18 +1033,18 @@ namespace neda {
 
     //*************************** Cursor ***************************************
     void Cursor::draw(lcd::LCD12864 &dest) {
-        if(expr->getType() == ExprType::STRING) {
+        if(expr->getType() == ObjType::STRING) {
             ((String*) expr)->drawCursor(dest, *this);
         }
-        else if(expr->getType() == ExprType::CONTAINER) {
+        else if(expr->getType() == ObjType::CONTAINER) {
             ((Container*) expr)->drawCursor(dest, *this);
         }
     }
     void Cursor::getInfo(CursorInfo &info) {
-        if(expr->getType() == ExprType::STRING) {
+        if(expr->getType() == ObjType::STRING) {
             ((String*) expr)->getCursorInfo(*this, info);
         }
-        else if(expr->getType() == ExprType::CONTAINER) {
+        else if(expr->getType() == ObjType::CONTAINER) {
             ((Container*) expr)->getCursorInfo(*this, info);
         }
     }

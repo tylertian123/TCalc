@@ -167,16 +167,20 @@ namespace neda {
 	class Container : public Expr {
 	public:
 		//Constructor from dynamic array of Expression pointers, copy constructor and default constructor
-		Container(const DynamicArray<Expr*> &exprs) : contents(exprs) {
-            for(Expr* ex : exprs) {
-                ex->parent = this;
+		Container(const DynamicArray<NEDAObj*> &exprs) : contents(exprs) {
+            for(NEDAObj* ex : contents) {
+                if(ex->getType() != ExprType::CHAR_TYPE) {
+                    ((Expr*)ex)->parent = this;
+                }
             }
 			computeWidth();
 			computeHeight();
 		}
 		Container(const Container &other) : contents(other.contents) {
-            for(Expr* ex : contents) {
-                ex->parent = this;
+            for(NEDAObj* ex : contents) {
+                if(ex->getType() != ExprType::CHAR_TYPE) {
+                    ((Expr*)ex)->parent = this;
+                }
             }
 			computeWidth();
 			computeHeight();
@@ -195,7 +199,7 @@ namespace neda {
         void replaceExpr(uint16_t, Expr*);
         void addAt(uint16_t, Expr*);
         uint16_t indexOf(Expr*);
-        DynamicArray<Expr*>* getContents();
+        DynamicArray<NEDAObj*>* getContents();
 			
         virtual uint16_t getTopSpacing() override;
 		virtual void computeWidth() override;
@@ -220,7 +224,7 @@ namespace neda {
         virtual void updatePosition(int16_t, int16_t) override;
 	
 	protected:
-		DynamicArray<Expr*> contents;
+		DynamicArray<NEDAObj*> contents;
         //Recomputes the heights of all expressions that have heights dependent on others
         void recomputeHeights();
 	};
