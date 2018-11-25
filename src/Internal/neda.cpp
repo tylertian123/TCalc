@@ -285,6 +285,7 @@ namespace neda {
             if(index != 0xFFFF) {
                 //Place the cursor in front of the subscript
                 cursor.index = index;
+                cursor.expr = this;
             }
         }
         else {
@@ -315,6 +316,7 @@ namespace neda {
             if(index != 0xFFFF) {
                 //Place the cursor to the front of the superscript
                 cursor.index = index;
+                cursor.expr = this;
             }
         }
         else {
@@ -348,6 +350,9 @@ namespace neda {
         for(auto it = contents.begin(); it != contents.end() && i < cursor.index; ++it, ++i) {
             cursorX += ((*it)->getType() == ObjType::CHAR_TYPE ? ((Character*) *it)->getWidth() : ((Expr*) *it)->exprWidth)
                     + EXPR_SPACING;
+        }
+        if(cursor.index != 0) {
+            --cursorX;
         }
         out.x = cursorX;
         out.y = y;

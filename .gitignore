@@ -6,3 +6,4 @@ TCalc.uvmpw.uvgui.*
 TCalc_8051.uvgui.*
 *.TMP
 EventRecorderStub.scvd
+.vscode/
