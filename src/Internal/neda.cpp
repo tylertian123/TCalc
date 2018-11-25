@@ -354,6 +354,9 @@ namespace neda {
     void Container::addAtCursor(NEDAObj *expr, Cursor &cursor) {
         contents.insert(expr, cursor.index);
         ++cursor.index;
+        if(expr->getType() != ObjType::CHAR_TYPE) {
+            ((Expr*) expr)->parent = this;
+        }
         recomputeHeights();
         computeWidth();
         computeHeight();
