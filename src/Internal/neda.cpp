@@ -581,7 +581,7 @@ namespace neda {
         uint16_t maxHeight = 0;
         uint16_t nesting = 1;
         for(auto it = parentContents->begin() + index + 1; it != parentContents->end(); ++ it) {
-            Expr *ex = *it;
+            NEDAObj *ex = *it;
             if(ex->getType() == ObjType::L_BRACKET) {
                 nesting ++;
             }
@@ -592,7 +592,12 @@ namespace neda {
                 }
             }
             else {
-                maxHeight = max(maxHeight, ex->exprHeight);
+                if(ex->getType() == ObjType::CHAR_TYPE) {
+                    maxHeight = max(maxHeight, static_cast<uint16_t>(((Character*) ex)->getHeight()));
+                }
+                else {
+                    maxHeight = max(maxHeight, ((Expr*) ex)->exprHeight);
+                }
             }
         }
         //If there is nothing after this left bracket, give it a default
@@ -626,7 +631,7 @@ namespace neda {
         uint16_t nesting = 1;
         //Iterate backwards
         for(auto it = parentContents->begin() + index - 1; it >= parentContents->begin(); -- it) {
-            Expr *ex = *it;
+            NEDAObj *ex = *it;
             //Increase/Decrease the nesting depth if we see a bracket
             if(ex->getType() == ObjType::R_BRACKET) {
                 nesting ++;
@@ -639,7 +644,12 @@ namespace neda {
                 }
             }
             else {
-                maxSpacing = max(maxSpacing, ex->getTopSpacing());
+                if(ex->getType() == ObjType::CHAR_TYPE) {
+                    maxSpacing = max(maxSpacing, static_cast<uint16_t>(((Character*) ex)->getHeight() / 2));
+                }
+                else {
+                    maxSpacing = max(maxSpacing, ((Expr*) ex)->getTopSpacing());
+                }
             }
         }
         //If there is nothing after this left bracket, give it a default
@@ -662,7 +672,7 @@ namespace neda {
         uint16_t nesting = 1;
         //Iterate backwards
         for(auto it = parentContents->begin() + index - 1; it >= parentContents->begin(); -- it) {
-            Expr *ex = *it;
+            NEDAObj *ex = *it;
             if(ex->getType() == ObjType::R_BRACKET) {
                 nesting ++;
             }
@@ -673,7 +683,12 @@ namespace neda {
                 }
             }
             else {
-                maxHeight = max(maxHeight, ex->exprHeight);
+                if(ex->getType() == ObjType::CHAR_TYPE) {
+                    maxHeight = max(maxHeight, static_cast<uint16_t>(((Character*) ex)->getHeight()));
+                }
+                else {
+                    maxHeight = max(maxHeight, ((Expr*) ex)->exprHeight);
+                }
             }
         }
         //If there is nothing after this left bracket, give it a default
@@ -813,7 +828,9 @@ namespace neda {
         if(index == 0) {
             return SAFE_ACCESS_0(contents, exprHeight) + Container::EMPTY_EXPR_HEIGHT - OVERLAP;
         }
-        return SAFE_ACCESS_0(contents, exprHeight) + (*parentContents)[index - 1]->exprHeight / 2 - OVERLAP;
+        NEDAObj *prevObj = (*parentContents)[index - 1];
+        uint16_t prevHeight = prevObj->getType() == ObjType::CHAR_TYPE ? ((Character*) prevObj)->getHeight() : ((Expr*) prevObj)->exprHeight;
+        return SAFE_ACCESS_0(contents, exprHeight) + prevHeight / 2 - OVERLAP;
     }
     void Superscript::computeWidth() {
         exprWidth = SAFE_ACCESS_0(contents, exprWidth);
@@ -856,7 +873,11 @@ namespace neda {
         if(index == 0) {
             return Container::EMPTY_EXPR_HEIGHT / 2;
         }
-        return (*parentContents)[index - 1]->exprHeight / 2;
+        NEDAObj *prevObj = (*parentContents)[index - 1];
+        uint16_t prevSpacing = prevObj->getType() == ObjType::CHAR_TYPE ? 
+                ((Character*) prevObj)->getHeight() / 2
+                : ((Expr*) prevObj)->getTopSpacing();
+        return prevSpacing;
 	}
 	void Subscript::computeWidth() {
 		exprWidth = SAFE_ACCESS_0(contents, exprWidth);
@@ -874,7 +895,9 @@ namespace neda {
             exprHeight = Container::EMPTY_EXPR_HEIGHT - OVERLAP + SAFE_ACCESS_0(contents, exprHeight);
             return;
         }
-        exprHeight = (*parentContents)[index - 1]->exprHeight - OVERLAP + SAFE_ACCESS_0(contents, exprHeight);
+        NEDAObj *prevObj = (*parentContents)[index - 1];
+        uint16_t prevHeight = prevObj->getType() == ObjType::CHAR_TYPE ? ((Character*) prevObj)->getHeight() : ((Expr*) prevObj)->exprHeight;
+        exprHeight = prevHeight - OVERLAP + SAFE_ACCESS_0(contents, exprHeight);
 	}
 	void Subscript::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
         this->x = x;
