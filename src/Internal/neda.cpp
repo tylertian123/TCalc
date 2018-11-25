@@ -931,6 +931,15 @@ namespace neda {
     void Cursor::down() {
         expr->down(nullptr, *this);
     }
+
+    //*************************** Misc ***************************************
+    Container* makeString(const char *str) {
+        Container *cont = new Container;
+        while(*str != '\0') {
+            cont->add(new Character(*(str++)));
+        }
+        return cont;
+    }
 }
 
 #undef VERIFY_INBOUNDS

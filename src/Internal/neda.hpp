@@ -453,6 +453,8 @@ namespace neda {
             return ObjType::CURSOR_TYPE;
         }
     };
+
+    Container* makeString(const char*);
 }
 
 #endif
