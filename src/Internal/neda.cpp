@@ -240,7 +240,7 @@ namespace neda {
         }
     }
     void Container::up(Expr *ex, Cursor &cursor) {
-        if(ex->getType() == ObjType::SUBSCRIPT) {
+        if(ex != nullptr && ex->getType() == ObjType::SUBSCRIPT) {
             uint16_t index = indexOf(ex);
             if(index != 0xFFFF) {
                 //Place the cursor in front of the subscript
@@ -270,7 +270,7 @@ namespace neda {
         }
     }
     void Container::down(Expr *ex, Cursor &cursor) {
-        if(ex->getType() == ObjType::SUPERSCRIPT) {
+        if(ex != nullptr && ex->getType() == ObjType::SUPERSCRIPT) {
             uint16_t index = indexOf(ex);
             if(index != 0xFFFF) {
                 //Place the cursor to the front of the superscript
