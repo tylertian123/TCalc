@@ -226,19 +226,46 @@ namespace neda {
         }
     }
     void Container::left(Expr *ex, Cursor &cursor) {
-        if(cursor.index == 0) {
-            SAFE_EXEC(parent, left, this, cursor);
+        //Check if the cursor is already in this expr
+        if(!ex || cursor.expr == this) {
+            if(cursor.index == 0) {
+                SAFE_EXEC(parent, left, this, cursor);
+            }
+            else {
+                --cursor.index;
+            }
         }
+        //Otherwise bring the cursor into this expr
         else {
-            --cursor.index;
+            for(uint16_t i = 0; i < contents.length(); i ++) {
+                //Find the expr the request came from
+                if(contents[i] == ex) {
+                    //Set the expr the cursor is in
+                    cursor.expr = this;
+                    //Set the index
+                    cursor.index = i;
+                    break;
+                }
+            }
         }
     }
     void Container::right(Expr *ex, Cursor &cursor) {
-        if(cursor.index == contents.length()) {
-            SAFE_EXEC(parent, right, this, cursor);
+        if(!ex || cursor.expr == this) {
+            if(cursor.index == contents.length()) {
+                SAFE_EXEC(parent, right, this, cursor);
+            }
+            else {
+                ++cursor.index;
+            }
         }
         else {
-            ++cursor.index;
+            for(uint16_t i = 0; i < contents.length(); i ++) {
+                if(contents[i] == ex) {
+                    cursor.expr = this;
+                    cursor.index = i + 1;
+                    break;
+                }
+            }
         }
     }
     void Container::up(Expr *ex, Cursor &cursor) {
