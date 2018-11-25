@@ -234,7 +234,8 @@ namespace neda {
             else {
                 //Check if we can go into the next expr
                 --cursor.index;
-                if(contents[cursor.index]->getType() != ObjType::CHAR_TYPE) {
+                if(contents[cursor.index]->getType() != ObjType::CHAR_TYPE && contents[cursor.index]->getType() != ObjType::L_BRACKET 
+                        && contents[cursor.index]->getType() != ObjType::R_BRACKET) {
                     ((Expr*) contents[cursor.index])->getCursor(cursor, CURSORLOCATION_END);
                 }
             }
@@ -260,7 +261,8 @@ namespace neda {
             }
             else {
                 //If we can go into the next expr then do so
-                if(cursor.index < contents.length() && contents[cursor.index]->getType() != ObjType::CHAR_TYPE) {
+                if(cursor.index < contents.length() && contents[cursor.index]->getType() != ObjType::CHAR_TYPE
+                    && contents[cursor.index]->getType() != ObjType::L_BRACKET && contents[cursor.index]->getType() != ObjType::R_BRACKET) {
                     ((Expr*) contents[cursor.index])->getCursor(cursor, CURSORLOCATION_START);
                 }
                 //Otherwise move the cursor
@@ -351,9 +353,7 @@ namespace neda {
             cursorX += ((*it)->getType() == ObjType::CHAR_TYPE ? ((Character*) *it)->getWidth() : ((Expr*) *it)->exprWidth)
                     + EXPR_SPACING;
         }
-        if(cursor.index != 0) {
-            --cursorX;
-        }
+        --cursorX;
         out.x = cursorX;
         out.y = y;
         out.width = 2;
