@@ -232,7 +232,11 @@ namespace neda {
                 SAFE_EXEC(parent, left, this, cursor);
             }
             else {
+                //Check if we can go into the next expr
                 --cursor.index;
+                if(contents[cursor.index]->getType() != ObjType::CHAR_TYPE) {
+                    ((Expr*) contents[cursor.index])->getCursor(cursor, CURSORLOCATION_END);
+                }
             }
         }
         //Otherwise bring the cursor into this expr
@@ -255,7 +259,14 @@ namespace neda {
                 SAFE_EXEC(parent, right, this, cursor);
             }
             else {
-                ++cursor.index;
+                //If we can go into the next expr then do so
+                if(cursor.index < contents.length() && contents[cursor.index]->getType() != ObjType::CHAR_TYPE) {
+                    ((Expr*) contents[cursor.index])->getCursor(cursor, CURSORLOCATION_START);
+                }
+                //Otherwise move the cursor
+                else {
+                    ++cursor.index;
+                }
             }
         }
         else {
