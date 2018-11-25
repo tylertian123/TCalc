@@ -269,8 +269,12 @@ namespace neda {
 	class Radical : public Expr {
 	public:
 		Radical(Expr *contents, Expr *n) : contents(contents), n(n) {
-            contents->parent = this;
-            n->parent = this;
+            if(contents) {
+                contents->parent = this;
+            }
+            if(n) {
+                n->parent = this;
+            }
 			computeWidth();
 			computeHeight();
 		}
