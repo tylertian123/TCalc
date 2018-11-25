@@ -990,6 +990,9 @@ namespace neda {
     void Cursor::down() {
         expr->down(nullptr, *this);
     }
+    void Cursor::add(NEDAObj *obj) {
+        expr->addAtCursor(obj, *this);
+    }
 
     //*************************** Misc ***************************************
     Container* makeString(const char *str) {

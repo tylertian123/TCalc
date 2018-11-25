@@ -144,17 +144,7 @@ void adjustExpr(neda::Expr *ex, neda::Cursor *cursorRef) {
 } */
 //Adds a char at the cursor
 void addChar(neda::Cursor *cursor, char ch) {
-	if(cursor->expr->getType() == neda::ExprType::STRING) {
-		((neda::String*) cursor->expr)->addChar(ch);
-		return;
-	}
-	else if(cursor->expr->getType() == neda::ExprType::CONTAINER) {
-		neda::Container *container = (neda::Container*) cursor->expr;
-		neda::String *str = new neda::String;
-		str->addChar(ch);
-		container->addAtCursor(str, *cursor);
-		str->getCursor(*cursor, neda::CURSORLOCATION_START);
-	}
+    cursor->expr->addAtCursor(new neda::Character(ch), *cursor);
 }
 //Key press handlers
 //Probably gonna make this name shorter, but couldn't bother.
@@ -391,32 +381,48 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 	/* EXPRESSIONS */
 	case KEY_LBRACKET:
 	{
-		insertExprAtCursor(new neda::Bracket(createEmptyContainer()), cursor);
+        cursor->add(new neda::LeftBracket());
 		break;
 	}
+    case KEY_RBRACKET:
+    {
+        cursor->add(new neda::RightBracket());
+        break;
+    }
 	case KEY_ROOT:
 	{
-		insertExprAtCursor(new neda::Radical(createEmptyContainer(), nullptr), cursor);
+        neda::Radical *radical = new neda::Radical(new neda::Container, nullptr);
+        cursor->add(radical);
+        radical->getCursor(*cursor, neda::CURSORLOCATION_START);
 		break;
 	}
 	case KEY_NTHROOT:
 	{
-		insertExprAtCursor(new neda::Radical(createEmptyContainer(), createEmptyContainer()), cursor);
+        
+		neda::Radical *radical = new neda::Radical(new neda::Container, new neda::Container);
+        cursor->add(radical);
+        radical->getCursor(*cursor, neda::CURSORLOCATION_START);
 		break;
 	}
 	case KEY_SUM:
 	{
-		insertExprAtCursor(new neda::SigmaPi(lcd::CHAR_SUMMATION, createEmptyContainer(), createEmptyContainer(), createEmptyContainer()), cursor);
-		break;
+        neda::SigmaPi *sigma = new neda::SigmaPi(lcd::CHAR_SUMMATION, new neda::Container(), new neda::Container(), new neda::Container);
+		cursor->add(sigma);
+        sigma->getCursor(*cursor, neda::CURSORLOCATION_START);
+        break;
 	}
 	case KEY_PRODUCT:
 	{
-		insertExprAtCursor(new neda::SigmaPi(lcd::CHAR_PRODUCT, createEmptyContainer(), createEmptyContainer(), createEmptyContainer()), cursor);
-		break;
-	}
+        neda::SigmaPi *product = new neda::SigmaPi(lcd::CHAR_PRODUCT, new neda::Container(), new neda::Container(), new neda::Container);		break;
+        cursor->add(product);
+        product->getCursor(*cursor, neda::CURSORLOCATION_START);
+        break;
+    }
 	case KEY_FRAC:
 	{
-		insertExprAtCursor(new neda::Fraction(createEmptyContainer(), createEmptyContainer()), cursor);
+		neda::Fraction *frac = new neda::Fraction(new neda::Container(), new neda::Container());
+        cursor->add(frac);
+        frac->getCursor(*cursor, neda::CURSORLOCATION_START);
 		break;
 	}
 	case KEY_SQUARE:
