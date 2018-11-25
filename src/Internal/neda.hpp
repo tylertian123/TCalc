@@ -27,6 +27,7 @@ namespace neda {
 
     enum class ExprType : uint8_t {
         NULL_TYPE,
+        CHAR_TYPE,
         STRING,
         CONTAINER,
         FRACTION,
@@ -38,6 +39,11 @@ namespace neda {
         SIGMA_PI,
     };
 	
+    class NEDAObj {
+    public:
+        virtual ExprType getType() = 0;
+    };
+
 	/*
      * This is the base Expression class.
      * 
@@ -50,7 +56,7 @@ namespace neda {
      * middle of the 1, and the top spacing of 1 would just be half the height of 1.
      * The top spacing is to the middle of the base expression to accommodate for things with different heights such as fractions.
      */
-	class Expr {
+	class Expr : public NEDAObj {
 	public:
         //The width, height, x and y coordinates are all cached
 		virtual void computeWidth() = 0;
@@ -87,6 +93,15 @@ namespace neda {
 	protected:
 	};
 	
+    class Character : public NEDAObj {
+    public:
+        Character(const char ch) : ch(ch) {}
+        virtual ExprType getType() override {
+            return ExprType::CHAR_TYPE;
+        }
+
+        const char ch;
+    };
 	/*
      * The String is a bottom-level expression that is simply a string, and in this case, implemented with a DynamicArray<char>.
      * Being so basic, String does not have any children; its contents are simply a string and nothing else.

@@ -104,7 +104,7 @@ void adjustExpr(neda::Expr *ex, neda::Cursor *cursorRef) {
 			&& info.x + info.width + CURSOR_HORIZ_SPACING < 128 && info.y + info.height + CURSOR_VERT_SPACING < 64) {
 		return;
 	}
-	
+
 	int16_t xdiff = 0, ydiff = 0;
 	if(info.x <= CURSOR_HORIZ_SPACING) {
 		xdiff = CURSOR_HORIZ_SPACING + 1 - info.x;
@@ -122,7 +122,7 @@ void adjustExpr(neda::Expr *ex, neda::Cursor *cursorRef) {
 }
 
 
-void insertExprAtCursor(neda::Expr *expr, neda::Cursor *cursor) {
+/* void insertExprAtCursor(neda::Expr *expr, neda::Cursor *cursor) {
 	//Split the original expression into 2 parts
 	neda::String *first = cursor->expr->beforeCursor(*cursor);
 	neda::String *second = cursor->expr->afterCursor(*cursor);
@@ -141,7 +141,7 @@ void insertExprAtCursor(neda::Expr *expr, neda::Cursor *cursor) {
 	delete original;
 	//Use draw to figure out the approx location of the new cursor so adjustExpr won't mess up the display
 	container->Expr::draw(display);
-}
+} */
 //Adds a char at the cursor
 void addChar(neda::Cursor *cursor, char ch) {
 	if(cursor->expr->getType() == neda::ExprType::STRING) {
@@ -387,7 +387,7 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 	case KEY_DIV:
         addChar(cursor, LCD_CHAR_DIV);
 		break;
-	
+
 	/* EXPRESSIONS */
 	case KEY_LBRACKET:
 	{
@@ -526,10 +526,10 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 		delete original;
 		break;
 	}
-	
+
 	default: break;
 	}
-	
+
 	display.clearDrawingBuffer();
 	adjustExpr(cursor->expr->getTopLevel(), cursor);
 	cursor->expr->drawConnected(display);
@@ -549,23 +549,23 @@ int main() {
 	statusLED = false;
 	shiftLED = false;
 	ctrlLED = false;
-	
+
 	//Disable JTAG so we can use PB3 and 4
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
 	GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable, ENABLE);
-	
+
 	//1s startup delay
 	delay::sec(1);
-	
+
 	//Initialize display and backlight control
 	display.init();
 	display.useExtended();
 	display.startDraw();
 	display.clearDrawing();
-	
+
 	backlight.startTimer();
 	backlight.set(0xA0);
-	
+
 	//Set up SBDI receiver
 	sbdi::Receiver receiver(SBDI_EN, SBDI_DATA, SBDI_CLK);
 	receiver.init();
@@ -578,25 +578,25 @@ int main() {
 		keyDataBuffer += (uint16_t) data;
 		statusLED = !statusLED;
 	});
-	
+
 	//Create cursor
 	cursor = new neda::Cursor;
-	
+
 	//Set up basic expression
 	neda::Container *master = new neda::Container;
 	master->addExpr(new neda::String());
-	
+
 	master->getCursor(*cursor, neda::CURSORLOCATION_START);
 	adjustExpr(master, cursor);
 	master->Expr::draw(display);
 	cursor->draw(display);
 	display.updateDrawing();
-	
+
 	//Start blink
 	initCursorTimer();
-	
+
 	uint16_t key = KEY_NULL;
-	
+
     while(true) {
 		if((key = fetchKey()) != KEY_NULL) {
 			expressionEntryKeyPressHandler(cursor, key);
