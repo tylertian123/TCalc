@@ -239,6 +239,65 @@ namespace neda {
             ++cursor.index;
         }
     }
+    void Container::up(Expr *ex, Cursor &cursor) {
+        if(ex->getType() == ObjType::SUBSCRIPT) {
+            uint16_t index = indexOf(ex);
+            if(index != 0xFFFF) {
+                //Place the cursor in front of the subscript
+                cursor.index = index;
+            }
+        }
+        else {
+            //Find the nearest superscript
+            for(auto it = contents.begin() + cursor.index; it != contents.end(); ++it) {
+                NEDAObj *ex = *it;
+                //Iterate until we hit an element that isn't a char
+                if(ex->getType() != ObjType::CHAR_TYPE) {
+                    //If it's a superscript then place the cursor into it and return
+                    if(ex->getType() == ObjType::SUPERSCRIPT) {
+                        ((Expr*) ex)->getCursor(cursor, CURSORLOCATION_START);
+                        return;
+                    }
+                    //Otherwise break the loop
+                    else {
+                        break;
+                    }
+                }
+            }
+
+            //If none found then pass the call up
+            SAFE_EXEC(parent, up, this, cursor);
+        }
+    }
+    void Container::down(Expr *ex, Cursor &cursor) {
+        if(ex->getType() == ObjType::SUPERSCRIPT) {
+            uint16_t index = indexOf(ex);
+            if(index != 0xFFFF) {
+                //Place the cursor to the front of the superscript
+                cursor.index = index;
+            }
+        }
+        else {
+            //Find the nearest subscript
+            for(auto it = contents.begin() + cursor.index; it != contents.end(); ++it) {
+                NEDAObj *ex = *it;
+                //Iterate until we hit an element that isn't a char
+                if(ex->getType() != ObjType::CHAR_TYPE) {
+                    //If it's a subscript then place the cursor into it and return
+                    if(ex->getType() == ObjType::SUBSCRIPT) {
+                        ((Expr*) ex)->getCursor(cursor, CURSORLOCATION_START);
+                        return;
+                    }
+                    //Otherwise break the loop
+                    else {
+                        break;
+                    }
+                }
+            }
+
+            SAFE_EXEC(parent, down, this, cursor);
+        }
+    }
     void Container::getCursor(Cursor &cursor, CursorLocation location) {
         cursor.expr = this;
         cursor.index = location == CURSORLOCATION_START ? 0 : contents.length();

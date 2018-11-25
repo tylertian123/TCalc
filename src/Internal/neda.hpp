@@ -164,6 +164,8 @@ namespace neda {
 
         virtual void left(Expr*, Cursor&) override;
         virtual void right(Expr*, Cursor&) override;
+        virtual void up(Expr*, Cursor&) override;
+        virtual void down(Expr*, Cursor&) override;
         virtual void getCursor(Cursor&, CursorLocation) override;
 
         void drawCursor(lcd::LCD12864&, const Cursor&);
