@@ -494,11 +494,10 @@ namespace neda {
     };
     /*
      * This struct represents the location of the cursor. 
-     * Cursors can only be in ContainerExprs and StringExprs.
      */
     class Cursor : public NEDAObj {
     public:
-        Expr *expr;
+        Container *expr;
         uint16_t index;
 
         void draw(lcd::LCD12864& dest);

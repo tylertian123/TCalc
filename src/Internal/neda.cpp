@@ -1063,20 +1063,10 @@ namespace neda {
 
     //*************************** Cursor ***************************************
     void Cursor::draw(lcd::LCD12864 &dest) {
-        if(expr->getType() == ObjType::STRING) {
-            ((String*) expr)->drawCursor(dest, *this);
-        }
-        else if(expr->getType() == ObjType::CONTAINER) {
-            ((Container*) expr)->drawCursor(dest, *this);
-        }
+        expr->drawCursor(dest, *this);
     }
     void Cursor::getInfo(CursorInfo &info) {
-        if(expr->getType() == ObjType::STRING) {
-            ((String*) expr)->getCursorInfo(*this, info);
-        }
-        else if(expr->getType() == ObjType::CONTAINER) {
-            ((Container*) expr)->getCursorInfo(*this, info);
-        }
+        expr->getCursorInfo(*this, info);
     }
     void Cursor::left() {
         expr->left(nullptr, *this);
