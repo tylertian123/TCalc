@@ -94,8 +94,8 @@ extern "C" void TIM3_IRQHandler() {
 	}
 }
 
-#define CURSOR_HORIZ_SPACING 2
-#define CURSOR_VERT_SPACING 2
+#define CURSOR_HORIZ_SPACING 1
+#define CURSOR_VERT_SPACING 1
 //Moves ex so that the cursor is in the display
 void adjustExpr(neda::Expr *ex, neda::Cursor *cursorRef) {
 	neda::CursorInfo info;
@@ -121,27 +121,6 @@ void adjustExpr(neda::Expr *ex, neda::Cursor *cursorRef) {
 	ex->updatePosition(xdiff, ydiff);
 }
 
-
-/* void insertExprAtCursor(neda::Expr *expr, neda::Cursor *cursor) {
-	//Split the original expression into 2 parts
-	neda::String *first = cursor->expr->beforeCursor(*cursor);
-	neda::String *second = cursor->expr->afterCursor(*cursor);
-	//The parent of a String must always be a Container
-	//If not, then, well, someone's getting fired.
-	neda::Container *container = (neda::Container*) cursor->expr->parent;
-	uint16_t index = container->indexOf(cursor->expr);
-	//Insert the expressions back in
-	container->replaceExpr(index ++, first);
-	container->addAt(index ++, expr);
-	container->addAt(index ++, second);
-	//SUPER IMPORTANT: DELETE ORIGINAL STRING!!!
-	//Keep a copy of original so we can get the new cursor before deleting the old one (so that interrupts don't cause errors)
-	neda::String *original = cursor->expr;
-	expr->getCursor(*cursor, neda::CURSORLOCATION_START);
-	delete original;
-	//Use draw to figure out the approx location of the new cursor so adjustExpr won't mess up the display
-	container->Expr::draw(display);
-} */
 //Adds a char at the cursor
 void addChar(neda::Cursor *cursor, char ch) {
     cursor->expr->addAtCursor(new neda::Character(ch), *cursor);
@@ -394,14 +373,17 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
         neda::Radical *radical = new neda::Radical(new neda::Container, nullptr);
         cursor->add(radical);
         radical->getCursor(*cursor, neda::CURSORLOCATION_START);
+        //Make sure the position is updated so adjustExpr will not mess up the display
+        cursor->expr->parent->parent->draw(display);
 		break;
 	}
 	case KEY_NTHROOT:
 	{
-        
 		neda::Radical *radical = new neda::Radical(new neda::Container, new neda::Container);
         cursor->add(radical);
         radical->getCursor(*cursor, neda::CURSORLOCATION_START);
+        //Make sure the position is updated so adjustExpr will not mess up the display
+        cursor->expr->parent->parent->draw(display);
 		break;
 	}
 	case KEY_SUM:
@@ -409,6 +391,8 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
         neda::SigmaPi *sigma = new neda::SigmaPi(lcd::CHAR_SUMMATION, new neda::Container(), new neda::Container(), new neda::Container);
 		cursor->add(sigma);
         sigma->getCursor(*cursor, neda::CURSORLOCATION_START);
+        //Make sure the position is updated so adjustExpr will not mess up the display
+        cursor->expr->parent->parent->draw(display);
         break;
 	}
 	case KEY_PRODUCT:
@@ -416,6 +400,8 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
         neda::SigmaPi *product = new neda::SigmaPi(lcd::CHAR_PRODUCT, new neda::Container(), new neda::Container(), new neda::Container);
         cursor->add(product);
         product->getCursor(*cursor, neda::CURSORLOCATION_START);
+        //Make sure the position is updated so adjustExpr will not mess up the display
+        cursor->expr->parent->parent->draw(display);
         break;
     }
 	case KEY_FRAC:
@@ -423,6 +409,8 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 		neda::Fraction *frac = new neda::Fraction(new neda::Container(), new neda::Container());
         cursor->add(frac);
         frac->getCursor(*cursor, neda::CURSORLOCATION_START);
+        //Make sure the position is updated so adjustExpr will not mess up the display
+        cursor->expr->parent->parent->draw(display);
 		break;
 	}
 	case KEY_SQUARE:
@@ -432,6 +420,8 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
         neda::Superscript *super = new neda::Superscript(neda::makeString(key == KEY_SQUARE ? "2" : (key == KEY_CUBE ? "3" : "")));
         cursor->add(super);
         super->getCursor(*cursor, neda::CURSORLOCATION_START);
+        //Make sure the position is updated so adjustExpr will not mess up the display
+        cursor->expr->parent->parent->draw(display);
 		break;
 	}
 	/* OTHER */
