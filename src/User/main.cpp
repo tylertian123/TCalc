@@ -429,92 +429,34 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 	case KEY_CUBE:
 	case KEY_EXPONENT:
 	{
-		if(cursor->index == 0) {
-			insertExprAtCursor(new neda::Exponent(createEmptyContainer(), createEmptyContainer(key == KEY_SQUARE ? "2" : (key == KEY_CUBE ? "3" : ""))), cursor);
-			break;
-		}
-		//Split the original expression into 2 parts
-		neda::String *first = cursor->expr->beforeCursor(*cursor);
-		neda::String *second = cursor->expr->afterCursor(*cursor);
-		//The parent of a String must always be a Container
-		//If not, then, well, someone's getting fired.
-		neda::Container *container = (neda::Container*) cursor->expr->parent;
-		uint16_t index = container->indexOf(cursor->expr);
-		//Insert the expressions back in
-		neda::Expr *temp = createEmptyContainer(key == KEY_SQUARE ? "2" : (key == KEY_CUBE ? "3" : ""));
-		neda::Exponent *expr = new neda::Exponent(first, temp);
-		container->replaceExpr(index ++, expr);
-		container->addAt(index ++, second);
-		//SUPER IMPORTANT: DELETE ORIGINAL STRING!!!
-		//Keep a copy of original so we can get the new cursor before deleting the old one (so that interrupts don't cause errors)
-		neda::String *original = cursor->expr;
-		temp->getCursor(*cursor, neda::CURSORLOCATION_START);
-		delete original;
-		//Use draw to figure out the approx location of the new cursor so adjustExpr won't mess up the display
-		container->Expr::draw(display);
+        neda::Superscript *super = new neda::Superscript(neda::makeString(key == KEY_SQUARE ? "2" : (key == KEY_CUBE ? "3" : "")));
+        cursor->add(super);
+        super->getCursor(*cursor, neda::CURSORLOCATION_START);
 		break;
 	}
 	/* OTHER */
 	case KEY_DELETE:
 	{
-		//Simple case: There are still characters left
+		//Simple case: There is still stuff left before the cursor
 		if(cursor->index != 0) {
-			cursor->removeChar();
+			neda::NEDAObj *obj = cursor->expr->removeAtCursor(*cursor);
+            delete obj;
 			break;
 		}
 		//If there are no more characters to delete:
-		neda::Container *container = (neda::Container*) cursor->expr->parent;
-		uint16_t index = container->indexOf(cursor->expr);
-		auto contents = container->getContents();
-		//If there is an expr in front of the cursor and that expression is not an empty string
-		if(index >= 1 && !neda::isEmptyString((*contents)[index - 1])) {
-			//Delete that expr in front of the cursor
-			neda::Expr *ex = (*contents)[index - 1];
-			container->removeExpr(index - 1);
-			delete ex;
-			//If there's a String in front of what we just deleted, then merge them
-			neda::String *frontStr = ((neda::String*) (*contents)[index - 2]);
-			if(index >= 2 && frontStr->getType() == neda::ExprType::STRING) {
-				frontStr->merge(cursor->expr);
-				//Keep temp. copy of original expr
-				neda::String *temp = cursor->expr;
-				//Remove original
-				//Subtract 1 from the index because of the expression previously removed
-				container->removeExpr(index - 1);
-				//Reposition cursor
-				cursor->expr = frontStr;
-				cursor->index = frontStr->length() - temp->length();
-				//Delete original expr the cursor was in
-				delete temp;
-			}
-		}
-		//Otherwise either there's no more stuff to delete or there's only an empty String in front
 		//Confirm that the cursor is not in the top-level expression
-		//So see if the cursor's String has a great-grandparent
-		//(String->Container->(Some Other Expr)->Container)
-		else if(cursor->expr->parent->parent && cursor->expr->parent->parent->parent) {
-			//First, to avoid errors, put the cursor in the String before (there should always be one)
-			neda::Container *container = (neda::Container*) cursor->expr->parent->parent->parent;
-			neda::Expr *exprToRemove = cursor->expr->parent->parent;
-			uint16_t index = container->indexOf(exprToRemove);
-			auto contents = container->getContents();
-			neda::Expr *frontExpr = (*contents)[index - 1];
-			frontExpr->getCursor(*cursor, neda::CURSORLOCATION_END);
-			//Remove and delete the expression
-			container->removeExpr(index);
-			delete exprToRemove;
-			//Merge if there are two Strings sandwiching it
-			//Since the expression is already removed, no need to +1
-			neda::Expr *backExpr = (*contents)[index];
-			if(frontExpr->getType() == neda::ExprType::STRING && backExpr->getType() == neda::ExprType::STRING) {
-				//Merge
-				((neda::String*) frontExpr)->merge((neda::String*) backExpr);
-				//Remove
-				container->removeExpr(index);
-				//Delete
-				delete backExpr;
-			}
-		}
+        if(cursor->expr != cursor->expr->getTopLevel()) {
+            //First put the cursor in the position before
+            //The container the cursor is in must be inside some other expression, and then inside another container
+            neda::Container *cont = (neda::Container*) cursor->expr->parent->parent;
+            uint16_t index = cont->indexOf(cursor->expr->parent);
+            //Manually change the position of the cursor
+            cursor->expr = cont;
+            cursor->index = index;
+            //Remove and delete the elem
+            neda::NEDAObj *obj = cont->remove(index);
+            delete obj;
+        }
 		break;
 	}
 	case KEY_ALLCLEAR:
