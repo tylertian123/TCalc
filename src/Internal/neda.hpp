@@ -462,6 +462,7 @@ namespace neda {
     };
 
     Container* makeString(const char*);
+    void drawString(lcd::LCD12864&, int16_t, int16_t, const char*);
 }
 
 #endif
