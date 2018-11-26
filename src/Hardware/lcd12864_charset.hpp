@@ -2,12 +2,14 @@
 #define __LCD12864_CHARSET_H__
 #include "lcd12864.hpp"
 
-#define LCD_CHARSET_LOWBOUND 0x1B
+#define LCD_CHARSET_LOWBOUND 0x1A
+#define LCD_STR_EULR "\x1a"
 #define LCD_STR_THETA "\x1b"
 #define LCD_STR_SERR "\x1c"
 #define LCD_STR_PI "\x1d"
 #define LCD_STR_MUL "\x1e"
 #define LCD_STR_DIV "\x1f"
+#define LCD_CHAR_EULR '\x1a'
 #define LCD_CHAR_THETA '\x1b'
 #define LCD_CHAR_SERR '\x1c'
 #define LCD_CHAR_PI '\x1d'

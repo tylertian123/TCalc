@@ -356,6 +356,13 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 	case KEY_DIV:
         addChar(cursor, LCD_CHAR_DIV);
 		break;
+    case KEY_PI:
+        addChar(cursor, LCD_CHAR_PI);
+        break;
+    case KEY_EULER:
+        addChar(cursor, LCD_CHAR_EULR);
+        break;
+    
 
 	/* EXPRESSIONS */
 	case KEY_LBRACKET:
@@ -388,7 +395,7 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 	}
 	case KEY_SUM:
 	{
-        neda::SigmaPi *sigma = new neda::SigmaPi(lcd::CHAR_SUMMATION, new neda::Container(), new neda::Container(), new neda::Container);
+        neda::SigmaPi *sigma = new neda::SigmaPi(lcd::CHAR_SUMMATION, new neda::Container(), new neda::Container(), new neda::Container());
 		cursor->add(sigma);
         sigma->getCursor(*cursor, neda::CURSORLOCATION_START);
         //Make sure the position is updated so adjustExpr will not mess up the display
@@ -397,7 +404,7 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 	}
 	case KEY_PRODUCT:
 	{
-        neda::SigmaPi *product = new neda::SigmaPi(lcd::CHAR_PRODUCT, new neda::Container(), new neda::Container(), new neda::Container);
+        neda::SigmaPi *product = new neda::SigmaPi(lcd::CHAR_PRODUCT, new neda::Container(), new neda::Container(), new neda::Container());
         cursor->add(product);
         product->getCursor(*cursor, neda::CURSORLOCATION_START);
         //Make sure the position is updated so adjustExpr will not mess up the display

@@ -387,7 +387,7 @@ namespace neda {
 	//Summation (Sigma) or Product (Pi)
 	class SigmaPi : public Expr {
 	public:
-		SigmaPi(const lcd::LCD12864Image &symbol, Expr *start, Expr *finish, Expr *contents) : symbol(symbol), start(start), finish(finish) {
+		SigmaPi(const lcd::LCD12864Image &symbol, Expr *start, Expr *finish, Expr *contents) : symbol(symbol), start(start), finish(finish), contents(contents) {
 			start->parent = this;
             finish->parent = this;
             contents->parent = this;
