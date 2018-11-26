@@ -117,6 +117,7 @@ namespace lcd {
 	extern const Img CHAR_TLDE;
 	extern const Img CHAR_UNKNOWN;
 	
+    extern const Img CHAR_EULR;
     extern const Img CHAR_THETA;
 	extern const Img CHAR_SERR;
 	extern const Img CHAR_PI;
@@ -140,6 +141,7 @@ namespace lcd {
     };
 	
     const Img CHAR_ASCII[] = {
+        CHAR_EULR,
         CHAR_THETA,
 		CHAR_SERR,
 		CHAR_PI,

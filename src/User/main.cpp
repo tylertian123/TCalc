@@ -362,7 +362,9 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
     case KEY_EULER:
         addChar(cursor, LCD_CHAR_EULR);
         break;
-    
+    case KEY_EQUAL:
+        addChar(cursor, '=');
+        break;
 
 	/* EXPRESSIONS */
 	case KEY_LBRACKET:
