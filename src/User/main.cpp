@@ -428,9 +428,12 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 	{
         neda::Superscript *super = new neda::Superscript(neda::makeString(key == KEY_SQUARE ? "2" : (key == KEY_CUBE ? "3" : "")));
         cursor->add(super);
-        super->getCursor(*cursor, neda::CURSORLOCATION_START);
-        //Make sure the position is updated so adjustExpr will not mess up the display
-        cursor->expr->parent->parent->draw(display);
+        //Only move the cursor if the exponent box is empty
+        if(key == KEY_EXPONENT) {
+            super->getCursor(*cursor, neda::CURSORLOCATION_START);
+            //Make sure the position is updated so adjustExpr will not mess up the display
+            cursor->expr->parent->parent->draw(display);
+        }
 		break;
 	}
 	/* OTHER */
