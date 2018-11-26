@@ -209,7 +209,8 @@ namespace lcd {
         //The column is just x / 2 if y < 32, otherwise it's x / 2 + 8
         uint8_t col = x / 2 + (y < 32 ? 0 : 8);
         //If x is even, then the byte is on the left of the uint16, so left shift by 8.
-        drawBuf[row][col] &= x % 2 == 0 ? data << 8 : data;
+        //We also don't want to affect the other byte, so make sure the other byte is all 1s.
+        drawBuf[row][col] &= x % 2 == 0 ? data << 8 | 0x00FF : data | 0xFF00;
     }
 	
 	void LCD12864::drawImage(int16_t x, int16_t y, const LCD12864Image &img, bool invert) {
