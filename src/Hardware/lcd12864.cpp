@@ -364,6 +364,52 @@ namespace lcd {
             x += img.width + 1;
         }
     }
+
+    void LCD12864::fill(int16_t x, int16_t y, uint16_t width, uint16_t height) {
+        //Check for out of bounds
+        if(x >= 128 || y >= 64) {
+            return;
+        }
+        if(x + width < 0 || y + height < 0) {
+            return;
+        }
+
+        int16_t baseByte = floorDiv(x, static_cast<int16_t>(8));
+        int8_t offset = positiveMod(x, static_cast<int16_t>(8));
+        //Special handling if the area to fill is all in one byte
+        if(offset + width < 8) {
+            //Check for out of bounds
+            if(baseByte < 0) {
+                return;
+            }
+            //Find out what the byte looks like
+            uint8_t data = 0xFF >> offset;
+            data &= 0xFF << (8 - offset + width);
+            for(uint16_t row = 0; row < width; row ++) {
+                if(y + row < 0) {
+                    continue;
+                }
+                ORDrawBufferByte(baseByte, y + row, data);
+            }
+            return;
+        }
+        //Otherwise split into 3 parts
+        uint8_t start = 0xFF >> offset;
+        //(offset + width) % 8 calculates how many bits are in the last byte
+        //Then we shift 0xFF left by 8 minus those bits to get the last byte
+        uint8_t end = 0xFF << (8 - (width + offset) % 8);
+        uint8_t bytesWide = (offset + width) / 8 - 1;
+        for(uint16_t row = 0; row < width; row ++) {
+            if(y + row < 0) {
+                continue;
+            }
+            ORDrawBufferByte(baseByte, y + row, start);
+            for(uint16_t col = 0; col < bytesWide; col ++) {
+                ORDrawBufferByte(baseByte + col, y + row, 0xFF);
+            }
+            ORDrawBufferByte(baseByte + bytesWide, y + row, end);
+        }
+    }
 	
 	#undef W_CMD
 	#undef W_CHR
