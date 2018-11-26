@@ -581,6 +581,16 @@ void trigFunctionsMenuKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
             trigFuncIndex = 0;
         }
         break;
+    case KEY_LEFT:
+        if(trigFuncIndex >= 6) {
+            trigFuncIndex -= 6;
+        }
+        break;
+    case KEY_RIGHT:
+        if(trigFuncIndex < 6) {
+            trigFuncIndex += 6;
+        }
+        break;
     }
 
     int16_t y = 1;
