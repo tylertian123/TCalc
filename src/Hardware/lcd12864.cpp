@@ -212,7 +212,7 @@ namespace lcd {
         drawBuf[row][col] &= x % 2 == 0 ? data << 8 : data;
     }
 	
-	void LCD12864::drawImage(int16_t x, int16_t y, const LCD12864Image &img) {
+	void LCD12864::drawImage(int16_t x, int16_t y, const LCD12864Image &img, bool invert) {
         //Check for out of bounds
         if(x >= 128 || y >= 64) {
             return;
@@ -260,13 +260,23 @@ namespace lcd {
 					currentByte |= img.data[row * img.bytesWide + byte - 1] << (8 - offset);
 				}
 				
-				ORDrawBufferByte(baseByte + byte, row + y, currentByte);
+                if(!invert) {
+				    ORDrawBufferByte(baseByte + byte, row + y, currentByte);
+                }
+                else {
+                    ANDDrawBufferByte(baseByte + byte, row + y, ~currentByte);
+                }
 			}
 			//Finally, if we shifted by more than one bit, then there must be some bits clipped in the end
 			//Here we recover those lost bits and write them to the buffer
 			if(offset != 0) {
 				uint8_t finalByte = img.data[row * img.bytesWide + img.bytesWide - 1] << (8 - offset);
-				ORDrawBufferByte(baseByte + img.bytesWide, row + y, finalByte);
+                if(!invert) {
+				    ORDrawBufferByte(baseByte + img.bytesWide, row + y, finalByte);
+                }
+                else {
+                    ANDDrawBufferByte(baseByte + img.bytesWide, row + y, ~finalByte);
+                }
 			}
 		}
 	}
