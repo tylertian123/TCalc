@@ -436,6 +436,43 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
         }
 		break;
 	}
+    case KEY_EXP:
+    {
+        cursor->add(new neda::Character(LCD_CHAR_EULR));
+        neda::Superscript *super = new neda::Superscript(new neda::Container());
+        cursor->add(super);
+        super->getCursor(*cursor, neda::CURSORLOCATION_START);
+        cursor->expr->parent->parent->draw(display);
+        break;
+    }
+    case KEY_LN:
+    {
+        cursor->add(new neda::Character('l'));
+        cursor->add(new neda::Character('n'));
+        cursor->add(new neda::LeftBracket());
+        break;
+    }
+    case KEY_LOG10:
+    {
+        cursor->add(new neda::Character('l'));
+        cursor->add(new neda::Character('o'));
+        cursor->add(new neda::Character('g'));
+        cursor->add(new neda::Subscript(neda::makeString("10")));
+        cursor->add(new neda::LeftBracket());
+        break;
+    }
+    case KEY_LOGN:
+    {
+        cursor->add(new neda::Character('l'));
+        cursor->add(new neda::Character('o'));
+        cursor->add(new neda::Character('g'));
+        neda::Subscript *sub = new neda::Subscript(new neda::Container());
+        cursor->add(sub);
+        cursor->add(new neda::LeftBracket());
+        sub->getCursor(*cursor, neda::CURSORLOCATION_START);
+        cursor->expr->parent->parent->draw(display);
+        break;
+    }
 	/* OTHER */
 	case KEY_DELETE:
 	{
