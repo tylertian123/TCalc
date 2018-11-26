@@ -549,9 +549,57 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 	display.updateDrawing();
 }
 uint16_t trigFuncIndex = 0;
+const char *trigFuncs[] = {
+    "sin", "cos", "tan", "arcsin", "arccos", "arctan",
+    "sinh", "cosh", "tanh", "arcsinh", "arccosh", "arctanh",
+};
+const char *trigFuncNames[] = {
+    "sin", "cos", "tan", "asin", "acos", "atan",
+    "sinh", "cosh", "tanh", "asinh", "acosh", "atanh",
+};
 void trigFunctionsMenuKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
+
+    switch(key) {
+    case KEY_TRIG:
+        dispMode = DispMode::EXPR_ENTRY;
+        trigFuncIndex = 0;
+        //We need to call the function once to get the interface drawn
+        //To do this, we insert a dummy value into the key buffer
+        putKey(KEY_DUMMY);
+        return;
+    case KEY_UP:
+        if(trigFuncIndex > 0) {
+            --trigFuncIndex;
+        }
+        else {
+            trigFuncIndex = 11;
+        }
+        break;
+    case KEY_DOWN:
+        ++trigFuncIndex;
+        if(trigFuncIndex >= 12) {
+            trigFuncIndex = 0;
+        }
+        break;
+    }
+
+    int16_t y = 1;
+    for(uint8_t i = 0; i < 12; i ++) {
+        //Reset y if we are in the second column
+        if(i == 6) {
+            y = 1;
+        }
+
+        if(i < 6) {
+            display.drawString(1, y, trigFuncs[trigFuncIndex]);
+        }
+        else {
+            display.drawString(32, y, trigFuncs[trigFuncIndex]);
+        }
+        y += 10;
+    }
+
     display.clearDrawingBuffer();
-    display.drawInvertedString(3, 3, "Not Implemented!");
     display.updateDrawing();
 }
 
