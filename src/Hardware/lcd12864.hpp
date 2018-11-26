@@ -88,8 +88,7 @@ namespace lcd {
         void ANDDrawBufferByte(uint16_t, uint16_t, uint8_t);
 		void drawImage(int16_t, int16_t, const LCD12864Image&, bool invert = false);
 		void drawLine(int16_t, int16_t, int16_t, int16_t);
-        void drawString(int16_t, int16_t, const char*);
-        void drawInvertedString(int16_t, int16_t, const char*);
+        void drawString(int16_t, int16_t, const char*, bool invert = false);
         void fill(int16_t, int16_t, uint16_t, uint16_t);
 	
 	protected:

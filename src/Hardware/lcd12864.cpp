@@ -360,7 +360,26 @@ namespace lcd {
 		}
 	}
 
-    void LCD12864::drawString(int16_t x, int16_t y, const char *str) {
+    void LCD12864::drawString(int16_t x, int16_t y, const char *str, bool invert) {
+        //Empty string
+        if(*str == '\0') {
+            return;
+        }
+        uint16_t width = 0;
+        uint16_t height = 0;
+        for(uint16_t index = 0; str[index] != '\0'; ++index) {
+            const lcd::Img &img = lcd::getChar(*str);
+            width += img.width + 1;
+            height = max(height, img.height);
+        }
+        //Subtract away one extra spacing
+        --width;
+
+        if(invert) {
+            //Fill the zone
+            fill(x - 1, y - 1, width + 2, height + 2);
+        }
+
         for(; *str != '\0'; ++str) {
             //Out of bounds check #1
             if(x >= 128 || y >= 64) {
@@ -371,7 +390,8 @@ namespace lcd {
             if(x + img.width < 0 || y + img.height < 0) {
                 continue;
             }
-            drawImage(x, y, img);
+            //Make sure everything is bottom-aligned
+            drawImage(x, y + (height - img.height), img, invert);
             x += img.width + 1;
         }
     }
@@ -419,40 +439,6 @@ namespace lcd {
                 ORDrawBufferByte(baseByte + 1 + col, y + row, 0xFF);
             }
             ORDrawBufferByte(baseByte + 1 + bytesWide, y + row, end);
-        }
-    }
-
-    void LCD12864::drawInvertedString(int16_t x, int16_t y, const char *str) {
-        //Empty string
-        if(*str == '\0') {
-            return;
-        }
-        uint16_t width = 0;
-        uint16_t height = 0;
-        for(uint16_t index = 0; str[index] != '\0'; ++index) {
-            const lcd::Img &img = lcd::getChar(*str);
-            width += img.width + 1;
-            height = max(height, img.height);
-        }
-        //Subtract away one extra spacing
-        --width;
-
-        //Fill the zone
-        fill(x - 1, y - 1, width + 2, height + 2);
-        
-        for(; *str != '\0'; ++str) {
-            //Out of bounds check #1
-            if(x >= 128 || y >= 64) {
-                continue;
-            }
-            const lcd::Img &img = lcd::getChar(*str);
-            //Out of bounds check #2
-            if(x + img.width < 0 || y + img.height < 0) {
-                continue;
-            }
-            //Draw the char, but inverted
-            drawImage(x, y, img, true);
-            x += img.width + 1;
         }
     }
 	

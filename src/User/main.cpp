@@ -602,10 +602,10 @@ void trigFunctionsMenuKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
         }
 
         if(i < 6) {
-            display.drawString(1, y, trigFuncs[i]);
+            display.drawString(1, y, trigFuncs[i], trigFuncIndex == i);
         }
         else {
-            display.drawString(64, y, trigFuncs[i]);
+            display.drawString(64, y, trigFuncs[i], trigFuncIndex == i);
         }
         y += 10;
     }
