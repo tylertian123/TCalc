@@ -1,4 +1,5 @@
 #include "lcd12864.hpp"
+#include "lcd12864_charset.hpp"
 #include "util.hpp"
 
 namespace lcd {
@@ -347,6 +348,22 @@ namespace lcd {
 			}
 		}
 	}
+
+    void LCD12864::drawString(int16_t x, int16_t y, const char *str) {
+        for(; *str != '\0'; ++str) {
+            //Out of bounds check #1
+            if(x >= 128 || y >= 64) {
+                continue;
+            }
+            const lcd::Img &img = lcd::getChar(*str);
+            //Out of bounds check #2
+            if(x + img.width < 0 || y + img.height < 0) {
+                continue;
+            }
+            drawImage(x, y, img);
+            x += img.width + 1;
+        }
+    }
 	
 	#undef W_CMD
 	#undef W_CHR
