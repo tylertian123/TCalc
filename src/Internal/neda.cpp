@@ -355,9 +355,35 @@ namespace neda {
         }
         --cursorX;
         out.x = cursorX;
-        out.y = y;
         out.width = 2;
-        out.height = exprHeight;
+        //Adjust the size and location of the cursor based on a reference element
+        NEDAObj *ref;
+        //If the cursor's index is not 0, then take the elem in front
+        if(cursor.index != 0) {
+            ref = contents[cursor.index - 1];
+        }
+        else {
+            //Otherwise take the elem after if the container is not empty
+            if(contents.length() > 0) {
+                ref = contents[cursor.index];
+            }
+            //If container is empty, use default value and return
+            else {
+                out.y = y;
+                out.height = EMPTY_EXPR_HEIGHT;
+                return;
+            }
+        }
+
+        if(ref->getType() == ObjType::CHAR_TYPE) {
+        uint16_t maxTopSpacing = getTopSpacing();
+            out.height = ((Character*) ref)->getHeight();
+            out.y = y - ((Character*) ref)->getHeight() / 2 + maxTopSpacing;
+        }
+        else {
+            out.height = ((Expr*) ref)->exprHeight;
+            out.y = ((Expr*) ref)->y;
+        }
     }
     void Container::drawCursor(lcd::LCD12864 &dest, const Cursor &cursor) {
         CursorInfo info;
