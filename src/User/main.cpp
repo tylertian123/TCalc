@@ -389,11 +389,13 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 	case KEY_LBRACKET:
 	{
         cursor->add(new neda::LeftBracket());
+        cursor->expr->Expr::draw(display);
 		break;
 	}
     case KEY_RBRACKET:
     {
         cursor->add(new neda::RightBracket());
+        cursor->expr->Expr::draw(display);
         break;
     }
 	case KEY_ROOT:
@@ -560,6 +562,15 @@ const char *trigFuncNames[] = {
 void trigFunctionsMenuKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 
     switch(key) {
+    case KEY_CENTER:
+    case KEY_ENTER:
+        //Insert the chars
+        for(uint8_t i = 0; trigFuncNames[trigFuncIndex][i] != '\0'; i ++) {
+            cursor->add(new neda::Character(trigFuncNames[trigFuncIndex][i]));
+        }
+        cursor->add(new neda::LeftBracket());
+        cursor->expr->Expr::draw(display);
+        //Intentional fall-through
     case KEY_TRIG:
         dispMode = DispMode::EXPR_ENTRY;
         trigFuncIndex = 0;
@@ -591,6 +602,7 @@ void trigFunctionsMenuKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
             trigFuncIndex += 6;
         }
         break;
+    default: break;
     }
 
     display.clearDrawingBuffer();
