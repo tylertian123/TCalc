@@ -405,9 +405,9 @@ namespace lcd {
             }
             ORDrawBufferByte(baseByte, y + row, start);
             for(uint16_t col = 0; col < bytesWide; col ++) {
-                ORDrawBufferByte(baseByte + col, y + row, 0xFF);
+                ORDrawBufferByte(baseByte + 1 + col, y + row, 0xFF);
             }
-            ORDrawBufferByte(baseByte + bytesWide, y + row, end);
+            ORDrawBufferByte(baseByte + 1 + bytesWide, y + row, end);
         }
     }
 	
