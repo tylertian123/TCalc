@@ -551,7 +551,7 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 uint16_t trigFuncIndex = 0;
 void trigFunctionsMenuKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
     display.clearDrawingBuffer();
-    display.drawString(0, 0, "Not Implemented");
+    display.fill(1, 2, 10, 5);
     display.updateDrawing();
 }
 

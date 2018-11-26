@@ -385,7 +385,7 @@ namespace lcd {
             //Find out what the byte looks like
             uint8_t data = 0xFF >> offset;
             data &= 0xFF << (8 - offset + width);
-            for(uint16_t row = 0; row < width; row ++) {
+            for(uint16_t row = 0; row < height; row ++) {
                 if(y + row < 0) {
                     continue;
                 }
@@ -399,7 +399,7 @@ namespace lcd {
         //Then we shift 0xFF left by 8 minus those bits to get the last byte
         uint8_t end = 0xFF << (8 - (width + offset) % 8);
         uint8_t bytesWide = (offset + width) / 8 - 1;
-        for(uint16_t row = 0; row < width; row ++) {
+        for(uint16_t row = 0; row < height; row ++) {
             if(y + row < 0) {
                 continue;
             }
