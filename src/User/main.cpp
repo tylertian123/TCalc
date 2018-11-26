@@ -31,7 +31,14 @@ GPIOPin ctrlLED(GPIOA, GPIO_Pin_2);
 
 /********** Keyboard stuff **********/
 uint32_t keyDataBuffer = 0;
-
+void putKey(uint16_t key) {
+    //Store keystroke into buffer
+    //If there is already data in the buffer then shift that data left to make room
+    if(keyDataBuffer != 0) {
+        keyDataBuffer <<= 16;
+    }
+    keyDataBuffer += (uint16_t) key;
+}
 uint16_t fetchKey() {
 	uint16_t data;
 	//Check for key in buffer
@@ -55,6 +62,13 @@ uint16_t fetchKey() {
 		return KEY_NULL;
 	}
 }
+
+/********** Mode **********/
+enum class DispMode {
+    EXPR_ENTRY,
+    TRIG_MENU,
+};
+DispMode dispMode = DispMode::EXPR_ENTRY;
 
 /********** Cursor processing **********/
 void initCursorTimer() {
@@ -83,6 +97,9 @@ neda::Cursor *cursor;
 extern "C" void TIM3_IRQHandler() {
 	if(TIM_GetITStatus(TIM3, TIM_IT_Update)) {
 		TIM_ClearITPendingBit(TIM3, TIM_IT_Update);
+        if(dispMode != DispMode::EXPR_ENTRY) {
+            return;
+        }
 		cursorOn = !cursorOn;
 		display.clearDrawingBuffer();
 		//Redraw the entire expr
@@ -127,6 +144,8 @@ void addChar(neda::Cursor *cursor, char ch) {
 }
 //Key press handlers
 //Probably gonna make this name shorter, but couldn't bother.
+extern uint16_t trigFuncIndex;
+extern void trigFunctionsMenuKeyPressHandler(neda::Cursor*, uint16_t);
 void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 	switch(key) {
 	case KEY_SHIFT:
@@ -511,6 +530,14 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 		delete original;
 		break;
 	}
+    case KEY_TRIG:
+        //Set the display mode and reset the index
+        dispMode = DispMode::TRIG_MENU;
+        trigFuncIndex = 0;
+        //We need to call the function once to get the interface drawn
+        //To do this, we insert a dummy value into the key buffer
+        putKey(KEY_DUMMY);
+        break;
 
 	default: break;
 	}
@@ -520,6 +547,12 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 	cursor->expr->drawConnected(display);
 	cursor->draw(display);
 	display.updateDrawing();
+}
+uint16_t trigFuncIndex = 0;
+void trigFunctionsMenuKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
+    display.clearDrawingBuffer();
+    neda::drawString(display, 0, 0, "Not Implemented");
+    display.updateDrawing();
 }
 
 int main() {
@@ -557,10 +590,7 @@ int main() {
 	receiver.onReceive([](uint32_t data) {
 		//Store keystroke into buffer
 		//If there is already data in the buffer then shift that data left to make room
-		if(keyDataBuffer != 0) {
-			keyDataBuffer <<= 16;
-		}
-		keyDataBuffer += (uint16_t) data;
+		putKey(data);
 		statusLED = !statusLED;
 	});
 
@@ -582,7 +612,15 @@ int main() {
 
     while(true) {
 		if((key = fetchKey()) != KEY_NULL) {
-			expressionEntryKeyPressHandler(cursor, key);
+            switch(dispMode) {
+            case DispMode::EXPR_ENTRY:
+			    expressionEntryKeyPressHandler(cursor, key);
+                break;
+            case DispMode::TRIG_MENU:
+                trigFunctionsMenuKeyPressHandler(cursor, key);
+                break;
+            default: break;
+            }
 		}
     }
 }
