@@ -783,14 +783,14 @@ namespace neda {
     //*************************** Superscript ***************************************
     uint16_t Superscript::getTopSpacing() {
         if(!parent) {
-            return SAFE_ACCESS_0(contents, exprHeight) + Container::EMPTY_EXPR_HEIGHT - OVERLAP;
+            return SAFE_ACCESS_0(contents, exprHeight) + Container::EMPTY_EXPR_HEIGHT / 2 - OVERLAP;
         }
         Container *parentContainer = (Container*) parent;
         auto parentContents = parentContainer->getContents();
         uint16_t index = parentContainer->indexOf(this);
         //Look at the expression right before it. If there is no expression before, return the default
         if(index == 0) {
-            return SAFE_ACCESS_0(contents, exprHeight) + Container::EMPTY_EXPR_HEIGHT - OVERLAP;
+            return SAFE_ACCESS_0(contents, exprHeight) + Container::EMPTY_EXPR_HEIGHT / 2 - OVERLAP;
         }
         NEDAObj *prevObj = (*parentContents)[index - 1];
         uint16_t prevHeight = prevObj->getType() == ObjType::CHAR_TYPE ? ((Character*) prevObj)->getHeight() : ((Expr*) prevObj)->exprHeight;
@@ -798,9 +798,28 @@ namespace neda {
     }
     void Superscript::computeWidth() {
         exprWidth = SAFE_ACCESS_0(contents, exprWidth);
+        SAFE_EXEC(parent, computeWidth);
     }
     void Superscript::computeHeight() {
-        exprHeight = SAFE_ACCESS_0(contents, exprHeight);
+        if(!parent) {
+            exprHeight = SAFE_ACCESS_0(contents, exprHeight) + Container::EMPTY_EXPR_HEIGHT - OVERLAP;
+            SAFE_EXEC(parent, computeHeight);
+            return;
+        }
+        Container *parentContainer = (Container*) parent;
+        auto parentContents = parentContainer->getContents();
+        uint16_t index = parentContainer->indexOf(this);
+        //Look at the expression right before it. If there is no expression before, return the default
+        if(index == 0) {
+            exprHeight = SAFE_ACCESS_0(contents, exprHeight) + Container::EMPTY_EXPR_HEIGHT - OVERLAP;
+            SAFE_EXEC(parent, computeHeight);
+            return;
+        }
+        NEDAObj *prevObj = (*parentContents)[index - 1];
+        uint16_t prevHeight = prevObj->getType() == ObjType::CHAR_TYPE ? ((Character*) prevObj)->getHeight() : ((Expr*) prevObj)->exprHeight;
+        exprHeight = SAFE_ACCESS_0(contents, exprHeight) + prevHeight - OVERLAP;
+
+        SAFE_EXEC(parent, computeHeight);
     }
     void Superscript::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
         this->x = x;
@@ -845,6 +864,7 @@ namespace neda {
 	}
 	void Subscript::computeWidth() {
 		exprWidth = SAFE_ACCESS_0(contents, exprWidth);
+        SAFE_EXEC(parent, computeWidth);
 	}
 	void Subscript::computeHeight() {
 		if(!parent) {
@@ -862,6 +882,7 @@ namespace neda {
         NEDAObj *prevObj = (*parentContents)[index - 1];
         uint16_t prevHeight = prevObj->getType() == ObjType::CHAR_TYPE ? ((Character*) prevObj)->getHeight() : ((Expr*) prevObj)->exprHeight;
         exprHeight = prevHeight - OVERLAP + SAFE_ACCESS_0(contents, exprHeight);
+        SAFE_EXEC(parent, computeHeight);
 	}
 	void Subscript::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
         this->x = x;
@@ -950,7 +971,7 @@ namespace neda {
         dest.drawImage(x + (widest - symbol.width) / 2, y + finish->exprHeight + 2 + symbolYOffset, symbol);
         start->draw(dest, x + (widest - start->exprWidth) / 2, y + finish->exprHeight + 2 + symbol.height + 2 + symbolYOffset);
 
-        contents->draw(dest, widest + 3, y + contentsYOffset);
+        contents->draw(dest, x + widest + 3, y + contentsYOffset);
 	}
     Expr* SigmaPi::getStart() {
         return start;
