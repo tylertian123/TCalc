@@ -593,6 +593,7 @@ void trigFunctionsMenuKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
         break;
     }
 
+    display.clearDrawingBuffer();
     int16_t y = 1;
     for(uint8_t i = 0; i < 12; i ++) {
         //Reset y if we are in the second column
@@ -601,15 +602,14 @@ void trigFunctionsMenuKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
         }
 
         if(i < 6) {
-            display.drawString(1, y, trigFuncs[trigFuncIndex]);
+            display.drawString(1, y, trigFuncs[i]);
         }
         else {
-            display.drawString(32, y, trigFuncs[trigFuncIndex]);
+            display.drawString(64, y, trigFuncs[i]);
         }
         y += 10;
     }
 
-    display.clearDrawingBuffer();
     display.updateDrawing();
 }
 
