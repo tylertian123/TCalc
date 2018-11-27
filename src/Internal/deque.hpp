@@ -14,10 +14,34 @@ public:
         free(contents);
     }
 
-    void enqueue(T elem) {
+    bool enqueue(T elem) {
+        //Check for overflow
+        if(len + 1 > maxLen) {
+            uint16_t oldMaxLen = maxLen;
+            //Default: allocate only what's needed
+            maxLen = len + 1;
+            void *tmp = realloc(contents, sizeof(T) * maxLen);
+            if(!tmp) {
+                maxLen = oldMaxLen;
+                return false;
+            }
+            //Adjust the queue to accommodate for the change
+            contents = (T*) tmp;
+            uint16_t i = maxLen - 1;
+            uint16_t index = (start + len) % maxLen;
+            while(i != index) {
+                if(i == maxLen - 1) {
+                    contents[i] = contents[0];
+                }
+                else {
+                    contents[i] = contents[i + 1];
+                }
+            }
+        }
         uint16_t index = (start + len) % maxLen;
-        ++len;
         contents[index] = elem;
+        ++len;
+        return true;
     }
     void push(T elem) {
         if(start > 0) {
@@ -34,6 +58,7 @@ public:
         if(start >= maxLen) {
             start = 0;
         }
+        --len;
         return temp;
     }
     T pop() {
