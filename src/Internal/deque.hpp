@@ -83,10 +83,10 @@ public:
     T pop() {
         return dequeue();
     }
-    T peek() {
+    T peek() const {
         return contents[start];
     }
-    bool isEmpty() {
+    bool isEmpty() const {
         return !(len > 0);
     }
 
