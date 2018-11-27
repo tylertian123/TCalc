@@ -32,7 +32,10 @@ namespace eval {
         case LCD_CHAR_DIV:
         case '/':
             return &OP_DIVIDE;
-            
+
+        case '^':
+            return &OP_EXPONENT;
+
         default: return nullptr;
         }
     }
@@ -59,7 +62,7 @@ namespace eval {
                 break;
             }
             case neda::ObjType::CHAR_TYPE: {
-
+                
                 break;
             }
             default: break;

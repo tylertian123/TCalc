@@ -4,7 +4,7 @@
 #include "stm32f10x.h"
 #include <stdlib.h>
 
-template <typename T>
+template <typename T, uint16_t IncreaseAmount = 4>
 class Deque {
 public:
     Deque(uint16_t capacity) : len(0), start(0), maxLen(capacity) {
@@ -15,10 +15,10 @@ public:
         free(contents);
     }
 
-    bool increaseSize() {
+    bool increaseSize(uint16_t increase) {
         uint16_t oldMaxLen = maxLen;
         //Default: allocate only what's needed
-        maxLen = len + 1;
+        maxLen = len + increase;
         void *tmp = realloc(contents, sizeof(T) * maxLen);
         if(!tmp) {
             maxLen = oldMaxLen;
@@ -29,11 +29,11 @@ public:
         uint16_t i = maxLen - 1;
         uint16_t index = (start + len) % maxLen;
         while(i != index) {
-            if(i == maxLen - 1) {
-                contents[i] = contents[0];
+            if(i + increase >= maxLen) {
+                contents[i] = contents[(i + increase) % maxLen];
             }
             else {
-                contents[i] = contents[i + 1];
+                contents[i] = contents[i + increase];
             }
             ++i;
             if(i >= maxLen) {
@@ -46,7 +46,7 @@ public:
     bool enqueue(T elem) {
         //Check for overflow
         if(len + 1 > maxLen) {
-            if(!increaseSize()) {
+            if(!increaseSize(IncreaseAmount)) {
                 return false;
             }
         }
@@ -58,7 +58,7 @@ public:
     bool push(T elem) {
         //Check for overflow
         if(len + 1 > maxLen) {
-            if(!increaseSize()) {
+            if(!increaseSize(IncreaseAmount)) {
                 return false;
             }
         }
