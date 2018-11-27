@@ -29,18 +29,21 @@ namespace eval {
 
     class Operator : public Token {
     public:
-
         enum class Type {
             PLUS, MINUS, MULTIPLY, DIVIDE, EXPONENT,
         };
+        Operator(Type type) : type(type) {}
 
         Type type;
 
-        uint8_t getPrecedence();
+        uint8_t getPrecedence() const;
 
         virtual TokenType getType() override {
             return TokenType::NUMBER;
         }
+
+        static const Operator* fromChar(char);
+        static const Operator OP_PLUS, OP_MINUS, OP_MULTIPLY, OP_DIVIDE, OP_EXPONENT;
     };
 
     class LeftBracket : public Token {
