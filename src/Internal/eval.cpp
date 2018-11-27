@@ -16,4 +16,15 @@ namespace eval {
         default: return 0xFF;
         }
     }
+
+    /******************** Functions ********************/
+    DynamicArray<Token*>* tokensFromExpr(neda::Container *expr) {
+        DynamicArray<Token*> *arr = new DynamicArray<Token*>();
+        auto exprs = expr->getContents();
+        uint16_t index = 0;
+
+        while(index < exprs->length()) {
+            
+        }
+    }
 }

@@ -2,6 +2,7 @@
 #define __EVAL_H__
 
 #include "neda.hpp"
+#include "dynamarr.hpp"
 
 namespace eval {
 
@@ -54,6 +55,8 @@ namespace eval {
             return TokenType::R_BRACKET;
         }
     };
+
+    DynamicArray<Token*>* tokensFromExpr(neda::Container*);
 }
 
 #endif
