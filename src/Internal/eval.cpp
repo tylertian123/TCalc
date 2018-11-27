@@ -62,7 +62,7 @@ namespace eval {
         }
         return ((neda::Character*) obj)->ch;
     }
-    DynamicArray<Token*>* tokensFromExpr(neda::Container *expr) {
+    DynamicArray<Token*, 4>* tokensFromExpr(neda::Container *expr) {
         DynamicArray<Token*, 4> *arr = new DynamicArray<Token*, 4>();
         //Deref the result so the syntax won't be so awkward
         auto &exprs = *expr->getContents();
@@ -115,5 +115,6 @@ namespace eval {
             default: break;
             }
         }
+        return arr;
     }
 }

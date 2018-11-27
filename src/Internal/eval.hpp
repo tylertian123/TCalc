@@ -60,7 +60,7 @@ namespace eval {
         }
     };
 
-    DynamicArray<Token*>* tokensFromExpr(neda::Container*);
+    DynamicArray<Token*, 4>* tokensFromExpr(neda::Container*);
 }
 
 #endif
