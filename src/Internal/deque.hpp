@@ -24,6 +24,18 @@ public:
         }
         return temp;
     }
+    void push(T elem) {
+        if(start > 0) {
+            --start;
+        }
+        else {
+            start = maxLen - 1;
+        }
+        contents[start] = elem;
+    }
+    T pop() {
+        return dequeue();
+    }
 
 protected:
     T *contents;
