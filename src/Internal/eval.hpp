@@ -20,6 +20,7 @@ namespace eval {
 
     class Number : public Token {
     public:
+        Number(double value) : value(value) {}
         double value;
 
         virtual TokenType getType() override {
@@ -42,8 +43,8 @@ namespace eval {
             return TokenType::NUMBER;
         }
 
-        static const Operator* fromChar(char);
-        static const Operator OP_PLUS, OP_MINUS, OP_MULTIPLY, OP_DIVIDE, OP_EXPONENT;
+        static Operator* fromChar(char);
+        static Operator OP_PLUS, OP_MINUS, OP_MULTIPLY, OP_DIVIDE, OP_EXPONENT;
     };
 
     class LeftBracket : public Token {
