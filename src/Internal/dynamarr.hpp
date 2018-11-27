@@ -4,7 +4,7 @@
 #include "stm32f10x.h"
 #include <stdlib.h>
 
-template <typename T>
+template <typename T, uint16_t IncreaseAmount = 1>
 class DynamicArray {
 public:
 	//Default constructor with length 0
@@ -78,16 +78,10 @@ public:
 		len ++;
 		//If the new length is more than what we can store then reallocate
 		if(len > maxLen) {
-			//Default implementation: reallocate only what's needed
-			maxLen = len;
-			void *tmp = realloc(contents, sizeof(T) * len);
-            if(!tmp) {
-                //Oh crap we ran out of memory, have a panic attack here
-                len --;
-                maxLen --;
+            //Minus one because len is already increased
+            if(!resize(len + IncreaseAmount - 1)) {
                 return false;
             }
-            contents = (T*) tmp;
 		}
 		contents[len - 1] = elem;
         return true;
@@ -95,16 +89,9 @@ public:
     bool insert(const T &elem, uint16_t where) {
         len ++;
         if(len > maxLen) {
-            //Default impl: reallocate only what's needed
-            maxLen = len;
-            void *tmp = realloc(contents, sizeof(T) * len);
-            if(!tmp) {
-                //Oh crap we ran out of memory
-                len --;
-                maxLen --;
+            if(!resize(len + IncreaseAmount - 1)) {
                 return false;
             }
-            contents = (T*) tmp;
         }
         //Iterate backwards to move the elements
         //This way we don't have to keep a buffer

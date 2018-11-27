@@ -17,7 +17,6 @@ public:
 
     bool increaseSize(uint16_t increase) {
         uint16_t oldMaxLen = maxLen;
-        //Default: allocate only what's needed
         maxLen = len + increase;
         void *tmp = realloc(contents, sizeof(T) * maxLen);
         if(!tmp) {
