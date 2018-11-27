@@ -36,6 +36,10 @@ public:
                 else {
                     contents[i] = contents[i + 1];
                 }
+                ++i;
+                if(i >= maxLen) {
+                    i = 0;
+                }
             }
         }
         uint16_t index = (start + len) % maxLen;
