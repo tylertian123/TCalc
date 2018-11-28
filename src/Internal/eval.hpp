@@ -33,7 +33,6 @@ namespace eval {
         enum class Type {
             PLUS, MINUS, MULTIPLY, DIVIDE, EXPONENT,
         };
-        Operator(Type type) : type(type) {}
 
         Type type;
 
@@ -44,7 +43,11 @@ namespace eval {
         }
 
         static Operator* fromChar(char);
+        //Because there are only a set number of possible operators, we can keep singletons
         static Operator OP_PLUS, OP_MINUS, OP_MULTIPLY, OP_DIVIDE, OP_EXPONENT;
+    
+    private:
+        Operator(Type type) : type(type) {}
     };
 
     class LeftBracket : public Token {
@@ -52,12 +55,23 @@ namespace eval {
         virtual TokenType getType() override {
             return TokenType::L_BRACKET;
         }
+        
+        static LeftBracket INSTANCE;
+    
+    private:
+        //As with operators, left and right brackets are singletons
+        LeftBracket() {}
     };
     class RightBracket : public Token {
     public:
         virtual TokenType getType() override {
             return TokenType::R_BRACKET;
         }
+
+        static RightBracket INSTANCE;
+    
+    private:
+        RightBracket() {}
     };
 
     DynamicArray<Token*, 4>* tokensFromExpr(neda::Container*);

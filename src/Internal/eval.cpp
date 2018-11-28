@@ -46,6 +46,12 @@ namespace eval {
                    Operator::OP_DIVIDE = { Operator::Type::DIVIDE },
                    Operator::OP_EXPONENT = { Operator::Type::EXPONENT };
 
+    /******************** LeftBracket ********************/
+    LeftBracket LeftBracket::INSTANCE;
+
+    /******************** RightBracket ********************/
+    RightBracket RightBracket::INSTANCE;
+
     /******************** Functions ********************/
     bool isDigit(char ch) {
         return (ch >= '0' && ch <= '9') || ch == '.';
@@ -79,6 +85,11 @@ namespace eval {
                 arr->merge(tokensFromExpr((neda::Container*) exprs[index]));
                 ++index;
                 lastTokenIsOperator = false;
+                break;
+            }
+            case neda::ObjType::L_BRACKET:
+            {
+                
                 break;
             }
             case neda::ObjType::CHAR_TYPE:
