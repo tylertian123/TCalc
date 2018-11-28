@@ -11,6 +11,7 @@ namespace eval {
         OPERATOR,
         L_BRACKET,
         R_BRACKET,
+        FUNCTION,
     };
 
     class Token {
@@ -72,6 +73,20 @@ namespace eval {
     
     private:
         RightBracket() {}
+    };
+
+    //For now, functions only take one argument
+    //Multi-arg functions might be added in the future.
+    class Function : public Token {
+    public:
+        enum class Type : uint8_t {
+            SIN, COS, TAN, ASIN, ACOS, ATAN
+        };
+
+        virtual TokenType getType() override {
+            return TokenType::FUNCTION;
+        }
+
     };
 
     DynamicArray<Token*, 4>* tokensFromExpr(neda::Container*);

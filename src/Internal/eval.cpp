@@ -105,6 +105,22 @@ namespace eval {
                 lastTokenIsOperator = false;
                 break;
             }
+            case neda::ObjType::FRACTION:
+            {
+                //Translate fractions to a division with brackets
+                arr->add(&LeftBracket::INSTANCE);
+                //Merge this with the result of a token extraction on the numerator
+                arr->merge(tokensFromExpr((neda::Container*) ((neda::Fraction*) exprs[index])->getNumerator()));
+                arr->add(&RightBracket::INSTANCE);
+                arr->add(&Operator::OP_DIVIDE);
+                arr->add(&LeftBracket::INSTANCE);
+                arr->merge(tokensFromExpr((neda::Container*) ((neda::Fraction*) exprs[index])->getDenominator()));
+                arr->add(&RightBracket::INSTANCE);
+                
+                ++index;
+                lastTokenIsOperator = false;
+                break;
+            }
             case neda::ObjType::CHAR_TYPE:
             {
                 char ch = ((neda::Character*) exprs[index])->ch;
