@@ -89,7 +89,18 @@ namespace eval {
             }
             case neda::ObjType::L_BRACKET:
             {
-                
+                arr->add(&LeftBracket::INSTANCE);
+                ++index;
+                //Allow unary operators right after open brackets
+                lastTokenIsOperator = true;
+                break;
+            }
+            case neda::ObjType::R_BRACKET:
+            {
+                arr->add(&RightBracket::INSTANCE);
+                ++index;
+                //Unlike open brackets, unary operators are not allowed after close brackets
+                lastTokenIsOperator = false;
                 break;
             }
             case neda::ObjType::CHAR_TYPE:
