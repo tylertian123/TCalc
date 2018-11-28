@@ -1103,6 +1103,11 @@ namespace neda {
         }
         return cont;
     }
+    void addString(Container *cont, const char *str) {
+        while(*str != '\0') {
+            cont->add(new Character(*(str++)));
+        }
+    }
 }
 
 #undef VERIFY_INBOUNDS

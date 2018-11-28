@@ -462,6 +462,7 @@ namespace neda {
     };
 
     Container* makeString(const char*);
+    void addString(Container*, const char*);
 }
 
 #endif
