@@ -89,6 +89,8 @@ namespace eval {
             }
             case neda::ObjType::L_BRACKET:
             {
+                //If the last token was not an operator, then it must be an implied multiplication
+                arr->add(&Operator::OP_MULTIPLY);
                 arr->add(&LeftBracket::INSTANCE);
                 ++index;
                 //Allow unary operators right after open brackets
