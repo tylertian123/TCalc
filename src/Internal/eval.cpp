@@ -67,6 +67,9 @@ namespace eval {
         //Deref the result so the syntax won't be so awkward
         auto &exprs = *expr->getContents();
         uint16_t index = 0;
+        //This variable keeps track of whether the last token was an operator
+        //It is used for unary operators like the unary minus and plus
+        bool lastTokenIsOperator = true;
 
         while (index < exprs.length()) {
             switch (exprs[index]->getType()) {
@@ -75,6 +78,7 @@ namespace eval {
             {
                 arr->merge(tokensFromExpr((neda::Container*) exprs[index]));
                 ++index;
+                lastTokenIsOperator = false;
                 break;
             }
             case neda::ObjType::CHAR_TYPE:
@@ -85,19 +89,25 @@ namespace eval {
                     break;
                 }
                 Operator *op = Operator::fromChar(ch);
-                //Check if the character is an operator
-                if (op) {
-                    arr->add(op);
-                    ++index;
-                    break;
+                //Check if last token was an operator and that the new operator has type plus or minus (unary operators)
+                if(!(lastTokenIsOperator && op && (op->type == Operator::Type::PLUS || op->type == Operator::Type::MINUS))) {
+                    //If not the do the regular checks for operator validity
+                    //Check if the character is an operator
+                    if (op) {
+                        arr->add(op);
+                        ++index;
+                        lastTokenIsOperator = true;
+                        break;
+                    }
+                    //Skip if the character is neither an operator or a digit
+                    if (!isDigit(ch)) {
+                        ++index;
+                        break;
+                    }
                 }
-                //Skip if the character is neither an operator or a digit
-                if (!isDigit(ch)) {
-                    ++index;
-                    break;
-                }
-                //Find the end of the number
-                uint16_t end = index;
+                //Otherwise find the end of the number as usual
+                //As end starts out as index + 1 this will include the leading unary plus or minus so no need to worry
+                uint16_t end = index + 1;
                 for (; end < exprs.length() && exprIsDigit(exprs[end]); ++end);
                 //+1 for null terminator
                 char *numStr = new char[end - index + 1];
@@ -109,7 +119,8 @@ namespace eval {
                 //Convert to double
                 double d = atof(numStr);
                 arr->add(new Number(d));
-                ++index;
+                index = end;
+                lastTokenIsOperator = false;
                 break;
             }
             default: break;
