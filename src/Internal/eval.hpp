@@ -40,7 +40,7 @@ namespace eval {
         uint8_t getPrecedence() const;
 
         virtual TokenType getType() override {
-            return TokenType::NUMBER;
+            return TokenType::OPERATOR;
         }
 
         static Operator* fromChar(char);

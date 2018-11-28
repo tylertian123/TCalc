@@ -68,44 +68,44 @@ namespace eval {
         auto &exprs = *expr->getContents();
         uint16_t index = 0;
 
-        while(index < exprs.length()) {
-            switch(exprs[index]->getType()) {
-            //If we encounter nested containers, just do a recursive call
+        while (index < exprs.length()) {
+            switch (exprs[index]->getType()) {
+                //If we encounter nested containers, just do a recursive call
             case neda::ObjType::CONTAINER:
             {
                 arr->merge(tokensFromExpr((neda::Container*) exprs[index]));
                 ++index;
                 break;
             }
-            case neda::ObjType::CHAR_TYPE: 
+            case neda::ObjType::CHAR_TYPE:
             {
                 char ch = ((neda::Character*) exprs[index])->ch;
-                if(ch == ' ') {
+                if (ch == ' ') {
                     ++index;
                     break;
                 }
                 Operator *op = Operator::fromChar(ch);
                 //Check if the character is an operator
-                if(op) {
+                if (op) {
                     arr->add(op);
                     ++index;
                     break;
                 }
                 //Skip if the character is neither an operator or a digit
-                if(!isDigit(ch)) {
+                if (!isDigit(ch)) {
                     ++index;
                     break;
                 }
                 //Find the end of the number
                 uint16_t end = index;
-                for(; exprIsDigit(exprs[index]) && end < exprs.length(); index ++);
+                for (; end < exprs.length() && exprIsDigit(exprs[end]); ++end);
                 //+1 for null terminator
                 char *numStr = new char[end - index + 1];
-                for(uint16_t i = index; i < end; i ++) {
+                for (uint16_t i = index; i < end; i++) {
                     numStr[i - index] = extractChar(exprs[i]);
                 }
                 //Add null terminator
-                numStr[end - index - 1] = '\0';
+                numStr[end - index] = '\0';
                 //Convert to double
                 double d = atof(numStr);
                 arr->add(new Number(d));
