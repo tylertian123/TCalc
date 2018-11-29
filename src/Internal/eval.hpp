@@ -3,6 +3,7 @@
 
 #include "neda.hpp"
 #include "dynamarr.hpp"
+#include "deque.hpp"
 
 namespace eval {
 
@@ -99,6 +100,67 @@ namespace eval {
     };
 
     DynamicArray<Token*, 4>* tokensFromExpr(neda::Container*);
+
+    //Shunting yard algorithm
+    //Note: This does not delete the tokens in the DynamicArray
+    //Note: The tokens are shared between the DynamicArray and the result
+    template <uint16_t Increase>
+    Deque<Token*>* toPostfix(DynamicArray<Token*, Increase>* tokens) {
+        Deque<Token*> *output = new Deque<Token*>();
+        Deque<Token*> *opStack = new Deque<Token*>();
+        for(Token *token : *tokens) {
+            //Add to the output queue if the token is a number
+            if(token->getType() == TokenType::NUMBER) {
+                output->enqueue(token);
+            }
+            //Push directly onto the op stack in case of a function or left bracket
+            else if(token->getType() == TokenType::L_BRACKET || token->getType() == TokenType::FUNCTION) {
+                opStack->push(token);
+            }
+            else if(token->getType() == TokenType::OPERATOR) {
+                //While the operator on top of the stack has equal or higher precedence, or the operator on top is a function,
+                //pop them off the stack and put into the queue
+                Token *op;
+                while(!opStack->isEmpty() && (op = opStack->peek(), op->getType() == TokenType::FUNCTION || 
+                        (op->getType() == TokenType::OPERATOR && ((Operator*) op)->getPrecedence() <= ((Operator*) token)->getPrecedence()))) {
+                    output->enqueue(opStack->pop());
+                }
+                //Finally push the operator
+                opStack->push(token);
+            }
+            else if(token->getType() == TokenType::R_BRACKET) {
+                //While the operator on top of the stack is not a left bracket, pop items off the stack and into the queue
+                Token *op;
+                while(!opStack->isEmpty() && !(op = opStack->peek(), op->getType() == TokenType::L_BRACKET)) {
+                    output->enqueue(opStack->pop());
+                }
+                //If everything is good, the stack should not be empty (as it still has a left bracket that's not popped off)
+                if(!opStack->isEmpty()) {
+                    opStack->pop();
+                }
+                //Otherwise there are unmatched brackets
+                else {
+                    //Do cleanup
+                    //Note: the stack and queue are deleted, but the tokens are not!!
+                    delete opStack;
+                    delete output;
+                    return nullptr;
+                }
+            }
+        }
+        //Pop everything on the stack into the queue
+        while(!opStack->isEmpty()) {
+            //Ignore left brackets
+            if(opStack->peek()->getType() != TokenType::L_BRACKET) {
+                output->enqueue(opStack->pop());
+            }
+            else {
+                opStack->pop();
+            }
+        }
+        delete opStack;
+        return output;
+    }
 
     //This will delete the DynamicArray of tokens properly. It will destory all tokens in the array and the array itself.
     template <uint16_t Increase>
