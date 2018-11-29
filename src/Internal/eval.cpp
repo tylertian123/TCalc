@@ -140,24 +140,39 @@ namespace eval {
                     break;
                 }
                 Operator *op = Operator::fromChar(ch);
-                //Check if last token was an operator and that the new operator has type plus or minus (unary operators)
-                if(!(lastTokenIsOperator && op && (op->type == Operator::Type::PLUS || op->type == Operator::Type::MINUS))) {
-                    //If not the do the regular checks for operator validity
-                    //Check if the character is an operator
-                    if (op) {
+                //Check if the character is an operator
+                if (op) {
+                    //Check for unary operators
+                    //Last token must be an operator
+                    if(!(lastTokenIsOperator && (op->type == Operator::Type::PLUS || op->type == Operator::Type::MINUS))) {
+                        //If we do encounter a unary operator, translate it to multiplication
+                        //This is so that the order of operations won't be messed up (namely exponentiation)
+                        if(op->type == Operator::Type::MINUS) {
+                            arr->add(new Number(-1));
+                            arr->add(&Operator::OP_MULTIPLY);
+                            ++index;
+                            lastTokenIsOperator = false;
+                            break;
+                        }
+                        //If it's an unary plus ignore it
+                        else {
+                            break;
+                        }
+                    }
+                    else {
                         arr->add(op);
                         ++index;
                         lastTokenIsOperator = true;
                         break;
                     }
-                    //Skip if the character is neither an operator or a digit
-                    if (!isDigit(ch)) {
-                        ++index;
-                        break;
-                    }
                 }
+                //Skip if the character is neither an operator or a digit
+                if (!isDigit(ch)) {
+                    ++index;
+                    break;
+                }
+
                 //Otherwise find the end of the number as usual
-                //As end starts out as index + 1 this will include the leading unary plus or minus so no need to worry
                 uint16_t end = index + 1;
                 for (; end < exprs.length() && exprIsDigit(exprs[end]); ++end);
                 //+1 for null terminator
