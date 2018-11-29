@@ -59,10 +59,10 @@ namespace eval {
         }
     }
     Operator Operator::OP_PLUS = { Operator::Type::PLUS },
-                   Operator::OP_MINUS = { Operator::Type::MINUS },
-                   Operator::OP_MULTIPLY = { Operator::Type::MULTIPLY },
-                   Operator::OP_DIVIDE = { Operator::Type::DIVIDE },
-                   Operator::OP_EXPONENT = { Operator::Type::EXPONENT };
+             Operator::OP_MINUS = { Operator::Type::MINUS },
+             Operator::OP_MULTIPLY = { Operator::Type::MULTIPLY },
+             Operator::OP_DIVIDE = { Operator::Type::DIVIDE },
+             Operator::OP_EXPONENT = { Operator::Type::EXPONENT };
 
     /******************** LeftBracket ********************/
     LeftBracket LeftBracket::INSTANCE;
@@ -114,7 +114,6 @@ namespace eval {
         }
         return ((neda::Character*) obj)->ch;
     }
-    //Add a free
     DynamicArray<Token*, 4>* tokensFromExpr(neda::Container *expr) {
         DynamicArray<Token*, 4> *arr = new DynamicArray<Token*, 4>();
         //Deref the result so the syntax won't be so awkward

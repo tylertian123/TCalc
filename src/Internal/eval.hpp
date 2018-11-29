@@ -99,6 +99,18 @@ namespace eval {
     };
 
     DynamicArray<Token*, 4>* tokensFromExpr(neda::Container*);
+
+    //This will delete the DynamicArray of tokens properly. It will destory all tokens in the array and the array itself.
+    template <uint16_t Increase>
+    void freeTokens(DynamicArray<Token*, Increase> *arr) {
+        for(Token *token : *arr) {
+            //Only delete if token is not of a singleton class
+            if(token->getType() == TokenType::NUMBER || token->getType() == TokenType::FUNCTION) {
+                delete token;
+            }
+        }
+        delete arr;
+    }
 }
 
 #endif
