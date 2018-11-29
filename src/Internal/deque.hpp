@@ -89,6 +89,9 @@ public:
     bool isEmpty() const {
         return !(len > 0);
     }
+    uint16_t length() const {
+        return len;
+    }
 
 protected:
     T *contents;

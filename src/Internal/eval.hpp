@@ -49,6 +49,8 @@ namespace eval {
         static Operator* fromChar(char);
         //Because there are only a set number of possible operators, we can keep singletons
         static Operator OP_PLUS, OP_MINUS, OP_MULTIPLY, OP_DIVIDE, OP_EXPONENT;
+
+        double operate(double, double);
     
     private:
         Operator(Type type) : type(type) {}
@@ -96,7 +98,7 @@ namespace eval {
         }
 
         static Function* fromString(const char*);
-
+        double compute(double);
     };
 
     DynamicArray<Token*, 4>* tokensFromExpr(neda::Container*);
@@ -162,6 +164,55 @@ namespace eval {
         return output;
     }
 
+    //Note: Deletes the input
+    template <uint16_t Increase>
+    bool evalPostfix(Deque<Token*, Increase>* expr, double &out) {
+        Deque<double> stack;
+        while(!expr->isEmpty()) {
+            Token *token = expr->dequeue();
+            if(token->getType() == TokenType::NUMBER) {
+                stack.push(((Number*) token)->value);
+                //Make sure the number is freed
+                delete token;
+                continue;
+            }
+            else if(token->getType() == TokenType::FUNCTION) {
+                //Syntax error: Not Enough Arguments
+                if(stack.isEmpty()) {
+                    //Do cleanup and return false
+                    delete token;
+                    freeTokens(expr);
+                    return false;
+                }
+                else {
+                    //Compute the function
+                    stack.push(((Function*) token)->compute(stack.pop()));
+                }
+            }
+            else if(token->getType() == TokenType::OPERATOR) {
+                //Syntax error: Not enough numbers
+                if(stack.length() < 2) {
+                    //Do cleanup and return false
+                    delete token;
+                    freeTokens(expr);
+                    return false;
+                }
+                double rhs = stack.pop();
+                double lhs = stack.pop();
+                stack.push(((Operator*) token)->operate(lhs, rhs));
+            }
+        }
+
+        delete expr;
+        if(stack.length() != 1) {
+            //Syntax error: Not enough operations or numbers
+            return false;
+        }
+        
+        out = stack.pop();
+        return true;
+    }
+
     //This will delete the DynamicArray of tokens properly. It will destory all tokens in the array and the array itself.
     template <uint16_t Increase>
     void freeTokens(DynamicArray<Token*, Increase> *arr) {
@@ -172,6 +223,16 @@ namespace eval {
             }
         }
         delete arr;
+    }
+    template <uint16_t Increase>
+    void freeTokens(Deque<Token*, Increase> *q) {
+        while(!q->isEmpty()) {
+            Token *t = q->dequeue();
+            if(t->getType() == TokenType::NUMBER || t->getType() == TokenType::FUNCTION) {
+                delete t;
+            }
+        }
+        delete q;
     }
 }
 

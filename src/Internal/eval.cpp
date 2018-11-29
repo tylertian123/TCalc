@@ -63,6 +63,31 @@ namespace eval {
              Operator::OP_MULTIPLY = { Operator::Type::MULTIPLY },
              Operator::OP_DIVIDE = { Operator::Type::DIVIDE },
              Operator::OP_EXPONENT = { Operator::Type::EXPONENT };
+    double Operator::operate(double lhs, double rhs) {
+        switch(type) {
+        case Type::PLUS:
+        {
+            return lhs + rhs;
+        }
+        case Type::MINUS:
+        {
+            return lhs - rhs;
+        }
+        case Type::MULTIPLY:
+        {
+            return lhs * rhs;
+        }
+        case Type::DIVIDE:
+        {
+            return lhs / rhs;
+        }
+        case Type::EXPONENT:
+        {
+            return pow(lhs, rhs);
+        }
+        default: return NAN;
+        }
+    }
 
     /******************** LeftBracket ********************/
     LeftBracket LeftBracket::INSTANCE;
@@ -92,6 +117,36 @@ namespace eval {
         }
         else {
             return nullptr;
+        }
+    }
+    double Function::compute(double arg) {
+        switch(type) {
+        case Type::SIN:
+        {
+            return sin(arg);
+        }
+        case Type::COS:
+        {
+            return cos(arg);
+        }
+        case Type::TAN:
+        {
+            return tan(arg);
+        }
+        case Type::ASIN:
+        {
+            return asin(arg);
+        }
+        case Type::ACOS:
+        {
+            return acos(arg);
+        }
+        case Type::ATAN:
+        {
+            return atan(arg);
+        }
+
+        default: return NAN;
         }
     }
 
