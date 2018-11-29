@@ -11,10 +11,10 @@ namespace eval {
 
     /******************** Number ********************/
     Number* Number::constFromString(const char* str) {
-        if(strcmp(str, LCD_STR_PI)) {
+        if(strcmp(str, LCD_STR_PI) == 0) {
             return new Number(CONST_PI);
         }
-        else if(strcmp(str, LCD_STR_EULR)) {
+        else if(strcmp(str, LCD_STR_EULR) == 0) {
             return new Number(CONST_E);
         }
         else {
@@ -72,22 +72,22 @@ namespace eval {
 
     /******************** Function ********************/
     Function* Function::fromString(const char *str) {
-        if(strcmp(str, "sin")) {
+        if(strcmp(str, "sin") == 0) {
             return new Function(Type::SIN);
         }
-        else if(strcmp(str, "cos")) {
+        else if(strcmp(str, "cos") == 0) {
             return new Function(Type::COS);
         }
-        else if(strcmp(str, "tan")) {
+        else if(strcmp(str, "tan") == 0) {
             return new Function(Type::TAN);
         }
-        else if(strcmp(str, "asin")) {
+        else if(strcmp(str, "asin") == 0) {
             return new Function(Type::ASIN);
         }
-        else if(strcmp(str, "acos")) {
+        else if(strcmp(str, "acos") == 0) {
             return new Function(Type::ACOS);
         }
-        else if(strcmp(str, "atan")) {
+        else if(strcmp(str, "atan") == 0) {
             return new Function(Type::ATAN);
         }
         else {
@@ -121,7 +121,7 @@ namespace eval {
         uint16_t index = 0;
         //This variable keeps track of whether the last token was an operator
         //It is used for unary operators like the unary minus and plus
-        bool lastTokenIsOperator = true;
+        bool allowUnary = true;
 
         while (index < exprs.length()) {
             switch (exprs[index]->getType()) {
@@ -130,17 +130,19 @@ namespace eval {
             {
                 arr->merge(tokensFromExpr((neda::Container*) exprs[index]));
                 ++index;
-                lastTokenIsOperator = false;
+                allowUnary = false;
                 break;
             }
             case neda::ObjType::L_BRACKET:
             {
                 //If the last token was not an operator, then it must be an implied multiplication
-                arr->add(&Operator::OP_MULTIPLY);
+                if(!allowUnary) {
+                    arr->add(&Operator::OP_MULTIPLY);
+                }
                 arr->add(&LeftBracket::INSTANCE);
                 ++index;
                 //Allow unary operators right after open brackets
-                lastTokenIsOperator = true;
+                allowUnary = true;
                 break;
             }
             case neda::ObjType::R_BRACKET:
@@ -148,7 +150,7 @@ namespace eval {
                 arr->add(&RightBracket::INSTANCE);
                 ++index;
                 //Unlike open brackets, unary operators are not allowed after close brackets
-                lastTokenIsOperator = false;
+                allowUnary = false;
                 break;
             }
             case neda::ObjType::FRACTION:
@@ -164,7 +166,7 @@ namespace eval {
                 arr->add(&RightBracket::INSTANCE);
                 
                 ++index;
-                lastTokenIsOperator = false;
+                allowUnary = false;
                 break;
             }
             case neda::ObjType::SUPERSCRIPT:
@@ -175,7 +177,7 @@ namespace eval {
                 arr->add(&RightBracket::INSTANCE);
 
                 ++index;
-                lastTokenIsOperator = false;
+                allowUnary = false;
                 break;
             }
             case neda::ObjType::CHAR_TYPE:
@@ -190,7 +192,7 @@ namespace eval {
                 if (op) {
                     //Check for unary operators
                     //Last token must be an operator
-                    if(lastTokenIsOperator && (op->type == Operator::Type::PLUS || op->type == Operator::Type::MINUS)) {
+                    if(allowUnary && (op->type == Operator::Type::PLUS || op->type == Operator::Type::MINUS)) {
                         //If we do encounter a unary operator, translate it to multiplication
                         //This is so that the order of operations won't be messed up (namely exponentiation)
                         if(op->type == Operator::Type::MINUS) {
@@ -198,13 +200,13 @@ namespace eval {
                             arr->add(&Operator::OP_MULTIPLY);
                         }
                         ++index;
-                        lastTokenIsOperator = false;
+                        allowUnary = false;
                         break;
                     }
                     else {
                         arr->add(op);
                         ++index;
-                        lastTokenIsOperator = true;
+                        allowUnary = true;
                         break;
                     }
                 }
@@ -224,6 +226,8 @@ namespace eval {
                     //Add the function if it's valid
                     if(func) {
                         arr->add(func);
+                        //Allow unary operators after functions
+                        allowUnary = true;
                     }
                     //Otherwise see if it's a valid constant
                     else {
@@ -231,10 +235,10 @@ namespace eval {
                         if(n) {
                             arr->add(n);
                         }
+                        allowUnary = false;
                     }
 
                     index = end;
-                    lastTokenIsOperator = false;
                     break;
                 }
 
@@ -252,7 +256,7 @@ namespace eval {
                 double d = atof(numStr);
                 arr->add(new Number(d));
                 index = end;
-                lastTokenIsOperator = false;
+                allowUnary = false;
                 break;
             }
             default: break;
