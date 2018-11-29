@@ -344,6 +344,8 @@ namespace neda {
 
         virtual void updatePosition(int16_t, int16_t) override;
 
+        Expr* getContents();
+
     protected:
         Expr *contents;
     };

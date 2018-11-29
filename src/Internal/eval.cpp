@@ -121,6 +121,17 @@ namespace eval {
                 lastTokenIsOperator = false;
                 break;
             }
+            case neda::ObjType::SUPERSCRIPT:
+            {
+                arr->add(&Operator::OP_EXPONENT);
+                arr->add(&LeftBracket::INSTANCE);
+                arr->merge(tokensFromExpr((neda::Container*) ((neda::Superscript*) exprs[index])->getContents()));
+                arr->add(&RightBracket::INSTANCE);
+
+                ++index;
+                lastTokenIsOperator = false;
+                break;
+            }
             case neda::ObjType::CHAR_TYPE:
             {
                 char ch = ((neda::Character*) exprs[index])->ch;
