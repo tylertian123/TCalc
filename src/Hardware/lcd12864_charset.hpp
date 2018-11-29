@@ -3,6 +3,7 @@
 #include "lcd12864.hpp"
 
 #define LCD_CHARSET_LOWBOUND 0x1A
+#define LCD_CHARSET_HIGHBOUND 0x1F
 #define LCD_STR_EULR "\x1a"
 #define LCD_STR_THETA "\x1b"
 #define LCD_STR_SERR "\x1c"

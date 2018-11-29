@@ -27,6 +27,8 @@ namespace eval {
         virtual TokenType getType() override {
             return TokenType::NUMBER;
         }
+        
+        static Number* constFromString(const char*);
     };
 
     class Operator : public Token {
@@ -77,15 +79,22 @@ namespace eval {
 
     //For now, functions only take one argument
     //Multi-arg functions might be added in the future.
+    //Even though only one instance of each type of function is needed, because there are a lot of functions, it is not worth it
+    //to make it a singleton
     class Function : public Token {
     public:
         enum class Type : uint8_t {
             SIN, COS, TAN, ASIN, ACOS, ATAN
         };
+        Function(Type type) : type(type) {}
+
+        Type type;
 
         virtual TokenType getType() override {
             return TokenType::FUNCTION;
         }
+
+        static Function* fromString(const char*);
 
     };
 

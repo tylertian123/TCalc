@@ -1,8 +1,26 @@
 #include "eval.hpp"
 #include "lcd12864_charset.hpp"
 #include <stdlib.h>
+#include <string.h>
+#include <math.h>
+
+#define CONST_PI 3.14159265358979323846
+#define CONST_E  2.71828182845904523536
 
 namespace eval {
+
+    /******************** Number ********************/
+    Number* Number::constFromString(const char* str) {
+        if(strcmp(str, LCD_STR_PI)) {
+            return new Number(CONST_PI);
+        }
+        else if(strcmp(str, LCD_STR_EULR)) {
+            return new Number(CONST_E);
+        }
+        else {
+            return nullptr;
+        }
+    }
 
     /******************** Operator ********************/
     uint8_t Operator::getPrecedence() const {
@@ -52,9 +70,37 @@ namespace eval {
     /******************** RightBracket ********************/
     RightBracket RightBracket::INSTANCE;
 
-    /******************** Functions ********************/
+    /******************** Function ********************/
+    Function* Function::fromString(const char *str) {
+        if(strcmp(str, "sin")) {
+            return new Function(Type::SIN);
+        }
+        else if(strcmp(str, "cos")) {
+            return new Function(Type::COS);
+        }
+        else if(strcmp(str, "tan")) {
+            return new Function(Type::TAN);
+        }
+        else if(strcmp(str, "asin")) {
+            return new Function(Type::ASIN);
+        }
+        else if(strcmp(str, "acos")) {
+            return new Function(Type::ACOS);
+        }
+        else if(strcmp(str, "atan")) {
+            return new Function(Type::ATAN);
+        }
+        else {
+            return nullptr;
+        }
+    }
+
+    /******************** Other Functions ********************/
     bool isDigit(char ch) {
         return (ch >= '0' && ch <= '9') || ch == '.';
+    }
+    bool isNameChar(char ch) {
+        return (ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z') || (ch >= LCD_CHARSET_LOWBOUND && ch <= LCD_CHARSET_HIGHBOUND);
     }
     bool exprIsDigit(neda::NEDAObj *obj) {
         if(obj->getType() != neda::ObjType::CHAR_TYPE) {
@@ -68,6 +114,7 @@ namespace eval {
         }
         return ((neda::Character*) obj)->ch;
     }
+    //Add a free
     DynamicArray<Token*, 4>* tokensFromExpr(neda::Container *expr) {
         DynamicArray<Token*, 4> *arr = new DynamicArray<Token*, 4>();
         //Deref the result so the syntax won't be so awkward
@@ -79,7 +126,7 @@ namespace eval {
 
         while (index < exprs.length()) {
             switch (exprs[index]->getType()) {
-                //If we encounter nested containers, just do a recursive call
+            //If we encounter nested containers, just do a recursive call
             case neda::ObjType::CONTAINER:
             {
                 arr->merge(tokensFromExpr((neda::Container*) exprs[index]));
@@ -162,9 +209,33 @@ namespace eval {
                         break;
                     }
                 }
-                //Skip if the character is neither an operator or a digit
+                //The character is neither an operator nor a digit-must be either a function or variable
                 if (!isDigit(ch)) {
-                    ++index;
+                    //Find the end of this token
+                    uint16_t end = index + 1;
+                    //No need worrying about exprs[end] not being a char, since then extractChar will just return '\0'
+                    for(; end < exprs.length() && isNameChar(extractChar(exprs[end])); end ++);
+                    char *str = new char[end - index + 1];
+                    for(uint16_t i = index; i < end; i ++) {
+                        str[i - index] = extractChar(exprs[i]);
+                    }
+                    //Add null terminator
+                    str[end - index] = '\0';
+                    Function *func = Function::fromString(str);
+                    //Add the function if it's valid
+                    if(func) {
+                        arr->add(func);
+                    }
+                    //Otherwise see if it's a valid constant
+                    else {
+                        Number *n = Number::constFromString(str);
+                        if(n) {
+                            arr->add(n);
+                        }
+                    }
+
+                    index = end;
+                    lastTokenIsOperator = false;
                     break;
                 }
 
