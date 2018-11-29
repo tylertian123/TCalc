@@ -144,20 +144,16 @@ namespace eval {
                 if (op) {
                     //Check for unary operators
                     //Last token must be an operator
-                    if(!(lastTokenIsOperator && (op->type == Operator::Type::PLUS || op->type == Operator::Type::MINUS))) {
+                    if(lastTokenIsOperator && (op->type == Operator::Type::PLUS || op->type == Operator::Type::MINUS)) {
                         //If we do encounter a unary operator, translate it to multiplication
                         //This is so that the order of operations won't be messed up (namely exponentiation)
                         if(op->type == Operator::Type::MINUS) {
                             arr->add(new Number(-1));
                             arr->add(&Operator::OP_MULTIPLY);
-                            ++index;
-                            lastTokenIsOperator = false;
-                            break;
                         }
-                        //If it's an unary plus ignore it
-                        else {
-                            break;
-                        }
+                        ++index;
+                        lastTokenIsOperator = false;
+                        break;
                     }
                     else {
                         arr->add(op);
