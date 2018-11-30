@@ -22,6 +22,47 @@ namespace eval {
         }
     }
 
+    /******************** Fraction ********************/
+    int32_t Fraction::gcd(int32_t a, int32_t b) {
+        while(true) {
+            if(a == 0) {
+                return b;
+            }
+            if(b == 0) {
+                return a;
+            }
+
+            int32_t r = a % b;
+            a = b;
+            b = r;
+        }
+    }
+    int32_t Fraction::lcm(int32_t a, int32_t b) {
+        return (a * b) / gcd(a, b);
+    }
+    double Fraction::doubleVal() {
+        //Make sure they're cast to doubles first to avoid integer division
+        return static_cast<double>(num) / static_cast<double>(denom);
+    }
+    bool Fraction::isInteger() {
+        return num % denom == 0;
+    }
+    void Fraction::reduce() {
+        //Make sure the denominator is always positive
+        if(denom < 0) {
+            num *= -1;
+            denom *= -1;
+        }
+
+        //Now that the denominator is positive, we can make sure the result we get is also positive
+        int32_t divisor = gcd(num, denom);
+        if(divisor == 1) {
+            return;
+        }
+        num /= divisor;
+        denom /= divisor;
+    }
+
     /******************** Operator ********************/
     uint8_t Operator::getPrecedence() const {
         switch(type) {

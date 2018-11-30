@@ -9,6 +9,7 @@ namespace eval {
 
     enum class TokenType : uint8_t {
         NUMBER,
+        FRACTION,
         OPERATOR,
         L_BRACKET,
         R_BRACKET,
@@ -30,6 +31,24 @@ namespace eval {
         }
         
         static Number* constFromString(const char*);
+    };
+    
+    class Fraction : public Token {
+    public:
+        Fraction(int32_t num, int32_t denom) : num(num), denom(denom) {}
+        int32_t num;
+        int32_t denom;
+
+        virtual TokenType getType() override {
+            return TokenType::FRACTION;
+        }
+
+        static int32_t gcd(int32_t, int32_t);
+        static int32_t lcm(int32_t, int32_t);
+
+        double doubleVal();
+        bool isInteger();
+        void reduce();
     };
 
     class Operator : public Token {
