@@ -82,6 +82,34 @@ namespace eval {
     Fraction Fraction::operator/(const Fraction &rhs) {
         return Fraction(num * rhs.denom, denom * rhs.num);
     }
+    Fraction& Fraction::operator+=(const Fraction &frac) {
+        int32_t newDenom = lcm(denom, frac.denom);
+        int32_t numA = num * (newDenom / denom);
+        int32_t numB = frac.num * (newDenom / frac.denom);
+        num = numA + numB;
+        denom = newDenom;
+        return *this;
+    }
+    Fraction& Fraction::operator-=(const Fraction &frac) {
+        int32_t newDenom = lcm(denom, frac.denom);
+        int32_t numA = num * (newDenom / denom);
+        int32_t numB = frac.num * (newDenom / frac.denom);
+        num = numA - numB;
+        denom = newDenom;
+        return *this;
+    }
+    Fraction& Fraction::operator*=(const Fraction &frac) {
+        num *= frac.num;
+        denom *= frac.denom;
+        reduce();
+        return *this;
+    }
+    Fraction& Fraction::operator/=(const Fraction &frac) {
+        num *= frac.denom;
+        denom *= frac.num;
+        reduce();
+        return *this;
+    }
     Fraction Fraction::raiseToInt(uint32_t exponent) {
         int32_t n = 1;
         int32_t d = 1;

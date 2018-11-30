@@ -56,6 +56,10 @@ namespace eval {
         Fraction operator-(const Fraction&);
         Fraction operator*(const Fraction&);
         Fraction operator/(const Fraction&);
+        Fraction& operator+=(const Fraction&);
+        Fraction& operator-=(const Fraction&);
+        Fraction& operator*=(const Fraction&);
+        Fraction& operator/=(const Fraction&);
 
         Fraction raiseToInt(uint32_t);
     };
