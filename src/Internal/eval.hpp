@@ -129,6 +129,35 @@ namespace eval {
         double compute(double);
     };
 
+    /*
+     * MEMORY MANAGEMENT WITH tokensFromExpr, toPostFix AND evalPostfix
+     * 
+     * tokensFromExpr takes in a pointer to a neda::Container and returns a pointer to a DynamicArray of Token pointers.
+     * It does not free or modify the input; thus the input NEDA object needs to be deleted manually.
+     * The returned DynamicArray and all of its contents are allocated on the HEAP; therefore, the Array itself and all of its contents
+     * need to be deleted manually.
+     * 
+     * toPostfix takes in a pointer to a DynamicArray of Token pointers, and returns a pointer to a Deque of Token pointers.
+     * It does not free or modify the input; thus the input Array needs to be deleted manually.
+     * The returned Deque is allocated on the HEAP, however, all of its contents are SHARED with that of the input DynamicArray.
+     * In other words, toPostFix does not create new objects, but rather uses the existing ones. Therefore, if one of the input Array's
+     * contents or the output Deque's contents are deleted, the other will also be affected. The DynamicArray and the Deque themselves
+     * also need to be deleted manually.
+     * 
+     * evalPostfix takes in a pointer to a Deque of Token pointers, and returns a boolean (true if evaluation was successful, false if
+     * syntax error) and outputs a double through a reference. IT DELETES ITS INPUT. The input Deque, as well as all the Tokens pointed
+     * to by the pointers inside, will all be deleted, even in the case of a syntax error aborting the evaluation.
+     * 
+     * MEMORY-LEAK-FREE EVALUATION SEQUENCE
+     * 
+     * auto tokens = tokensFromExpr(expr);
+     * //delete expr; //If necessary
+     * auto postfixTokens = toPostfix(tokens);
+     * delete tokens; //Delete the tokens array itself, not the contents
+     * double result;
+     * bool success = evalPostfix(postfixTokens, result);
+     * 
+     */
     DynamicArray<Token*, 4>* tokensFromExpr(neda::Container*);
 
     //Shunting yard algorithm
@@ -139,8 +168,8 @@ namespace eval {
         Deque<Token*> *output = new Deque<Token*>();
         Deque<Token*> *opStack = new Deque<Token*>();
         for(Token *token : *tokens) {
-            //Add to the output queue if the token is a number
-            if(token->getType() == TokenType::NUMBER) {
+            //Add to the output queue if the token is a number or fraction
+            if(token->getType() == TokenType::NUMBER || TokenType::FRACTION) {
                 output->enqueue(token);
             }
             //Push directly onto the op stack in case of a function or left bracket
@@ -246,7 +275,7 @@ namespace eval {
     void freeTokens(DynamicArray<Token*, Increase> *arr) {
         for(Token *token : *arr) {
             //Only delete if token is not of a singleton class
-            if(token->getType() == TokenType::NUMBER || token->getType() == TokenType::FUNCTION) {
+            if(token->getType() == TokenType::NUMBER || token->getType() == TokenType::FUNCTION || token->getType() == TokenType::FRACTION) {
                 delete token;
             }
         }
@@ -256,7 +285,7 @@ namespace eval {
     void freeTokens(Deque<Token*, Increase> *q) {
         while(!q->isEmpty()) {
             Token *t = q->dequeue();
-            if(t->getType() == TokenType::NUMBER || t->getType() == TokenType::FUNCTION) {
+            if(t->getType() == TokenType::NUMBER || t->getType() == TokenType::FUNCTION || token->getType() == TokenType::FRACTION) {
                 delete t;
             }
         }
