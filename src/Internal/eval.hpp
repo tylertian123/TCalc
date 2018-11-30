@@ -35,18 +35,18 @@ namespace eval {
     
     class Fraction : public Token {
     public:
-        Fraction(int32_t num, int32_t denom) : num(num), denom(denom) {
+        Fraction(int64_t num, int64_t denom) : num(num), denom(denom) {
             reduce();
         }
-        int32_t num;
-        int32_t denom;
+        int64_t num;
+        int64_t denom;
 
         virtual TokenType getType() override {
             return TokenType::FRACTION;
         }
 
-        static int32_t gcd(int32_t, int32_t);
-        static int32_t lcm(int32_t, int32_t);
+        static int64_t gcd(int64_t, int64_t);
+        static int64_t lcm(int64_t, int64_t);
 
         double doubleVal();
         bool isInteger();
@@ -61,7 +61,7 @@ namespace eval {
         Fraction& operator*=(const Fraction&);
         Fraction& operator/=(const Fraction&);
 
-        Fraction raiseToInt(uint32_t);
+        Fraction raiseToInt(uint64_t);
     };
 
     class Operator : public Token {

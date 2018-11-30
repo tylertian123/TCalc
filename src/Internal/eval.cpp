@@ -23,7 +23,7 @@ namespace eval {
     }
 
     /******************** Fraction ********************/
-    int32_t Fraction::gcd(int32_t a, int32_t b) {
+    int64_t Fraction::gcd(int64_t a, int64_t b) {
         while(true) {
             if(a == 0) {
                 return b;
@@ -32,12 +32,12 @@ namespace eval {
                 return a;
             }
 
-            int32_t r = a % b;
+            int64_t r = a % b;
             a = b;
             b = r;
         }
     }
-    int32_t Fraction::lcm(int32_t a, int32_t b) {
+    int64_t Fraction::lcm(int64_t a, int64_t b) {
         return (a * b) / gcd(a, b);
     }
     double Fraction::doubleVal() {
@@ -55,7 +55,7 @@ namespace eval {
         }
 
         //Now that the denominator is positive, we can make sure the result we get is also positive
-        int32_t divisor = gcd(num, denom);
+        int64_t divisor = gcd(num, denom);
         if(divisor == 1) {
             return;
         }
@@ -63,16 +63,16 @@ namespace eval {
         denom /= divisor;
     }
     Fraction Fraction::operator+(const Fraction &rhs) {
-        int32_t newDenom = lcm(denom, rhs.denom);
-        int32_t numA = num * (newDenom / denom);
-        int32_t numB = rhs.num * (newDenom / rhs.denom);
+        int64_t newDenom = lcm(denom, rhs.denom);
+        int64_t numA = num * (newDenom / denom);
+        int64_t numB = rhs.num * (newDenom / rhs.denom);
         
         return Fraction(numA + numB, newDenom);
     }
     Fraction Fraction::operator-(const Fraction &rhs) {
-        int32_t newDenom = lcm(denom, rhs.denom);
-        int32_t numA = num * (newDenom / denom);
-        int32_t numB = rhs.num * (newDenom / rhs.denom);
+        int64_t newDenom = lcm(denom, rhs.denom);
+        int64_t numA = num * (newDenom / denom);
+        int64_t numB = rhs.num * (newDenom / rhs.denom);
 
         return Fraction(numA - numB, newDenom);
     }
@@ -83,17 +83,17 @@ namespace eval {
         return Fraction(num * rhs.denom, denom * rhs.num);
     }
     Fraction& Fraction::operator+=(const Fraction &frac) {
-        int32_t newDenom = lcm(denom, frac.denom);
-        int32_t numA = num * (newDenom / denom);
-        int32_t numB = frac.num * (newDenom / frac.denom);
+        int64_t newDenom = lcm(denom, frac.denom);
+        int64_t numA = num * (newDenom / denom);
+        int64_t numB = frac.num * (newDenom / frac.denom);
         num = numA + numB;
         denom = newDenom;
         return *this;
     }
     Fraction& Fraction::operator-=(const Fraction &frac) {
-        int32_t newDenom = lcm(denom, frac.denom);
-        int32_t numA = num * (newDenom / denom);
-        int32_t numB = frac.num * (newDenom / frac.denom);
+        int64_t newDenom = lcm(denom, frac.denom);
+        int64_t numA = num * (newDenom / denom);
+        int64_t numB = frac.num * (newDenom / frac.denom);
         num = numA - numB;
         denom = newDenom;
         return *this;
@@ -110,15 +110,15 @@ namespace eval {
         reduce();
         return *this;
     }
-    Fraction Fraction::raiseToInt(uint32_t exponent) {
-        int32_t n = 1;
-        int32_t d = 1;
-        for(uint32_t i = 0; i < exponent; i ++) {
+    Fraction Fraction::raiseToInt(uint64_t exponent) {
+        int64_t n = 1;
+        int64_t d = 1;
+        for(uint64_t i = 0; i < exponent; i ++) {
             n *= num;
             d *= denom;
         }
         return Fraction(n, d);
-    } 
+    }
 
     /******************** Operator ********************/
     uint8_t Operator::getPrecedence() const {
