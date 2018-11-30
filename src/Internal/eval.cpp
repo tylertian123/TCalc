@@ -62,6 +62,35 @@ namespace eval {
         num /= divisor;
         denom /= divisor;
     }
+    Fraction Fraction::operator+(const Fraction &rhs) {
+        int32_t newDenom = lcm(denom, rhs.denom);
+        int32_t numA = num * (newDenom / denom);
+        int32_t numB = rhs.num * (newDenom / rhs.denom);
+        
+        return Fraction(numA + numB, newDenom);
+    }
+    Fraction Fraction::operator-(const Fraction &rhs) {
+        int32_t newDenom = lcm(denom, rhs.denom);
+        int32_t numA = num * (newDenom / denom);
+        int32_t numB = rhs.num * (newDenom / rhs.denom);
+
+        return Fraction(numA - numB, newDenom);
+    }
+    Fraction Fraction::operator*(const Fraction &rhs) {
+        return Fraction(num * rhs.num, denom * rhs.denom);
+    }
+    Fraction Fraction::operator/(const Fraction &rhs) {
+        return Fraction(num * rhs.denom, denom * rhs.num);
+    }
+    Fraction Fraction::raiseToInt(uint32_t exponent) {
+        int32_t n = 1;
+        int32_t d = 1;
+        for(uint32_t i = 0; i < exponent; i ++) {
+            n *= num;
+            d *= denom;
+        }
+        return Fraction(n, d);
+    } 
 
     /******************** Operator ********************/
     uint8_t Operator::getPrecedence() const {

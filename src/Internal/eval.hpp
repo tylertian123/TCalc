@@ -35,7 +35,9 @@ namespace eval {
     
     class Fraction : public Token {
     public:
-        Fraction(int32_t num, int32_t denom) : num(num), denom(denom) {}
+        Fraction(int32_t num, int32_t denom) : num(num), denom(denom) {
+            reduce();
+        }
         int32_t num;
         int32_t denom;
 
@@ -49,6 +51,13 @@ namespace eval {
         double doubleVal();
         bool isInteger();
         void reduce();
+
+        Fraction operator+(const Fraction&);
+        Fraction operator-(const Fraction&);
+        Fraction operator*(const Fraction&);
+        Fraction operator/(const Fraction&);
+
+        Fraction raiseToInt(uint32_t);
     };
 
     class Operator : public Token {
