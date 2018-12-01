@@ -7,33 +7,51 @@
 
 namespace eval {
 
+    /*
+     * Base Token class and type enum
+     */
     enum class TokenType : uint8_t {
-        NUMBER,
-        FRACTION,
+        NUMERICAL,
         OPERATOR,
         L_BRACKET,
         R_BRACKET,
         FUNCTION,
     };
-
     class Token {
     public:
         virtual TokenType getType() = 0;
     };
 
-    class Number : public Token {
+    /*
+     * Numerical class and type enum
+     * In order to have both numbers and fractions, there is a base class shared between the Number and Fraction classes
+     */
+    enum class NumericalType : uint8_t {
+        NUM,
+        FRAC,
+    };
+    class Numerical : public Token {
+    public:
+        virtual TokenType getType() override {
+            return TokenType::NUMERICAL;
+        }
+        
+        virtual NumericalType getNumericalType() = 0;
+    };
+
+    class Number : public Numerical {
     public:
         Number(double value) : value(value) {}
         double value;
 
-        virtual TokenType getType() override {
-            return TokenType::NUMBER;
+        virtual NumericalType getNumericalType() override {
+            return NumericalType::NUM;
         }
         
         static Number* constFromString(const char*);
     };
     
-    class Fraction : public Token {
+    class Fraction : public Numerical {
     public:
         Fraction(int64_t num, int64_t denom) : num(num), denom(denom) {
             reduce();
@@ -41,8 +59,8 @@ namespace eval {
         int64_t num;
         int64_t denom;
 
-        virtual TokenType getType() override {
-            return TokenType::FRACTION;
+        virtual NumericalType getNumericalType() override {
+            return NumericalType::FRAC;
         }
 
         static int64_t gcd(int64_t, int64_t);
@@ -172,8 +190,8 @@ namespace eval {
         Deque<Token*> *output = new Deque<Token*>();
         Deque<Token*> *opStack = new Deque<Token*>();
         for(Token *token : *tokens) {
-            //Add to the output queue if the token is a number or fraction
-            if(token->getType() == TokenType::NUMBER || TokenType::FRACTION) {
+            //Add to the output queue if the token is a numerical type
+            if(token->getType() == TokenType::NUMERICAL) {
                 output->enqueue(token);
             }
             //Push directly onto the op stack in case of a function or left bracket
@@ -279,7 +297,7 @@ namespace eval {
     void freeTokens(DynamicArray<Token*, Increase> *arr) {
         for(Token *token : *arr) {
             //Only delete if token is not of a singleton class
-            if(token->getType() == TokenType::NUMBER || token->getType() == TokenType::FUNCTION || token->getType() == TokenType::FRACTION) {
+            if(token->getType() == TokenType::NUMERICAL || token->getType() == TokenType::FUNCTION) {
                 delete token;
             }
         }
@@ -289,7 +307,7 @@ namespace eval {
     void freeTokens(Deque<Token*, Increase> *q) {
         while(!q->isEmpty()) {
             Token *t = q->dequeue();
-            if(t->getType() == TokenType::NUMBER || t->getType() == TokenType::FUNCTION || token->getType() == TokenType::FRACTION) {
+            if(t->getType() == TokenType::NUMERICAL || t->getType() == TokenType::FUNCTION) {
                 delete t;
             }
         }
