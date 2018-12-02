@@ -380,6 +380,38 @@ namespace eval {
                 allowUnary = false;
                 break;
             }
+            case neda::ObjType::RADICAL:
+            {
+                neda::Radical *radical = (neda::Radical*) exprs[index];
+                //Translate to a power
+                //Surround contents with brackets
+                arr->add(&LeftBracket::INSTANCE);
+                auto temp = tokensFromExpr((neda::Container*) radical->getContents());
+                arr->merge(temp);
+                delete temp;
+                arr->add(&RightBracket::INSTANCE);
+                //Add exponent (reciprocal)
+                arr->add(&Operator::OP_EXPONENT);
+                arr->add(&LeftBracket::INSTANCE);
+                arr->add(new Number(1));
+                arr->add(&Operator::OP_DIVIDE);
+                //No n - implied square root
+                if(!radical->getN()) {
+                    arr->add(new Number(2));
+                }
+                else {
+                    arr->add(&LeftBracket::INSTANCE);
+                    temp = tokensFromExpr((neda::Container*) radical->getN());
+                    arr->merge(temp);
+                    delete temp;
+                    arr->add(&RightBracket::INSTANCE);
+                }
+                arr->add(&RightBracket::INSTANCE);
+            
+                ++index;
+                allowUnary = false;
+                break;
+            }
             case neda::ObjType::CHAR_TYPE:
             {
                 char ch = ((neda::Character*) exprs[index])->ch;
@@ -464,7 +496,7 @@ namespace eval {
                 allowUnary = false;
                 break;
             }
-            default: break;
+            default: ++index; break;
             }
         }
         return arr;
