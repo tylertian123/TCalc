@@ -114,11 +114,11 @@ namespace eval {
         double e = other.doubleVal();
         double n = ::pow(num, e);
         //Check if the numerator and denominator are still ints
-        if(isInt(n)) {
+        if(!isInt(n)) {
             return false;
         }
         double d = ::pow(denom, e);
-        if(isInt(d)) {
+        if(!isInt(d)) {
             return false;
         }
 
@@ -318,8 +318,11 @@ namespace eval {
             switch (exprs[index]->getType()) {
             //If we encounter nested containers, just do a recursive call
             case neda::ObjType::CONTAINER:
-            {
-                arr->merge(tokensFromExpr((neda::Container*) exprs[index]));
+            {   
+                //Make sure to delete the DynamicArray returned after
+                auto temp = tokensFromExpr((neda::Container*) exprs[index]);
+                arr->merge(temp);
+                delete temp;
                 ++index;
                 allowUnary = false;
                 break;
@@ -349,11 +352,15 @@ namespace eval {
                 //Translate fractions to a division with brackets
                 arr->add(&LeftBracket::INSTANCE);
                 //Merge this with the result of a token extraction on the numerator
-                arr->merge(tokensFromExpr((neda::Container*) ((neda::Fraction*) exprs[index])->getNumerator()));
+                auto temp = tokensFromExpr((neda::Container*) ((neda::Fraction*) exprs[index])->getNumerator());
+                arr->merge(temp);
+                delete temp;
                 arr->add(&RightBracket::INSTANCE);
                 arr->add(&Operator::OP_DIVIDE);
                 arr->add(&LeftBracket::INSTANCE);
-                arr->merge(tokensFromExpr((neda::Container*) ((neda::Fraction*) exprs[index])->getDenominator()));
+                temp = tokensFromExpr((neda::Container*) ((neda::Fraction*) exprs[index])->getDenominator());
+                arr->merge(temp);
+                delete temp;
                 arr->add(&RightBracket::INSTANCE);
                 
                 ++index;
@@ -364,7 +371,9 @@ namespace eval {
             {
                 arr->add(&Operator::OP_EXPONENT);
                 arr->add(&LeftBracket::INSTANCE);
-                arr->merge(tokensFromExpr((neda::Container*) ((neda::Superscript*) exprs[index])->getContents()));
+                auto temp = tokensFromExpr((neda::Container*) ((neda::Superscript*) exprs[index])->getContents());
+                arr->merge(temp);
+                delete temp;
                 arr->add(&RightBracket::INSTANCE);
 
                 ++index;

@@ -253,6 +253,23 @@ namespace eval {
         return output;
     }
 
+    //This will delete the Deque of tokens properly. It will destory all tokens in the array.
+    template <uint16_t Increase>
+    void freeTokens(Deque<Token*, Increase> *q) {
+        while (!q->isEmpty()) {
+            Token *t = q->dequeue();
+            if (t->getType() == TokenType::NUMERICAL || t->getType() == TokenType::FUNCTION) {
+                delete t;
+            }
+        }
+    }
+    template <uint16_t Increase>
+    void freeNumericals(Deque<Numerical*, Increase> *q) {
+        while (!q->isEmpty()) {
+            delete q->dequeue();
+        }
+    }
+
     //Note: Deletes the input
     template <uint16_t Increase>
     bool evalPostfix(Deque<Token*, Increase>* expr, Numerical **out) {
@@ -271,6 +288,8 @@ namespace eval {
                     //Do cleanup and return false
                     delete token;
                     freeTokens(expr);
+                    delete expr;
+                    freeNumericals(&stack);
                     return false;
                 }
                 else {
@@ -295,6 +314,8 @@ namespace eval {
                 if(stack.length() < 2) {
                     //Do cleanup and return false
                     freeTokens(expr);
+                    delete expr;
+                    freeNumericals(&stack);
                     return false;
                 }
                 Operator *op = (Operator*) token;
@@ -386,28 +407,6 @@ namespace eval {
         
         *out = stack.pop();
         return true;
-    }
-
-    //This will delete the DynamicArray of tokens properly. It will destory all tokens in the array and the array itself.
-    template <uint16_t Increase>
-    void freeTokens(DynamicArray<Token*, Increase> *arr) {
-        for(Token *token : *arr) {
-            //Only delete if token is not of a singleton class
-            if(token->getType() == TokenType::NUMERICAL || token->getType() == TokenType::FUNCTION) {
-                delete token;
-            }
-        }
-        delete arr;
-    }
-    template <uint16_t Increase>
-    void freeTokens(Deque<Token*, Increase> *q) {
-        while(!q->isEmpty()) {
-            Token *t = q->dequeue();
-            if(t->getType() == TokenType::NUMERICAL || t->getType() == TokenType::FUNCTION) {
-                delete t;
-            }
-        }
-        delete q;
     }
 }
 
