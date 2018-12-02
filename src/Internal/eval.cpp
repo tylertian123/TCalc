@@ -113,7 +113,7 @@ namespace eval {
     bool Fraction::pow(const Fraction &other) {
         double e = other.doubleVal();
         double n = ::pow(num, e);
-        //Check if n is int
+        //Check if the numerator and denominator are still ints
         if(((int64_t) n) != n) {
             return false;
         }
@@ -122,8 +122,9 @@ namespace eval {
             return false;
         }
 
-        num = n;
-        denom = d;
+        num = static_cast<int64_t>(n);
+        denom = static_cast<int64_t>(d);
+        reduce();
         return true;
     }
 
@@ -193,7 +194,7 @@ namespace eval {
         default: return NAN;
         }
     }
-    void Operator::operateOn(Fraction *frac, Fraction *rhs) {
+    bool Operator::operateOn(Fraction *frac, Fraction *rhs) {
         switch(type) {
         case Type::PLUS:
         {
@@ -217,10 +218,11 @@ namespace eval {
         }
         case Type::EXPONENT:
         {
-            
+            return frac->pow(*rhs);
         }
         default: break;
         }
+        return true;
     }
 
     /******************** LeftBracket ********************/

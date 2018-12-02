@@ -101,7 +101,9 @@ namespace eval {
         static Operator OP_PLUS, OP_MINUS, OP_MULTIPLY, OP_DIVIDE, OP_EXPONENT;
 
         double operate(double, double);
-        void operateOn(Fraction*, Fraction*);
+        //Returns whether the operation was successful (in the case of fractional exponentiation)
+        //Ugly, I know.
+        bool operateOn(Fraction*, Fraction*);
     
     private:
         Operator(Type type) : type(type) {}
@@ -246,7 +248,7 @@ namespace eval {
 
     //Note: Deletes the input
     template <uint16_t Increase>
-    bool evalPostfix(Deque<Token*, Increase>* expr, double &out) {
+    bool evalPostfix(Deque<Token*, Increase>* expr, Numerical *out) {
         Deque<Numerical*> stack;
 
         while(!expr->isEmpty()) {
@@ -289,6 +291,7 @@ namespace eval {
                     freeTokens(expr);
                     return false;
                 }
+                Operator *op = (Operator*) token;
                 Numerical *rhs = stack.pop();
                 Numerical *lhs = stack.pop();
                 //Operators don't need to be freed
@@ -297,19 +300,75 @@ namespace eval {
                 NumericalType rType = rhs->getNumericalType();
                 //Two numbers: normal operation
                 if(lType == NumericalType::NUM && rType == NumericalType::NUM) {
-                    stack.push(new Number(((Operator*) token)->operate(((Number*) lhs)->value, ((Number*) rhs)->value)));
+                    stack.push(new Number(op->operate(((Number*) lhs)->value, ((Number*) rhs)->value)));
+                    delete lhs;
+                    delete rhs;
                 }
                 //Two fractions: fraction operation
-
-
-                delete lhs;
-                delete rhs;
+                else if(lType == NumericalType::FRAC && rType == NumericalType::FRAC) {
+                    //Record if action was successful
+                    bool success = op->operateOn((Fraction*) lhs, (Fraction*) rhs);
+                    if(success) {
+                        stack.push(lhs);
+                        delete rhs;
+                    }
+                    //If the operation was not possible, convert to double and operate normally
+                    else {
+                        stack.push(new Number(op->operate(((Fraction*) lhs)->doubleVal(), ((Fraction*) rhs)->doubleVal())));
+                        delete lhs;
+                        delete rhs;
+                    }
+                }
+                //One fraction: fraction operation if the other one is integer, normal operation if not
+                else if(lType == NumericalType::FRAC && rType == NumericalType::NUM) {
+                    //Test if rhs is integer
+                    if((uint64_t) ((Number*) rhs)->value == ((Number*) rhs)->value) {
+                        //Do a normal fraction operation
+                        //Since the rhs is an integer, this operation is guaranteed to succeed
+                        op->operateOn((Fraction*) lhs, &Fraction((uint64_t) ((Number*) rhs)->value, 1));
+                        stack.push(lhs);
+                        delete rhs;
+                    }
+                    //Otherwise convert to doubles
+                    else {
+                        stack.push(new Number(op->operate(((Fraction*) lhs)->doubleVal(), ((Number*) rhs)->value)));
+                        delete lhs;
+                        delete rhs;
+                    }
+                }
+                else {
+                    if((uint64_t) ((Number*) lhs)->value == ((Number*) lhs)->value) {
+                        //This operation is not guaranteed to succeed
+                        //Construct fraction since it's not going to be temporary if this operation succeeds
+                        Fraction *lhsFrac = new Fraction((uint64_t) ((Number*) lhs)->value, 1);
+                        bool success = op->operateOn(lhsFrac, (Fraction*) rhs);
+                        if(success) {
+                            stack.push(lhsFrac);
+                            delete lhs;
+                            delete rhs;
+                        }
+                        else {
+                            delete lhsFrac;
+                            //My code is terrible, indeed.
+                            goto convertToDoubleAndOperate;
+                        }
+                    }
+                    else {
+                    convertToDoubleAndOperate:
+                        stack.push(new Number(op->operate(((Number*) lhs)->value, ((Fraction*) rhs)->doubleVal())));
+                        delete lhs;
+                        delete rhs;
+                    }
+                }
             }
         }
 
         delete expr;
         if(stack.length() != 1) {
             //Syntax error: Not enough operations or numbers
+            while(!stack.isEmpty()) {
+                delete stack.pop();
+            }
             return false;
         }
         
