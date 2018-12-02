@@ -294,7 +294,6 @@ namespace eval {
                 //Syntax error: Not enough numbers
                 if(stack.length() < 2) {
                     //Do cleanup and return false
-                    delete token;
                     freeTokens(expr);
                     return false;
                 }
