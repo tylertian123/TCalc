@@ -114,11 +114,11 @@ namespace eval {
         double e = other.doubleVal();
         double n = ::pow(num, e);
         //Check if the numerator and denominator are still ints
-        if(((int64_t) n) != n) {
+        if(isInt(n)) {
             return false;
         }
         double d = ::pow(denom, e);
-        if(((int64_t) d) != d) {
+        if(isInt(d)) {
             return false;
         }
 

@@ -28,5 +28,9 @@ template <typename T>
 inline T floorDiv(T a, T b) {
     return a > 0 ? a / b : (a - b + 1) / b;
 }
+template <typename T>
+inline bool isInt(T n) {
+    return static_cast<int64_t>(n) == n;
+}
 
 #endif

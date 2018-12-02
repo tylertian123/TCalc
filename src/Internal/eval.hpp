@@ -4,6 +4,7 @@
 #include "neda.hpp"
 #include "dynamarr.hpp"
 #include "deque.hpp"
+#include "util.hpp"
 
 namespace eval {
 
@@ -300,7 +301,13 @@ namespace eval {
                 NumericalType rType = rhs->getNumericalType();
                 //Two numbers: normal operation
                 if(lType == NumericalType::NUM && rType == NumericalType::NUM) {
-                    stack.push(new Number(op->operate(((Number*) lhs)->value, ((Number*) rhs)->value)));
+                    //Special case for division: if the operands are whole numbers, create a fraction
+                    if(op->type == Operator::Type::DIVIDE && isInt(((Number*) lhs)->value) && isInt(((Number*) rhs)->value)) {
+                        stack.push(new Fraction(static_cast<int64_t>(((Number*) lhs)->value), static_cast<int64_t>(((Number*) rhs)->value)));
+                    }
+                    else {
+                        stack.push(new Number(op->operate(((Number*) lhs)->value, ((Number*) rhs)->value)));
+                    }
                     delete lhs;
                     delete rhs;
                 }
@@ -322,7 +329,7 @@ namespace eval {
                 //One fraction: fraction operation if the other one is integer, normal operation if not
                 else if(lType == NumericalType::FRAC && rType == NumericalType::NUM) {
                     //Test if rhs is integer
-                    if((uint64_t) ((Number*) rhs)->value == ((Number*) rhs)->value) {
+                    if(isInt(((Number*) rhs)->value)) {
                         //Do a normal fraction operation
                         //Since the rhs is an integer, this operation is guaranteed to succeed
                         op->operateOn((Fraction*) lhs, &Fraction((uint64_t) ((Number*) rhs)->value, 1));
@@ -337,7 +344,7 @@ namespace eval {
                     }
                 }
                 else {
-                    if((uint64_t) ((Number*) lhs)->value == ((Number*) lhs)->value) {
+                    if(isInt(((Number*) lhs)->value)) {
                         //This operation is not guaranteed to succeed
                         //Construct fraction since it's not going to be temporary if this operation succeeds
                         Fraction *lhsFrac = new Fraction((uint64_t) ((Number*) lhs)->value, 1);
