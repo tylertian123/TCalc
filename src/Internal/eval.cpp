@@ -40,11 +40,11 @@ namespace eval {
     int64_t Fraction::lcm(int64_t a, int64_t b) {
         return (a * b) / gcd(a, b);
     }
-    double Fraction::doubleVal() {
+    double Fraction::doubleVal() const {
         //Make sure they're cast to doubles first to avoid integer division
         return static_cast<double>(num) / static_cast<double>(denom);
     }
-    bool Fraction::isInteger() {
+    bool Fraction::isInteger() const {
         return num % denom == 0;
     }
     void Fraction::reduce() {
@@ -110,14 +110,21 @@ namespace eval {
         reduce();
         return *this;
     }
-    Fraction Fraction::raiseToInt(uint64_t exponent) {
-        int64_t n = 1;
-        int64_t d = 1;
-        for(uint64_t i = 0; i < exponent; i ++) {
-            n *= num;
-            d *= denom;
+    bool Fraction::pow(const Fraction &other) {
+        double e = other.doubleVal();
+        double n = ::pow(num, e);
+        //Check if n is int
+        if(((int64_t) n) != n) {
+            return false;
         }
-        return Fraction(n, d);
+        double d = ::pow(denom, e);
+        if(((int64_t) d) != d) {
+            return false;
+        }
+
+        num = n;
+        denom = d;
+        return true;
     }
 
     /******************** Operator ********************/
@@ -184,6 +191,35 @@ namespace eval {
             return pow(lhs, rhs);
         }
         default: return NAN;
+        }
+    }
+    void Operator::operateOn(Fraction *frac, Fraction *rhs) {
+        switch(type) {
+        case Type::PLUS:
+        {
+            *frac += *rhs;
+            break;
+        }
+        case Type::MINUS:
+        {
+            *frac -= *rhs;
+            break;
+        }
+        case Type::MULTIPLY:
+        {
+            *frac *= *rhs;
+            break;
+        }
+        case Type::DIVIDE:
+        {
+            *frac /= *rhs;
+            break;
+        }
+        case Type::EXPONENT:
+        {
+            
+        }
+        default: break;
         }
     }
 

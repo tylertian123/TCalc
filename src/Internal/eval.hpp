@@ -66,8 +66,8 @@ namespace eval {
         static int64_t gcd(int64_t, int64_t);
         static int64_t lcm(int64_t, int64_t);
 
-        double doubleVal();
-        bool isInteger();
+        double doubleVal() const;
+        bool isInteger() const;
         void reduce();
 
         Fraction operator+(const Fraction&);
@@ -79,7 +79,7 @@ namespace eval {
         Fraction& operator*=(const Fraction&);
         Fraction& operator/=(const Fraction&);
 
-        Fraction raiseToInt(uint64_t);
+        bool pow(const Fraction&);
     };
 
     class Operator : public Token {
@@ -101,6 +101,7 @@ namespace eval {
         static Operator OP_PLUS, OP_MINUS, OP_MULTIPLY, OP_DIVIDE, OP_EXPONENT;
 
         double operate(double, double);
+        void operateOn(Fraction*, Fraction*);
     
     private:
         Operator(Type type) : type(type) {}
@@ -246,13 +247,13 @@ namespace eval {
     //Note: Deletes the input
     template <uint16_t Increase>
     bool evalPostfix(Deque<Token*, Increase>* expr, double &out) {
-        Deque<double> stack;
+        Deque<Numerical*> stack;
+
         while(!expr->isEmpty()) {
             Token *token = expr->dequeue();
-            if(token->getType() == TokenType::NUMBER) {
-                stack.push(((Number*) token)->value);
-                //Make sure the number is freed
-                delete token;
+            //Directly push any numerical types onto the stack
+            if(token->getType() == TokenType::NUMERICAL) {
+                stack.push((Numerical*) token);
                 continue;
             }
             else if(token->getType() == TokenType::FUNCTION) {
@@ -265,7 +266,19 @@ namespace eval {
                 }
                 else {
                     //Compute the function
-                    stack.push(((Function*) token)->compute(stack.pop()));
+                    //Keep a pointer to the numerical to compute with to avoid mem leaks
+                    //Make sure to delete the function token after
+                    Numerical *n = stack.pop();
+                    Function *func = (Function*) token;
+                    if(n->getNumericalType() == NumericalType::NUM) {
+                        stack.push(new Number(func->compute(((Number*) n)->value)));
+                    }
+                    //Calling any function on a fraction converts it into a double
+                    else {
+                        stack.push(new Number(func->compute(((Fraction*) n)->doubleVal())));
+                    }
+                    delete n;
+                    delete func;
                 }
             }
             else if(token->getType() == TokenType::OPERATOR) {
@@ -276,9 +289,21 @@ namespace eval {
                     freeTokens(expr);
                     return false;
                 }
-                double rhs = stack.pop();
-                double lhs = stack.pop();
-                stack.push(((Operator*) token)->operate(lhs, rhs));
+                Numerical *rhs = stack.pop();
+                Numerical *lhs = stack.pop();
+                //Operators don't need to be freed
+                //Do different operations based on the numerical type of the operands
+                NumericalType lType = lhs->getNumericalType();
+                NumericalType rType = rhs->getNumericalType();
+                //Two numbers: normal operation
+                if(lType == NumericalType::NUM && rType == NumericalType::NUM) {
+                    stack.push(new Number(((Operator*) token)->operate(((Number*) lhs)->value, ((Number*) rhs)->value)));
+                }
+                //Two fractions: fraction operation
+
+
+                delete lhs;
+                delete rhs;
             }
         }
 
