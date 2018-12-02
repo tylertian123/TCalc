@@ -47,6 +47,8 @@ namespace neda {
     class NEDAObj {
     public:
         virtual ObjType getType() = 0;
+
+        virtual ~NEDAObj() {}
     };
 
     /*
