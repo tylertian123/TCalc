@@ -358,7 +358,9 @@ namespace eval {
                     if(isInt(((Number*) rhs)->value)) {
                         //Do a normal fraction operation
                         //Since the rhs is an integer, this operation is guaranteed to succeed
-                        op->operateOn((Fraction*) lhs, &Fraction((uint64_t) ((Number*) rhs)->value, 1));
+                        //Create this variable to avoid a compiler warning
+                        Fraction temp((uint64_t) ((Number*) rhs)->value, 1);
+                        op->operateOn((Fraction*) lhs, &temp);
                         stack.push(lhs);
                         delete rhs;
                     }

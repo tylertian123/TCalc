@@ -436,6 +436,11 @@
               <FileType>8</FileType>
               <FilePath>.\src\Internal\font.cpp</FilePath>
             </File>
+            <File>
+              <FileName>eval.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\src\Internal\eval.cpp</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

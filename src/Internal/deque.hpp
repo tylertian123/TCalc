@@ -10,7 +10,7 @@ public:
     Deque(uint16_t capacity) : len(0), start(0), maxLen(capacity) {
         contents = (T*) malloc(sizeof(T) * capacity);
     }
-    Deque() : len(0), start(0), maxLen(0), contents((T*) malloc(0)) {}
+    Deque() : contents((T*) malloc(0)), len(0), start(0), maxLen(0) {}
     ~Deque() {
         free(contents);
     }
@@ -70,6 +70,7 @@ public:
         }
         contents[start] = elem;
         ++len;
+		return true;
     }
     T dequeue() {
         T &temp = contents[start];
