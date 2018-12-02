@@ -429,6 +429,8 @@ namespace eval {
                         allowUnary = false;
                     }
 
+                    delete str;
+
                     index = end;
                     break;
                 }
@@ -445,6 +447,9 @@ namespace eval {
                 numStr[end - index] = '\0';
                 //Convert to double
                 double d = atof(numStr);
+
+                delete numStr;
+
                 arr->add(new Number(d));
                 index = end;
                 allowUnary = false;

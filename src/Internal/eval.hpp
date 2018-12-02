@@ -171,8 +171,10 @@ namespace eval {
      * also need to be deleted manually.
      * 
      * evalPostfix takes in a pointer to a Deque of Token pointers, and returns a boolean (true if evaluation was successful, false if
-     * syntax error) and outputs a double through a reference. IT DELETES ITS INPUT. The input Deque, as well as all the Tokens pointed
-     * to by the pointers inside, will all be deleted, even in the case of a syntax error aborting the evaluation.
+     * syntax error) and a pointer to a Numerical through a double pointer (Note: the value of the double pointer will not be changed
+     * in the case of a syntax error). IT DELETES ITS INPUT. The input Deque, as well as all the Tokens pointed to by the pointers 
+     * inside, will all be deleted, even in the case of a syntax error aborting the evaluation. The returned Numerical also needs to be
+     * freed manually.
      * 
      * MEMORY-LEAK-FREE EVALUATION SEQUENCE
      * 
@@ -180,9 +182,13 @@ namespace eval {
      * //delete expr; //If necessary
      * auto postfixTokens = toPostfix(tokens);
      * delete tokens; //Delete the tokens array itself, not the contents
-     * double result;
+     * Numerical *n = nullptr; //This only serves as a dummy
+     * Numerical *result = &n;
      * bool success = evalPostfix(postfixTokens, result);
-     * 
+     * //Do stuff with result...
+     * if(success) {
+     *     delete *result;
+     * }
      */
     DynamicArray<Token*, 4>* tokensFromExpr(neda::Container*);
 
