@@ -248,7 +248,7 @@ namespace eval {
 
     //Note: Deletes the input
     template <uint16_t Increase>
-    bool evalPostfix(Deque<Token*, Increase>* expr, Numerical *out) {
+    bool evalPostfix(Deque<Token*, Increase>* expr, Numerical **out) {
         Deque<Numerical*> stack;
 
         while(!expr->isEmpty()) {
@@ -372,7 +372,7 @@ namespace eval {
             return false;
         }
         
-        out = stack.pop();
+        *out = stack.pop();
         return true;
     }
 
