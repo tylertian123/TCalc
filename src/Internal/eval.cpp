@@ -494,8 +494,21 @@ namespace eval {
                                 arr->add(new Function(Function::Type::LN));
                             }
                             //Otherwise use the log change of base property
+                            //Translate to 1/log(base) * log
                             else {
-                                //TODO
+                                arr->add(new Number(1));
+                                //Use special high-precedence division
+                                arr->add(&Operator::OP_SP_DIV);
+                                //Use base 2 because why not
+                                arr->add(new Function(Function::Type::LOG2));
+                                arr->add(&LeftBracket::INSTANCE);
+                                auto temp = tokensFromExpr(sub);
+                                arr->merge(temp);
+                                delete temp;
+                                arr->add(&RightBracket::INSTANCE);
+                                //Use special high-precedence multiplication
+                                arr->add(&Operator::OP_SP_MULT);
+                                arr->add(new Function(Function::Type::LOG2));
                             }
                             //Increment end so the index gets set properly afterwards
                             ++end;
