@@ -233,6 +233,114 @@ namespace eval {
         }
         return true;
     }
+    Numerical* Operator::operate(Numerical *lhs, Numerical *rhs) {
+        NumericalType lType = lhs->getNumericalType();
+        NumericalType rType = rhs->getNumericalType();
+        Numerical *result = nullptr;
+        //Two numbers: normal operation
+        if(lType == NumericalType::NUM && rType == NumericalType::NUM) {
+            //Special case for division: if the operands are whole numbers, create a fraction
+            if(type == Operator::Type::DIVIDE && isInt(((Number*) lhs)->value) && isInt(((Number*) rhs)->value)) {
+                auto n = static_cast<int64_t>(((Number*) lhs)->value);
+                auto d = static_cast<int64_t>(((Number*) rhs)->value);
+                //See if the division yields a whole number
+                if(n % d == 0) {
+                    //If the result is an integer, just push the integer instead
+                    result = new Number(n / d);
+                }
+                else {
+                    //Otherwise create a fraction
+                    result = new Fraction(n, d);
+                }
+            }
+            else {
+                result = new Number(operate(((Number*) lhs)->value, ((Number*) rhs)->value));
+            }
+            delete lhs;
+            delete rhs;
+        }
+        //Two fractions: fraction operation
+        else if(lType == NumericalType::FRAC && rType == NumericalType::FRAC) {
+            //Record if action was successful
+            bool success = operateOn((Fraction*) lhs, (Fraction*) rhs);
+            if(success) {
+                //See if result is an integer
+                if(((Fraction*) lhs)->isInteger()) {
+                    //If yes then directly insert a number
+                    result = new Number(((Fraction*) lhs)->doubleVal());
+                    delete lhs;
+                }
+                else {
+                    result = lhs;
+                }
+                delete rhs;
+            }
+            //If the operation was not possible, convert to double and operate normally
+            else {
+                result = new Number(operate(((Fraction*) lhs)->doubleVal(), ((Fraction*) rhs)->doubleVal()));
+                delete lhs;
+                delete rhs;
+            }
+        }
+        //One fraction: fraction operation if the other one is integer, normal operation if not
+        else if(lType == NumericalType::FRAC && rType == NumericalType::NUM) {
+            //Test if rhs is integer
+            if(isInt(((Number*) rhs)->value)) {
+                //Do a normal fraction operation
+                //Since the rhs is an integer, this operation is guaranteed to succeed
+                //Create this variable to avoid a compiler warning
+                Fraction temp((uint64_t) ((Number*) rhs)->value, 1);
+                operateOn((Fraction*) lhs, &temp);
+
+                //Test if resulting fraction is an integer
+                if(((Fraction*) lhs)->isInteger()) {
+                    result = new Number(((Fraction*) lhs)->doubleVal());
+                    delete lhs;
+                }
+                else {
+                    result = lhs;
+                }
+                delete rhs;
+            }
+            //Otherwise convert to doubles
+            else {
+                result = new Number(operate(((Fraction*) lhs)->doubleVal(), ((Number*) rhs)->value));
+                delete lhs;
+                delete rhs;
+            }
+        }
+        else {
+            if(isInt(((Number*) lhs)->value)) {
+                //This operation is not guaranteed to succeed
+                //Construct fraction since it's not going to be temporary if this operation succeeds
+                Fraction *lhsFrac = new Fraction((uint64_t) ((Number*) lhs)->value, 1);
+                bool success = operateOn(lhsFrac, (Fraction*) rhs);
+                if(success) {
+                    if(lhsFrac->isInteger()) {
+                        result = new Number(lhsFrac->doubleVal());
+                        delete lhsFrac;
+                    }
+                    else {
+                        result = lhsFrac;
+                    }
+                    delete lhs;
+                    delete rhs;
+                }
+                else {
+                    delete lhsFrac;
+                    //My code is terrible, indeed.
+                    goto convertToDoubleAndOperate;
+                }
+            }
+            else {
+convertToDoubleAndOperate:
+                result = new Number(operate(((Number*) lhs)->value, ((Fraction*) rhs)->doubleVal()));
+                delete lhs;
+                delete rhs;
+            }
+        }
+        return result;
+    }
 
     /******************** LeftBracket ********************/
     LeftBracket LeftBracket::INSTANCE;

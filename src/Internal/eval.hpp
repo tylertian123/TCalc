@@ -109,6 +109,11 @@ namespace eval {
         //Returns whether the operation was successful (in the case of fractional exponentiation)
         //Ugly, I know.
         bool operateOn(Fraction*, Fraction*);
+
+        //Operates on two numericals, taking into account fractions and everything
+        //The returned numerical is allocated on the heap and needs to be freed
+        //The input is deleted
+        Numerical* operate(Numerical*, Numerical*);
     
     private:
         Operator(Type type) : type(type) {}
