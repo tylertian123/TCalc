@@ -125,8 +125,6 @@ public:
 	}
 	template <uint16_t Increase>
 	bool merge(const DynamicArray<T, Increase> *other) {
-		//Keep a copy of this DynamicArray's end iterator for use later
-		auto itThis = end();
 		//Expand memory and stuff
 		len += other->length();
 		if (len > maxLen) {
@@ -141,6 +139,7 @@ public:
 			contents = (T*)tmp;
 		}
 		//Iterate and copy elements
+		auto itThis = begin() + len - other->length();
 		for (auto itOther = other->begin(); itThis != end() && itOther != other->end(); itThis++, itOther++) {
 			*itThis = *itOther;
 		}
