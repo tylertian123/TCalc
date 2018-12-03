@@ -329,7 +329,17 @@ namespace eval {
                 if(lType == NumericalType::NUM && rType == NumericalType::NUM) {
                     //Special case for division: if the operands are whole numbers, create a fraction
                     if(op->type == Operator::Type::DIVIDE && isInt(((Number*) lhs)->value) && isInt(((Number*) rhs)->value)) {
-                        stack.push(new Fraction(static_cast<int64_t>(((Number*) lhs)->value), static_cast<int64_t>(((Number*) rhs)->value)));
+                        auto n = static_cast<int64_t>(((Number*) lhs)->value);
+                        auto d = static_cast<int64_t>(((Number*) rhs)->value);
+                        //See if the division yields a whole number
+                        if(n % d == 0) {
+                            //If the result is an integer, just push the integer instead
+                            stack.push(new Number(n / d));
+                        }
+                        else {
+                            //Otherwise create a fraction
+                            stack.push(new Fraction(n, d));
+                        }
                     }
                     else {
                         stack.push(new Number(op->operate(((Number*) lhs)->value, ((Number*) rhs)->value)));
@@ -342,7 +352,15 @@ namespace eval {
                     //Record if action was successful
                     bool success = op->operateOn((Fraction*) lhs, (Fraction*) rhs);
                     if(success) {
-                        stack.push(lhs);
+                        //See if result is an integer
+                        if(((Fraction*) lhs)->isInteger()) {
+                            //If yes then directly insert a number
+                            stack.push(new Number(((Fraction*) lhs)->doubleVal()));
+                            delete lhs;
+                        }
+                        else {
+                            stack.push(lhs);
+                        }
                         delete rhs;
                     }
                     //If the operation was not possible, convert to double and operate normally
@@ -361,7 +379,15 @@ namespace eval {
                         //Create this variable to avoid a compiler warning
                         Fraction temp((uint64_t) ((Number*) rhs)->value, 1);
                         op->operateOn((Fraction*) lhs, &temp);
-                        stack.push(lhs);
+
+                        //Test if resulting fraction is an integer
+                        if(((Fraction*) lhs)->isInteger()) {
+                            stack.push(new Number(((Fraction*) lhs)->doubleVal()));
+                            delete lhs;
+                        }
+                        else {
+                            stack.push(lhs);
+                        }
                         delete rhs;
                     }
                     //Otherwise convert to doubles
@@ -378,7 +404,13 @@ namespace eval {
                         Fraction *lhsFrac = new Fraction((uint64_t) ((Number*) lhs)->value, 1);
                         bool success = op->operateOn(lhsFrac, (Fraction*) rhs);
                         if(success) {
-                            stack.push(lhsFrac);
+                            if(lhsFrac->isInteger()) {
+                                stack.push(new Number(lhsFrac->doubleVal()));
+                                delete lhsFrac;
+                            }
+                            else {
+                                stack.push(lhsFrac);
+                            }
                             delete lhs;
                             delete rhs;
                         }
