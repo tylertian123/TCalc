@@ -370,7 +370,7 @@ namespace eval {
         }
         return ((neda::Character*) obj)->ch;
     }
-    DynamicArray<Token*, 4>* tokensFromExpr(neda::Container *expr) {
+    DynamicArray<Token*, 4>* tokensFromExpr(neda::Container *expr, const char *varname, Numerical *varval) {
         DynamicArray<Token*, 4> *arr = new DynamicArray<Token*, 4>();
         //Deref the result so the syntax won't be so awkward
         auto &exprs = *expr->getContents();
@@ -571,11 +571,23 @@ namespace eval {
                             //Allow unary operators after functions
                             allowUnary = true;
                         }
-                        //Otherwise see if it's a valid constant
+                        //Otherwise see if it's a valid constant, or if it is the additional variable
                         else {
+                            //If n is nonnull it must be added, so no need for cleanup
                             Number *n = Number::constFromString(str);
                             if(n) {
                                 arr->add(n);
+                            }
+                            else if(varval != nullptr && strcmp(str, varname) == 0) {
+                                if(varval->getNumericalType() == NumericalType::NUM) {
+                                    arr->add(new Number(((Number*) varval)->value));
+                                }
+                                else {
+                                    arr->add(new Number(((Fraction*) varval)->num));
+                                    //Use special division to avoid the need for brackets
+                                    arr->add(&Operator::OP_SP_DIV);
+                                    arr->add(new Number(((Fraction*) varval)->denom));
+                                }
                             }
                             allowUnary = false;
                         }

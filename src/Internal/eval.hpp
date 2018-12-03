@@ -5,6 +5,7 @@
 #include "dynamarr.hpp"
 #include "deque.hpp"
 #include "util.hpp"
+#include <math.h>
 
 namespace eval {
 
@@ -193,7 +194,7 @@ namespace eval {
      *     delete *result;
      * }
      */
-    DynamicArray<Token*, 4>* tokensFromExpr(neda::Container*);
+    DynamicArray<Token*, 4>* tokensFromExpr(neda::Container*, const char *varname = "", Numerical *varval = nullptr);
 
     //Shunting yard algorithm
     //Note: This does not delete the tokens in the DynamicArray
@@ -261,6 +262,14 @@ namespace eval {
     void freeTokens(Deque<Token*, Increase> *q) {
         while (!q->isEmpty()) {
             Token *t = q->dequeue();
+            if (t->getType() == TokenType::NUMERICAL || t->getType() == TokenType::FUNCTION) {
+                delete t;
+            }
+        }
+    }
+    template <uint16_t Increase>
+    void freeTokens(DynamicArray<Token*, Increase> *q) {
+        for(Token *t : *q) {
             if (t->getType() == TokenType::NUMERICAL || t->getType() == TokenType::FUNCTION) {
                 delete t;
             }
