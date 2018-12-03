@@ -289,7 +289,7 @@ namespace eval {
 
     //Note: Deletes the input
     template <uint16_t Increase>
-    bool evalPostfix(Deque<Token*, Increase>* expr, Numerical **out) {
+    Numerical* evalPostfix(Deque<Token*, Increase>* expr) {
         Deque<Numerical*> stack;
 
         while(!expr->isEmpty()) {
@@ -302,12 +302,12 @@ namespace eval {
             else if(token->getType() == TokenType::FUNCTION) {
                 //Syntax error: Not Enough Arguments
                 if(stack.isEmpty()) {
-                    //Do cleanup and return false
+                    //Do cleanup and return nullptr
                     delete token;
                     freeTokens(expr);
                     delete expr;
                     freeNumericals(&stack);
-                    return false;
+                    return nullptr;
                 }
                 else {
                     //Compute the function
@@ -329,11 +329,11 @@ namespace eval {
             else if(token->getType() == TokenType::OPERATOR) {
                 //Syntax error: Not enough numbers
                 if(stack.length() < 2) {
-                    //Do cleanup and return false
+                    //Do cleanup and return nullptr
                     freeTokens(expr);
                     delete expr;
                     freeNumericals(&stack);
-                    return false;
+                    return nullptr;
                 }
                 Operator *op = (Operator*) token;
                 Numerical *rhs = stack.pop();
@@ -349,11 +349,10 @@ namespace eval {
             while(!stack.isEmpty()) {
                 delete stack.pop();
             }
-            return false;
+            return nullptr;
         }
         
-        *out = stack.pop();
-        return true;
+        return stack.pop();
     }
 	
 	Numerical* evaluate(neda::Container*, const char *varname = "", Numerical *varval = nullptr);

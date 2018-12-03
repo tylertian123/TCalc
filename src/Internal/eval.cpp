@@ -747,7 +747,7 @@ convertToDoubleAndOperate:
                 allowUnary = false;
                 break;
             }
-			case neda::ObjType::SigmaPi:
+			case neda::ObjType::SIGMA_PI:
 			{
 				
 				break;
@@ -758,10 +758,10 @@ convertToDoubleAndOperate:
         return arr;
     }
 
-	bool evaluate(neda::Container *expr, Numerical **out, const char *varname = "", Numerical *varval = nullptr) {
+	Numerical* evaluate(neda::Container *expr, const char *varname = "", Numerical *varval = nullptr) {
 		auto tokens = tokensFromExpr(expr, varname, varval);
 		auto postfix = toPostfix(tokens);
 		delete tokens;
-		return evalPostfix(postfix, out);
+		return evalPostfix(postfix);
 	}
 }
