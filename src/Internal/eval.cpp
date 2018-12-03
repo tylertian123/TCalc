@@ -353,7 +353,7 @@ namespace eval {
 
     /******************** Other Functions ********************/
     bool isDigit(char ch) {
-        return (ch >= '0' && ch <= '9') || ch == '.';
+        return (ch >= '0' && ch <= '9') || ch == '.' || ch == LCD_CHAR_EE;
     }
     bool isNameChar(char ch) {
         return (ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z') || (ch >= LCD_CHARSET_LOWBOUND && ch <= LCD_CHARSET_HIGHBOUND);
@@ -589,11 +589,31 @@ namespace eval {
 
                 //Otherwise find the end of the number as usual
                 uint16_t end = index + 1;
-                for (; end < exprs.length() && exprIsDigit(exprs[end]); ++end);
+                for (; end < exprs.length(); ++end) {
+                    //Special processing
+                    if(!exprIsDigit(exprs[end])) {
+                        char ch = extractChar(exprs[end]);
+                        char prev = extractChar(exprs[end - 1]);
+                        //Allow a plus or minus after
+                        if(prev == LCD_CHAR_EE && (ch == '+' || ch == '-')) {
+                            continue;
+                        }
+                        else {
+                            break;
+                        }
+                    }
+                }
                 //+1 for null terminator
                 char *numStr = new char[end - index + 1];
                 for (uint16_t i = index; i < end; i++) {
-                    numStr[i - index] = extractChar(exprs[i]);
+                    char ch = extractChar(exprs[i]);
+                    //Convert the x10^x character to a e (parsed by atof)
+                    if(ch == LCD_CHAR_EE) {
+                        numStr[i - index] = 'e';
+                    }
+                    else {
+                        numStr[i - index] = ch;
+                    }
                 }
                 //Add null terminator
                 numStr[end - index] = '\0';
