@@ -141,7 +141,7 @@ namespace eval {
     class Function : public Token {
     public:
         enum class Type : uint8_t {
-            SIN, COS, TAN, ASIN, ACOS, ATAN
+            SIN, COS, TAN, ASIN, ACOS, ATAN, LN, LOG10, LOG2,
         };
         Function(Type type) : type(type) {}
 

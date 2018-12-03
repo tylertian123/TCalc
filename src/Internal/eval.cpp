@@ -251,6 +251,9 @@ namespace eval {
         else if(strcmp(str, "atan") == 0) {
             return new Function(Type::ATAN);
         }
+        else if(strcmp(str, "ln") == 0) {
+            return new Function(Type::LN);
+        }
         else {
             return nullptr;
         }
@@ -281,7 +284,18 @@ namespace eval {
         {
             return atan(arg);
         }
-
+        case Type::LN:
+        {
+            return log(arg);
+        }
+        case Type::LOG10:
+        {
+            return log10(arg);
+        }
+        case Type::LOG2:
+        {
+            return log2(arg);
+        }
         default: return NAN;
         }
     }
