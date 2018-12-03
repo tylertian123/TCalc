@@ -747,9 +747,21 @@ convertToDoubleAndOperate:
                 allowUnary = false;
                 break;
             }
+			case neda::ObjType::SigmaPi:
+			{
+				
+				break;
+			}
             default: ++index; break;
             }
         }
         return arr;
     }
+
+	bool evaluate(neda::Container *expr, Numerical **out, const char *varname = "", Numerical *varval = nullptr) {
+		auto tokens = tokensFromExpr(expr, varname, varval);
+		auto postfix = toPostfix(tokens);
+		delete tokens;
+		return evalPostfix(postfix, out);
+	}
 }

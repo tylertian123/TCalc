@@ -355,6 +355,8 @@ namespace eval {
         *out = stack.pop();
         return true;
     }
+	
+	Numerical* evaluate(neda::Container*, const char *varname = "", Numerical *varval = nullptr);
 }
 
 #endif
