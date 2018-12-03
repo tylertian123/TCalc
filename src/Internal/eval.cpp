@@ -131,14 +131,17 @@ namespace eval {
     /******************** Operator ********************/
     uint8_t Operator::getPrecedence() const {
         switch(type) {
-        case Type::EXPONENT:
+        case Type::SP_MULT:
+        case Type::SP_DIV:
             return 0;
+        case Type::EXPONENT:
+            return 1;
         case Type::MULTIPLY:
         case Type::DIVIDE:
-            return 1;
+            return 2;
         case Type::PLUS:
         case Type::MINUS:
-            return 2;
+            return 3;
         default: return 0xFF;
         }
     }
@@ -168,7 +171,9 @@ namespace eval {
              Operator::OP_MINUS = { Operator::Type::MINUS },
              Operator::OP_MULTIPLY = { Operator::Type::MULTIPLY },
              Operator::OP_DIVIDE = { Operator::Type::DIVIDE },
-             Operator::OP_EXPONENT = { Operator::Type::EXPONENT };
+             Operator::OP_EXPONENT = { Operator::Type::EXPONENT },
+             Operator::OP_SP_MULT = { Operator::Type::SP_MULT },
+             Operator::OP_SP_DIV = { Operator::Type::SP_DIV };
     double Operator::operate(double lhs, double rhs) {
         switch(type) {
         case Type::PLUS:
@@ -179,10 +184,12 @@ namespace eval {
         {
             return lhs - rhs;
         }
+        case Type::SP_MULT:
         case Type::MULTIPLY:
         {
             return lhs * rhs;
         }
+        case Type::SP_DIV:
         case Type::DIVIDE:
         {
             return lhs / rhs;
@@ -206,11 +213,13 @@ namespace eval {
             *frac -= *rhs;
             break;
         }
+        case Type::SP_MULT:
         case Type::MULTIPLY:
         {
             *frac *= *rhs;
             break;
         }
+        case Type::SP_DIV:
         case Type::DIVIDE:
         {
             *frac /= *rhs;
