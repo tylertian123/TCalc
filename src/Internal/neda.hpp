@@ -373,6 +373,7 @@ namespace neda {
 		virtual void draw(lcd::LCD12864&, int16_t, int16_t) override;
 		
 		void setContents(Expr*);
+        Expr* getContents();
 		
 		virtual ~Subscript();
 

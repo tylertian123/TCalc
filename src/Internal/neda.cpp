@@ -928,6 +928,9 @@ namespace neda {
 		computeWidth();
 		computeHeight();
 	}
+    Expr* Subscript::getContents() {
+        return contents;
+    }
 	Subscript::~Subscript() {
         DESTROY_IF_NONNULL(contents);
 	}

@@ -478,7 +478,7 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
         cursor->add(new neda::Character('l'));
         cursor->add(new neda::Character('o'));
         cursor->add(new neda::Character('g'));
-        cursor->add(new neda::Subscript(neda::makeString("10")));
+        //cursor->add(new neda::Subscript(neda::makeString("10")));
         cursor->add(new neda::LeftBracket());
         break;
     }

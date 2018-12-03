@@ -86,7 +86,7 @@ namespace eval {
     class Operator : public Token {
     public:
         enum class Type {
-            PLUS, MINUS, MULTIPLY, DIVIDE, EXPONENT,
+            PLUS, MINUS, MULTIPLY, DIVIDE, EXPONENT, 
         };
 
         Type type;

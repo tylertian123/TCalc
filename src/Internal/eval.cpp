@@ -468,20 +468,53 @@ namespace eval {
                     }
                     //Add null terminator
                     str[end - index] = '\0';
-                    Function *func = Function::fromString(str);
-                    //Add the function if it's valid
-                    if(func) {
-                        arr->add(func);
-                        //Allow unary operators after functions
+
+                    //Special processing for logarithms:
+                    if(strcmp(str, "log") == 0) {
+                        if(end < exprs.length() && exprs[end]->getType() == neda::ObjType::SUBSCRIPT) {
+                            auto sub = (neda::Container*) ((neda::Subscript*) exprs[end])->getContents();
+                            auto subContents = sub->getContents();
+                            //See if the base is one of the built-in ones
+                            if(subContents->length() == 1 && extractChar((*subContents)[0]) == '2') {
+                                arr->add(new Function(Function::Type::LOG2));
+                            }
+                            else if(subContents->length() == 2 && extractChar((*subContents)[0]) == '1' && extractChar((*subContents)[1]) == '0') {
+                                arr->add(new Function(Function::Type::LOG10));
+                            }
+                            else if(subContents->length() == 1 && extractChar((*subContents)[0]) == LCD_CHAR_EULR) {
+                                arr->add(new Function(Function::Type::LN));
+                            }
+                            //Otherwise use the log change of base property
+                            else {
+                                //TODO
+                            }
+                            //Increment end so the index gets set properly afterwards
+                            ++end;
+                        }
+                        //Default log base: 10
+                        else {
+                            arr->add(new Function(Function::Type::LOG10));
+                        }
+                        //Allow unary after functions
                         allowUnary = true;
                     }
-                    //Otherwise see if it's a valid constant
+                    //Otherwise normal processing
                     else {
-                        Number *n = Number::constFromString(str);
-                        if(n) {
-                            arr->add(n);
+                        Function *func = Function::fromString(str);
+                        //Add the function if it's valid
+                        if(func) {
+                            arr->add(func);
+                            //Allow unary operators after functions
+                            allowUnary = true;
                         }
-                        allowUnary = false;
+                        //Otherwise see if it's a valid constant
+                        else {
+                            Number *n = Number::constFromString(str);
+                            if(n) {
+                                arr->add(n);
+                            }
+                            allowUnary = false;
+                        }
                     }
 
                     delete str;
