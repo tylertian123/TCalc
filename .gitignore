@@ -7,3 +7,5 @@ TCalc_8051.uvgui.*
 *.TMP
 EventRecorderStub.scvd
 .vscode/
+*.swp
+
