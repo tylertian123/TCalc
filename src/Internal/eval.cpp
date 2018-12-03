@@ -263,6 +263,24 @@ namespace eval {
         else if(strcmp(str, "ln") == 0) {
             return new Function(Type::LN);
         }
+        else if(strcmp(str, "sinh") == 0) {
+            return new Function(Type::SINH);
+        }
+        else if(strcmp(str, "cosh") == 0) {
+            return new Function(Type::COSH);
+        }
+        else if(strcmp(str, "tanh") == 0) {
+            return new Function(Type::TANH);
+        }
+        else if(strcmp(str, "asinh") == 0) {
+            return new Function(Type::ASINH);
+        }
+        else if(strcmp(str, "acosh") == 0) {
+            return new Function(Type::ACOSH);
+        }
+        else if(strcmp(str, "atanh") == 0) {
+            return new Function(Type::ATANH);
+        }
         else {
             return nullptr;
         }
@@ -304,6 +322,30 @@ namespace eval {
         case Type::LOG2:
         {
             return log2(arg);
+        }
+        case Type::SINH:
+        {
+            return sinh(arg);
+        }
+        case Type::COSH:
+        {
+            return cosh(arg);
+        }
+        case Type::TANH:
+        {
+            return tanh(arg);
+        }
+        case Type::ASINH:
+        {
+            return asinh(arg);
+        }
+        case Type::ACOSH:
+        {
+            return acosh(arg);
+        }
+        case Type::ATANH:
+        {
+            return atanh(arg);
         }
         default: return NAN;
         }
