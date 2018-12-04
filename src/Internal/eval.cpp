@@ -478,6 +478,12 @@ convertToDoubleAndOperate:
         }
         return ((neda::Character*) obj)->ch;
     }
+    //Returns positive if a > b, zero if equal, and negative if a < b
+    int8_t compareNumericals(Numerical *a, Numerical *b) {
+        double aVal = a->getNumericalType() == NumericalType::NUM ? ((Number*) a)->value : ((Fraction*) a)->doubleVal();
+        double bVal = b->getNumericalType() == NumericalType::NUM ? ((Number*) b)->value : ((Fraction*) b)->doubleVal();
+        return aVal > bVal ? 1 : bVal > aVal ? -1 : 0;
+    }
     DynamicArray<Token*, 4>* tokensFromExpr(neda::Container *expr, uint8_t varc, const char **varn, Numerical **varv) {
         DynamicArray<Token*, 4> *arr = new DynamicArray<Token*, 4>();
         //Deref the result so the syntax won't be so awkward
@@ -787,7 +793,7 @@ convertToDoubleAndOperate:
                     return nullptr;
                 }
                 //Attempt to evaluate the starting condition assign value
-                DynamicArray<neda::NEDAObj*> startVal(startContents->begin() + equalsIndex, startContents->end());
+                DynamicArray<neda::NEDAObj*> startVal(startContents->begin() + equalsIndex + 1, startContents->end());
                 neda::Container startValContainer(startVal);
                 Numerical *start = evaluate(&startValContainer, varc, varn, varv);
                 if(!start) {
@@ -804,8 +810,54 @@ convertToDoubleAndOperate:
                 vName[equalsIndex] = '\0';
 
                 //Construct new variable arrays
-                char **vNames = new char*[varc + 1];
+                const char **vNames = new const char*[varc + 1];
                 Numerical **vVals = new Numerical*[varc + 1];
+                //Copy existing
+                for(uint8_t i = 0; i < varc; i ++) {
+                    vNames[i] = varn[i];
+                    vVals[i] = varv[i];
+                }
+                vNames[varc] = vName;
+                vVals[varc] = start;
+
+                auto type = ((neda::SigmaPi*) exprs[index])->getSymbol();
+                //Different starting values for summation and product
+                Numerical *val = new Number(type.data == lcd::CHAR_SUMMATION.data ? 0 : 1);
+                //While the start is still less than or equal to the end
+                while(compareNumericals(start, end) <= 0) {
+                    //Evaluate the inside expression
+                    Numerical *n = evaluate((neda::Container*) ((neda::SigmaPi*) exprs[index])->getContents(), varc + 1, vNames, vVals);
+                    //If there is ever a syntax error then cleanup and exit
+                    if(!n) {
+                        delete end;
+                        delete start;
+                        delete[] vName;
+                        delete[] vNames;
+                        delete[] vVals;
+                        delete val;
+                        freeTokens(arr);
+                        delete arr;
+                        return nullptr;
+                    }
+                    //Add or multiply the expressions
+                    //Operate takes care of deletion
+                    val = (type.data == lcd::CHAR_SUMMATION.data ? Operator::OP_PLUS : Operator::OP_MULTIPLY).operate(val, n);
+                    //Add one to the start
+                    if(start->getNumericalType() == NumericalType::NUM) {
+                        ++((Number*) start)->value;
+                    }
+                    else {
+                        ((Fraction*) start)->num += ((Fraction*) start)->denom;
+                    }
+                }
+                //Insert the value
+                arr->add(val);
+                //Cleanup
+                delete end;
+                delete start;
+                delete[] vName;
+                delete[] vNames;
+                delete[] vVals;
 
                 ++index;
 				break;

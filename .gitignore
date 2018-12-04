@@ -8,4 +8,5 @@ TCalc_8051.uvgui.*
 EventRecorderStub.scvd
 .vscode/
 *.swp
+.ycm_extra_conf.py
 

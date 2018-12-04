@@ -414,6 +414,7 @@ namespace neda {
 		Expr* getStart();
 		Expr* getFinish();
 		Expr* getContents();
+        const lcd::LCD12864Image& getSymbol();
 		void setStart(Expr *start);
 		void setFinish(Expr *finish);
 		void setContents(Expr *contents);

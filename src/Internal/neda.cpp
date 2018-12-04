@@ -1014,6 +1014,9 @@ namespace neda {
     Expr* SigmaPi::getContents() {
         return contents;
     }
+    const lcd::LCD12864Image& SigmaPi::getSymbol() {
+        return symbol;
+    }
     void SigmaPi::setStart(Expr *start) {
         this->start = start;
         start->parent = this;

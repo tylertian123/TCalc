@@ -164,6 +164,36 @@ namespace eval {
         double compute(double);
     };
 
+    //This will delete the Deque of tokens properly. It will destory all tokens in the array.
+    template <uint16_t Increase>
+    void freeTokens(Deque<Token*, Increase> *q) {
+        while (!q->isEmpty()) {
+            Token *t = q->dequeue();
+            if (t->getType() == TokenType::NUMERICAL || t->getType() == TokenType::FUNCTION) {
+                delete t;
+            }
+        }
+    }
+    template <uint16_t Increase>
+    void freeTokens(DynamicArray<Token*, Increase> *q) {
+        for(Token *t : *q) {
+            if (t->getType() == TokenType::NUMERICAL || t->getType() == TokenType::FUNCTION) {
+                delete t;
+            }
+        }
+    }
+    template <uint16_t Increase>
+    void freeNumericals(Deque<Numerical*, Increase> *q) {
+        while (!q->isEmpty()) {
+            delete q->dequeue();
+        }
+    }
+    bool isDigit(char);
+    bool isNameChar(char);
+    bool exprIsDigit(neda::NEDAObj*);
+    char extractChar(neda::NEDAObj*);
+    int8_t compareNumericals(const Numerical*, const Numerical*);
+
     /*
      * MEMORY MANAGEMENT WITH tokensFromExpr, toPostFix AND evalPostfix
      * 
@@ -260,31 +290,6 @@ namespace eval {
         }
         delete opStack;
         return output;
-    }
-
-    //This will delete the Deque of tokens properly. It will destory all tokens in the array.
-    template <uint16_t Increase>
-    void freeTokens(Deque<Token*, Increase> *q) {
-        while (!q->isEmpty()) {
-            Token *t = q->dequeue();
-            if (t->getType() == TokenType::NUMERICAL || t->getType() == TokenType::FUNCTION) {
-                delete t;
-            }
-        }
-    }
-    template <uint16_t Increase>
-    void freeTokens(DynamicArray<Token*, Increase> *q) {
-        for(Token *t : *q) {
-            if (t->getType() == TokenType::NUMERICAL || t->getType() == TokenType::FUNCTION) {
-                delete t;
-            }
-        }
-    }
-    template <uint16_t Increase>
-    void freeNumericals(Deque<Numerical*, Increase> *q) {
-        while (!q->isEmpty()) {
-            delete q->dequeue();
-        }
     }
 
     //Note: Deletes the input
