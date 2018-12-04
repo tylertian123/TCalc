@@ -478,7 +478,7 @@ convertToDoubleAndOperate:
         }
         return ((neda::Character*) obj)->ch;
     }
-    DynamicArray<Token*, 4>* tokensFromExpr(neda::Container *expr, const char *varname, Numerical *varval) {
+    DynamicArray<Token*, 4>* tokensFromExpr(neda::Container *expr, uint8_t varc, const char **varn, Numerical **varv) {
         DynamicArray<Token*, 4> *arr = new DynamicArray<Token*, 4>();
         //Deref the result so the syntax won't be so awkward
         auto &exprs = *expr->getContents();
@@ -686,15 +686,20 @@ convertToDoubleAndOperate:
                             if(n) {
                                 arr->add(n);
                             }
-                            else if(varval != nullptr && strcmp(str, varname) == 0) {
-                                if(varval->getNumericalType() == NumericalType::NUM) {
-                                    arr->add(new Number(((Number*) varval)->value));
-                                }
-                                else {
-                                    arr->add(new Number(((Fraction*) varval)->num));
-                                    //Use special division to avoid the need for brackets
-                                    arr->add(&Operator::OP_SP_DIV);
-                                    arr->add(new Number(((Fraction*) varval)->denom));
+                            else if(varc > 0) {
+                                for(uint8_t i = 0; i < varc; i ++) {
+                                    if(strcmp(str, varn[i]) == 0) {
+                                        if(varv[i]->getNumericalType() == NumericalType::NUM) {
+                                            arr->add(new Number(((Number*) varv[i])->value));
+                                        }
+                                        else {
+                                            arr->add(new Number(((Fraction*) varv[i])->num));
+                                            //Use special division to avoid the need for brackets
+                                            arr->add(&Operator::OP_SP_DIV);
+                                            arr->add(new Number(((Fraction*) varv[i])->denom));
+                                        }
+                                        break;
+                                    }
                                 }
                             }
                             allowUnary = false;
@@ -758,8 +763,8 @@ convertToDoubleAndOperate:
         return arr;
     }
 
-	Numerical* evaluate(neda::Container *expr, const char *varname = "", Numerical *varval = nullptr) {
-		auto tokens = tokensFromExpr(expr, varname, varval);
+	Numerical* evaluate(neda::Container *expr, uint8_t varc, const char **varn, Numerical **varv) {
+		auto tokens = tokensFromExpr(expr, varc, varn, varv);
 		auto postfix = toPostfix(tokens);
 		delete tokens;
 		return evalPostfix(postfix);

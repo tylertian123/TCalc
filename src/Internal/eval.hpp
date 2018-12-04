@@ -199,7 +199,7 @@ namespace eval {
      *     delete *result;
      * }
      */
-    DynamicArray<Token*, 4>* tokensFromExpr(neda::Container*, const char *varname = "", Numerical *varval = nullptr);
+    DynamicArray<Token*, 4>* tokensFromExpr(neda::Container*, uint8_t varc = 0, const char **varn = nullptr, Numerical **varv = nullptr);
 
     //Shunting yard algorithm
     //Note: This does not delete the tokens in the DynamicArray
@@ -355,7 +355,7 @@ namespace eval {
         return stack.pop();
     }
 	
-	Numerical* evaluate(neda::Container*, const char *varname = "", Numerical *varval = nullptr);
+	Numerical* evaluate(neda::Container*, uint8_t varc = 0, const char **varn = nullptr, Numerical **varv = nullptr);
 }
 
 #endif
