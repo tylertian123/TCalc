@@ -706,7 +706,7 @@ convertToDoubleAndOperate:
                         }
                     }
 
-                    delete str;
+                    delete[] str;
 
                     index = end;
                     break;
@@ -745,7 +745,7 @@ convertToDoubleAndOperate:
                 //Convert to double
                 double d = atof(numStr);
 
-                delete numStr;
+                delete[] numStr;
 
                 arr->add(new Number(d));
                 index = end;
@@ -802,7 +802,12 @@ convertToDoubleAndOperate:
                     vName[i] = extractChar((*startContents)[i]);
                 }
                 vName[equalsIndex] = '\0';
-                
+
+                //Construct new variable arrays
+                char **vNames = new char*[varc + 1];
+                Numerical **vVals = new Numerical*[varc + 1];
+
+                ++index;
 				break;
 			}
             default: ++index; break;
