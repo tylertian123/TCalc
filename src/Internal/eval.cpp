@@ -754,7 +754,55 @@ convertToDoubleAndOperate:
             }
 			case neda::ObjType::SIGMA_PI:
 			{
-				
+                //Evaluate the end
+				Numerical *end = evaluate((neda::Container*) ((neda::SigmaPi*) exprs[index])->getFinish(), varc, varn, varv);
+                if(!end) {
+                    freeTokens(arr);
+                    delete arr;
+                    return nullptr;
+                }
+                //Split the starting condition at the equals sign
+                auto startContents = ((neda::Container*) ((neda::SigmaPi*) exprs[index])->getStart())->getContents();
+                uint16_t equalsIndex = 0;
+                bool validName = true;
+                for(auto i : *startContents) {
+                    if(i->getType() == neda::ObjType::CHAR_TYPE && ((neda::Character*) i)->ch == '=') {
+                        break;
+                    }
+                    //In addition to finding the equals sign, also verify that the left hand side of the equals only contains valid
+                    //name characters
+                    if(!isNameChar(extractChar(i))) {
+                        validName = false;
+                        break;
+                    }
+                    ++equalsIndex;
+                }
+                //If equalsIndex is the same as the length, then the if condition was never true, so return null
+                //Or if it's at index 0 or length - 1, return null since the condition can't be complete
+                //Or if the name is not valid
+                if(!validName || equalsIndex == startContents->length() || equalsIndex == 0 || equalsIndex == startContents->length() - 1) {
+                    delete end;
+                    freeTokens(arr);
+                    delete arr;
+                    return nullptr;
+                }
+                //Attempt to evaluate the starting condition assign value
+                DynamicArray<neda::NEDAObj*> startVal(startContents->begin() + equalsIndex, startContents->end());
+                neda::Container startValContainer(startVal);
+                Numerical *start = evaluate(&startValContainer, varc, varn, varv);
+                if(!start) {
+                    delete end;
+                    freeTokens(arr);
+                    delete arr;
+                    return nullptr;
+                }
+                //Isolate the variable name
+                char *vName = new char[equalsIndex + 1];
+                for(uint16_t i = 0; i < equalsIndex; i ++) {
+                    vName[i] = extractChar((*startContents)[i]);
+                }
+                vName[equalsIndex] = '\0';
+                
 				break;
 			}
             default: ++index; break;
@@ -765,8 +813,13 @@ convertToDoubleAndOperate:
 
 	Numerical* evaluate(neda::Container *expr, uint8_t varc, const char **varn, Numerical **varv) {
 		auto tokens = tokensFromExpr(expr, varc, varn, varv);
-		auto postfix = toPostfix(tokens);
-		delete tokens;
-		return evalPostfix(postfix);
+        if(tokens) {
+            auto postfix = toPostfix(tokens);
+            delete tokens;
+            return evalPostfix(postfix);
+        }
+        else {
+            return nullptr;
+        }
 	}
 }
