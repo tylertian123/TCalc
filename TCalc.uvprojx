@@ -334,7 +334,7 @@
             <v6WtE>0</v6WtE>
             <v6Rtti>0</v6Rtti>
             <VariousControls>
-              <MiscControls>--cpp11 --no_rtti --feedback=fb -Ospace</MiscControls>
+              <MiscControls>--cpp11 --no_rtti -Ospace</MiscControls>
               <Define>USE_STDPERIPH_DRIVER,STM32F10X_MD</Define>
               <Undefine></Undefine>
               <IncludePath>.\src\CMSIS;.\src\Hardware;.\src\Internal;.\src\Lib\inc;.\src\Startup;.\src\User;.\src\8051</IncludePath>

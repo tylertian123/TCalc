@@ -217,9 +217,6 @@ namespace neda {
         computeWidth();
         computeHeight();
     }
-    DynamicArray<NEDAObj*>* Container::getContents() {
-        return &contents;
-    }
     Container::~Container() {
         for(NEDAObj *ex : contents) {
             DESTROY_IF_NONNULL(ex);
@@ -523,12 +520,12 @@ namespace neda {
             return 0xFFFF;
         }
         Container *parentContainer = (Container*) parent;
-        auto parentContents = parentContainer->getContents();
+        auto &parentContents = parentContainer->contents;
         uint16_t index = parentContainer->indexOf(this);
         uint16_t maxSpacing = 0;
         //Used to find the end of the brackets
         uint16_t nesting = 1;
-        for(auto it = parentContents->begin() + index + 1; it != parentContents->end(); ++ it) {
+        for(auto it = parentContents.begin() + index + 1; it != parentContents.end(); ++ it) {
             NEDAObj *ex = *it;
             //Increase/Decrease the nesting depth if we see a bracket
             if(ex->getType() == ObjType::L_BRACKET) {
@@ -564,12 +561,12 @@ namespace neda {
         }
         //Parent must be a Container
         Container *parentContainer = (Container*) parent;
-        auto parentContents = parentContainer->getContents();
+        auto &parentContents = parentContainer->contents;
         uint16_t index = parentContainer->indexOf(this);
         uint16_t maxHeight = 0;
         uint16_t nesting = 1;
         uint16_t maxTopSpacing = getTopSpacing();
-        for(auto it = parentContents->begin() + index + 1; it != parentContents->end(); ++ it) {
+        for(auto it = parentContents.begin() + index + 1; it != parentContents.end(); ++ it) {
             NEDAObj *ex = *it;
             if(ex->getType() == ObjType::L_BRACKET) {
                 nesting ++;
@@ -613,13 +610,13 @@ namespace neda {
             return 0xFFFF;
         }
         Container *parentContainer = (Container*) parent;
-        auto parentContents = parentContainer->getContents();
+        auto &parentContents = parentContainer->contents;
         uint16_t index = parentContainer->indexOf(this);
         uint16_t maxSpacing = 0;
         //Used to find the end of the brackets
         uint16_t nesting = 1;
         //Iterate backwards
-        for(auto it = parentContents->begin() + index - 1; it >= parentContents->begin(); -- it) {
+        for(auto it = parentContents.begin() + index - 1; it >= parentContents.begin(); -- it) {
             NEDAObj *ex = *it;
             //Increase/Decrease the nesting depth if we see a bracket
             if(ex->getType() == ObjType::R_BRACKET) {
@@ -655,13 +652,13 @@ namespace neda {
         }
         //Parent must be a Container
         Container *parentContainer = (Container*) parent;
-        auto parentContents = parentContainer->getContents();
+        auto &parentContents = parentContainer->contents;
         uint16_t index = parentContainer->indexOf(this);
         uint16_t maxHeight = 0;
         uint16_t nesting = 1;
         uint16_t maxTopSpacing = getTopSpacing();
         //Iterate backwards
-        for(auto it = parentContents->begin() + index - 1; it >= parentContents->begin(); -- it) {
+        for(auto it = parentContents.begin() + index - 1; it >= parentContents.begin(); -- it) {
             NEDAObj *ex = *it;
             if(ex->getType() == ObjType::R_BRACKET) {
                 nesting ++;
@@ -747,12 +744,6 @@ namespace neda {
 			contents->draw(dest, x + 7 + xoffset, y + 2 + yoffset);
 		}
 	}
-	Expr* Radical::getContents() {
-		return contents;
-	}
-	Expr* Radical::getN() {
-		return n;
-	}
 	void Radical::setContents(Expr *contents) {
 		this->contents = contents;
         contents->parent = this;
@@ -812,13 +803,13 @@ namespace neda {
             return SAFE_ACCESS_0(contents, exprHeight) + Container::EMPTY_EXPR_HEIGHT / 2 - OVERLAP;
         }
         Container *parentContainer = (Container*) parent;
-        auto parentContents = parentContainer->getContents();
+        auto &parentContents = parentContainer->contents;
         uint16_t index = parentContainer->indexOf(this);
         //Look at the expression right before it. If there is no expression before, return the default
         if(index == 0) {
             return SAFE_ACCESS_0(contents, exprHeight) + Container::EMPTY_EXPR_HEIGHT / 2 - OVERLAP;
         }
-        NEDAObj *prevObj = (*parentContents)[index - 1];
+        NEDAObj *prevObj = parentContents[index - 1];
         uint16_t prevHeight = prevObj->getType() == ObjType::CHAR_TYPE ? ((Character*) prevObj)->getHeight() : ((Expr*) prevObj)->exprHeight;
         return SAFE_ACCESS_0(contents, exprHeight) + prevHeight / 2 - OVERLAP;
     }
@@ -833,7 +824,7 @@ namespace neda {
             return;
         }
         Container *parentContainer = (Container*) parent;
-        auto parentContents = parentContainer->getContents();
+        auto &parentContents = parentContainer->contents;
         uint16_t index = parentContainer->indexOf(this);
         //Look at the expression right before it. If there is no expression before, return the default
         if(index == 0) {
@@ -841,7 +832,7 @@ namespace neda {
             SAFE_EXEC(parent, computeHeight);
             return;
         }
-        NEDAObj *prevObj = (*parentContents)[index - 1];
+        NEDAObj *prevObj = parentContents[index - 1];
         uint16_t prevHeight = prevObj->getType() == ObjType::CHAR_TYPE ? ((Character*) prevObj)->getHeight() : ((Expr*) prevObj)->exprHeight;
         exprHeight = SAFE_ACCESS_0(contents, exprHeight) + prevHeight - OVERLAP;
 
@@ -869,9 +860,6 @@ namespace neda {
     void Superscript::getCursor(Cursor &cursor, CursorLocation location) {
         SAFE_EXEC(contents, getCursor, cursor, location);
     }
-    Expr* Superscript::getContents() {
-        return contents;
-    }
 	
 	//*************************** Subscript ***************************************
 	uint16_t Subscript::getTopSpacing() {
@@ -879,13 +867,13 @@ namespace neda {
             return Container::EMPTY_EXPR_HEIGHT / 2;
         }
         Container *parentContainer = (Container*) parent;
-        auto parentContents = parentContainer->getContents();
+        auto &parentContents = parentContainer->contents;
         uint16_t index = parentContainer->indexOf(this);
         //Look at the expression right before it. If there is no expression before, return the default
         if(index == 0) {
             return Container::EMPTY_EXPR_HEIGHT / 2;
         }
-        NEDAObj *prevObj = (*parentContents)[index - 1];
+        NEDAObj *prevObj = parentContents[index - 1];
         uint16_t prevSpacing = prevObj->getType() == ObjType::CHAR_TYPE ? 
                 ((Character*) prevObj)->getHeight() / 2
                 : ((Expr*) prevObj)->getTopSpacing();
@@ -901,14 +889,14 @@ namespace neda {
             return;
         }
         Container *parentContainer = (Container*) parent;
-        auto parentContents = parentContainer->getContents();
+        auto &parentContents = parentContainer->contents;
         uint16_t index = parentContainer->indexOf(this);
         //Look at the expression right before it. If there is no expression before, return the default
         if(index == 0) {
             exprHeight = Container::EMPTY_EXPR_HEIGHT - OVERLAP + SAFE_ACCESS_0(contents, exprHeight);
             return;
         }
-        NEDAObj *prevObj = (*parentContents)[index - 1];
+        NEDAObj *prevObj = parentContents[index - 1];
         uint16_t prevHeight = prevObj->getType() == ObjType::CHAR_TYPE ? ((Character*) prevObj)->getHeight() : ((Expr*) prevObj)->exprHeight;
         exprHeight = prevHeight - OVERLAP + SAFE_ACCESS_0(contents, exprHeight);
         SAFE_EXEC(parent, computeHeight);
@@ -928,9 +916,6 @@ namespace neda {
 		computeWidth();
 		computeHeight();
 	}
-    Expr* Subscript::getContents() {
-        return contents;
-    }
 	Subscript::~Subscript() {
         DESTROY_IF_NONNULL(contents);
 	}
@@ -1005,18 +990,6 @@ namespace neda {
 
         contents->draw(dest, x + widest + 3, y + contentsYOffset);
 	}
-    Expr* SigmaPi::getStart() {
-        return start;
-    }
-    Expr* SigmaPi::getFinish() {
-        return finish;
-    }
-    Expr* SigmaPi::getContents() {
-        return contents;
-    }
-    const lcd::LCD12864Image& SigmaPi::getSymbol() {
-        return symbol;
-    }
     void SigmaPi::setStart(Expr *start) {
         this->start = start;
         start->parent = this;

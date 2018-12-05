@@ -1,4 +1,4 @@
-;#<FEEDBACK># ARM Linker, 5060750: Last Updated: Wed Dec 05 14:11:34 2018
+;#<FEEDBACK># ARM Linker, 5060750: Last Updated: Wed Dec 05 17:06:00 2018
 ;VERSION 0.2
 ;FILE core_cm3.o
 _Z7__REV16t <= USED 0
@@ -9,10 +9,68 @@ _Z9__set_MSPj <= USED 0
 _Z9__set_PSPj <= USED 0
 ;FILE delay.o
 ;FILE eval.o
+_Z5isIntIdEbT_ <= USED 0
+_ZN12DynamicArrayIPN4eval5TokenELt4EE3addERKS2_ <= USED 0
+_ZN12DynamicArrayIPN4eval5TokenELt4EE5mergeILt4EEEbPKS_IS2_XT_EE <= USED 0
+_ZN12DynamicArrayIPN4eval5TokenELt4EED1Ev <= USED 0
+_ZN4eval10freeTokensILt1EEEvP5DequeIPNS_5TokenEXT_EE <= USED 0
+_ZN4eval10freeTokensILt4EEEvP12DynamicArrayIPNS_5TokenEXT_EE <= USED 0
+_ZN4eval10isNameCharEc <= USED 0
+_ZN4eval11LeftBracket7getTypeEv <= USED 0
+_ZN4eval11evalPostfixILt1EEEPNS_9NumericalEP5DequeIPNS_5TokenEXT_EE <= USED 0
+_ZN4eval11exprIsDigitEPN4neda7NEDAObjE <= USED 0
+_ZN4eval11extractCharEPN4neda7NEDAObjE <= USED 0
+_ZN4eval12RightBracket7getTypeEv <= USED 0
+_ZN4eval14freeNumericalsILt1EEEvP5DequeIPNS_9NumericalEXT_EE <= USED 0
+_ZN4eval14tokensFromExprEP12DynamicArrayIPN4neda7NEDAObjELt1EEhPPKcPPNS_9NumericalE <= USED 0
+_ZN4eval14tokensFromExprEPN4neda9ContainerEhPPKcPPNS_9NumericalE <= USED 0
+_ZN4eval17compareNumericalsEPNS_9NumericalES1_ <= USED 0
+_ZN4eval6Number15constFromStringEPKc <= USED 0
+_ZN4eval6Number16getNumericalTypeEv <= USED 0
+_ZN4eval6NumberC1Ed <= USED 0
+_ZN4eval7isDigitEc <= USED 0
+_ZN4eval8Fraction16getNumericalTypeEv <= USED 0
+_ZN4eval8Fraction3gcdExx <= USED 0
+_ZN4eval8Fraction3lcmExx <= USED 0
+_ZN4eval8Fraction3powERKS0_ <= USED 0
+_ZN4eval8Fraction6reduceEv <= USED 0
+_ZN4eval8FractionC1Exx <= USED 0
+_ZN4eval8FractiondVERKS0_ <= USED 0
 _ZN4eval8FractiondvERKS0_ <= USED 0
+_ZN4eval8FractionmIERKS0_ <= USED 0
+_ZN4eval8FractionmLERKS0_ <= USED 0
 _ZN4eval8FractionmiERKS0_ <= USED 0
 _ZN4eval8FractionmlERKS0_ <= USED 0
+_ZN4eval8FractionpLERKS0_ <= USED 0
 _ZN4eval8FractionplERKS0_ <= USED 0
+_ZN4eval8Function10fromStringEPKc <= USED 0
+_ZN4eval8Function7computeEd <= USED 0
+_ZN4eval8Function7getTypeEv <= USED 0
+_ZN4eval8FunctionC1ENS0_4TypeE <= USED 0
+_ZN4eval8Operator7getTypeEv <= USED 0
+_ZN4eval8Operator7operateEPNS_9NumericalES2_ <= USED 0
+_ZN4eval8Operator7operateEdd <= USED 0
+_ZN4eval8Operator8fromCharEc <= USED 0
+_ZN4eval8Operator9operateOnEPNS_8FractionES2_ <= USED 0
+_ZN4eval8evaluateEP12DynamicArrayIPN4neda7NEDAObjELt1EEhPPKcPPNS_9NumericalE <= USED 0
+_ZN4eval8evaluateEPN4neda9ContainerEhPPKcPPNS_9NumericalE <= USED 0
+_ZN4eval9Numerical7getTypeEv <= USED 0
+_ZN4eval9toPostfixILt4EEEP5DequeIPNS_5TokenELt1EEP12DynamicArrayIS3_XT_EE <= USED 0
+_ZN5DequeIPN4eval5TokenELt1EE12increaseSizeEt <= USED 0
+_ZN5DequeIPN4eval5TokenELt1EE3popEv <= USED 0
+_ZN5DequeIPN4eval5TokenELt1EE4pushES2_ <= USED 0
+_ZN5DequeIPN4eval5TokenELt1EE7dequeueEv <= USED 0
+_ZN5DequeIPN4eval5TokenELt1EE7enqueueES2_ <= USED 0
+_ZN5DequeIPN4eval5TokenELt1EEC1Ev <= USED 0
+_ZN5DequeIPN4eval5TokenELt1EED1Ev <= USED 0
+_ZN5DequeIPN4eval9NumericalELt1EE3popEv <= USED 0
+_ZN5DequeIPN4eval9NumericalELt1EE4pushES2_ <= USED 0
+_ZN5DequeIPN4eval9NumericalELt1EE7dequeueEv <= USED 0
+_ZN5DequeIPN4eval9NumericalELt1EED1Ev <= USED 0
+_ZNK4eval8Fraction9doubleValEv <= USED 0
+_ZNK4eval8Fraction9isIntegerEv <= USED 0
+_ZNK4eval8Operator13getPrecedenceEv <= USED 0
+_ZNK5DequeIPN4eval5TokenELt1EE7isEmptyEv <= USED 0
 ;FILE extipin.o
 _ZN7EXTIPin11getEXTILineEv <= USED 0
 _ZN7EXTIPin6getPinEv <= USED 0
@@ -52,7 +110,9 @@ _ZN4neda7Radical4setNEPNS_4ExprE <= USED 0
 _ZN4neda7SigmaPi11setContentsEPNS_4ExprE <= USED 0
 _ZN4neda7SigmaPi8setStartEPNS_4ExprE <= USED 0
 _ZN4neda7SigmaPi9setFinishEPNS_4ExprE <= USED 0
+_ZN4neda8Fraction12getNumeratorEv <= USED 0
 _ZN4neda8Fraction12setNumeratorEPNS_4ExprE <= USED 0
+_ZN4neda8Fraction14getDenominatorEv <= USED 0
 _ZN4neda8Fraction14setDenominatorEPNS_4ExprE <= USED 0
 _ZN4neda9CharacterD1Ev <= USED 0
 _ZN4neda9Container5addAtEtPNS_7NEDAObjE <= USED 0

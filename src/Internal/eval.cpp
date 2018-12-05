@@ -485,7 +485,7 @@ convertToDoubleAndOperate:
         return aVal > bVal ? 1 : bVal > aVal ? -1 : 0;
     }
 	DynamicArray<Token*, 4>* tokensFromExpr(neda::Container *expr, uint8_t varc, const char **varn, Numerical **varv) {
-		return tokensFromExpr(expr->getContents(), varc, varn, varv);
+		return tokensFromExpr(&expr->contents, varc, varn, varv);
 	}
     DynamicArray<Token*, 4>* tokensFromExpr(DynamicArray<neda::NEDAObj*> *expr, uint8_t varc, const char **varn, Numerical **varv) {
         DynamicArray<Token*, 4> *arr = new DynamicArray<Token*, 4>();
@@ -553,7 +553,7 @@ convertToDoubleAndOperate:
             {
                 arr->add(&Operator::OP_EXPONENT);
                 arr->add(&LeftBracket::INSTANCE);
-                auto temp = tokensFromExpr((neda::Container*) ((neda::Superscript*) exprs[index])->getContents());
+                auto temp = tokensFromExpr((neda::Container*) ((neda::Superscript*) exprs[index])->contents);
                 arr->merge(temp);
                 delete temp;
                 arr->add(&RightBracket::INSTANCE);
@@ -568,7 +568,7 @@ convertToDoubleAndOperate:
                 //Translate to a power
                 //Surround contents with brackets
                 arr->add(&LeftBracket::INSTANCE);
-                auto temp = tokensFromExpr((neda::Container*) radical->getContents());
+                auto temp = tokensFromExpr((neda::Container*) radical->contents);
                 arr->merge(temp);
                 delete temp;
                 arr->add(&RightBracket::INSTANCE);
@@ -578,12 +578,12 @@ convertToDoubleAndOperate:
                 arr->add(new Number(1));
                 arr->add(&Operator::OP_DIVIDE);
                 //No n - implied square root
-                if(!radical->getN()) {
+                if(!radical->n) {
                     arr->add(new Number(2));
                 }
                 else {
                     arr->add(&LeftBracket::INSTANCE);
-                    temp = tokensFromExpr((neda::Container*) radical->getN());
+                    temp = tokensFromExpr((neda::Container*) radical->n);
                     arr->merge(temp);
                     delete temp;
                     arr->add(&RightBracket::INSTANCE);
@@ -640,8 +640,8 @@ convertToDoubleAndOperate:
                     //Special processing for logarithms:
                     if(strcmp(str, "log") == 0) {
                         if(end < exprs.length() && exprs[end]->getType() == neda::ObjType::SUBSCRIPT) {
-                            auto sub = (neda::Container*) ((neda::Subscript*) exprs[end])->getContents();
-                            auto subContents = sub->getContents();
+                            auto sub = (neda::Container*) ((neda::Subscript*) exprs[end])->contents;
+                            auto subContents = &sub->contents;
                             //See if the base is one of the built-in ones
                             if(subContents->length() == 1 && extractChar((*subContents)[0]) == '2') {
                                 arr->add(new Function(Function::Type::LOG2));
@@ -764,14 +764,14 @@ convertToDoubleAndOperate:
 			case neda::ObjType::SIGMA_PI:
 			{
                 //Evaluate the end
-				Numerical *end = evaluate((neda::Container*) ((neda::SigmaPi*) exprs[index])->getFinish(), varc, varn, varv);
+				Numerical *end = evaluate((neda::Container*) ((neda::SigmaPi*) exprs[index])->finish, varc, varn, varv);
                 if(!end) {
                     freeTokens(arr);
                     delete arr;
                     return nullptr;
                 }
                 //Split the starting condition at the equals sign
-                auto startContents = ((neda::Container*) ((neda::SigmaPi*) exprs[index])->getStart())->getContents();
+                auto startContents = &((neda::Container*) ((neda::SigmaPi*) exprs[index])->start)->contents;
                 uint16_t equalsIndex = 0;
                 bool validName = true;
                 for(auto i : *startContents) {
@@ -822,13 +822,13 @@ convertToDoubleAndOperate:
                 vNames[varc] = vName;
                 vVals[varc] = start;
 
-                auto type = ((neda::SigmaPi*) exprs[index])->getSymbol();
+                auto &type = ((neda::SigmaPi*) exprs[index])->symbol;
                 //Different starting values for summation and product
                 Numerical *val = new Number(type.data == lcd::CHAR_SUMMATION.data ? 0 : 1);
                 //While the start is still less than or equal to the end
                 while(compareNumericals(start, end) <= 0) {
                     //Evaluate the inside expression
-                    Numerical *n = evaluate((neda::Container*) ((neda::SigmaPi*) exprs[index])->getContents(), varc + 1, vNames, vVals);
+                    Numerical *n = evaluate((neda::Container*) ((neda::SigmaPi*) exprs[index])->contents, varc + 1, vNames, vVals);
                     //If there is ever a syntax error then cleanup and exit
                     if(!n) {
                         delete end;

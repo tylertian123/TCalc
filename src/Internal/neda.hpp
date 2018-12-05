@@ -114,7 +114,6 @@ namespace neda {
 		uint16_t exprHeight;
         int16_t x;
         int16_t y;
-	protected:
 	};
 	
 	/*
@@ -155,7 +154,6 @@ namespace neda {
         NEDAObj* remove(uint16_t);
         void addAt(uint16_t, NEDAObj*);
         uint16_t indexOf(NEDAObj*);
-        DynamicArray<NEDAObj*>* getContents();
 			
         virtual uint16_t getTopSpacing() override;
 		virtual void computeWidth() override;
@@ -181,7 +179,6 @@ namespace neda {
 
         virtual void updatePosition(int16_t, int16_t) override;
 	
-	protected:
 		DynamicArray<NEDAObj*> contents;
         //Recomputes the heights of all expressions that have heights dependent on others
         void recomputeHeights();
@@ -223,7 +220,6 @@ namespace neda {
 
         virtual void updatePosition(int16_t, int16_t) override;
 	
-	protected:
 		Expr *numerator;
 		Expr *denominator;
 	};
@@ -293,8 +289,6 @@ namespace neda {
 		virtual void computeHeight() override;
 		virtual void draw(lcd::LCD12864&, int16_t, int16_t) override;
 		
-		Expr* getContents();
-		Expr* getN();
 		void setContents(Expr*);
 		void setN(Expr*);
 		
@@ -310,7 +304,6 @@ namespace neda {
 
         virtual void updatePosition(int16_t, int16_t) override;
 	
-	protected:
 		Expr *contents, *n;
 	};
 
@@ -346,9 +339,6 @@ namespace neda {
 
         virtual void updatePosition(int16_t, int16_t) override;
 
-        Expr* getContents();
-
-    protected:
         Expr *contents;
     };
 
@@ -373,7 +363,6 @@ namespace neda {
 		virtual void draw(lcd::LCD12864&, int16_t, int16_t) override;
 		
 		void setContents(Expr*);
-        Expr* getContents();
 		
 		virtual ~Subscript();
 
@@ -385,7 +374,6 @@ namespace neda {
 
         virtual void updatePosition(int16_t, int16_t) override;
 		
-	protected:
 		Expr *contents;
 	};
 	
@@ -411,10 +399,6 @@ namespace neda {
 		virtual void computeHeight() override;
 		virtual void draw(lcd::LCD12864&, int16_t, int16_t) override;
 		
-		Expr* getStart();
-		Expr* getFinish();
-		Expr* getContents();
-        const lcd::LCD12864Image& getSymbol();
 		void setStart(Expr *start);
 		void setFinish(Expr *finish);
 		void setContents(Expr *contents);
@@ -432,7 +416,6 @@ namespace neda {
 
         virtual void updatePosition(int16_t, int16_t) override;
 		
-	protected:
 		const lcd::LCD12864Image &symbol;
 		Expr *start, *finish, *contents;
 	};
