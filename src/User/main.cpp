@@ -9,8 +9,10 @@
 #include "pwm.hpp"
 #include "dynamarr.hpp"
 #include "neda.hpp"
+#include "eval.hpp"
 #include "keydef.h"
 #include "util.hpp"
+#include <stdio.h>
 
 /********** GPIO Pins and other pin defs **********/
 GPIOPin RS(GPIOB, GPIO_Pin_12), RW(GPIOB, GPIO_Pin_13), E(GPIOB, GPIO_Pin_14),
@@ -94,10 +96,11 @@ void initCursorTimer() {
 
 bool cursorOn = false;
 neda::Cursor *cursor;
+extern bool editExpr;
 extern "C" void TIM3_IRQHandler() {
 	if(TIM_GetITStatus(TIM3, TIM_IT_Update)) {
 		TIM_ClearITPendingBit(TIM3, TIM_IT_Update);
-        if(dispMode != DispMode::EXPR_ENTRY) {
+        if(dispMode != DispMode::EXPR_ENTRY || !editExpr) {
             return;
         }
 		cursorOn = !cursorOn;
@@ -146,13 +149,16 @@ void addChar(neda::Cursor *cursor, char ch) {
 //Probably gonna make this name shorter, but couldn't bother.
 extern uint16_t trigFuncIndex;
 extern void trigFunctionsMenuKeyPressHandler(neda::Cursor*, uint16_t);
+bool editExpr = true;
 void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 	switch(key) {
 	case KEY_SHIFT:
 		shiftLED = !shiftLED;
+		editExpr = true;
 		break;
 	case KEY_CTRL:
 		ctrlLED = !ctrlLED;
+		editExpr = true;
 		break;
 	case KEY_LEFT:
 		cursor->left();
@@ -169,237 +175,312 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 	/* LETTER KEYS */
 	case KEY_A:
 		addChar(cursor, 'A');
+		editExpr = true;
 		break;
 	case KEY_B:
 		addChar(cursor, 'B');
+		editExpr = true;
 		break;
 	case KEY_C:
 		addChar(cursor, 'C');
+		editExpr = true;
 		break;
 	case KEY_D:
 		addChar(cursor, 'D');
+		editExpr = true;
 		break;
 	case KEY_E:
 		addChar(cursor, 'E');
+		editExpr = true;
 		break;
 	case KEY_F:
 		addChar(cursor, 'F');
+		editExpr = true;
 		break;
 	case KEY_G:
 		addChar(cursor, 'G');
+		editExpr = true;
 		break;
 	case KEY_H:
 		addChar(cursor, 'H');
+		editExpr = true;
 		break;
 	case KEY_I:
 		addChar(cursor, 'I');
+		editExpr = true;
 		break;
 	case KEY_J:
 		addChar(cursor, 'J');
+		editExpr = true;
 		break;
 	case KEY_K:
 		addChar(cursor, 'K');
+		editExpr = true;
 		break;
 	case KEY_L:
 		addChar(cursor, 'L');
+		editExpr = true;
 		break;
 	case KEY_M:
 		addChar(cursor, 'M');
+		editExpr = true;
 		break;
 	case KEY_N:
 		addChar(cursor, 'N');
+		editExpr = true;
 		break;
 	case KEY_O:
 		addChar(cursor, 'O');
+		editExpr = true;
 		break;
 	case KEY_P:
 		addChar(cursor, 'P');
+		editExpr = true;
 		break;
 	case KEY_Q:
 		addChar(cursor, 'Q');
+		editExpr = true;
 		break;
 	case KEY_R:
 		addChar(cursor, 'R');
+		editExpr = true;
 		break;
 	case KEY_S:
 		addChar(cursor, 'S');
+		editExpr = true;
 		break;
 	case KEY_T:
 		addChar(cursor, 'T');
+		editExpr = true;
 		break;
 	case KEY_U:
 		addChar(cursor, 'U');
+		editExpr = true;
 		break;
 	case KEY_V:
 		addChar(cursor, 'V');
+		editExpr = true;
 		break;
 	case KEY_W:
 		addChar(cursor, 'W');
+		editExpr = true;
 		break;
 	case KEY_X:
 		addChar(cursor, 'X');
+		editExpr = true;
 		break;
 	case KEY_Y:
 		addChar(cursor, 'Y');
+		editExpr = true;
 		break;
 	case KEY_Z:
 		addChar(cursor, 'Z');
+		editExpr = true;
 		break;
 	case KEY_LCA:
 		addChar(cursor, 'a');
+		editExpr = true;
 		break;
 	case KEY_LCB:
 		addChar(cursor, 'b');
+		editExpr = true;
 		break;
 	case KEY_LCC:
 		addChar(cursor, 'c');
+		editExpr = true;
 		break;
 	case KEY_LCD:
 		addChar(cursor, 'd');
+		editExpr = true;
 		break;
 	case KEY_LCE:
 		addChar(cursor, 'e');
+		editExpr = true;
 		break;
 	case KEY_LCF:
 		addChar(cursor, 'f');
+		editExpr = true;
 		break;
 	case KEY_LCG:
 		addChar(cursor, 'g');
+		editExpr = true;
 		break;
 	case KEY_LCH:
 		addChar(cursor, 'h');
+		editExpr = true;
 		break;
 	case KEY_LCI:
 		addChar(cursor, 'i');
+		editExpr = true;
 		break;
 	case KEY_LCJ:
 		addChar(cursor, 'j');
+		editExpr = true;
 		break;
 	case KEY_LCK:
 		addChar(cursor, 'k');
+		editExpr = true;
 		break;
 	case KEY_LCL:
 		addChar(cursor, 'l');
+		editExpr = true;
 		break;
 	case KEY_LCM:
 		addChar(cursor, 'm');
+		editExpr = true;
 		break;
 	case KEY_LCN:
 		addChar(cursor, 'n');
+		editExpr = true;
 		break;
 	case KEY_LCO:
 		addChar(cursor, 'o');
+		editExpr = true;
 		break;
 	case KEY_LCP:
 		addChar(cursor, 'p');
+		editExpr = true;
 		break;
 	case KEY_LCQ:
 		addChar(cursor, 'q');
+		editExpr = true;
 		break;
 	case KEY_LCR:
 		addChar(cursor, 'r');
+		editExpr = true;
 		break;
 	case KEY_LCS:
 		addChar(cursor, 's');
+		editExpr = true;
 		break;
 	case KEY_LCT:
 		addChar(cursor, 't');
+		editExpr = true;
 		break;
 	case KEY_LCU:
 		addChar(cursor, 'u');
+		editExpr = true;
 		break;
 	case KEY_LCV:
 		addChar(cursor, 'v');
+		editExpr = true;
 		break;
 	case KEY_LCW:
 		addChar(cursor, 'w');
+		editExpr = true;
 		break;
 	case KEY_LCX:
 		addChar(cursor, 'x');
+		editExpr = true;
 		break;
 	case KEY_LCY:
 		addChar(cursor, 'y');
+		editExpr = true;
 		break;
 	case KEY_LCZ:
 		addChar(cursor, 'z');
+		editExpr = true;
 		break;
 	/* OTHER KEYS WITH NO SPECIAL HANDLING */
 	case KEY_0:
 		addChar(cursor, '0');
+		editExpr = true;
 		break;
 	case KEY_1:
 		addChar(cursor, '1');
+		editExpr = true;
 		break;
 	case KEY_2:
 		addChar(cursor, '2');
+		editExpr = true;
 		break;
 	case KEY_3:
 		addChar(cursor, '3');
+		editExpr = true;
 		break;
 	case KEY_4:
 		addChar(cursor, '4');
+		editExpr = true;
 		break;
 	case KEY_5:
 		addChar(cursor, '5');
+		editExpr = true;
 		break;
 	case KEY_6:
 		addChar(cursor, '6');
+		editExpr = true;
 		break;
 	case KEY_7:
 		addChar(cursor, '7');
+		editExpr = true;
 		break;
 	case KEY_8:
 		addChar(cursor, '8');
+		editExpr = true;
 		break;
 	case KEY_9:
 		addChar(cursor, '9');
+		editExpr = true;
 		break;
 	case KEY_SPACE:
 		addChar(cursor, ' ');
+		editExpr = true;
 		break;
 	case KEY_COMMA:
 		addChar(cursor, ',');
+		editExpr = true;
 		break;
 	case KEY_DOT:
 		addChar(cursor, '.');
+		editExpr = true;
 		break;
 	case KEY_PLUS:
 		addChar(cursor, '+');
+		editExpr = true;
 		break;
 	case KEY_MINUS:
 		addChar(cursor, '-');
+		editExpr = true;
 		break;
 	case KEY_MUL:
         addChar(cursor, LCD_CHAR_MUL);
+		editExpr = true;
 		break;
 	case KEY_DIV:
         addChar(cursor, LCD_CHAR_DIV);
+		editExpr = true;
 		break;
     case KEY_PI:
         addChar(cursor, LCD_CHAR_PI);
-        break;
+        editExpr = true;
+		break;
     case KEY_EULER:
         addChar(cursor, LCD_CHAR_EULR);
-        break;
+        editExpr = true;
+		break;
     case KEY_EQUAL:
         addChar(cursor, '=');
-        break;
+        editExpr = true;
+		break;
     case KEY_EE:
         addChar(cursor, LCD_CHAR_EE);
-        break;
+        editExpr = true;
+		break;
 
 	/* EXPRESSIONS */
 	case KEY_LBRACKET:
 	{
         cursor->add(new neda::LeftBracket());
         cursor->expr->Expr::draw(display);
+		editExpr = true;
 		break;
 	}
     case KEY_RBRACKET:
     {
         cursor->add(new neda::RightBracket());
         cursor->expr->Expr::draw(display);
-        break;
+        editExpr = true;
+		break;
     }
 	case KEY_ROOT:
 	{
@@ -408,6 +489,7 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
         radical->getCursor(*cursor, neda::CURSORLOCATION_START);
         //Make sure the position is updated so adjustExpr will not mess up the display
         cursor->expr->parent->parent->draw(display);
+		editExpr = true;
 		break;
 	}
 	case KEY_NTHROOT:
@@ -417,6 +499,7 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
         radical->getCursor(*cursor, neda::CURSORLOCATION_START);
         //Make sure the position is updated so adjustExpr will not mess up the display
         cursor->expr->parent->parent->draw(display);
+		editExpr = true;
 		break;
 	}
 	case KEY_SUM:
@@ -426,7 +509,8 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
         sigma->getCursor(*cursor, neda::CURSORLOCATION_START);
         //Make sure the position is updated so adjustExpr will not mess up the display
         cursor->expr->parent->parent->draw(display);
-        break;
+        editExpr = true;
+		break;
 	}
 	case KEY_PRODUCT:
 	{
@@ -435,7 +519,8 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
         product->getCursor(*cursor, neda::CURSORLOCATION_START);
         //Make sure the position is updated so adjustExpr will not mess up the display
         cursor->expr->parent->parent->draw(display);
-        break;
+        editExpr = true;
+		break;
     }
 	case KEY_FRAC:
 	{
@@ -444,6 +529,7 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
         frac->getCursor(*cursor, neda::CURSORLOCATION_START);
         //Make sure the position is updated so adjustExpr will not mess up the display
         cursor->expr->parent->parent->draw(display);
+		editExpr = true;
 		break;
 	}
 	case KEY_SQUARE:
@@ -458,6 +544,7 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
             //Make sure the position is updated so adjustExpr will not mess up the display
             cursor->expr->parent->parent->draw(display);
         }
+		editExpr = true;
 		break;
 	}
     case KEY_EXP:
@@ -467,14 +554,16 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
         cursor->add(super);
         super->getCursor(*cursor, neda::CURSORLOCATION_START);
         cursor->expr->parent->parent->draw(display);
-        break;
+        editExpr = true;
+		break;
     }
     case KEY_LN:
     {
         cursor->add(new neda::Character('l'));
         cursor->add(new neda::Character('n'));
         cursor->add(new neda::LeftBracket());
-        break;
+        editExpr = true;
+		break;
     }
     case KEY_LOG10:
     {
@@ -483,7 +572,8 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
         cursor->add(new neda::Character('g'));
         //cursor->add(new neda::Subscript(neda::makeString("10")));
         cursor->add(new neda::LeftBracket());
-        break;
+        editExpr = true;
+		break;
     }
     case KEY_LOGN:
     {
@@ -495,7 +585,8 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
         cursor->add(new neda::LeftBracket());
         sub->getCursor(*cursor, neda::CURSORLOCATION_START);
         cursor->expr->parent->parent->draw(display);
-        break;
+        editExpr = true;
+		break;
     }
 	/* OTHER */
 	case KEY_DELETE:
@@ -504,7 +595,8 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 		if(cursor->index != 0) {
 			neda::NEDAObj *obj = cursor->expr->removeAtCursor(*cursor);
             delete obj;
-			break;
+			editExpr = true;
+		break;
 		}
 		//If there are no more characters to delete:
 		//Confirm that the cursor is not in the top-level expression
@@ -520,6 +612,7 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
             neda::NEDAObj *obj = cont->remove(index);
             delete obj;
         }
+		editExpr = true;
 		break;
 	}
 	case KEY_ALLCLEAR:
@@ -533,6 +626,13 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 		container->draw(display, 0, 0);
 		//Delete old
 		delete original;
+		editExpr = true;
+		break;
+	}
+	case KEY_ENTER:
+	{
+		eval::Numerical *result = eval::evaluate((neda::Container*) cursor->expr->getTopLevel());
+			
 		break;
 	}
     case KEY_TRIG:
@@ -542,7 +642,8 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
         //We need to call the function once to get the interface drawn
         //To do this, we insert a dummy value into the key buffer
         putKey(KEY_DUMMY);
-        break;
+        editExpr = true;
+		break;
 
 	default: break;
 	}
