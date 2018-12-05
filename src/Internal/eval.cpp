@@ -484,10 +484,13 @@ convertToDoubleAndOperate:
         double bVal = b->getNumericalType() == NumericalType::NUM ? ((Number*) b)->value : ((Fraction*) b)->doubleVal();
         return aVal > bVal ? 1 : bVal > aVal ? -1 : 0;
     }
-    DynamicArray<Token*, 4>* tokensFromExpr(neda::Container *expr, uint8_t varc, const char **varn, Numerical **varv) {
+	DynamicArray<Token*, 4>* tokensFromExpr(neda::Container *expr, uint8_t varc, const char **varn, Numerical **varv) {
+		return tokensFromExpr(expr->getContents(), varc, varn, varv);
+	}
+    DynamicArray<Token*, 4>* tokensFromExpr(DynamicArray<neda::NEDAObj*> *expr, uint8_t varc, const char **varn, Numerical **varv) {
         DynamicArray<Token*, 4> *arr = new DynamicArray<Token*, 4>();
         //Deref the result so the syntax won't be so awkward
-        auto &exprs = *expr->getContents();
+        auto &exprs = *expr;
         uint16_t index = 0;
         //This variable keeps track of whether the last token was an operator
         //It is used for unary operators like the unary minus and plus
@@ -794,8 +797,7 @@ convertToDoubleAndOperate:
                 }
                 //Attempt to evaluate the starting condition assign value
                 DynamicArray<neda::NEDAObj*> startVal(startContents->begin() + equalsIndex + 1, startContents->end());
-                neda::Container startValContainer(startVal);
-                Numerical *start = evaluate(&startValContainer, varc, varn, varv);
+                Numerical *start = evaluate(&startVal, varc, varn, varv);
                 if(!start) {
                     delete end;
                     freeTokens(arr);
@@ -868,7 +870,18 @@ convertToDoubleAndOperate:
         return arr;
     }
 
-	Numerical* evaluate(neda::Container *expr, uint8_t varc, const char **varn, Numerical **varv) {
+    Numerical* evaluate(neda::Container *expr, uint8_t varc, const char **varn, Numerical **varv) {
+        auto tokens = tokensFromExpr(expr, varc, varn, varv);
+        if(tokens) {
+            auto postfix = toPostfix(tokens);
+            delete tokens;
+            return evalPostfix(postfix);
+        }
+        else {
+            return nullptr;
+        }
+    }
+	Numerical* evaluate(DynamicArray<neda::NEDAObj*> *expr, uint8_t varc, const char **varn, Numerical **varv) {
 		auto tokens = tokensFromExpr(expr, varc, varn, varv);
         if(tokens) {
             auto postfix = toPostfix(tokens);

@@ -229,7 +229,9 @@ namespace eval {
      *     delete *result;
      * }
      */
-    DynamicArray<Token*, 4>* tokensFromExpr(neda::Container*, uint8_t varc = 0, const char **varn = nullptr, Numerical **varv = nullptr);
+    DynamicArray<Token*, 4>* tokensFromExpr(DynamicArray<neda::NEDAObj*>*, uint8_t varc = 0, const char **varn = nullptr, Numerical **varv = nullptr);
+	DynamicArray<Token*, 4>* tokensFromExpr(neda::Container*, uint8_t varc = 0, const char **varn = nullptr, Numerical **varv = nullptr);
+
 
     //Shunting yard algorithm
     //Note: This does not delete the tokens in the DynamicArray
@@ -361,6 +363,7 @@ namespace eval {
     }
 	
 	Numerical* evaluate(neda::Container*, uint8_t varc = 0, const char **varn = nullptr, Numerical **varv = nullptr);
+    Numerical* evaluate(DynamicArray<neda::NEDAObj*>*, uint8_t varc = 0, const char **varn = nullptr, Numerical **varv = nullptr);
 }
 
 #endif
