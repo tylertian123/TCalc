@@ -475,10 +475,14 @@ convertToDoubleAndOperate:
             //If we encounter nested containers, just do a recursive call
             case neda::ObjType::CONTAINER:
             {   
-                //Make sure to delete the DynamicArray returned after
-                auto temp = tokensFromExpr((neda::Container*) exprs[index]);
-                arr->merge(temp);
-                delete temp;
+                Numerical *result = evaluate((neda::Container*) exprs[index], varc, varn, varv);
+                if(!result) {
+                    freeTokens(arr);
+                    delete arr;
+                    return;
+                }
+                arr->add(result);
+
                 ++index;
                 allowUnary = false;
                 break;
@@ -505,19 +509,14 @@ convertToDoubleAndOperate:
             }
             case neda::ObjType::FRACTION:
             {
-                //Translate fractions to a division with brackets
-                arr->add(&LeftBracket::INSTANCE);
-                //Merge this with the result of a token extraction on the numerator
-                auto temp = tokensFromExpr((neda::Container*) ((neda::Fraction*) exprs[index])->getNumerator());
-                arr->merge(temp);
-                delete temp;
-                arr->add(&RightBracket::INSTANCE);
-                arr->add(&Operator::OP_DIVIDE);
-                arr->add(&LeftBracket::INSTANCE);
-                temp = tokensFromExpr((neda::Container*) ((neda::Fraction*) exprs[index])->getDenominator());
-                arr->merge(temp);
-                delete temp;
-                arr->add(&RightBracket::INSTANCE);
+                Numerical *num = evaluate((neda::Container*) ((neda::Fraction*) exprs[index])->numerator, varc, varn, varv);
+                Numerical *denom = evaluate((neda::Container*) ((neda::Fraction*) exprs[index])->denominator, varc, varn, varv);
+                if(!num || !denom) {
+                    freeTokens(arr);
+                    delete arr;
+                    return nullptr;
+                }
+                arr->add(Operator::OP_DIVIDE.operate(num, denom));
                 
                 ++index;
                 allowUnary = false;
@@ -525,12 +524,18 @@ convertToDoubleAndOperate:
             }
             case neda::ObjType::SUPERSCRIPT:
             {
-                arr->add(&Operator::OP_EXPONENT);
-                arr->add(&LeftBracket::INSTANCE);
-                auto temp = tokensFromExpr((neda::Container*) ((neda::Superscript*) exprs[index])->contents);
-                arr->merge(temp);
-                delete temp;
-                arr->add(&RightBracket::INSTANCE);
+                Numerical *exponent = evaluate((neda::Container*) ((neda::Superscript*) exprs[index])->contents, varc, varn, varv);
+                if(!exponent) {
+                    freeTokens(arr);
+                    delete arr;
+                    return nullptr;
+                }
+                if(arr->length() > 0 && (*arr)[arr->length() - 1]->getType() == TokenType::NUMERICAL) {
+                    arr->add(Operator::OP_EXPONENT.operate((Numerical*) arr->pop(), exponent));
+                }
+                else {
+                    arr->add
+                }
 
                 ++index;
                 allowUnary = false;

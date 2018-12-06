@@ -112,13 +112,12 @@ public:
 			contents[i] = contents[i + 1];
 		}
 	}
-	void removeLast() {
-		if (len == 0) {
-			//Ignore if there are no elements
-			return;
-		}
+	T pop() {
 		//Simply decrement the length, no need to waste time clearing out the memory
-		len--;
+        if(len > 0) {
+		    len--;
+        }
+        return contents[len];
 	}
 	void empty() {
 		len = 0;
