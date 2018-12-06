@@ -814,7 +814,7 @@ convertToDoubleAndOperate:
         }
         return arr;
     }
-
+    
     Numerical* evaluate(neda::Container *expr, uint8_t varc, const char **varn, Numerical **varv) {
         return evaluate(&expr->contents, varc, varn, varv);
     }
@@ -849,19 +849,45 @@ convertToDoubleAndOperate:
                 if(!allowUnary) {
                     arr.add(&Operator::OP_MULTIPLY);
                 }
-                arr.add(&LeftBracket::INSTANCE);
-                ++index;
-                //Allow unary operators right after open brackets
-                allowUnary = true;
-                break;
-            }
-            case neda::ObjType::R_BRACKET:
-            {
-                arr.add(&RightBracket::INSTANCE);
-                ++index;
-                //Unlike open brackets, unary operators are not allowed after close brackets
+                
+                //Look for the matching right bracket
+                uint16_t nesting = 1;
+                uint16_t endIndex = index + 1;
+                for(; endIndex < exprs.length(); ++endIndex) {
+                    if(exprs[endIndex]->getType() == neda::ObjType::L_BRACKET) {
+                        ++nesting;
+                    }
+                    else if(exprs[endIndex]->getType() == neda::ObjType::R_BRACKET) {
+                        --nesting;
+                        if(!nesting) {
+                            break;
+                        }
+                    }
+                }
+                //If nesting is nonzero, there must be mismatched parentheses
+                if(nesting) {
+                    freeTokens(&arr);
+                    return nullptr;
+                }
+                //Create the subarray, not including the two brackets
+                DynamicArray<neda::NEDAObj*> inside(exprs.begin() + index + 1, exprs.begin() + endIndex);
+                Numerical *insideResult = evaluate(&inside, varc, varn, varv);
+                if(!insideResult) {
+                    freeTokens(&arr);
+                    return nullptr;
+                }
+                arr.add(insideResult);
+
+                index = endIndex + 1;
+                //No unary after a pair
                 allowUnary = false;
                 break;
+            }
+            //Right brackets by themselves mean mismatched parentheses
+            case neda::ObjType::R_BRACKET:
+            {
+                freeTokens(&arr);
+                return nullptr;
             }
             case neda::ObjType::FRACTION:
             {

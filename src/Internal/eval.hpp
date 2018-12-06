@@ -357,7 +357,7 @@ namespace eval {
         return stack.pop();
     }
 	
-	Numerical* evaluate(neda::Container*, uint8_t varc = 0, const char **varn = nullptr, Numerical **varv = nullptr);
+    Numerical* evaluate(neda::Container *expr, uint8_t varc = 0, const char **varn = nullptr, Numerical **varv = nullptr);
     Numerical* evaluate(DynamicArray<neda::NEDAObj*>*, uint8_t varc = 0, const char **varn = nullptr, Numerical **varv = nullptr);
 }
 
