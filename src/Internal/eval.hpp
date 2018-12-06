@@ -189,45 +189,6 @@ namespace eval {
     char extractChar(neda::NEDAObj*);
     int8_t compareNumericals(const Numerical*, const Numerical*);
 
-    /*
-     * MEMORY MANAGEMENT WITH tokensFromExpr, toPostFix AND evalPostfix
-     * 
-     * tokensFromExpr takes in a pointer to a neda::Container and returns a pointer to a DynamicArray of Token pointers.
-     * It does not free or modify the input; thus the input NEDA object needs to be deleted manually.
-     * The returned DynamicArray and all of its contents are allocated on the HEAP; therefore, the Array itself and all of its contents
-     * need to be deleted manually.
-     * 
-     * toPostfix takes in a pointer to a DynamicArray of Token pointers, and returns a pointer to a Deque of Token pointers.
-     * It does not free or modify the input; thus the input Array needs to be deleted manually.
-     * The returned Deque is allocated on the HEAP, however, all of its contents are SHARED with that of the input DynamicArray.
-     * In other words, toPostFix does not create new objects, but rather uses the existing ones. Therefore, if one of the input Array's
-     * contents or the output Deque's contents are deleted, the other will also be affected. The DynamicArray and the Deque themselves
-     * also need to be deleted manually.
-     * 
-     * evalPostfix takes in a pointer to a Deque of Token pointers, and returns a boolean (true if evaluation was successful, false if
-     * syntax error) and a pointer to a Numerical through a double pointer (Note: the value of the double pointer will not be changed
-     * in the case of a syntax error). IT DELETES ITS INPUT. The input Deque, as well as all the Tokens pointed to by the pointers 
-     * inside, will all be deleted, even in the case of a syntax error aborting the evaluation. The returned Numerical also needs to be
-     * freed manually.
-     * 
-     * MEMORY-LEAK-FREE EVALUATION SEQUENCE
-     * 
-     * auto tokens = tokensFromExpr(expr);
-     * //delete expr; //If necessary
-     * auto postfixTokens = toPostfix(tokens);
-     * delete tokens; //Delete the tokens array itself, not the contents
-     * Numerical *n = nullptr; //This only serves as a dummy
-     * Numerical *result = &n;
-     * bool success = evalPostfix(postfixTokens, result);
-     * //Do stuff with result...
-     * if(success) {
-     *     delete *result;
-     * }
-     */
-    DynamicArray<Token*, 4>* tokensFromExpr(DynamicArray<neda::NEDAObj*>*, uint8_t varc = 0, const char **varn = nullptr, Numerical **varv = nullptr);
-	DynamicArray<Token*, 4>* tokensFromExpr(neda::Container*, uint8_t varc = 0, const char **varn = nullptr, Numerical **varv = nullptr);
-
-
     //Shunting yard algorithm
     //Note: This does not delete the tokens in the DynamicArray
     //Note: The tokens are shared between the DynamicArray and the result
