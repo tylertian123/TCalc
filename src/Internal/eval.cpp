@@ -890,15 +890,8 @@ convertToDoubleAndOperate:
                     freeTokens(&arr);
                     return nullptr;
                 }
-                //Check that the token before was a numerical and calculate
-                if(arr.length() > 0 && arr[arr.length() - 1]->getType() == TokenType::NUMERICAL) {
-                    arr.add(Operator::OP_EXPONENT.operate((Numerical*) arr.pop(), exponent));
-                }
-                //Otherwise it must be a syntax error
-                else {
-                    freeTokens(&arr);
-                    return nullptr;
-                }
+                arr.add(&Operator::OP_EXPONENT);
+                arr.add(exponent);
 
                 ++index;
                 allowUnary = false;
@@ -944,7 +937,7 @@ convertToDoubleAndOperate:
             }
             case neda::ObjType::CHAR_TYPE:
             {
-                char ch = ((neda::Character*) exprs[index])->ch;
+                char ch = extractChar(exprs[index]);
                 if (ch == ' ') {
                     ++index;
                     break;
@@ -1009,8 +1002,12 @@ convertToDoubleAndOperate:
                     //Special processing for logarithms:
                     if(strcmp(str, "log") == 0) {
                         if(end < exprs.length() && exprs[end]->getType() == neda::ObjType::SUBSCRIPT) {
-                            auto sub = (neda::Container*) ((neda::Subscript*) exprs[end])->contents;
-                            auto subContents = &sub->contents;
+                            Numerical *sub = evaluate((neda::Container*) ((neda::Subscript*) exprs[end])->contents, varc, varn, varv);
+                            if(!sub) {
+                                freeTokens(&arr);
+                                delete[] str;
+                                return nullptr;
+                            }
                             //Use the log change of base property
                             //Translate to 1/log(base) * log
                             arr.add(new Number(1));
@@ -1018,11 +1015,7 @@ convertToDoubleAndOperate:
                             arr.add(&Operator::OP_SP_DIV);
                             //Use base 2 because why not
                             arr.add(new Function(Function::Type::LOG2));
-                            arr.add(&LeftBracket::INSTANCE);
-                            auto temp = tokensFromExpr(sub);
-                            arr.merge(temp);
-                            delete temp;
-                            arr.add(&RightBracket::INSTANCE);
+                            arr.add(sub);
                             //Use special high-precedence multiplication
                             arr.add(&Operator::OP_SP_MULT);
                             arr.add(new Function(Function::Type::LOG2));
@@ -1059,10 +1052,7 @@ convertToDoubleAndOperate:
                                             arr.add(new Number(((Number*) varv[i])->value));
                                         }
                                         else {
-                                            arr.add(new Number(((Fraction*) varv[i])->num));
-                                            //Use special division to avoid the need for brackets
-                                            arr.add(&Operator::OP_SP_DIV);
-                                            arr.add(new Number(((Fraction*) varv[i])->denom));
+                                            arr.add(new Fraction(((Fraction*) varv[i])->num, ((Fraction*) varv[i])->denom));
                                         }
                                         break;
                                     }
