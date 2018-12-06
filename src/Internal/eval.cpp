@@ -462,7 +462,7 @@ convertToDoubleAndOperate:
 		return tokensFromExpr(&expr->contents, varc, varn, varv);
 	}
     DynamicArray<Token*, 4>* tokensFromExpr(DynamicArray<neda::NEDAObj*> *expr, uint8_t varc, const char **varn, Numerical **varv) {
-        DynamicArray<Token*, 4> *arr = new DynamicArray<Token*, 4>();
+        DynamicArray<Token*, 4> arr;
         //Deref the result so the syntax won't be so awkward
         auto &exprs = *expr;
         uint16_t index = 0;
@@ -477,11 +477,10 @@ convertToDoubleAndOperate:
             {   
                 Numerical *result = evaluate((neda::Container*) exprs[index], varc, varn, varv);
                 if(!result) {
-                    freeTokens(arr);
-                    delete arr;
+                    freeTokens(&arr);
                     return;
                 }
-                arr->add(result);
+                arr.add(result);
 
                 ++index;
                 allowUnary = false;
@@ -491,9 +490,9 @@ convertToDoubleAndOperate:
             {
                 //If the last token was not an operator, then it must be an implied multiplication
                 if(!allowUnary) {
-                    arr->add(&Operator::OP_MULTIPLY);
+                    arr.add(&Operator::OP_MULTIPLY);
                 }
-                arr->add(&LeftBracket::INSTANCE);
+                arr.add(&LeftBracket::INSTANCE);
                 ++index;
                 //Allow unary operators right after open brackets
                 allowUnary = true;
@@ -501,7 +500,7 @@ convertToDoubleAndOperate:
             }
             case neda::ObjType::R_BRACKET:
             {
-                arr->add(&RightBracket::INSTANCE);
+                arr.add(&RightBracket::INSTANCE);
                 ++index;
                 //Unlike open brackets, unary operators are not allowed after close brackets
                 allowUnary = false;
@@ -512,11 +511,10 @@ convertToDoubleAndOperate:
                 Numerical *num = evaluate((neda::Container*) ((neda::Fraction*) exprs[index])->numerator, varc, varn, varv);
                 Numerical *denom = evaluate((neda::Container*) ((neda::Fraction*) exprs[index])->denominator, varc, varn, varv);
                 if(!num || !denom) {
-                    freeTokens(arr);
-                    delete arr;
+                    freeTokens(&arr);
                     return nullptr;
                 }
-                arr->add(Operator::OP_DIVIDE.operate(num, denom));
+                arr.add(Operator::OP_DIVIDE.operate(num, denom));
                 
                 ++index;
                 allowUnary = false;
@@ -526,15 +524,14 @@ convertToDoubleAndOperate:
             {
                 Numerical *exponent = evaluate((neda::Container*) ((neda::Superscript*) exprs[index])->contents, varc, varn, varv);
                 if(!exponent) {
-                    freeTokens(arr);
-                    delete arr;
+                    freeTokens(&arr);
                     return nullptr;
                 }
-                if(arr->length() > 0 && (*arr)[arr->length() - 1]->getType() == TokenType::NUMERICAL) {
-                    arr->add(Operator::OP_EXPONENT.operate((Numerical*) arr->pop(), exponent));
+                if(arr.length() > 0 && arr[arr.length() - 1]->getType() == TokenType::NUMERICAL) {
+                    arr.add(Operator::OP_EXPONENT.operate((Numerical*) arr.pop(), exponent));
                 }
                 else {
-                    arr->add
+                    arr.add
                 }
 
                 ++index;
@@ -546,28 +543,28 @@ convertToDoubleAndOperate:
                 neda::Radical *radical = (neda::Radical*) exprs[index];
                 //Translate to a power
                 //Surround contents with brackets
-                arr->add(&LeftBracket::INSTANCE);
+                arr.add(&LeftBracket::INSTANCE);
                 auto temp = tokensFromExpr((neda::Container*) radical->contents);
-                arr->merge(temp);
+                arr.merge(temp);
                 delete temp;
-                arr->add(&RightBracket::INSTANCE);
+                arr.add(&RightBracket::INSTANCE);
                 //Add exponent (reciprocal)
-                arr->add(&Operator::OP_EXPONENT);
-                arr->add(&LeftBracket::INSTANCE);
-                arr->add(new Number(1));
-                arr->add(&Operator::OP_DIVIDE);
+                arr.add(&Operator::OP_EXPONENT);
+                arr.add(&LeftBracket::INSTANCE);
+                arr.add(new Number(1));
+                arr.add(&Operator::OP_DIVIDE);
                 //No n - implied square root
                 if(!radical->n) {
-                    arr->add(new Number(2));
+                    arr.add(new Number(2));
                 }
                 else {
-                    arr->add(&LeftBracket::INSTANCE);
+                    arr.add(&LeftBracket::INSTANCE);
                     temp = tokensFromExpr((neda::Container*) radical->n);
-                    arr->merge(temp);
+                    arr.merge(temp);
                     delete temp;
-                    arr->add(&RightBracket::INSTANCE);
+                    arr.add(&RightBracket::INSTANCE);
                 }
-                arr->add(&RightBracket::INSTANCE);
+                arr.add(&RightBracket::INSTANCE);
             
                 ++index;
                 allowUnary = false;
@@ -589,15 +586,15 @@ convertToDoubleAndOperate:
                         //If we do encounter a unary operator, translate it to multiplication
                         //This is so that the order of operations won't be messed up (namely exponentiation)
                         if(op->type == Operator::Type::MINUS) {
-                            arr->add(new Number(-1));
-                            arr->add(&Operator::OP_SP_MULT);
+                            arr.add(new Number(-1));
+                            arr.add(&Operator::OP_SP_MULT);
                         }
                         ++index;
                         allowUnary = false;
                         break;
                     }
                     else {
-                        arr->add(op);
+                        arr.add(op);
                         ++index;
                         allowUnary = true;
                         break;
@@ -644,25 +641,25 @@ convertToDoubleAndOperate:
                             auto subContents = &sub->contents;
                             //Use the log change of base property
                             //Translate to 1/log(base) * log
-                            arr->add(new Number(1));
+                            arr.add(new Number(1));
                             //Use special high-precedence division
-                            arr->add(&Operator::OP_SP_DIV);
+                            arr.add(&Operator::OP_SP_DIV);
                             //Use base 2 because why not
-                            arr->add(new Function(Function::Type::LOG2));
-                            arr->add(&LeftBracket::INSTANCE);
+                            arr.add(new Function(Function::Type::LOG2));
+                            arr.add(&LeftBracket::INSTANCE);
                             auto temp = tokensFromExpr(sub);
-                            arr->merge(temp);
+                            arr.merge(temp);
                             delete temp;
-                            arr->add(&RightBracket::INSTANCE);
+                            arr.add(&RightBracket::INSTANCE);
                             //Use special high-precedence multiplication
-                            arr->add(&Operator::OP_SP_MULT);
-                            arr->add(new Function(Function::Type::LOG2));
+                            arr.add(&Operator::OP_SP_MULT);
+                            arr.add(new Function(Function::Type::LOG2));
                             //Increment end so the index gets set properly afterwards
                             ++end;
                         }
                         //Default log base: 10
                         else {
-                            arr->add(new Function(Function::Type::LOG10));
+                            arr.add(new Function(Function::Type::LOG10));
                         }
                         //Allow unary after functions
                         allowUnary = true;
@@ -672,7 +669,7 @@ convertToDoubleAndOperate:
                         Function *func = Function::fromString(str);
                         //Add the function if it's valid
                         if(func) {
-                            arr->add(func);
+                            arr.add(func);
                             //Allow unary operators after functions
                             allowUnary = true;
                         }
@@ -681,19 +678,19 @@ convertToDoubleAndOperate:
                             //If n is nonnull it must be added, so no need for cleanup
                             Number *n = Number::constFromString(str);
                             if(n) {
-                                arr->add(n);
+                                arr.add(n);
                             }
                             else if(varc > 0) {
                                 for(uint8_t i = 0; i < varc; i ++) {
                                     if(strcmp(str, varn[i]) == 0) {
                                         if(varv[i]->getNumericalType() == NumericalType::NUM) {
-                                            arr->add(new Number(((Number*) varv[i])->value));
+                                            arr.add(new Number(((Number*) varv[i])->value));
                                         }
                                         else {
-                                            arr->add(new Number(((Fraction*) varv[i])->num));
+                                            arr.add(new Number(((Fraction*) varv[i])->num));
                                             //Use special division to avoid the need for brackets
-                                            arr->add(&Operator::OP_SP_DIV);
-                                            arr->add(new Number(((Fraction*) varv[i])->denom));
+                                            arr.add(&Operator::OP_SP_DIV);
+                                            arr.add(new Number(((Fraction*) varv[i])->denom));
                                         }
                                         break;
                                     }
@@ -704,7 +701,7 @@ convertToDoubleAndOperate:
                     }
                 }
                 else {
-                    arr->add(new Number(atof(str)));
+                    arr.add(new Number(atof(str)));
                     index = end;
                     allowUnary = false;
                 }
@@ -718,8 +715,7 @@ convertToDoubleAndOperate:
                 //Evaluate the end
 				Numerical *end = evaluate((neda::Container*) ((neda::SigmaPi*) exprs[index])->finish, varc, varn, varv);
                 if(!end) {
-                    freeTokens(arr);
-                    delete arr;
+                    freeTokens(&arr);
                     return nullptr;
                 }
                 //Split the starting condition at the equals sign
@@ -743,8 +739,7 @@ convertToDoubleAndOperate:
                 //Or if the name is not valid
                 if(!validName || equalsIndex == startContents->length() || equalsIndex == 0 || equalsIndex == startContents->length() - 1) {
                     delete end;
-                    freeTokens(arr);
-                    delete arr;
+                    freeTokens(&arr);
                     return nullptr;
                 }
                 //Attempt to evaluate the starting condition assign value
@@ -752,8 +747,7 @@ convertToDoubleAndOperate:
                 Numerical *start = evaluate(&startVal, varc, varn, varv);
                 if(!start) {
                     delete end;
-                    freeTokens(arr);
-                    delete arr;
+                    freeTokens(&arr);
                     return nullptr;
                 }
                 //Isolate the variable name
@@ -789,8 +783,7 @@ convertToDoubleAndOperate:
                         delete[] vNames;
                         delete[] vVals;
                         delete val;
-                        freeTokens(arr);
-                        delete arr;
+                        freeTokens(&arr);
                         return nullptr;
                     }
                     //Add or multiply the expressions
@@ -805,7 +798,7 @@ convertToDoubleAndOperate:
                     }
                 }
                 //Insert the value
-                arr->add(val);
+                arr.add(val);
                 //Cleanup
                 delete end;
                 delete start;
@@ -823,25 +816,373 @@ convertToDoubleAndOperate:
     }
 
     Numerical* evaluate(neda::Container *expr, uint8_t varc, const char **varn, Numerical **varv) {
-        auto tokens = tokensFromExpr(expr, varc, varn, varv);
-        if(tokens) {
-            auto postfix = toPostfix(tokens);
-            delete tokens;
-            return evalPostfix(postfix);
-        }
-        else {
-            return nullptr;
-        }
+        return evaluate(&expr->contents, varc, varn, varv);
     }
 	Numerical* evaluate(DynamicArray<neda::NEDAObj*> *expr, uint8_t varc, const char **varn, Numerical **varv) {
-		auto tokens = tokensFromExpr(expr, varc, varn, varv);
-        if(tokens) {
-            auto postfix = toPostfix(tokens);
-            delete tokens;
-            return evalPostfix(postfix);
-        }
-        else {
-            return nullptr;
+		DynamicArray<Token*, 4> arr;
+        //Deref the result so the syntax won't be so awkward
+        auto &exprs = *expr;
+        uint16_t index = 0;
+        //This variable keeps track of whether the last token was an operator
+        //It is used for unary operators like the unary minus and plus
+        bool allowUnary = true;
+
+        while (index < exprs.length()) {
+            switch (exprs[index]->getType()) {
+            //If we encounter nested containers, just do a recursive call
+            case neda::ObjType::CONTAINER:
+            {   
+                Numerical *result = evaluate((neda::Container*) exprs[index], varc, varn, varv);
+                if(!result) {
+                    freeTokens(&arr);
+                    return;
+                }
+                arr.add(result);
+
+                ++index;
+                allowUnary = false;
+                break;
+            }
+            case neda::ObjType::L_BRACKET:
+            {
+                //If the last token was not an operator, then it must be an implied multiplication
+                if(!allowUnary) {
+                    arr.add(&Operator::OP_MULTIPLY);
+                }
+                arr.add(&LeftBracket::INSTANCE);
+                ++index;
+                //Allow unary operators right after open brackets
+                allowUnary = true;
+                break;
+            }
+            case neda::ObjType::R_BRACKET:
+            {
+                arr.add(&RightBracket::INSTANCE);
+                ++index;
+                //Unlike open brackets, unary operators are not allowed after close brackets
+                allowUnary = false;
+                break;
+            }
+            case neda::ObjType::FRACTION:
+            {
+                Numerical *num = evaluate((neda::Container*) ((neda::Fraction*) exprs[index])->numerator, varc, varn, varv);
+                Numerical *denom = evaluate((neda::Container*) ((neda::Fraction*) exprs[index])->denominator, varc, varn, varv);
+                if(!num || !denom) {
+                    if(num) {
+                        delete num;
+                    }
+                    if(denom) {
+                        delete denom;
+                    }
+                    freeTokens(&arr);
+                    return nullptr;
+                }
+                arr.add(Operator::OP_DIVIDE.operate(num, denom));
+
+                ++index;
+                allowUnary = false;
+                break;
+            }
+            case neda::ObjType::SUPERSCRIPT:
+            {
+                Numerical *exponent = evaluate((neda::Container*) ((neda::Superscript*) exprs[index])->contents, varc, varn, varv);
+                if(!exponent) {
+                    freeTokens(&arr);
+                    return nullptr;
+                }
+                //Check that the token before was a numerical and calculate
+                if(arr.length() > 0 && arr[arr.length() - 1]->getType() == TokenType::NUMERICAL) {
+                    arr.add(Operator::OP_EXPONENT.operate((Numerical*) arr.pop(), exponent));
+                }
+                //Otherwise it must be a syntax error
+                else {
+                    freeTokens(&arr);
+                    return nullptr;
+                }
+
+                ++index;
+                allowUnary = false;
+                break;
+            }
+            case neda::ObjType::RADICAL:
+            {
+                Number two(2);
+                Numerical *n;
+                if(((neda::Radical*) exprs[index])->n) {
+                    n = evaluate((neda::Container*) ((neda::Radical*) exprs[index])->n, varc, varn, varv);
+                }
+                //No base - implied square root
+                else {
+                    n = &two;
+                }
+                Numerical *contents = evaluate((neda::Container*) ((neda::Radical*) exprs[index])->contents, varc, varn, varv);
+
+                if(!n || !contents) {
+                    if(n) {
+                        delete n;
+                    }
+                    if(contents) {
+                        delete contents;
+                    }
+                    freeTokens(&arr);
+                    return nullptr;
+                }
+                //Take the inverse of n
+                if(n->getNumericalType() == NumericalType::NUM) {
+                    ((Number*) n)->value = 1 / ((Number*) n)->value;
+                }
+                else {
+                    int64_t temp = ((Fraction*) n)->num;
+                    ((Fraction*) n)->num = ((Fraction*) n)->denom;
+                    ((Fraction*) n)->denom = temp;
+                }
+                arr.add(Operator::OP_EXPONENT.operate(contents, n));
+
+                ++index;
+                allowUnary = false;
+                break;
+            }
+            case neda::ObjType::CHAR_TYPE:
+            {
+                char ch = ((neda::Character*) exprs[index])->ch;
+                if (ch == ' ') {
+                    ++index;
+                    break;
+                }
+                Operator *op = Operator::fromChar(ch);
+                //Check if the character is an operator
+                if (op) {
+                    //Check for unary operators
+                    //Last token must be an operator
+                    if(allowUnary && (op->type == Operator::Type::PLUS || op->type == Operator::Type::MINUS)) {
+                        //If we do encounter a unary operator, translate it to multiplication
+                        //This is so that the order of operations won't be messed up (namely exponentiation)
+                        if(op->type == Operator::Type::MINUS) {
+                            arr.add(new Number(-1));
+                            arr.add(&Operator::OP_MULTIPLY);
+                        }
+                        ++index;
+                        allowUnary = false;
+                        break;
+                    }
+                    else {
+                        arr.add(op);
+                        ++index;
+                        allowUnary = true;
+                        break;
+                    }
+                }
+
+                //Find the end
+                bool isNum = true;
+                uint16_t end = index + 1;
+                for (; end < exprs.length(); ++end) {
+                    //Special processing
+                    char ch = extractChar(exprs[end]);
+                    char prev = extractChar(exprs[end - 1]);
+                    if(!isDigit(ch)) {
+                        if(!isNameChar(ch)) {
+                            break;
+                        }
+                        //Allow a plus or minus after ee
+                        if(!(prev == LCD_CHAR_EE && (ch == '+' || ch == '-'))) {
+                            isNum = false;
+                            break;
+                        }
+                    }
+                }
+                char *str = new char[end - index + 1];
+                for (uint16_t i = index; i < end; i++) {
+                    char ch = extractChar(exprs[i]);
+                    //Convert the x10^x character to a e (parsed by atof)
+                    if(ch == LCD_CHAR_EE) {
+                        str[i - index] = 'e';
+                    }
+                    else {
+                        str[i - index] = ch;
+                    }
+                }
+                //Add null terminator
+                str[end - index] = '\0';
+
+                if(!isNum) {
+                    //Special processing for logarithms:
+                    if(strcmp(str, "log") == 0) {
+                        if(end < exprs.length() && exprs[end]->getType() == neda::ObjType::SUBSCRIPT) {
+                            auto sub = (neda::Container*) ((neda::Subscript*) exprs[end])->contents;
+                            auto subContents = &sub->contents;
+                            //Use the log change of base property
+                            //Translate to 1/log(base) * log
+                            arr.add(new Number(1));
+                            //Use special high-precedence division
+                            arr.add(&Operator::OP_SP_DIV);
+                            //Use base 2 because why not
+                            arr.add(new Function(Function::Type::LOG2));
+                            arr.add(&LeftBracket::INSTANCE);
+                            auto temp = tokensFromExpr(sub);
+                            arr.merge(temp);
+                            delete temp;
+                            arr.add(&RightBracket::INSTANCE);
+                            //Use special high-precedence multiplication
+                            arr.add(&Operator::OP_SP_MULT);
+                            arr.add(new Function(Function::Type::LOG2));
+                            //Increment end so the index gets set properly afterwards
+                            ++end;
+                        }
+                        //Default log base: 10
+                        else {
+                            arr.add(new Function(Function::Type::LOG10));
+                        }
+                        //Allow unary after functions
+                        allowUnary = true;
+                    }
+                    //Otherwise normal processing
+                    else {
+                        Function *func = Function::fromString(str);
+                        //Add the function if it's valid
+                        if(func) {
+                            arr.add(func);
+                            //Allow unary operators after functions
+                            allowUnary = true;
+                        }
+                        //Otherwise see if it's a valid constant, or if it is the additional variable
+                        else {
+                            //If n is nonnull it must be added, so no need for cleanup
+                            Number *n = Number::constFromString(str);
+                            if(n) {
+                                arr.add(n);
+                            }
+                            else if(varc > 0) {
+                                for(uint8_t i = 0; i < varc; i ++) {
+                                    if(strcmp(str, varn[i]) == 0) {
+                                        if(varv[i]->getNumericalType() == NumericalType::NUM) {
+                                            arr.add(new Number(((Number*) varv[i])->value));
+                                        }
+                                        else {
+                                            arr.add(new Number(((Fraction*) varv[i])->num));
+                                            //Use special division to avoid the need for brackets
+                                            arr.add(&Operator::OP_SP_DIV);
+                                            arr.add(new Number(((Fraction*) varv[i])->denom));
+                                        }
+                                        break;
+                                    }
+                                }
+                            }
+                            allowUnary = false;
+                        }
+                    }
+                }
+                else {
+                    arr.add(new Number(atof(str)));
+                    index = end;
+                    allowUnary = false;
+                }
+                delete[] str;
+                index = end;
+                break;
+
+            }
+            case neda::ObjType::SIGMA_PI:
+            {
+                //Evaluate the end
+                Numerical *end = evaluate((neda::Container*) ((neda::SigmaPi*) exprs[index])->finish, varc, varn, varv);
+                if(!end) {
+                    freeTokens(&arr);
+                    return nullptr;
+                }
+                //Split the starting condition at the equals sign
+                auto startContents = &((neda::Container*) ((neda::SigmaPi*) exprs[index])->start)->contents;
+                uint16_t equalsIndex = 0;
+                bool validName = true;
+                for(auto i : *startContents) {
+                    if(i->getType() == neda::ObjType::CHAR_TYPE && ((neda::Character*) i)->ch == '=') {
+                        break;
+                    }
+                    //In addition to finding the equals sign, also verify that the left hand side of the equals only contains valid
+                    //name characters
+                    if(!isNameChar(extractChar(i))) {
+                        validName = false;
+                        break;
+                    }
+                    ++equalsIndex;
+                }
+                //If equalsIndex is the same as the length, then the if condition was never true, so return null
+                //Or if it's at index 0 or length - 1, return null since the condition can't be complete
+                //Or if the name is not valid
+                if(!validName || equalsIndex == startContents->length() || equalsIndex == 0 || equalsIndex == startContents->length() - 1) {
+                    delete end;
+                    freeTokens(&arr);
+                    return nullptr;
+                }
+                //Attempt to evaluate the starting condition assign value
+                DynamicArray<neda::NEDAObj*> startVal(startContents->begin() + equalsIndex + 1, startContents->end());
+                Numerical *start = evaluate(&startVal, varc, varn, varv);
+                if(!start) {
+                    delete end;
+                    freeTokens(&arr);
+                    return nullptr;
+                }
+                //Isolate the variable name
+                char *vName = new char[equalsIndex + 1];
+                for(uint16_t i = 0; i < equalsIndex; i ++) {
+                    vName[i] = extractChar((*startContents)[i]);
+                }
+                vName[equalsIndex] = '\0';
+
+                //Construct new variable arrays
+                const char **vNames = new const char*[varc + 1];
+                Numerical **vVals = new Numerical*[varc + 1];
+                //Copy existing
+                for(uint8_t i = 0; i < varc; i ++) {
+                    vNames[i] = varn[i];
+                    vVals[i] = varv[i];
+                }
+                vNames[varc] = vName;
+                vVals[varc] = start;
+
+                auto &type = ((neda::SigmaPi*) exprs[index])->symbol;
+                //Different starting values for summation and product
+                Numerical *val = new Number(type.data == lcd::CHAR_SUMMATION.data ? 0 : 1);
+                //While the start is still less than or equal to the end
+                while(compareNumericals(start, end) <= 0) {
+                    //Evaluate the inside expression
+                    Numerical *n = evaluate((neda::Container*) ((neda::SigmaPi*) exprs[index])->contents, varc + 1, vNames, vVals);
+                    //If there is ever a syntax error then cleanup and exit
+                    if(!n) {
+                        delete end;
+                        delete start;
+                        delete[] vName;
+                        delete[] vNames;
+                        delete[] vVals;
+                        delete val;
+                        freeTokens(&arr);
+                        return nullptr;
+                    }
+                    //Add or multiply the expressions
+                    //Operate takes care of deletion
+                    val = (type.data == lcd::CHAR_SUMMATION.data ? Operator::OP_PLUS : Operator::OP_MULTIPLY).operate(val, n);
+                    //Add one to the start
+                    if(start->getNumericalType() == NumericalType::NUM) {
+                        ++((Number*) start)->value;
+                    }
+                    else {
+                        ((Fraction*) start)->num += ((Fraction*) start)->denom;
+                    }
+                }
+                //Insert the value
+                arr.add(val);
+                //Cleanup
+                delete end;
+                delete start;
+                delete[] vName;
+                delete[] vNames;
+                delete[] vVals;
+
+                ++index;
+                break;
+            } 
+            default: ++index; break;
+            }
         }
 	}
 }
