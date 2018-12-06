@@ -220,7 +220,7 @@ namespace eval {
         //Two numbers: normal operation
         if(lType == NumericalType::NUM && rType == NumericalType::NUM) {
             //Special case for division: if the operands are whole numbers, create a fraction
-            if(type == Operator::Type::DIVIDE && isInt(((Number*) lhs)->value) && isInt(((Number*) rhs)->value)) {
+            if((type == Operator::Type::DIVIDE || type == Operator::Type::SP_DIV) && isInt(((Number*) lhs)->value) && isInt(((Number*) rhs)->value)) {
                 auto n = static_cast<int64_t>(((Number*) lhs)->value);
                 auto d = static_cast<int64_t>(((Number*) rhs)->value);
                 //See if the division yields a whole number
@@ -585,7 +585,7 @@ convertToDoubleAndOperate:
                         //This is so that the order of operations won't be messed up (namely exponentiation)
                         if(op->type == Operator::Type::MINUS) {
                             arr->add(new Number(-1));
-                            arr->add(&Operator::OP_MULTIPLY);
+                            arr->add(&Operator::OP_SP_MULT);
                         }
                         ++index;
                         allowUnary = false;
@@ -598,51 +598,60 @@ convertToDoubleAndOperate:
                         break;
                     }
                 }
-                //The character is neither an operator nor a digit-must be either a function or variable
-                if (!isDigit(ch)) {
-                    //Find the end of this token
-                    uint16_t end = index + 1;
-                    //No need worrying about exprs[end] not being a char, since then extractChar will just return '\0'
-                    for(; end < exprs.length() && isNameChar(extractChar(exprs[end])); end ++);
-                    char *str = new char[end - index + 1];
-                    for(uint16_t i = index; i < end; i ++) {
-                        str[i - index] = extractChar(exprs[i]);
-                    }
-                    //Add null terminator
-                    str[end - index] = '\0';
 
+                //Find the end
+                bool isNum = true;
+                uint16_t end = index + 1;
+                for (; end < exprs.length(); ++end) {
+                    //Special processing
+                    char ch = extractChar(exprs[end]);
+                    char prev = extractChar(exprs[end - 1]);
+                    if(!isDigit(ch)) {
+                        if(!isNameChar(ch)) {
+                            break;
+                        }
+                        //Allow a plus or minus after ee
+                        if(!(prev == LCD_CHAR_EE && (ch == '+' || ch == '-'))) {
+                            isNum = false;
+                            break;
+                        }
+                    }
+                }
+                char *str = new char[end - index + 1];
+                for (uint16_t i = index; i < end; i++) {
+                    char ch = extractChar(exprs[i]);
+                    //Convert the x10^x character to a e (parsed by atof)
+                    if(ch == LCD_CHAR_EE) {
+                        str[i - index] = 'e';
+                    }
+                    else {
+                        str[i - index] = ch;
+                    }
+                }
+                //Add null terminator
+                str[end - index] = '\0';
+
+                if(!isNum) {
                     //Special processing for logarithms:
                     if(strcmp(str, "log") == 0) {
                         if(end < exprs.length() && exprs[end]->getType() == neda::ObjType::SUBSCRIPT) {
                             auto sub = (neda::Container*) ((neda::Subscript*) exprs[end])->contents;
                             auto subContents = &sub->contents;
-                            //See if the base is one of the built-in ones
-                            if(subContents->length() == 1 && extractChar((*subContents)[0]) == '2') {
-                                arr->add(new Function(Function::Type::LOG2));
-                            }
-                            else if(subContents->length() == 2 && extractChar((*subContents)[0]) == '1' && extractChar((*subContents)[1]) == '0') {
-                                arr->add(new Function(Function::Type::LOG10));
-                            }
-                            else if(subContents->length() == 1 && extractChar((*subContents)[0]) == LCD_CHAR_EULR) {
-                                arr->add(new Function(Function::Type::LN));
-                            }
-                            //Otherwise use the log change of base property
+                            //Use the log change of base property
                             //Translate to 1/log(base) * log
-                            else {
-                                arr->add(new Number(1));
-                                //Use special high-precedence division
-                                arr->add(&Operator::OP_SP_DIV);
-                                //Use base 2 because why not
-                                arr->add(new Function(Function::Type::LOG2));
-                                arr->add(&LeftBracket::INSTANCE);
-                                auto temp = tokensFromExpr(sub);
-                                arr->merge(temp);
-                                delete temp;
-                                arr->add(&RightBracket::INSTANCE);
-                                //Use special high-precedence multiplication
-                                arr->add(&Operator::OP_SP_MULT);
-                                arr->add(new Function(Function::Type::LOG2));
-                            }
+                            arr->add(new Number(1));
+                            //Use special high-precedence division
+                            arr->add(&Operator::OP_SP_DIV);
+                            //Use base 2 because why not
+                            arr->add(new Function(Function::Type::LOG2));
+                            arr->add(&LeftBracket::INSTANCE);
+                            auto temp = tokensFromExpr(sub);
+                            arr->merge(temp);
+                            delete temp;
+                            arr->add(&RightBracket::INSTANCE);
+                            //Use special high-precedence multiplication
+                            arr->add(&Operator::OP_SP_MULT);
+                            arr->add(new Function(Function::Type::LOG2));
                             //Increment end so the index gets set properly afterwards
                             ++end;
                         }
@@ -688,52 +697,16 @@ convertToDoubleAndOperate:
                             allowUnary = false;
                         }
                     }
-
-                    delete[] str;
-
+                }
+                else {
+                    arr->add(new Number(atof(str)));
                     index = end;
-                    break;
+                    allowUnary = false;
                 }
-
-                //Otherwise find the end of the number as usual
-                uint16_t end = index + 1;
-                for (; end < exprs.length(); ++end) {
-                    //Special processing
-                    if(!isDigit(extractChar(exprs[end]))) {
-                        char ch = extractChar(exprs[end]);
-                        char prev = extractChar(exprs[end - 1]);
-                        //Allow a plus or minus after
-                        if(prev == LCD_CHAR_EE && (ch == '+' || ch == '-')) {
-                            continue;
-                        }
-                        else {
-                            break;
-                        }
-                    }
-                }
-                //+1 for null terminator
-                char *numStr = new char[end - index + 1];
-                for (uint16_t i = index; i < end; i++) {
-                    char ch = extractChar(exprs[i]);
-                    //Convert the x10^x character to a e (parsed by atof)
-                    if(ch == LCD_CHAR_EE) {
-                        numStr[i - index] = 'e';
-                    }
-                    else {
-                        numStr[i - index] = ch;
-                    }
-                }
-                //Add null terminator
-                numStr[end - index] = '\0';
-                //Convert to double
-                double d = atof(numStr);
-
-                delete[] numStr;
-
-                arr->add(new Number(d));
+                delete[] str;
                 index = end;
-                allowUnary = false;
                 break;
+
             }
 			case neda::ObjType::SIGMA_PI:
 			{
