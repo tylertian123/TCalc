@@ -72,10 +72,6 @@ namespace eval {
         bool isInteger() const;
         void reduce();
 
-        Fraction operator+(const Fraction&);
-        Fraction operator-(const Fraction&);
-        Fraction operator*(const Fraction&);
-        Fraction operator/(const Fraction&);
         Fraction& operator+=(const Fraction&);
         Fraction& operator-=(const Fraction&);
         Fraction& operator*=(const Fraction&);
@@ -190,7 +186,6 @@ namespace eval {
     }
     bool isDigit(char);
     bool isNameChar(char);
-    bool exprIsDigit(neda::NEDAObj*);
     char extractChar(neda::NEDAObj*);
     int8_t compareNumericals(const Numerical*, const Numerical*);
 

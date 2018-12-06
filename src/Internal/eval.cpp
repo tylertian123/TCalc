@@ -62,26 +62,6 @@ namespace eval {
         num /= divisor;
         denom /= divisor;
     }
-    Fraction Fraction::operator+(const Fraction &rhs) {
-        int64_t newDenom = lcm(denom, rhs.denom);
-        int64_t numA = num * (newDenom / denom);
-        int64_t numB = rhs.num * (newDenom / rhs.denom);
-        
-        return Fraction(numA + numB, newDenom);
-    }
-    Fraction Fraction::operator-(const Fraction &rhs) {
-        int64_t newDenom = lcm(denom, rhs.denom);
-        int64_t numA = num * (newDenom / denom);
-        int64_t numB = rhs.num * (newDenom / rhs.denom);
-
-        return Fraction(numA - numB, newDenom);
-    }
-    Fraction Fraction::operator*(const Fraction &rhs) {
-        return Fraction(num * rhs.num, denom * rhs.denom);
-    }
-    Fraction Fraction::operator/(const Fraction &rhs) {
-        return Fraction(num * rhs.denom, denom * rhs.num);
-    }
     Fraction& Fraction::operator+=(const Fraction &frac) {
         int64_t newDenom = lcm(denom, frac.denom);
         int64_t numA = num * (newDenom / denom);
@@ -466,12 +446,6 @@ convertToDoubleAndOperate:
     bool isNameChar(char ch) {
         return (ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z') || (ch >= LCD_CHARSET_LOWBOUND && ch <= LCD_CHARSET_HIGHBOUND);
     }
-    bool exprIsDigit(neda::NEDAObj *obj) {
-        if(obj->getType() != neda::ObjType::CHAR_TYPE) {
-            return false;
-        }
-        return isDigit(((neda::Character*) obj)->ch);
-    }
     char extractChar(neda::NEDAObj *obj) {
         if(obj->getType() != neda::ObjType::CHAR_TYPE) {
             return '\0';
@@ -725,7 +699,7 @@ convertToDoubleAndOperate:
                 uint16_t end = index + 1;
                 for (; end < exprs.length(); ++end) {
                     //Special processing
-                    if(!exprIsDigit(exprs[end])) {
+                    if(!isDigit(extractChar(exprs[end]))) {
                         char ch = extractChar(exprs[end]);
                         char prev = extractChar(exprs[end - 1]);
                         //Allow a plus or minus after
@@ -863,7 +837,7 @@ convertToDoubleAndOperate:
 
                 ++index;
 				break;
-			}
+			} 
             default: ++index; break;
             }
         }
