@@ -1,3 +1,4 @@
+EK_RESTART_NUM 0x00
 null
 up
 down
