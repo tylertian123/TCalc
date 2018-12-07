@@ -441,6 +441,11 @@
               <FileType>8</FileType>
               <FilePath>.\src\Internal\eval.cpp</FilePath>
             </File>
+            <File>
+              <FileName>ntoa.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\src\Internal\ntoa.cpp</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

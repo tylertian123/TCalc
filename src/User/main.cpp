@@ -12,9 +12,7 @@
 #include "eval.hpp"
 #include "keydef.h"
 #include "util.hpp"
-#include <stdio.h>
-#include <inttypes.h>
-
+#include "ntoa.hpp"
 /********** GPIO Pins and other pin defs **********/
 GPIOPin RS(GPIOB, GPIO_Pin_12), RW(GPIOB, GPIO_Pin_13), E(GPIOB, GPIO_Pin_14),
 			D7(GPIOA, GPIO_Pin_15), D6(GPIOB, GPIO_Pin_3), D5(GPIOB, GPIO_Pin_4), D4(GPIOB, GPIO_Pin_5),
@@ -639,15 +637,18 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
         }
         else {
             if(result->getType() == eval::TokenType::NUMBER) {
-                char buf[64];
-                snprintf(buf, 64, "%.17g", ((eval::Number*) result)->value);
-                for(uint8_t i = 0; i < 64; i ++) {
-                    cont->add(new neda::Character(buf[i]));
-                }
+//                char buf[64];
+//                snprintf(buf, 64, "%.17g", ((eval::Number*) result)->value);
+//                for(uint8_t i = 0; i < 64; i ++) {
+//                    cont->add(new neda::Character(buf[i]));
+//                }
             }
             else {
-                char buf[64];
-                snprintf(buf, 64, "%" PRId64 "\n", ((eval::Fraction*) result)->num);
+//			char buf[64];
+//			snprintf(buf, 64, "%" PRId64 "\n", ((eval::Fraction*) result)->num);
+				char buf[64];
+				ltoa(10000, buf);
+				ftoa(123.456, buf, 15);
             }
         }
 		break;
