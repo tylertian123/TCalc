@@ -6,7 +6,6 @@
 #include "sbdi.hpp"
 #include "lcd12864.hpp"
 #include "lcd12864_charset.hpp"
-#include "pwm.hpp"
 #include "dynamarr.hpp"
 #include "neda.hpp"
 #include "eval.hpp"
@@ -20,7 +19,6 @@ GPIOPin RS(GPIOB, GPIO_Pin_12), RW(GPIOB, GPIO_Pin_13), E(GPIOB, GPIO_Pin_14),
 lcd::LCD12864 display(RS, RW, E, D0, D1, D2, D3, D4, D5, D6, D7);
 
 GPIOPin backlightPin(GPIOA, GPIO_Pin_1);
-pwm::PWMOutput<2, 72000000, 100> backlight(TIM2, RCC_APB1Periph_TIM2, backlightPin);
 
 GPIOPin SBDI_EN(GPIOA, GPIO_Pin_12);
 GPIOPin SBDI_CLK(GPIOA, GPIO_Pin_11);
@@ -670,9 +668,6 @@ int main() {
 	display.useExtended();
 	display.startDraw();
 	display.clearDrawing();
-
-	backlight.startTimer();
-	backlight.set(0xA0);
 
 	//Set up SBDI receiver
 	sbdi::Receiver receiver(SBDI_EN, SBDI_DATA, SBDI_CLK);
