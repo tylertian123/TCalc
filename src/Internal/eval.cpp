@@ -631,19 +631,24 @@ convertToDoubleAndOperate:
                 }
 
                 //Find the end
-                bool isNum = true;
-                uint16_t end = index + 1;
+                bool isNum;
+                uint16_t end = index;
                 for (; end < exprs.length(); ++end) {
-                    //Special processing
                     char ch = extractChar(exprs[end]);
-                    char prev = extractChar(exprs[end - 1]);
-                    if(!isDigit(ch)) {
-                        if(!isNameChar(ch)) {
-                            break;
-                        }
-                        //Allow a plus or minus after ee
-                        if(!(prev == LCD_CHAR_EE && (ch == '+' || ch == '-'))) {
-                            isNum = false;
+                    //Special processing for the first char
+                    if (end == index) {
+                        //The first digit has to be either a number or a name char (operators are handled)
+                        isNum = isDigit(ch);
+                    }
+                    else {
+                        //Otherwise, break if one of the three conditions:
+                        //The char is neither a name char or digit, and that it's not a plus or minus followed by an ee
+                        //Or if the token is a number and the char is a name char
+                        //Or if the token is not a number and the char is a digit
+                        bool inc = isNameChar(ch);
+                        bool id = isDigit(ch);
+                        if ((!inc && !id && !((ch == '+' || ch == '-') && extractChar(exprs[end - 1]) == LCD_CHAR_EE))
+                            || isNum && inc || !isNum && id) {
                             break;
                         }
                     }
@@ -704,6 +709,11 @@ convertToDoubleAndOperate:
                         }
                         //Otherwise see if it's a valid constant, or if it is the additional variable
                         else {
+                            //If unary operators are not allowed, which means that the previous token was not an operator,
+                            //There must be an implied multiplication 
+                            if(!allowUnary) {
+                                arr.add(&Operator::OP_MULTIPLY);
+                            }
                             //If n is nonnull it must be added, so no need for cleanup
                             Number *n = Number::constFromString(str);
                             if(n) {
