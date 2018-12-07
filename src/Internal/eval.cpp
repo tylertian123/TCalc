@@ -851,8 +851,22 @@ convertToDoubleAndOperate:
         Deque<Token*> opStack;
         for(Token *t : arr) {
             if(t->getType() == TokenType::NUMBER || t->getType() == TokenType::FRACTION) {
-                
+                output.enqueue(t);
             }
+            else if(t->getType() == TokenType::FUNCTION) {
+                opStack.push(t);
+            }
+            else {
+                //Operator
+                while(!opStack.isEmpty() && (opStack.peek()->getType() == TokenType::FUNCTION 
+                        || ((Operator*) opStack.peek())->getPrecedence() <= ((Operator*) t)->getPrecedence())) {
+                    output.enqueue(opStack.pop());
+                }
+                opStack.push(t);
+            }
+        }
+        while(!opStack.isEmpty()) {
+            output.enqueue(opStack.pop());
         }
 	}
 }

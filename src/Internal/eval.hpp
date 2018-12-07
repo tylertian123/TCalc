@@ -99,30 +99,6 @@ namespace eval {
         Operator(Type type) : type(type) {}
     };
 
-    class LeftBracket : public Token {
-    public:
-        virtual TokenType getType() override {
-            return TokenType::L_BRACKET;
-        }
-        
-        static LeftBracket INSTANCE;
-    
-    private:
-        //As with operators, left and right brackets are singletons
-        LeftBracket() {}
-    };
-    class RightBracket : public Token {
-    public:
-        virtual TokenType getType() override {
-            return TokenType::R_BRACKET;
-        }
-
-        static RightBracket INSTANCE;
-    
-    private:
-        RightBracket() {}
-    };
-
     //For now, functions only take one argument
     //Multi-arg functions might be added in the future.
     //Even though only one instance of each type of function is needed, because there are a lot of functions, it is not worth it
