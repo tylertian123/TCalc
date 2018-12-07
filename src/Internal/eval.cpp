@@ -322,12 +322,6 @@ convertToDoubleAndOperate:
         return result;
     }
 
-    /******************** LeftBracket ********************/
-    LeftBracket LeftBracket::INSTANCE;
-
-    /******************** RightBracket ********************/
-    RightBracket RightBracket::INSTANCE;
-
     /******************** Function ********************/
     Function* Function::fromString(const char *str) {
         if(strcmp(str, "sin") == 0) {
@@ -479,7 +473,7 @@ convertToDoubleAndOperate:
                 Token *result = evaluate((neda::Container*) exprs[index], varc, varn, varv);
                 if(!result) {
                     freeTokens(&arr);
-                    return;
+                    return nullptr;
                 }
                 arr.add(result);
 
@@ -848,25 +842,76 @@ convertToDoubleAndOperate:
         //After that, we should be left with an expression with nothing but Tokens, basic operators, and functions.
         //Use shunting yard
         Deque<Token*> output(arr.length());
-        Deque<Token*> opStack;
+        Deque<Token*> stack;
         for(Token *t : arr) {
             if(t->getType() == TokenType::NUMBER || t->getType() == TokenType::FRACTION) {
                 output.enqueue(t);
             }
             else if(t->getType() == TokenType::FUNCTION) {
-                opStack.push(t);
+                stack.push(t);
             }
             else {
                 //Operator
-                while(!opStack.isEmpty() && (opStack.peek()->getType() == TokenType::FUNCTION 
-                        || ((Operator*) opStack.peek())->getPrecedence() <= ((Operator*) t)->getPrecedence())) {
-                    output.enqueue(opStack.pop());
+                while(!stack.isEmpty() && (stack.peek()->getType() == TokenType::FUNCTION 
+                        || ((Operator*) stack.peek())->getPrecedence() <= ((Operator*) t)->getPrecedence())) {
+                    output.enqueue(stack.pop());
                 }
-                opStack.push(t);
+                stack.push(t);
             }
         }
-        while(!opStack.isEmpty()) {
-            output.enqueue(opStack.pop());
+        while(!stack.isEmpty()) {
+            output.enqueue(stack.pop());
         }
+
+        //Evaluate
+        //Reuse stack
+        while(!output.isEmpty()) {
+            Token *t = output.dequeue();
+            if(t->getType() == TokenType::NUMBER || t->getType() == TokenType::FRACTION) {
+                stack.push(t);
+            }
+            else if(t->getType() == TokenType::FRACTION) {
+                //Syntax error: Not Enough Arguments
+                if(stack.isEmpty()) {
+                    //Do cleanup and return nullptr
+                    delete t;
+                    freeTokens(&output);
+                    freeTokens(&stack);
+                    return nullptr;
+                }
+                //Compute the function
+                Token *n = stack.pop();
+                Function *func = (Function*) t;
+                //n Can only be a number or fraction
+                if(n->getType() == TokenType::NUMBER) {
+                    stack.push(new Number(func->compute(((Number*) n)->value)));
+                }
+                //Calling any function on a fraction converts it into a double
+                else {
+                    stack.push(new Number(func->compute(((Fraction*) n)->doubleVal())));
+                }
+                delete n;
+                delete func;
+            }
+            else {
+                if(stack.length() < 2) {
+                    freeTokens(&output);
+                    freeTokens(&stack);
+                    return nullptr;
+                }
+                Token *rhs = stack.pop();
+                Token *lhs = stack.pop();
+                stack.push(((Operator*) t)->operate(lhs, rhs));
+            }
+        }
+
+        if(stack.length() != 1) {
+            //Syntax error: Too many numbers??
+            while(!stack.isEmpty()) {
+                delete stack.pop();
+            }
+            return nullptr;
+        }
+        return stack.pop();
 	}
 }

@@ -632,13 +632,13 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 	}
 	case KEY_ENTER:
 	{
-		eval::Numerical *result = eval::evaluate((neda::Container*) cursor->expr->getTopLevel());
+		eval::Token *result = eval::evaluate((neda::Container*) cursor->expr->getTopLevel());
         neda::Container *cont = new neda::Container();
         if(!result) {
             cont->add(new neda::Character(LCD_CHAR_SERR));
         }
         else {
-            if(result->getNumericalType() == eval::NumericalType::NUM) {
+            if(result->getType() == eval::TokenType::NUMBER) {
                 char buf[64];
                 snprintf(buf, 64, "%.17g", ((eval::Number*) result)->value);
                 for(uint8_t i = 0; i < 64; i ++) {

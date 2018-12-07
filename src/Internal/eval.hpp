@@ -120,12 +120,12 @@ namespace eval {
         double compute(double);
     };
 
-    //This will delete the Deque of tokens properly. It will destory all tokens in the array.
+    //This will delete the collection of tokens properly. It will destory all tokens in the array.
     template <uint16_t Increase>
     void freeTokens(Deque<Token*, Increase> *q) {
         while (!q->isEmpty()) {
             Token *t = q->dequeue();
-            if (t->getType() == TokenType::NUMERICAL || t->getType() == TokenType::FUNCTION) {
+            if (t->getType() == TokenType::NUMBER || t->getType() == TokenType::FRACTION || t->getType() == TokenType::FUNCTION) {
                 delete t;
             }
         }
@@ -133,150 +133,15 @@ namespace eval {
     template <uint16_t Increase>
     void freeTokens(DynamicArray<Token*, Increase> *q) {
         for(Token *t : *q) {
-            if (t->getType() == TokenType::NUMERICAL || t->getType() == TokenType::FUNCTION) {
+            if (t->getType() == TokenType::NUMBER || t->getType() == TokenType::FRACTION || t->getType() == TokenType::FUNCTION) {
                 delete t;
             }
-        }
-    }
-    template <uint16_t Increase>
-    void freeNumericals(Deque<Token*, Increase> *q) {
-        while (!q->isEmpty()) {
-            delete q->dequeue();
         }
     }
     bool isDigit(char);
     bool isNameChar(char);
     char extractChar(neda::NEDAObj*);
     int8_t compareNumericals(const Token*, const Token*);
-
-    //Shunting yard algorithm
-    //Note: This does not delete the tokens in the DynamicArray
-    //Note: The tokens are shared between the DynamicArray and the result
-    template <uint16_t Increase>
-    Deque<Token*>* toPostfix(DynamicArray<Token*, Increase>* tokens) {
-        Deque<Token*> *output = new Deque<Token*>();
-        Deque<Token*> *opStack = new Deque<Token*>();
-        for(Token *token : *tokens) {
-            //Add to the output queue if the token is a numerical type
-            if(token->getType() == TokenType::NUMERICAL) {
-                output->enqueue(token);
-            }
-            //Push directly onto the op stack in case of a function or left bracket
-            else if(token->getType() == TokenType::L_BRACKET || token->getType() == TokenType::FUNCTION) {
-                opStack->push(token);
-            }
-            else if(token->getType() == TokenType::OPERATOR) {
-                //While the operator on top of the stack has equal or higher precedence, or the operator on top is a function,
-                //pop them off the stack and put into the queue
-                Token *op;
-                while(!opStack->isEmpty() && (op = opStack->peek(), op->getType() == TokenType::FUNCTION || 
-                        (op->getType() == TokenType::OPERATOR && ((Operator*) op)->getPrecedence() <= ((Operator*) token)->getPrecedence()))) {
-                    output->enqueue(opStack->pop());
-                }
-                //Finally push the operator
-                opStack->push(token);
-            }
-            else if(token->getType() == TokenType::R_BRACKET) {
-                //While the operator on top of the stack is not a left bracket, pop items off the stack and into the queue
-                Token *op;
-                while(!opStack->isEmpty() && !(op = opStack->peek(), op->getType() == TokenType::L_BRACKET)) {
-                    output->enqueue(opStack->pop());
-                }
-                //If everything is good, the stack should not be empty (as it still has a left bracket that's not popped off)
-                if(!opStack->isEmpty()) {
-                    opStack->pop();
-                }
-                //Otherwise there are unmatched brackets
-                else {
-                    //Do cleanup
-                    //Note: the stack and queue are deleted, but the tokens are not!!
-                    delete opStack;
-                    delete output;
-                    return nullptr;
-                }
-            }
-        }
-        //Pop everything on the stack into the queue
-        while(!opStack->isEmpty()) {
-            //Ignore left brackets
-            if(opStack->peek()->getType() != TokenType::L_BRACKET) {
-                output->enqueue(opStack->pop());
-            }
-            else {
-                opStack->pop();
-            }
-        }
-        delete opStack;
-        return output;
-    }
-
-    //Note: Deletes the input
-    template <uint16_t Increase>
-    Numerical* evalPostfix(Deque<Token*, Increase>* expr) {
-        Deque<Numerical*> stack;
-
-        while(!expr->isEmpty()) {
-            Token *token = expr->dequeue();
-            //Directly push any numerical types onto the stack
-            if(token->getType() == TokenType::NUMERICAL) {
-                stack.push((Numerical*) token);
-                continue;
-            }
-            else if(token->getType() == TokenType::FUNCTION) {
-                //Syntax error: Not Enough Arguments
-                if(stack.isEmpty()) {
-                    //Do cleanup and return nullptr
-                    delete token;
-                    freeTokens(expr);
-                    delete expr;
-                    freeNumericals(&stack);
-                    return nullptr;
-                }
-                else {
-                    //Compute the function
-                    //Keep a pointer to the numerical to compute with to avoid mem leaks
-                    //Make sure to delete the function token after
-                    Numerical *n = stack.pop();
-                    Function *func = (Function*) token;
-                    if(n->getNumericalType() == NumericalType::NUM) {
-                        stack.push(new Number(func->compute(((Number*) n)->value)));
-                    }
-                    //Calling any function on a fraction converts it into a double
-                    else {
-                        stack.push(new Number(func->compute(((Fraction*) n)->doubleVal())));
-                    }
-                    delete n;
-                    delete func;
-                }
-            }
-            else if(token->getType() == TokenType::OPERATOR) {
-                //Syntax error: Not enough numbers
-                if(stack.length() < 2) {
-                    //Do cleanup and return nullptr
-                    freeTokens(expr);
-                    delete expr;
-                    freeNumericals(&stack);
-                    return nullptr;
-                }
-                Operator *op = (Operator*) token;
-                Numerical *rhs = stack.pop();
-                Numerical *lhs = stack.pop();
-				//Operators do not need to be freed
-				stack.push(op->operate(lhs, rhs));
-            }
-        }
-
-        delete expr;
-        if(stack.length() != 1) {
-            //Syntax error: Not enough operations or numbers
-            while(!stack.isEmpty()) {
-                delete stack.pop();
-            }
-            return nullptr;
-        }
-        
-        return stack.pop();
-    }
 	
     Token* evaluate(neda::Container *expr, uint8_t varc = 0, const char **varn = nullptr, Token **varv = nullptr);
     Token* evaluate(DynamicArray<neda::NEDAObj*>*, uint8_t varc = 0, const char **varn = nullptr, Token **varv = nullptr);
