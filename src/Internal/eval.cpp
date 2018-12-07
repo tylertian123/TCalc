@@ -213,12 +213,12 @@ namespace eval {
         }
         return true;
     }
-    Numerical* Operator::operate(Numerical *lhs, Numerical *rhs) {
-        NumericalType lType = lhs->getNumericalType();
-        NumericalType rType = rhs->getNumericalType();
-        Numerical *result = nullptr;
+    Token* Operator::operate(Token *lhs, Token *rhs) {
+        TokenType lType = lhs->getType();
+        TokenType rType = rhs->getType();
+        Token *result = nullptr;
         //Two numbers: normal operation
-        if(lType == NumericalType::NUM && rType == NumericalType::NUM) {
+        if(lType == TokenType::NUMBER && rType == TokenType::NUMBER) {
             //Special case for division: if the operands are whole numbers, create a fraction
             if((type == Operator::Type::DIVIDE || type == Operator::Type::SP_DIV) && isInt(((Number*) lhs)->value) && isInt(((Number*) rhs)->value)) {
                 auto n = static_cast<int64_t>(((Number*) lhs)->value);
@@ -240,7 +240,7 @@ namespace eval {
             delete rhs;
         }
         //Two fractions: fraction operation
-        else if(lType == NumericalType::FRAC && rType == NumericalType::FRAC) {
+        else if(lType == TokenType::FRACTION && rType == TokenType::FRACTION) {
             //Record if action was successful
             bool success = operateOn((Fraction*) lhs, (Fraction*) rhs);
             if(success) {
@@ -263,7 +263,7 @@ namespace eval {
             }
         }
         //One fraction: fraction operation if the other one is integer, normal operation if not
-        else if(lType == NumericalType::FRAC && rType == NumericalType::NUM) {
+        else if(lType == TokenType::FRACTION && rType == TokenType::NUMBER) {
             //Test if rhs is integer
             if(isInt(((Number*) rhs)->value)) {
                 //Do a normal fraction operation
@@ -453,16 +453,16 @@ convertToDoubleAndOperate:
         return ((neda::Character*) obj)->ch;
     }
     //Returns positive if a > b, zero if equal, and negative if a < b
-    int8_t compareNumericals(Numerical *a, Numerical *b) {
-        double aVal = a->getNumericalType() == NumericalType::NUM ? ((Number*) a)->value : ((Fraction*) a)->doubleVal();
-        double bVal = b->getNumericalType() == NumericalType::NUM ? ((Number*) b)->value : ((Fraction*) b)->doubleVal();
+    int8_t compareTokens(Token *a, Token *b) {
+        double aVal = a->getType() == TokenType::NUMBER ? ((Number*) a)->value : ((Fraction*) a)->doubleVal();
+        double bVal = b->getType() == TokenType::NUMBER ? ((Number*) b)->value : ((Fraction*) b)->doubleVal();
         return aVal > bVal ? 1 : bVal > aVal ? -1 : 0;
     }
 
-    Numerical* evaluate(neda::Container *expr, uint8_t varc, const char **varn, Numerical **varv) {
+    Token* evaluate(neda::Container *expr, uint8_t varc, const char **varn, Token **varv) {
         return evaluate(&expr->contents, varc, varn, varv);
     }
-	Numerical* evaluate(DynamicArray<neda::NEDAObj*> *expr, uint8_t varc, const char **varn, Numerical **varv) {
+	Token* evaluate(DynamicArray<neda::NEDAObj*> *expr, uint8_t varc, const char **varn, Token **varv) {
 		DynamicArray<Token*, 4> arr;
         //Deref the result so the syntax won't be so awkward
         auto &exprs = *expr;
@@ -476,7 +476,7 @@ convertToDoubleAndOperate:
             //If we encounter nested containers, just do a recursive call
             case neda::ObjType::CONTAINER:
             {   
-                Numerical *result = evaluate((neda::Container*) exprs[index], varc, varn, varv);
+                Token *result = evaluate((neda::Container*) exprs[index], varc, varn, varv);
                 if(!result) {
                     freeTokens(&arr);
                     return;
@@ -515,7 +515,7 @@ convertToDoubleAndOperate:
                 }
                 //Create the subarray, not including the two brackets
                 DynamicArray<neda::NEDAObj*> inside(exprs.begin() + index + 1, exprs.begin() + endIndex);
-                Numerical *insideResult = evaluate(&inside, varc, varn, varv);
+                Token *insideResult = evaluate(&inside, varc, varn, varv);
                 if(!insideResult) {
                     freeTokens(&arr);
                     return nullptr;
@@ -535,8 +535,8 @@ convertToDoubleAndOperate:
             }
             case neda::ObjType::FRACTION:
             {
-                Numerical *num = evaluate((neda::Container*) ((neda::Fraction*) exprs[index])->numerator, varc, varn, varv);
-                Numerical *denom = evaluate((neda::Container*) ((neda::Fraction*) exprs[index])->denominator, varc, varn, varv);
+                Token *num = evaluate((neda::Container*) ((neda::Fraction*) exprs[index])->numerator, varc, varn, varv);
+                Token *denom = evaluate((neda::Container*) ((neda::Fraction*) exprs[index])->denominator, varc, varn, varv);
                 if(!num || !denom) {
                     if(num) {
                         delete num;
@@ -555,7 +555,7 @@ convertToDoubleAndOperate:
             }
             case neda::ObjType::SUPERSCRIPT:
             {
-                Numerical *exponent = evaluate((neda::Container*) ((neda::Superscript*) exprs[index])->contents, varc, varn, varv);
+                Token *exponent = evaluate((neda::Container*) ((neda::Superscript*) exprs[index])->contents, varc, varn, varv);
                 if(!exponent) {
                     freeTokens(&arr);
                     return nullptr;
@@ -570,7 +570,7 @@ convertToDoubleAndOperate:
             case neda::ObjType::RADICAL:
             {
                 Number two(2);
-                Numerical *n;
+                Token *n;
                 if(((neda::Radical*) exprs[index])->n) {
                     n = evaluate((neda::Container*) ((neda::Radical*) exprs[index])->n, varc, varn, varv);
                 }
@@ -578,7 +578,7 @@ convertToDoubleAndOperate:
                 else {
                     n = &two;
                 }
-                Numerical *contents = evaluate((neda::Container*) ((neda::Radical*) exprs[index])->contents, varc, varn, varv);
+                Token *contents = evaluate((neda::Container*) ((neda::Radical*) exprs[index])->contents, varc, varn, varv);
 
                 if(!n || !contents) {
                     if(n) {
@@ -591,7 +591,7 @@ convertToDoubleAndOperate:
                     return nullptr;
                 }
                 //Take the inverse of n
-                if(n->getNumericalType() == NumericalType::NUM) {
+                if(n->getType() == TokenType::NUMBER) {
                     ((Number*) n)->value = 1 / ((Number*) n)->value;
                 }
                 else {
@@ -672,7 +672,7 @@ convertToDoubleAndOperate:
                     //Special processing for logarithms:
                     if(strcmp(str, "log") == 0) {
                         if(end < exprs.length() && exprs[end]->getType() == neda::ObjType::SUBSCRIPT) {
-                            Numerical *sub = evaluate((neda::Container*) ((neda::Subscript*) exprs[end])->contents, varc, varn, varv);
+                            Token *sub = evaluate((neda::Container*) ((neda::Subscript*) exprs[end])->contents, varc, varn, varv);
                             if(!sub) {
                                 freeTokens(&arr);
                                 delete[] str;
@@ -718,7 +718,7 @@ convertToDoubleAndOperate:
                             else if(varc > 0) {
                                 for(uint8_t i = 0; i < varc; i ++) {
                                     if(strcmp(str, varn[i]) == 0) {
-                                        if(varv[i]->getNumericalType() == NumericalType::NUM) {
+                                        if(varv[i]->getType() == TokenType::NUMBER) {
                                             arr.add(new Number(((Number*) varv[i])->value));
                                         }
                                         else {
@@ -745,7 +745,7 @@ convertToDoubleAndOperate:
             case neda::ObjType::SIGMA_PI:
             {
                 //Evaluate the end
-                Numerical *end = evaluate((neda::Container*) ((neda::SigmaPi*) exprs[index])->finish, varc, varn, varv);
+                Token *end = evaluate((neda::Container*) ((neda::SigmaPi*) exprs[index])->finish, varc, varn, varv);
                 if(!end) {
                     freeTokens(&arr);
                     return nullptr;
@@ -776,7 +776,7 @@ convertToDoubleAndOperate:
                 }
                 //Attempt to evaluate the starting condition assign value
                 DynamicArray<neda::NEDAObj*> startVal(startContents->begin() + equalsIndex + 1, startContents->end());
-                Numerical *start = evaluate(&startVal, varc, varn, varv);
+                Token *start = evaluate(&startVal, varc, varn, varv);
                 if(!start) {
                     delete end;
                     freeTokens(&arr);
@@ -791,7 +791,7 @@ convertToDoubleAndOperate:
 
                 //Construct new variable arrays
                 const char **vNames = new const char*[varc + 1];
-                Numerical **vVals = new Numerical*[varc + 1];
+                Token **vVals = new Token*[varc + 1];
                 //Copy existing
                 for(uint8_t i = 0; i < varc; i ++) {
                     vNames[i] = varn[i];
@@ -802,11 +802,11 @@ convertToDoubleAndOperate:
 
                 auto &type = ((neda::SigmaPi*) exprs[index])->symbol;
                 //Different starting values for summation and product
-                Numerical *val = new Number(type.data == lcd::CHAR_SUMMATION.data ? 0 : 1);
+                Token *val = new Number(type.data == lcd::CHAR_SUMMATION.data ? 0 : 1);
                 //While the start is still less than or equal to the end
-                while(compareNumericals(start, end) <= 0) {
+                while(compareTokens(start, end) <= 0) {
                     //Evaluate the inside expression
-                    Numerical *n = evaluate((neda::Container*) ((neda::SigmaPi*) exprs[index])->contents, varc + 1, vNames, vVals);
+                    Token *n = evaluate((neda::Container*) ((neda::SigmaPi*) exprs[index])->contents, varc + 1, vNames, vVals);
                     //If there is ever a syntax error then cleanup and exit
                     if(!n) {
                         delete end;
@@ -822,7 +822,7 @@ convertToDoubleAndOperate:
                     //Operate takes care of deletion
                     val = (type.data == lcd::CHAR_SUMMATION.data ? Operator::OP_PLUS : Operator::OP_MULTIPLY).operate(val, n);
                     //Add one to the start
-                    if(start->getNumericalType() == NumericalType::NUM) {
+                    if(start->getType() == TokenType::NUMBER) {
                         ++((Number*) start)->value;
                     }
                     else {
@@ -845,6 +845,14 @@ convertToDoubleAndOperate:
             }
         }
 
-        //After that, we should be left with an expression with nothing but numericals, basic operators, and functions.
+        //After that, we should be left with an expression with nothing but Tokens, basic operators, and functions.
+        //Use shunting yard
+        Deque<Token*> output(arr.length());
+        Deque<Token*> opStack;
+        for(Token *t : arr) {
+            if(t->getType() == TokenType::NUMBER || t->getType() == TokenType::FRACTION) {
+                
+            }
+        }
 	}
 }

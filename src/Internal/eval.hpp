@@ -13,7 +13,8 @@ namespace eval {
      * Base Token class and type enum
      */
     enum class TokenType : uint8_t {
-        NUMERICAL,
+        NUMBER,
+        FRACTION,
         OPERATOR,
         L_BRACKET,
         R_BRACKET,
@@ -24,36 +25,19 @@ namespace eval {
         virtual TokenType getType() = 0;
     };
 
-    /*
-     * Numerical class and type enum
-     * In order to have both numbers and fractions, there is a base class shared between the Number and Fraction classes
-     */
-    enum class NumericalType : uint8_t {
-        NUM,
-        FRAC,
-    };
-    class Numerical : public Token {
-    public:
-        virtual TokenType getType() override {
-            return TokenType::NUMERICAL;
-        }
-        
-        virtual NumericalType getNumericalType() = 0;
-    };
-
-    class Number : public Numerical {
+    class Number : public Token {
     public:
         Number(double value) : value(value) {}
         double value;
 
-        virtual NumericalType getNumericalType() override {
-            return NumericalType::NUM;
+        virtual TokenType getType() override {
+            return TokenType::NUMBER;
         }
         
         static Number* constFromString(const char*);
     };
     
-    class Fraction : public Numerical {
+    class Fraction : public Token {
     public:
         Fraction(int64_t num, int64_t denom) : num(num), denom(denom) {
             reduce();
@@ -61,8 +45,8 @@ namespace eval {
         int64_t num;
         int64_t denom;
 
-        virtual NumericalType getNumericalType() override {
-            return NumericalType::FRAC;
+        virtual TokenType getType() override {
+            return TokenType::FRACTION;
         }
 
         static int64_t gcd(int64_t, int64_t);
@@ -109,7 +93,7 @@ namespace eval {
         //Operates on two numericals, taking into account fractions and everything
         //The returned numerical is allocated on the heap and needs to be freed
         //The input is deleted
-        Numerical* operate(Numerical*, Numerical*);
+        Token* operate(Token*, Token*);
     
     private:
         Operator(Type type) : type(type) {}
@@ -179,7 +163,7 @@ namespace eval {
         }
     }
     template <uint16_t Increase>
-    void freeNumericals(Deque<Numerical*, Increase> *q) {
+    void freeNumericals(Deque<Token*, Increase> *q) {
         while (!q->isEmpty()) {
             delete q->dequeue();
         }
@@ -187,7 +171,7 @@ namespace eval {
     bool isDigit(char);
     bool isNameChar(char);
     char extractChar(neda::NEDAObj*);
-    int8_t compareNumericals(const Numerical*, const Numerical*);
+    int8_t compareNumericals(const Token*, const Token*);
 
     //Shunting yard algorithm
     //Note: This does not delete the tokens in the DynamicArray
@@ -318,8 +302,8 @@ namespace eval {
         return stack.pop();
     }
 	
-    Numerical* evaluate(neda::Container *expr, uint8_t varc = 0, const char **varn = nullptr, Numerical **varv = nullptr);
-    Numerical* evaluate(DynamicArray<neda::NEDAObj*>*, uint8_t varc = 0, const char **varn = nullptr, Numerical **varv = nullptr);
+    Token* evaluate(neda::Container *expr, uint8_t varc = 0, const char **varn = nullptr, Token **varv = nullptr);
+    Token* evaluate(DynamicArray<neda::NEDAObj*>*, uint8_t varc = 0, const char **varn = nullptr, Token **varv = nullptr);
 }
 
 #endif
