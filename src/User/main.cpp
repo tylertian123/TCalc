@@ -147,6 +147,7 @@ void addChar(neda::Cursor *cursor, char ch) {
 extern uint16_t trigFuncIndex;
 extern void trigFunctionsMenuKeyPressHandler(neda::Cursor*, uint16_t);
 bool editExpr = true;
+neda::Container *calcResult = nullptr;
 void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 	switch(key) {
 	case KEY_SHIFT:
@@ -537,18 +538,38 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 	}
 	case KEY_ENTER:
 	{
+        editExpr = false;
 		eval::Token *result = eval::evaluate((neda::Container*) cursor->expr->getTopLevel());
-        neda::Container *cont = new neda::Container();
+        //Create the container that will hold the result
+        calcResult = new neda::Container();
         if(!result) {
-            cont->add(new neda::Character(LCD_CHAR_SERR));
+            calcResult->add(new neda::Character(LCD_CHAR_SERR));
         }
         else {
             if(result->getType() == eval::TokenType::NUMBER) {
+                char buf[64];
+                //Convert the result and store it
+                ftoa(((eval::Number*) result)->value, buf, 16, LCD_CHAR_EE);
+                neda::addString(calcResult, buf);
             }
             else {
+                char buf[64];
+                neda::Container *num = new neda::Container();
+                neda::Container *denom = new neda::Container();
+                ltoa(((eval::Fraction*) result)->num, buf);
+                neda::addString(num, buf);
+                ltoa(((eval::Fraction*) result)->denom, buf);
+                neda::addString(denom, buf);
+
+                calcResult->add(new neda::Fraction(num, denom));
             }
         }
-		break;
+
+        //Display the result
+        display.clearDrawingBuffer();
+        calcResult->draw(display, 0, 0);
+        display.updateDrawing();
+        return;
 	}
     case KEY_TRIG:
         //Set the display mode and reset the index
@@ -560,7 +581,13 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 		break;
 	default: break;
 	}
-	editExpr = false;
+
+    if(!editExpr) {
+        //When any key is pressed, delete the calculated result
+        delete calcResult;
+        calcResult = nullptr;
+	    editExpr = true;
+    }
 
 	display.clearDrawingBuffer();
 	adjustExpr(cursor->expr->getTopLevel(), cursor);
