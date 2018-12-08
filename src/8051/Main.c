@@ -50,7 +50,10 @@ const unsigned short code KEYMAP_CTRL[6][10] = {
 bit shift = 0;
 bit ctrl = 0;
 
+sbit STATUS = P1 ^ 3;
+
 void sendKey(unsigned short key) {
+	STATUS = !STATUS;
 	SBDI_BeginTransmission();
 	SBDI_SendByte(key >> 8);
 	SBDI_SendByte(key & 0x00FF);
