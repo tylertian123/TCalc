@@ -441,14 +441,23 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
     }
 	case KEY_FRAC:
 	{
+        neda::Fraction *frac;
         //If there's a number in front of the cursor, enclose that in the fraction
         if(cursor->index != 0 && eval::isDigit(eval::extractChar(cursor->expr->contents[cursor->index - 1]))) {
             bool isNum;
-            uint16_t end = eval::findTokenEnd(&cursor->expr->contents, cursor->index - 1, -1, isNum);
-            cursor->index = end;
+            uint16_t end = eval::findTokenEnd(&cursor->expr->contents, cursor->index - 1, -1, isNum) + 1;
+            uint16_t len = cursor->index - end;
             
+            //Create a new array with the objects
+            DynamicArray<neda::NEDAObj*> arr(cursor->expr->contents.begin() + end, cursor->expr->contents.begin() + cursor->index);
+            cursor->index = end;
+            //Remove the objects from the original array
+            cursor->expr->contents.removeAt(end, len);
+            frac = new neda::Fraction(new neda::Container(arr), new neda::Container());
         }
-		neda::Fraction *frac = new neda::Fraction(new neda::Container(), new neda::Container());
+        else {
+		    frac = new neda::Fraction(new neda::Container(), new neda::Container());
+        }
         cursor->add(frac);
         frac->getCursor(*cursor, neda::CURSORLOCATION_START);
         //Make sure the position is updated so adjustExpr will not mess up the display
