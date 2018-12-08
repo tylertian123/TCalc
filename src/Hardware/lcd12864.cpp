@@ -396,7 +396,7 @@ namespace lcd {
         }
     }
 
-    void LCD12864::fill(int16_t x, int16_t y, uint16_t width, uint16_t height) {
+    void LCD12864::fill(int16_t x, int16_t y, uint16_t width, uint16_t height, bool invert) {
         //Check for out of bounds
         if(x >= 128 || y >= 64) {
             return;
@@ -420,7 +420,12 @@ namespace lcd {
                 if(y + row < 0) {
                     continue;
                 }
-                ORDrawBufferByte(baseByte, y + row, data);
+                if(invert) {
+                    ANDDrawBufferByte(baseByte, y + row, ~data);
+                }
+                else {
+                    ORDrawBufferByte(baseByte, y + row, data);
+                }
             }
             return;
         }
@@ -434,11 +439,26 @@ namespace lcd {
             if(y + row < 0) {
                 continue;
             }
-            ORDrawBufferByte(baseByte, y + row, start);
-            for(uint16_t col = 0; col < bytesWide; col ++) {
-                ORDrawBufferByte(baseByte + 1 + col, y + row, 0xFF);
+            if(invert) {
+                ANDDrawBufferByte(baseByte, y + row, ~start);
             }
-            ORDrawBufferByte(baseByte + 1 + bytesWide, y + row, end);
+            else {
+                ORDrawBufferByte(baseByte, y + row, start);
+            }
+            for(uint16_t col = 0; col < bytesWide; col ++) {
+                if(invert) {
+                    ANDDrawBufferByte(baseByte + 1 + col, y + row, 0x00);
+                }
+                else {
+                    ORDrawBufferByte(baseByte + 1 + col, y + row, 0xFF);
+                }
+            }
+            if(invert) {
+                ANDDrawBufferByte(baseByte + 1 + bytesWide, y + row, ~end);
+            }
+            else {
+                ORDrawBufferByte(baseByte + 1 + bytesWide, y + row, end);
+            }
         }
     }
 	

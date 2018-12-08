@@ -584,7 +584,10 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 
         //Display the result
         display.clearDrawingBuffer();
-        calcResult->draw(display, 0, 0);
+        cursor->expr->drawConnected(display);
+        //Fill the area first
+        display.fill(128 - calcResult->exprWidth, 64 - calcResult->exprHeight, calcResult->exprWidth, calcResult->exprHeight, true);
+        calcResult->draw(display, 128 - calcResult->exprWidth, 64 - calcResult->exprHeight);
         display.updateDrawing();
         return;
 	}
