@@ -443,6 +443,9 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 	{
         //If there's a number in front of the cursor, enclose that in the fraction
         if(cursor->index != 0 && eval::isDigit(eval::extractChar(cursor->expr->contents[cursor->index - 1]))) {
+            bool isNum;
+            uint16_t end = eval::findTokenEnd(&cursor->expr->contents, cursor->index - 1, -1, isNum);
+            cursor->index = end;
             
         }
 		neda::Fraction *frac = new neda::Fraction(new neda::Container(), new neda::Container());

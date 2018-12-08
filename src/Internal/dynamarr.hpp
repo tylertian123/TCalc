@@ -101,15 +101,15 @@ public:
 		contents[where] = elem;
 		return true;
 	}
-	void removeAt(uint16_t where) {
+	void removeAt(uint16_t where, uint16_t howMany = 1) {
 		//Ignore if out of bounds
-		if (where >= len) {
+		if (where + howMany - 1 >= len) {
 			return;
 		}
-		len--;
+		len -= howMany;
 		//Shift all elements after the index back
-		for (uint16_t i = where; i < len; i++) {
-			contents[i] = contents[i + 1];
+		for (uint16_t i = where - 1 + howMany; i < len; i++) {
+			contents[i] = contents[i + howMany];
 		}
 	}
 	T pop() {
