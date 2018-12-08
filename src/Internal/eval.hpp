@@ -5,6 +5,7 @@
 #include "dynamarr.hpp"
 #include "deque.hpp"
 #include "util.hpp"
+#include "lcd12864_charset.hpp"
 #include <math.h>
 
 namespace eval {
@@ -142,6 +143,32 @@ namespace eval {
     bool isNameChar(char);
     char extractChar(neda::NEDAObj*);
     int8_t compareNumericals(const Token*, const Token*);
+
+    template <uint16_t Increase>
+    uint16_t findTokenEnd(DynamicArray<neda::NEDAObj*, Increase> *arr, uint16_t start, int8_t direction, bool &isNum) {
+        int16_t end = start;
+        for (; end < arr->length() && end >= 0; end += direction) {
+            char ch = extractChar((*arr)[end]);
+            //Special processing for the first char
+            if (end == start) {
+                //The first digit has to be either a number or a name char (operators are handled)
+                isNum = isDigit(ch);
+            }
+            else {
+                //Otherwise, break if one of the three conditions:
+                //The char is neither a name char or digit, and that it's not a plus or minus followed by an ee
+                //Or if the token is a number and the char is a name char
+                //Or if the token is not a number and the char is a digit
+                bool inc = isNameChar(ch);
+                bool id = isDigit(ch);
+                if ((!inc && !id && !((ch == '+' || ch == '-') && extractChar((*arr)[end + direction]) == LCD_CHAR_EE))
+                    || isNum && inc || !isNum && id) {
+                    break;
+                }
+            }
+        }
+        return end;
+    }
 	
     Token* evaluate(neda::Container *expr, uint8_t varc = 0, const char **varn = nullptr, Token **varv = nullptr);
     Token* evaluate(DynamicArray<neda::NEDAObj*>*, uint8_t varc = 0, const char **varn = nullptr, Token **varv = nullptr);

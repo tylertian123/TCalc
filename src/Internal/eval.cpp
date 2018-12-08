@@ -632,27 +632,7 @@ convertToDoubleAndOperate:
 
                 //Find the end
                 bool isNum;
-                uint16_t end = index;
-                for (; end < exprs.length(); ++end) {
-                    char ch = extractChar(exprs[end]);
-                    //Special processing for the first char
-                    if (end == index) {
-                        //The first digit has to be either a number or a name char (operators are handled)
-                        isNum = isDigit(ch);
-                    }
-                    else {
-                        //Otherwise, break if one of the three conditions:
-                        //The char is neither a name char or digit, and that it's not a plus or minus followed by an ee
-                        //Or if the token is a number and the char is a name char
-                        //Or if the token is not a number and the char is a digit
-                        bool inc = isNameChar(ch);
-                        bool id = isDigit(ch);
-                        if ((!inc && !id && !((ch == '+' || ch == '-') && extractChar(exprs[end - 1]) == LCD_CHAR_EE))
-                            || isNum && inc || !isNum && id) {
-                            break;
-                        }
-                    }
-                }
+                uint16_t end = findTokenEnd(&exprs, index, 1, isNum);
                 char *str = new char[end - index + 1];
                 for (uint16_t i = index; i < end; i++) {
                     char ch = extractChar(exprs[i]);

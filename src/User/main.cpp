@@ -73,8 +73,9 @@ DispMode dispMode = DispMode::EXPR_ENTRY;
 void initCursorTimer() {
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
 	TIM_TimeBaseInitTypeDef initStruct;
+    TIM_TimeBaseStructInit(&initStruct);
 	initStruct.TIM_CounterMode = TIM_CounterMode_Up;
-	initStruct.TIM_ClockDivision = TIM_CKD_DIV4;
+	initStruct.TIM_ClockDivision = TIM_CKD_DIV1;
 	initStruct.TIM_Prescaler = 17999;
 	initStruct.TIM_Period = 2000;
 	initStruct.TIM_RepetitionCounter = 0;
@@ -440,6 +441,10 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
     }
 	case KEY_FRAC:
 	{
+        //If there's a number in front of the cursor, enclose that in the fraction
+        if(cursor->index != 0 && eval::isDigit(eval::extractChar(cursor->expr->contents[cursor->index - 1]))) {
+            
+        }
 		neda::Fraction *frac = new neda::Fraction(new neda::Container(), new neda::Container());
         cursor->add(frac);
         frac->getCursor(*cursor, neda::CURSORLOCATION_START);
