@@ -143,12 +143,25 @@ void adjustExpr(neda::Expr *ex, neda::Cursor *cursorRef) {
 void addChar(neda::Cursor *cursor, char ch) {
     cursor->add(new neda::Character(ch));
 }
+
+#define RESULT_STORE_COUNT 3
+//Previous expressions and their results
+neda::Container *calcResults[RESULT_STORE_COUNT] = { nullptr };
+neda::Container *expressions[RESULT_STORE_COUNT] = { nullptr };
+void drawResult(uint8_t id) {
+    //Display the result
+    display.clearDrawingBuffer();
+    expressions[id]->Expr::draw(display);
+    //Fill the area first
+    display.fill(128 - CURSOR_HORIZ_SPACING - calcResults[id]->exprWidth, 64 - CURSOR_VERT_SPACING - calcResults[id]->exprHeight, calcResults[id]->exprWidth, calcResults[id]->exprHeight, true);
+    calcResults[id]->draw(display, 128 - CURSOR_HORIZ_SPACING - calcResults[id]->exprWidth, 64 - CURSOR_VERT_SPACING - calcResults[id]->exprHeight);
+}
+
 //Key press handlers
 //Probably gonna make this name shorter, but couldn't bother.
 extern uint16_t trigFuncIndex;
 extern void trigFunctionsMenuKeyPressHandler(neda::Cursor*, uint16_t);
 bool editExpr = true;
-neda::Container *calcResult = nullptr;
 void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 	switch(key) {
 	case KEY_SHIFT:
@@ -540,7 +553,7 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
         }
 		break;
 	}
-	case KEY_ALLCLEAR:
+	case KEY_CLEAR:
 	{
 		//Keep pointer of original
 		neda::Expr *original = cursor->expr->getTopLevel();
@@ -558,21 +571,21 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
         editExpr = false;
 		eval::Token *result = eval::evaluate((neda::Container*) cursor->expr->getTopLevel());
         //Create the container that will hold the result
-        calcResult = new neda::Container();
+        calcResults[0] = new neda::Container();
         if(!result) {
-            calcResult->add(new neda::Character(LCD_CHAR_SERR));
+            calcResults[0]->add(new neda::Character(LCD_CHAR_SERR));
         }
         else {
             if(result->getType() == eval::TokenType::NUMBER) {
                 if(isnan(((eval::Number*) result)->value)) {
                     //No complex numbers allowed!!
-                    calcResult->add(new neda::Character('\xff'));
+                    calcResults[0]->add(new neda::Character('\xff'));
                 }
                 else {
                     char buf[64];
                     //Convert the result and store it
                     ftoa(((eval::Number*) result)->value, buf, 16, LCD_CHAR_EE);
-                    neda::addString(calcResult, buf);
+                    neda::addString(calcResults[0], buf);
                 }
             }
             else {
@@ -584,16 +597,12 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
                 ltoa(((eval::Fraction*) result)->denom, buf);
                 neda::addString(denom, buf);
 
-                calcResult->add(new neda::Fraction(num, denom));
+                calcResults[0]->add(new neda::Fraction(num, denom));
             }
         }
+        expressions[0] = (neda::Container*) cursor->expr->getTopLevel();
 
-        //Display the result
-        display.clearDrawingBuffer();
-        cursor->expr->drawConnected(display);
-        //Fill the area first
-        display.fill(128 - calcResult->exprWidth, 64 - calcResult->exprHeight, calcResult->exprWidth, calcResult->exprHeight, true);
-        calcResult->draw(display, 128 - calcResult->exprWidth, 64 - calcResult->exprHeight);
+        drawResult(0);
         display.updateDrawing();
         return;
 	}
@@ -609,7 +618,7 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 	}
 
     if(!editExpr) {
-        //When any key is pressed, delete the calculated result
+        //When any key is pressed, shift everything right
         delete calcResult;
         calcResult = nullptr;
 	    editExpr = true;
