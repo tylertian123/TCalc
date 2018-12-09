@@ -476,20 +476,6 @@ convertToDoubleAndOperate:
 
         while (index < exprs.length()) {
             switch (exprs[index]->getType()) {
-            //If we encounter nested containers, just do a recursive call
-            case neda::ObjType::CONTAINER:
-            {   
-                Token *result = evaluate((neda::Container*) exprs[index], varc, varn, varv);
-                if(!result) {
-                    freeTokens(&arr);
-                    return nullptr;
-                }
-                arr.add(result);
-
-                ++index;
-                allowUnary = false;
-                break;
-            }
             case neda::ObjType::L_BRACKET:
             {
                 //If the last token was not an operator, then it must be an implied multiplication
@@ -572,6 +558,10 @@ convertToDoubleAndOperate:
             }
             case neda::ObjType::RADICAL:
             {
+                //If the last token was not an operator, then it must be an implied multiplication
+                if(!allowUnary) {
+                    arr.add(&Operator::OP_MULTIPLY);
+                }
                 Token *n;
                 if(((neda::Radical*) exprs[index])->n) {
                     n = evaluate((neda::Container*) ((neda::Radical*) exprs[index])->n, varc, varn, varv);

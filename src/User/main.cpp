@@ -163,6 +163,35 @@ extern uint16_t trigFuncIndex;
 extern void trigFunctionsMenuKeyPressHandler(neda::Cursor*, uint16_t);
 bool editExpr = true;
 void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
+    if(!editExpr && key != KEY_UP && key != KEY_DOWN) {
+        //Shift everything back
+        if(calcResults[RESULT_STORE_COUNT - 1]) {
+            delete calcResults[RESULT_STORE_COUNT - 1];
+            delete expressions[RESULT_STORE_COUNT - 1];
+            //Set to null pointers
+            calcResults[RESULT_STORE_COUNT - 1] = expressions[RESULT_STORE_COUNT - 1] = nullptr;
+        }
+        for(uint8_t i = RESULT_STORE_COUNT - 1; i > 0; --i) {
+            calcResults[i] = calcResults[i - 1];
+            expressions[i] = expressions[i - 1];
+        }
+        calcResults[0] = expressions[0] = nullptr;
+
+        //If the key is a left or right, make a copy of the last expression
+        //Otherwise just insert a new expression
+        neda::Container *newExpr;
+        if(key == KEY_LEFT || key == KEY_RIGHT) {
+            newExpr = expressions[1]->copy();
+        }
+        else {
+            newExpr = new neda::Container();
+        }
+        newExpr->getCursor(*cursor, neda::CURSORLOCATION_END);
+        newExpr->x = CURSOR_HORIZ_SPACING;
+        newExpr->y = CURSOR_VERT_SPACING;
+        editExpr = true;
+    }
+
 	switch(key) {
 	case KEY_SHIFT:
 		shiftLED = !shiftLED;
@@ -553,6 +582,17 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
         }
 		break;
 	}
+    //AC does the same as regular clear except it deletes the stored expressions as well
+    case KEY_ALLCLEAR:
+    {
+        for(uint8_t i = 0; i < RESULT_STORE_COUNT; i ++) {
+            if(expressions[i]) {
+                delete expressions[i];
+                delete calcResults[i];
+                expressions[i] = calcResults[i] = nullptr;
+            }
+        }
+    }
 	case KEY_CLEAR:
 	{
 		//Keep pointer of original
@@ -616,13 +656,6 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 		break;
 	default: break;
 	}
-
-//    if(!editExpr) {
-//        //When any key is pressed, shift everything right
-//        delete calcResult;
-//        calcResult = nullptr;
-//	    editExpr = true;
-//    }
 
 	display.clearDrawingBuffer();
 	adjustExpr(cursor->expr->getTopLevel(), cursor);

@@ -67,6 +67,9 @@ namespace neda {
 	
 	//*************************** Container ***************************************
     uint16_t Container::getTopSpacing() {
+        if(contents.length() == 0) {
+            return EMPTY_EXPR_HEIGHT / 2;
+        }
         uint16_t maxTopSpacing = 0;
         //Take the max of all the top spacings
         for(NEDAObj *ex : contents) {
