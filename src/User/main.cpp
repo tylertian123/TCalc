@@ -564,10 +564,16 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
         }
         else {
             if(result->getType() == eval::TokenType::NUMBER) {
-                char buf[64];
-                //Convert the result and store it
-                ftoa(((eval::Number*) result)->value, buf, 16, LCD_CHAR_EE);
-                neda::addString(calcResult, buf);
+                if(isnan(((eval::Number*) result)->value)) {
+                    //No complex numbers allowed!!
+                    calcResult->add(new neda::Character('\xff'));
+                }
+                else {
+                    char buf[64];
+                    //Convert the result and store it
+                    ftoa(((eval::Number*) result)->value, buf, 16, LCD_CHAR_EE);
+                    neda::addString(calcResult, buf);
+                }
             }
             else {
                 char buf[64];
