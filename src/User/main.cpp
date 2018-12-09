@@ -165,6 +165,25 @@ void drawResult(uint8_t id) {
 //Variables
 DynamicArray<char*> varNames;
 DynamicArray<eval::Token*> varVals;
+//Returns whether a new variable was created
+bool updateVar(char *name, eval::Token *value) {
+    uint8_t i;
+    for(i = 0; i < varNames.length(); ++i) {
+        //Update it if found
+        if(strcmp(varNames[i], name) == 0) {
+            delete varVals[i];
+            varVals[i] = value;
+        }
+    }
+    //If i is equal to varNames.length() it was not found
+    if(i == varNames.length()) {
+        //Add the var if not found
+        varNames.add(name);
+        varVals.add(value);
+        return true;
+    }
+	return false;
+}
 
 //Key press handlers
 //Probably gonna make this name shorter, but couldn't bother.
@@ -664,9 +683,46 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 	case KEY_ENTER:
 	{
         editExpr = false;
-        //Evaluate with variables
-		eval::Token *result = eval::evaluate((neda::Container*) cursor->expr->getTopLevel(), 
-                static_cast<uint8_t>(varNames.length()), const_cast<const char**>(varNames.asArray()), varVals.asArray());
+		eval::Token *result;
+        neda::Container *expr = (neda::Container*) cursor->expr->getTopLevel();
+
+        //First see if this is an assignment operation
+        uint16_t equalsIndex = eval::findEquals(&expr->contents);
+        if(equalsIndex != 0xFFFF) {
+            //Isolate the variable name
+            char *vName = new char[equalsIndex + 1];
+            for(uint16_t i = 0; i < equalsIndex; i ++) {
+                vName[i] = eval::extractChar(expr->contents[i]);
+            }
+            vName[equalsIndex] = '\0';
+            //Evaluate
+            DynamicArray<neda::NEDAObj*> val(expr->contents.begin() + equalsIndex + 1, expr->contents.end());
+            result = eval::evaluate(&val, static_cast<uint8_t>(varNames.length()), const_cast<const char**>(varNames.asArray()), varVals.asArray());
+
+            //If result is valid, add the variable
+            if(result) {
+                //Create a copy to avoid crashes
+                eval::Token *value;
+                if(result->getType() == eval::TokenType::NUMBER) {
+                    value = new eval::Number(((eval::Number*) result)->value);
+                }
+                else {
+                    value = new eval::Fraction(((eval::Fraction*) result)->num, ((eval::Fraction*) result)->denom);
+                }
+                //Add it
+                //If a new variable was not created, then delete the name to avoid memory leaks
+                if(!updateVar(vName, value)) {
+                    delete vName;
+                }
+            }
+            else {
+                //Delete the variable name to avoid a memory leak
+                delete vName;
+            }
+        }
+        else {
+            result = eval::evaluate(expr, static_cast<uint8_t>(varNames.length()), const_cast<const char**>(varNames.asArray()), varVals.asArray());
+        }
         //Create the container that will hold the result
         calcResults[0] = new neda::Container();
         if(!result) {
@@ -698,22 +754,12 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
             }
 
             //Now update the value of the Ans variable
-            uint8_t i;
-            for(i = 0; i < varNames.length(); ++i) {
-                //Update it if found
-                if(strcmp(varNames[i], "Ans") == 0) {
-                    delete varVals[i];
-                    varVals[i] = result;
-                }
-            }
-            //If i is equal to varNames.length() Ans was not found
-            if(i == varNames.length()) {
-                //Var names must be allocated on the heap
-                char *name = new char[4];
-                strcpy(name, "Ans");
-                //Add the var if not found
-                varNames.add(name);
-                varVals.add(result);
+            //Var names must be allocated on the heap
+            char *name = new char[4];
+            strcpy(name, "Ans");
+            //If a new variable was not created, we're free to delete the name
+            if(!updateVar(name, result)) {
+                delete name;
             }
         }
         expressions[0] = (neda::Container*) cursor->expr->getTopLevel();

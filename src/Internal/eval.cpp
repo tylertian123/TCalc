@@ -461,6 +461,29 @@ convertToDoubleAndOperate:
         double bVal = b->getType() == TokenType::NUMBER ? ((Number*) b)->value : ((Fraction*) b)->doubleVal();
         return aVal > bVal ? 1 : bVal > aVal ? -1 : 0;
     }
+    uint16_t findEquals(DynamicArray<neda::NEDAObj*> *arr) {
+        uint16_t equalsIndex = 0;
+        bool validName = true;
+        for(auto i : *arr) {
+            if(i->getType() == neda::ObjType::CHAR_TYPE && ((neda::Character*) i)->ch == '=') {
+                break;
+            }
+            //In addition to finding the equals sign, also verify that the left hand side of the equals only contains valid
+            //name characters
+            if(!isNameChar(extractChar(i))) {
+                validName = false;
+                break;
+            }
+            ++equalsIndex;
+        }
+        //If equalsIndex is the same as the length, then the if condition was never true, return an error value
+        //Or if it's at index 0 or length - 1, return null since the condition can't be complete
+        //Or if the name is not valid
+        if(!validName || equalsIndex == arr->length() || equalsIndex == 0 || equalsIndex == arr->length() - 1) {
+            return 0xFFFF;
+        }
+        return equalsIndex;
+    }
 
     Token* evaluate(neda::Container *expr, uint8_t varc, const char **varn, Token **varv) {
         return evaluate(&expr->contents, varc, varn, varv);
@@ -734,24 +757,8 @@ convertToDoubleAndOperate:
                 }
                 //Split the starting condition at the equals sign
                 auto startContents = &((neda::Container*) ((neda::SigmaPi*) exprs[index])->start)->contents;
-                uint16_t equalsIndex = 0;
-                bool validName = true;
-                for(auto i : *startContents) {
-                    if(i->getType() == neda::ObjType::CHAR_TYPE && ((neda::Character*) i)->ch == '=') {
-                        break;
-                    }
-                    //In addition to finding the equals sign, also verify that the left hand side of the equals only contains valid
-                    //name characters
-                    if(!isNameChar(extractChar(i))) {
-                        validName = false;
-                        break;
-                    }
-                    ++equalsIndex;
-                }
-                //If equalsIndex is the same as the length, then the if condition was never true, so return null
-                //Or if it's at index 0 or length - 1, return null since the condition can't be complete
-                //Or if the name is not valid
-                if(!validName || equalsIndex == startContents->length() || equalsIndex == 0 || equalsIndex == startContents->length() - 1) {
+                uint16_t equalsIndex = findEquals(startContents);
+                if(equalsIndex == 0xFFFF) {
                     delete end;
                     freeTokens(&arr);
                     return nullptr;
