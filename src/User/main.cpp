@@ -66,6 +66,7 @@ uint16_t fetchKey() {
 enum class DispMode {
     EXPR_ENTRY,
     TRIG_MENU,
+    CONST_MENU,
 };
 DispMode dispMode = DispMode::EXPR_ENTRY;
 
@@ -187,8 +188,7 @@ bool updateVar(char *name, eval::Token *value) {
 
 //Key press handlers
 //Probably gonna make this name shorter, but couldn't bother.
-extern uint16_t trigFuncIndex;
-extern void trigFunctionsMenuKeyPressHandler(neda::Cursor*, uint16_t);
+extern uint16_t selectorIndex;
 bool editExpr = true;
 uint8_t currentExpr = 0;
 void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
@@ -768,10 +768,11 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
         display.updateDrawing();
         return;
 	}
+    case KEY_CONST:
     case KEY_TRIG:
         //Set the display mode and reset the index
-        dispMode = DispMode::TRIG_MENU;
-        trigFuncIndex = 0;
+        dispMode = key == KEY_TRIG ? DispMode::TRIG_MENU : DispMode::CONST_MENU;
+        selectorIndex = 0;
         //We need to call the function once to get the interface drawn
         //To do this, we insert a dummy value into the key buffer
         putKey(KEY_DUMMY);
@@ -785,7 +786,9 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 	cursor->draw(display);
 	display.updateDrawing();
 }
-uint16_t trigFuncIndex = 0;
+
+uint16_t selectorIndex = 0;
+
 const char *trigFuncs[] = {
     "sin", "cos", "tan", "arcsin", "arccos", "arctan",
     "sinh", "cosh", "tanh", "arcsinh", "arccosh", "arctanh",
@@ -800,41 +803,39 @@ void trigFunctionsMenuKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
     case KEY_CENTER:
     case KEY_ENTER:
         //Insert the chars
-        for(uint8_t i = 0; trigFuncNames[trigFuncIndex][i] != '\0'; i ++) {
-            cursor->add(new neda::Character(trigFuncNames[trigFuncIndex][i]));
-        }
+        addStr(cursor, trigFuncNames[selectorIndex]);
         cursor->add(new neda::LeftBracket());
         cursor->expr->Expr::draw(display);
         //Intentional fall-through
     case KEY_TRIG:
         dispMode = DispMode::EXPR_ENTRY;
-        trigFuncIndex = 0;
+        selectorIndex = 0;
         //We need to call the function once to get the interface drawn
         //To do this, we insert a dummy value into the key buffer
         putKey(KEY_DUMMY);
         return;
     case KEY_UP:
-        if(trigFuncIndex > 0) {
-            --trigFuncIndex;
+        if(selectorIndex > 0) {
+            --selectorIndex;
         }
         else {
-            trigFuncIndex = 11;
+            selectorIndex = 11;
         }
         break;
     case KEY_DOWN:
-        ++trigFuncIndex;
-        if(trigFuncIndex >= 12) {
-            trigFuncIndex = 0;
+        ++selectorIndex;
+        if(selectorIndex >= 12) {
+            selectorIndex = 0;
         }
         break;
     case KEY_LEFT:
-        if(trigFuncIndex >= 6) {
-            trigFuncIndex -= 6;
+        if(selectorIndex >= 6) {
+            selectorIndex -= 6;
         }
         break;
     case KEY_RIGHT:
-        if(trigFuncIndex < 6) {
-            trigFuncIndex += 6;
+        if(selectorIndex < 6) {
+            selectorIndex += 6;
         }
         break;
     default: break;
@@ -849,11 +850,56 @@ void trigFunctionsMenuKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
         }
 
         if(i < 6) {
-            display.drawString(1, y, trigFuncs[i], trigFuncIndex == i);
+            display.drawString(1, y, trigFuncs[i], selectorIndex == i);
         }
         else {
-            display.drawString(64, y, trigFuncs[i], trigFuncIndex == i);
+            display.drawString(64, y, trigFuncs[i], selectorIndex == i);
         }
+        y += 10;
+    }
+
+    display.updateDrawing();
+}
+
+const char *constantNames[] = {
+    LCD_STR_PI, LCD_STR_EULR, LCD_STR_AVGO, LCD_STR_ECHG, LCD_STR_VLIG,
+};
+void constSelectionMenuKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
+    switch(key) {
+    case KEY_CENTER:
+    case KEY_ENTER:
+        //Insert the chars
+        addStr(cursor, constantNames[selectorIndex]);
+        cursor->expr->Expr::draw(display);
+        //Intentional fall-through
+    case KEY_CONST:
+        dispMode = DispMode::EXPR_ENTRY;
+        selectorIndex = 0;
+        //We need to call the function once to get the interface drawn
+        //To do this, we insert a dummy value into the key buffer
+        putKey(KEY_DUMMY);
+        return;
+    case KEY_UP:
+        if(selectorIndex > 0) {
+            --selectorIndex;
+        }
+        else {
+            selectorIndex = 4;
+        }
+        break;
+    case KEY_DOWN:
+        ++selectorIndex;
+        if(selectorIndex >= 5) {
+            selectorIndex = 0;
+        }
+        break;
+    default: break;
+    }
+
+    display.clearDrawingBuffer();
+    int16_t y = 1;
+    for(uint8_t i = 0; i < 5; i ++) {
+        display.drawString(1, y, constantNames[i], selectorIndex == i);
         y += 10;
     }
 
@@ -920,6 +966,9 @@ int main() {
                 break;
             case DispMode::TRIG_MENU:
                 trigFunctionsMenuKeyPressHandler(cursor, key);
+                break;
+            case DispMode::CONST_MENU:
+                constSelectionMenuKeyPressHandler(cursor, key);
                 break;
             default: break;
             }
