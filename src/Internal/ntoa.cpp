@@ -1,5 +1,6 @@
 #include "ntoa.hpp"
 #include <math.h>
+#include <string.h>
 #include "util.hpp"
 
 //Reverses a string
@@ -41,11 +42,24 @@ uint8_t ltoa(int64_t val, char *str) {
 //ndigits is the number of significant digits
 //echar is the character to use to represent 10^x in the case of scientific notation, e.g. 2.34e10
 uint8_t ftoa(double val, char *str, uint8_t ndigits, char echar) {
+    //Special cases
+    if(isnan(val)) {
+        strcpy(str, "NaN");
+        return 3;
+    }
+    else if(val == INFINITY) {
+        strcpy(str, "Infinity");
+        return 8;
+    }
+    else if(val == -INFINITY) {
+        strcpy(str, "-Infinity");
+        return 9;
+    }
     //Handle values greater or equal to 10^6 or less than or equal to 10^-5 in scientific notation
-    if(val >= 1e6) {
+    if(abs(val) >= 1e6) {
         //Divide until the number is less than 10
         uint16_t p = 0;
-        while(val >= 10) {
+        while(abs(val) >= 10) {
             val /= 10;
             ++p;
         }
@@ -55,9 +69,9 @@ uint8_t ftoa(double val, char *str, uint8_t ndigits, char echar) {
         len += ltoa(p, str + len);
         return len;
     } 
-    else if(val <= 1e-5) {
+    else if(abs(val) <= 1e-5) {
         uint16_t p = 0;
-        while(val < 1) {
+        while(abs(val) < 1) {
             val *= 10;
             ++p;
         }
@@ -68,7 +82,7 @@ uint8_t ftoa(double val, char *str, uint8_t ndigits, char echar) {
         return len;
     }
 
-    uint64_t whole = (uint64_t) val;
+    int64_t whole = (uint64_t) val;
     uint8_t len = ltoa(whole, str);
     //If it's an integer, finish here
     if(whole == val) {
