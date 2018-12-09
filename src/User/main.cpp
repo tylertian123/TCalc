@@ -157,6 +157,10 @@ void drawResult(uint8_t id) {
     calcResults[id]->draw(display, 128 - CURSOR_HORIZ_SPACING - calcResults[id]->exprWidth, 64 - CURSOR_VERT_SPACING - calcResults[id]->exprHeight);
 }
 
+//Variables
+DynamicArray<char*> varNames;
+DynamicArray<eval::Token*> varVals;
+
 //Key press handlers
 //Probably gonna make this name shorter, but couldn't bother.
 extern uint16_t trigFuncIndex;
@@ -638,7 +642,9 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 	case KEY_ENTER:
 	{
         editExpr = false;
-		eval::Token *result = eval::evaluate((neda::Container*) cursor->expr->getTopLevel());
+        //Evaluate with variables
+		eval::Token *result = eval::evaluate((neda::Container*) cursor->expr->getTopLevel(), 
+                static_cast<uint8_t>(varNames.length()), const_cast<const char**>(varNames.asArray()), varVals.asArray());
         //Create the container that will hold the result
         calcResults[0] = new neda::Container();
         if(!result) {
@@ -667,6 +673,25 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
                 neda::addString(denom, buf);
 
                 calcResults[0]->add(new neda::Fraction(num, denom));
+            }
+
+            //Now update the value of the Ans variable
+            uint8_t i;
+            for(i = 0; i < varNames.length(); ++i) {
+                //Update it if found
+                if(strcmp(varNames[i], "Ans") == 0) {
+                    delete varVals[i];
+                    varVals[i] = result;
+                }
+            }
+            //If i is equal to varNames.length() Ans was not found
+            if(i == varNames.length()) {
+                //Var names must be allocated on the heap
+                char *name = new char[4];
+                strcpy(name, "Ans");
+                //Add the var if not found
+                varNames.add(name);
+                varVals.add(result);
             }
         }
         expressions[0] = (neda::Container*) cursor->expr->getTopLevel();

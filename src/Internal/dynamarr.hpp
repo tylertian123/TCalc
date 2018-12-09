@@ -4,12 +4,18 @@
 #include "stm32f10x.h"
 #include <stdlib.h>
 
+/*
+ * Class DynamicArray
+ * A dynamic array class.
+ * T - The type of elements in this array
+ * IncreaseAmount - The amount of elements by which to increase the size every time the array is filled
+ */
 template <typename T, uint16_t IncreaseAmount = 1>
 class DynamicArray {
 public:
-	//Default constructor with length 0
+	//Creates a new DynamicArray with a default length of 0
 	DynamicArray() : contents((T*)malloc(0)), len(0), maxLen(0) {}
-	//Constructor with initial capacity
+	//Creates a new DynamicArray with a starting maximum length
 	DynamicArray(uint16_t initialCapacity) : len(0), maxLen(initialCapacity) {
 		//Make sure the length is multipled by the size of T
 		contents = (T*)malloc(sizeof(T) * initialCapacity);
@@ -33,7 +39,7 @@ public:
 			*i = *(start++);
 		}
 	}
-	//Array constructor
+	//Array constructor from an array and size
 	DynamicArray(const T *arr, uint16_t len) : len(len), maxLen(len) {
 		contents = (T*)malloc(sizeof(T) * maxLen);
 
@@ -45,12 +51,15 @@ public:
 		free(contents);
 	}
 
+    //Retrieves the length of this DynamicArray
 	uint16_t length() const {
 		return len;
 	}
+    //Retrieves the maximum length of this DynamicArray (the length it can be before having to reallocate)
 	uint16_t maxLength() const {
 		return maxLen;
 	}
+    //Resizes the maximum length
 	bool resize(uint16_t newSize) {
 		uint16_t oldSize = maxLen;
 		//Ignore if the new size is less than the length
@@ -70,10 +79,11 @@ public:
 		contents = (T*)tmp;
 		return true;
 	}
+    //Reallocates the contents so that all extra space is freed
 	void minimize() {
 		resize(len);
 	}
-
+    
 	bool add(const T &elem) {
 		len++;
 		//If the new length is more than what we can store then reallocate
@@ -144,6 +154,13 @@ public:
 		}
 		return true;
 	}
+
+    T* asArray() {
+        return contents;
+    }
+    const T* asArray() const {
+        return contents;
+    }
 
 	//WARNING: Does not check for out of bounds!
 	const T& operator[](uint16_t i) const {
