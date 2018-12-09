@@ -108,6 +108,7 @@
 #define KEY_FRACFMT   0x0068
 #define KEY_EQUAL     0x0069
 #define KEY_CONST     0x006A
+#define KEY_CLEARVAR  0x006B
 
 #define KEY_DUMMY     0xFFFF
 
