@@ -2,8 +2,12 @@
 #define __LCD12864_CHARSET_H__
 #include "lcd12864.hpp"
 
-#define LCD_CHARSET_LOWBOUND 0x19
+#define LCD_CHARSET_LOWBOUND 0x16
 #define LCD_CHARSET_HIGHBOUND 0x1F
+
+#define LCD_STR_AVGO "\x16"
+#define LCD_STR_ECHG "\x17"
+#define LCD_STR_VLIG "\x18"
 #define LCD_STR_EE "\x19"
 #define LCD_STR_EULR "\x1a"
 #define LCD_STR_THETA "\x1b"
@@ -11,6 +15,10 @@
 #define LCD_STR_PI "\x1d"
 #define LCD_STR_MUL "\x1e"
 #define LCD_STR_DIV "\x1f"
+
+#define LCD_CHAR_AVGO '\x16'
+#define LCD_CHAR_ECHG '\x17'
+#define LCD_CHAR_VLIG '\x18'
 #define LCD_CHAR_EE '\x19'
 #define LCD_CHAR_EULR '\x1a'
 #define LCD_CHAR_THETA '\x1b'
@@ -119,7 +127,10 @@ namespace lcd {
 	extern const Img CHAR_RCVB;
 	extern const Img CHAR_TLDE;
 	extern const Img CHAR_UNKNOWN;
-	
+    
+    extern const Img CHAR_AVGO;
+    extern const Img CHAR_ECHG;
+    extern const Img CHAR_VLIG;
     extern const Img CHAR_EE;
     extern const Img CHAR_EULR;
     extern const Img CHAR_THETA;

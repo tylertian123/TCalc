@@ -1158,6 +1158,42 @@ namespace lcd {
 	const Img CHAR_UNKNOWN(CHAR_UNKNOWN_DATA, 4, 30, 9);
 	
 	//Special characters
+    const uint8_t CHAR_AVGO_DATA[] = {
+        0x88, 0x00,
+        0xc8, 0x00,
+        0xc8, 0x00,
+        0xa8, 0x00,
+        0xa8, 0x00,
+        0x99, 0x00,
+        0x9a, 0x80,
+        0x8b, 0x80,
+        0x8a, 0x80,
+    };
+    const Img CHAR_AVGO(CHAR_AVGO_DATA, 2, 9, 9);
+    const uint8_t CHAR_ECHG_DATA[] = {
+        0x00,
+        0x00,
+        0x07,
+        0x00,
+        0x70,
+        0x88,
+        0xf8,
+        0x80,
+        0x70,
+    };
+    const Img CHAR_ECHG(CHAR_ECHG_DATA, 1, 8, 9);
+    const uint8_t CHAR_VLIG_DATA[] = {
+        0x00,
+        0x00,
+        0x30,
+        0x48,
+        0x80,
+        0x80,
+        0x80,
+        0x88,
+        0x70,
+    };
+    const Img CHAR_VLIG(CHAR_VLIG_DATA, 1, 5, 9);
     const uint8_t CHAR_EE_DATA[] = {
         0x00,
         0x00,

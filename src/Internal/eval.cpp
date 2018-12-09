@@ -5,7 +5,10 @@
 #include <math.h>
 
 #define CONST_PI 3.14159265358979323846
-#define CONST_E  2.71828182845904523536
+#define CONST_E 2.71828182845904523536
+#define CONST_AVOGADRO 6.022140758e23
+#define CONST_ELEMCHG 1.60217662e-19
+#define CONST_VLIGHT 299792458
 
 namespace eval {
 
@@ -16,6 +19,15 @@ namespace eval {
         }
         else if(strcmp(str, LCD_STR_EULR) == 0) {
             return new Number(CONST_E);
+        }
+        else if(strcmp(str, LCD_STR_AVGO) == 0) {
+            return new Number(CONST_AVOGADRO);
+        }
+        else if(strcmp(str, LCD_STR_ECHG) == 0) {
+            return new Number(CONST_ELEMCHG);
+        }
+        else if(strcmp(str, LCD_STR_VLIG) == 0) {
+            return new Number(CONST_VLIGHT);
         }
         else {
             return nullptr;
