@@ -141,7 +141,7 @@ void adjustExpr(neda::Expr *ex, neda::Cursor *cursorRef) {
 
 //Adds a char at the cursor
 void addChar(neda::Cursor *cursor, char ch) {
-    cursor->expr->addAtCursor(new neda::Character(ch), *cursor);
+    cursor->add(new neda::Character(ch));
 }
 //Key press handlers
 //Probably gonna make this name shorter, but couldn't bother.

@@ -161,7 +161,7 @@ namespace eval {
                 //Or if the token is not a number and the char is a digit
                 bool inc = isNameChar(ch);
                 bool id = isDigit(ch);
-                if ((!inc && !id && !((ch == '+' || ch == '-') && extractChar((*arr)[end + direction]) == LCD_CHAR_EE))
+                if ((!inc && !id && !((ch == '+' || ch == '-') && extractChar((*arr)[end - direction]) == LCD_CHAR_EE))
                     || isNum && inc || !isNum && id) {
                     break;
                 }

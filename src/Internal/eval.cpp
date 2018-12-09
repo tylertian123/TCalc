@@ -868,7 +868,7 @@ convertToDoubleAndOperate:
             if(t->getType() == TokenType::NUMBER || t->getType() == TokenType::FRACTION) {
                 stack.push(t);
             }
-            else if(t->getType() == TokenType::FRACTION) {
+            else if(t->getType() == TokenType::FUNCTION) {
                 //Syntax error: Not Enough Arguments
                 if(stack.isEmpty()) {
                     //Do cleanup and return nullptr

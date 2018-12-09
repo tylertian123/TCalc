@@ -55,6 +55,11 @@ uint8_t ftoa(double val, char *str, uint8_t ndigits, char echar) {
         strcpy(str, "-Infinity");
         return 9;
     }
+    else if(val == 0) {
+        str[0] = '0';
+        str[1] = '\0';
+        return 1;
+    }
     //Handle values greater or equal to 10^6 or less than or equal to 10^-5 in scientific notation
     if(abs(val) >= 1e6) {
         //Divide until the number is less than 10
@@ -82,7 +87,7 @@ uint8_t ftoa(double val, char *str, uint8_t ndigits, char echar) {
         return len;
     }
 
-    int64_t whole = (uint64_t) val;
+    int64_t whole = (int64_t) val;
     uint8_t len = ltoa(whole, str);
     //If it's an integer, finish here
     if(whole == val) {
