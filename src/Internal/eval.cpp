@@ -9,6 +9,7 @@
 #define CONST_AVOGADRO 6.022140758e23
 #define CONST_ELEMCHG 1.60217662e-19
 #define CONST_VLIGHT 299792458
+#define CONST_AGRAV 9.80665
 
 namespace eval {
 
@@ -28,6 +29,9 @@ namespace eval {
         }
         else if(strcmp(str, LCD_STR_VLIG) == 0) {
             return new Number(CONST_VLIGHT);
+        }
+        else if(strcmp(str, LCD_STR_AGV) == 0) {
+            return new Number(CONST_AGRAV);
         }
         else {
             return nullptr;

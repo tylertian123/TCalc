@@ -29,7 +29,7 @@ GPIOPin shiftLED(GPIOA, GPIO_Pin_3);
 GPIOPin ctrlLED(GPIOA, GPIO_Pin_2);
 
 /********** Keyboard stuff **********/
-uint32_t keyDataBuffer = 0;
+uint64_t keyDataBuffer = 0;
 void putKey(uint16_t key) {
     //Store keystroke into buffer
     //If there is already data in the buffer then shift that data left to make room
@@ -42,18 +42,8 @@ uint16_t fetchKey() {
 	uint16_t data;
 	//Check for key in buffer
 	if(keyDataBuffer != 0) {
-		//If there are 2 keys in the buffer
-		if(keyDataBuffer >> 16 != 0) {
-			//Return the first key
-			data = keyDataBuffer >> 16;
-			//Remove the first key from the buffer
-			keyDataBuffer &= 0x0000FFFF;
-		}
-		else {
-			//Return the key and clear the buffer
-			data = keyDataBuffer;
-			keyDataBuffer = 0;
-		}
+		data = keyDataBuffer & 0xFFFF;
+        keyDataBuffer >>= 16;
 		return data;
 	}
 	//If buffer empty then no new keys have been entered
@@ -224,12 +214,6 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
     }
 
 	switch(key) {
-	case KEY_SHIFT:
-		shiftLED = !shiftLED;
-		break;
-	case KEY_CTRL:
-		ctrlLED = !ctrlLED;
-		break;
 	case KEY_LEFT:
 		cursor->left();
 		break;
@@ -862,7 +846,7 @@ void trigFunctionsMenuKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 }
 
 const char *constantNames[] = {
-    LCD_STR_PI, LCD_STR_EULR, LCD_STR_AVGO, LCD_STR_ECHG, LCD_STR_VLIG,
+    LCD_STR_PI, LCD_STR_EULR, LCD_STR_AVGO, LCD_STR_ECHG, LCD_STR_VLIG, LCD_STR_AGV,
 };
 void constSelectionMenuKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
     switch(key) {
@@ -884,12 +868,12 @@ void constSelectionMenuKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
             --selectorIndex;
         }
         else {
-            selectorIndex = 4;
+            selectorIndex = 5;
         }
         break;
     case KEY_DOWN:
         ++selectorIndex;
-        if(selectorIndex >= 5) {
+        if(selectorIndex >= 6) {
             selectorIndex = 0;
         }
         break;
@@ -898,7 +882,7 @@ void constSelectionMenuKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 
     display.clearDrawingBuffer();
     int16_t y = 1;
-    for(uint8_t i = 0; i < 5; i ++) {
+    for(uint8_t i = 0; i < 6; i ++) {
         display.drawString(1, y, constantNames[i], selectorIndex == i);
         y += 10;
     }
@@ -939,6 +923,12 @@ int main() {
 		//Store keystroke into buffer
 		//If there is already data in the buffer then shift that data left to make room
 		putKey(data);
+        if(data == KEY_SHIFT) {
+            shiftLED = !shiftLED;
+        }
+        else if(data == KEY_CTRL) {
+            ctrlLED = !ctrlLED;
+        }
 		statusLED = !statusLED;
 	});
 

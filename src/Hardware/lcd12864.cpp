@@ -415,7 +415,7 @@ namespace lcd {
             }
             //Find out what the byte looks like
             uint8_t data = 0xFF >> offset;
-            data &= 0xFF << (8 - offset + width);
+            data &= 0xFF << (8 - offset - width);
             for(uint16_t row = 0; row < height; row ++) {
                 if(y + row < 0) {
                     continue;
