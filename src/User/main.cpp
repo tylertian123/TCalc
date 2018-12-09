@@ -143,6 +143,11 @@ void adjustExpr(neda::Expr *ex, neda::Cursor *cursorRef) {
 void addChar(neda::Cursor *cursor, char ch) {
     cursor->add(new neda::Character(ch));
 }
+void addStr(neda::Cursor *cursor, const char *str) {
+    while(*str != '\0') {
+        cursor->add(new neda::Character(*str++));
+    }
+}
 
 #define RESULT_STORE_COUNT 3
 //Previous expressions and their results
@@ -153,8 +158,8 @@ void drawResult(uint8_t id) {
     display.clearDrawingBuffer();
     expressions[id]->Expr::draw(display);
     //Fill the area first
-    display.fill(128 - CURSOR_HORIZ_SPACING - calcResults[id]->exprWidth, 64 - CURSOR_VERT_SPACING - calcResults[id]->exprHeight, calcResults[id]->exprWidth, calcResults[id]->exprHeight, true);
-    calcResults[id]->draw(display, 128 - CURSOR_HORIZ_SPACING - calcResults[id]->exprWidth, 64 - CURSOR_VERT_SPACING - calcResults[id]->exprHeight);
+    display.fill(128 - CURSOR_HORIZ_SPACING - 2 - calcResults[id]->exprWidth, 64 - CURSOR_VERT_SPACING - calcResults[id]->exprHeight, calcResults[id]->exprWidth, calcResults[id]->exprHeight, true);
+    calcResults[id]->draw(display, 128 - CURSOR_HORIZ_SPACING - 2 - calcResults[id]->exprWidth, 64 - CURSOR_VERT_SPACING - calcResults[id]->exprHeight);
 }
 
 //Variables
@@ -564,31 +569,31 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
     }
     case KEY_LN:
     {
-        cursor->add(new neda::Character('l'));
-        cursor->add(new neda::Character('n'));
+        addStr(cursor, "ln");
         cursor->add(new neda::LeftBracket());
 		break;
     }
     case KEY_LOG10:
     {
-        cursor->add(new neda::Character('l'));
-        cursor->add(new neda::Character('o'));
-        cursor->add(new neda::Character('g'));
+        addStr(cursor, "log");
         //cursor->add(new neda::Subscript(neda::makeString("10")));
         cursor->add(new neda::LeftBracket());
 		break;
     }
     case KEY_LOGN:
     {
-        cursor->add(new neda::Character('l'));
-        cursor->add(new neda::Character('o'));
-        cursor->add(new neda::Character('g'));
+        addStr(cursor, "log");
         neda::Subscript *sub = new neda::Subscript(new neda::Container());
         cursor->add(sub);
         cursor->add(new neda::LeftBracket());
         sub->getCursor(*cursor, neda::CURSORLOCATION_START);
         cursor->expr->parent->parent->draw(display);
 		break;
+    }
+    case KEY_ANS:
+    {
+        addStr(cursor, "Ans");
+        break;
     }
 	/* OTHER */
 	case KEY_DELETE:
@@ -615,7 +620,17 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
         }
 		break;
 	}
-    //AC does the same as regular clear except it deletes the stored expressions as well
+    case KEY_CLEARVAR:
+    {
+        for(uint8_t i = 0; i < varNames.length(); i ++) {
+            delete varNames[i];
+            delete varVals[i];
+        }
+        varNames.empty();
+        varVals.empty();
+        break;
+    }
+    //AC does the same as regular clear except it deletes the stored expressions and variables as well
     case KEY_ALLCLEAR:
     {
         for(uint8_t i = 0; i < RESULT_STORE_COUNT; i ++) {
@@ -625,6 +640,13 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
                 expressions[i] = calcResults[i] = nullptr;
             }
         }
+        for(uint8_t i = 0; i < varNames.length(); i ++) {
+            delete varNames[i];
+            delete varVals[i];
+        }
+        varNames.empty();
+        varVals.empty();
+        //Intentional fall-through
     }
 	case KEY_CLEAR:
 	{
