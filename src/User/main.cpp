@@ -617,12 +617,12 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 	default: break;
 	}
 
-    if(!editExpr) {
-        //When any key is pressed, shift everything right
-        delete calcResult;
-        calcResult = nullptr;
-	    editExpr = true;
-    }
+//    if(!editExpr) {
+//        //When any key is pressed, shift everything right
+//        delete calcResult;
+//        calcResult = nullptr;
+//	    editExpr = true;
+//    }
 
 	display.clearDrawingBuffer();
 	adjustExpr(cursor->expr->getTopLevel(), cursor);

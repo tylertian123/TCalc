@@ -28,6 +28,9 @@ namespace neda {
     uint16_t Character::getHeight() {
         return lcd::getChar(ch).height;
     }
+    Character* Character::copy() {
+        return new Character(ch);
+    }
 	
 	//*************************** Expr ***************************************
     void Expr::draw(lcd::LCD12864 &dest) {
@@ -421,6 +424,14 @@ namespace neda {
             }
         }
     }
+    Container* Container::copy() {
+        Container *c = new Container();
+        for(NEDAObj *ex : contents) {
+            c->add(ex->copy());
+        }
+        
+        return c;
+    }
 
     //*************************** Fraction ***************************************
     uint16_t Fraction::getTopSpacing() {
@@ -512,6 +523,9 @@ namespace neda {
         SAFE_EXEC(numerator, updatePosition, dx, dy);
         SAFE_EXEC(denominator, updatePosition, dx, dy);
     }
+    Fraction* Fraction::copy() {
+        return new Fraction((neda::Expr*) numerator->copy(), (neda::Expr*) denominator->copy());
+    }
 	
 	//*************************** LeftBracket ***************************************
     uint16_t LeftBracket::getTopSpacing() {
@@ -601,6 +615,9 @@ namespace neda {
         }
         dest.setPixel(x + 1, y + exprHeight - 1 - 1, true);
         dest.setPixel(x + 2, y + exprHeight - 1, true);
+    }
+    LeftBracket* LeftBracket::copy() {
+        return new LeftBracket();
     }
 
     //*************************** RightBracket ***************************************
@@ -693,6 +710,9 @@ namespace neda {
         }
         dest.setPixel(x + 1, y + exprHeight - 1 - 1, true);
         dest.setPixel(x, y + exprHeight - 1, true);
+    }
+    RightBracket* RightBracket::copy() {
+        return new RightBracket();
     }
 	
 	//*************************** Radical ***************************************
@@ -796,6 +816,9 @@ namespace neda {
         SAFE_EXEC(contents, updatePosition, dx, dy);
         SAFE_EXEC(n, updatePosition, dx, dy);
     }
+    Radical* Radical::copy() {
+        return new Radical((neda::Expr*) contents->copy(), n ? (neda::Expr*) n->copy() : nullptr);
+    }
 
     //*************************** Superscript ***************************************
     uint16_t Superscript::getTopSpacing() {
@@ -859,6 +882,9 @@ namespace neda {
     }
     void Superscript::getCursor(Cursor &cursor, CursorLocation location) {
         SAFE_EXEC(contents, getCursor, cursor, location);
+    }
+    Superscript* Superscript::copy() {
+        return new Superscript((neda::Expr*) contents->copy());
     }
 	
 	//*************************** Subscript ***************************************
@@ -931,6 +957,9 @@ namespace neda {
         this->x += dx;
         this->y += dy;
         SAFE_EXEC(contents, updatePosition, dx, dy);
+    }
+    Subscript* Subscript::copy() {
+        return new Subscript((neda::Expr*) contents->copy());
     }
 	
 	//*************************** SigmaPi ***************************************
@@ -1052,6 +1081,9 @@ namespace neda {
         SAFE_EXEC(contents, updatePosition, dx, dy);
         SAFE_EXEC(start, updatePosition, dx, dy);
         SAFE_EXEC(finish, updatePosition, dx, dy);
+    }
+    SigmaPi* SigmaPi::copy() {
+        return new SigmaPi(symbol, (neda::Expr*) start->copy(), (neda::Expr*) finish->copy(), (neda::Expr*) contents->copy());
     }
 
     //*************************** Cursor ***************************************

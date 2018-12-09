@@ -48,6 +48,8 @@ namespace neda {
     public:
         virtual ObjType getType() = 0;
 
+        virtual NEDAObj* copy() = 0;
+
         virtual ~NEDAObj() {}
     };
 
@@ -66,6 +68,8 @@ namespace neda {
         void draw(lcd::LCD12864 &lcd, int16_t, int16_t);
         uint16_t getWidth();
         uint16_t getHeight();
+
+        virtual Character* copy() override;
     };
 
 	/*
@@ -182,6 +186,8 @@ namespace neda {
 		DynamicArray<NEDAObj*> contents;
         //Recomputes the heights of all expressions that have heights dependent on others
         void recomputeHeights();
+
+        virtual Container* copy() override;
 	};
 	
 	//Fraction
@@ -222,6 +228,8 @@ namespace neda {
 	
 		Expr *numerator;
 		Expr *denominator;
+
+        virtual Fraction* copy() override;
 	};
 	
 	//
@@ -242,6 +250,8 @@ namespace neda {
         virtual ObjType getType() override {
             return ObjType::L_BRACKET;
         }
+
+        virtual LeftBracket* copy() override;
     };
     class RightBracket : public Expr {
     public:
@@ -260,6 +270,8 @@ namespace neda {
         virtual ObjType getType() override {
             return ObjType::R_BRACKET;
         }
+
+        virtual RightBracket* copy() override;
     };
 
 	
@@ -305,6 +317,8 @@ namespace neda {
         virtual void updatePosition(int16_t, int16_t) override;
 	
 		Expr *contents, *n;
+
+        virtual Radical* copy() override;
 	};
 
     //
@@ -340,6 +354,8 @@ namespace neda {
         virtual void updatePosition(int16_t, int16_t) override;
 
         Expr *contents;
+
+        virtual Superscript* copy() override;
     };
 
 	//Subscript
@@ -375,6 +391,8 @@ namespace neda {
         virtual void updatePosition(int16_t, int16_t) override;
 		
 		Expr *contents;
+
+        virtual Subscript* copy() override;
 	};
 	
 	//Summation (Sigma) or Product (Pi)
@@ -418,6 +436,8 @@ namespace neda {
 		
 		const lcd::LCD12864Image &symbol;
 		Expr *start, *finish, *contents;
+
+        virtual SigmaPi* copy() override;
 	};
 	
 	/*
@@ -447,6 +467,13 @@ namespace neda {
 
         virtual ObjType getType() override {
             return ObjType::CURSOR_TYPE;
+        }
+        
+        virtual Cursor* copy() override {
+            Cursor *c = new Cursor;
+            c->expr = expr;
+            c->index = index;
+            return c;
         }
     };
 
