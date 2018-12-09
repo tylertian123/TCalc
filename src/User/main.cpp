@@ -162,8 +162,19 @@ void drawResult(uint8_t id) {
 extern uint16_t trigFuncIndex;
 extern void trigFunctionsMenuKeyPressHandler(neda::Cursor*, uint16_t);
 bool editExpr = true;
+uint8_t currentExpr = 0;
 void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
     if(!editExpr && key != KEY_UP && key != KEY_DOWN) {
+        //If the key is a left or right, make a copy of the expression on display
+        //Otherwise just insert a new expression
+        neda::Container *newExpr;
+        if(key == KEY_LEFT || key == KEY_RIGHT) {
+            newExpr = expressions[currentExpr]->copy();
+        }
+        else {
+            newExpr = new neda::Container();
+        }
+
         //Shift everything back
         if(calcResults[RESULT_STORE_COUNT - 1]) {
             delete calcResults[RESULT_STORE_COUNT - 1];
@@ -177,19 +188,11 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
         }
         calcResults[0] = expressions[0] = nullptr;
 
-        //If the key is a left or right, make a copy of the last expression
-        //Otherwise just insert a new expression
-        neda::Container *newExpr;
-        if(key == KEY_LEFT || key == KEY_RIGHT) {
-            newExpr = expressions[1]->copy();
-        }
-        else {
-            newExpr = new neda::Container();
-        }
         newExpr->getCursor(*cursor, neda::CURSORLOCATION_END);
-        newExpr->x = CURSOR_HORIZ_SPACING;
+        newExpr->x = CURSOR_HORIZ_SPACING + 2;
         newExpr->y = CURSOR_VERT_SPACING;
         editExpr = true;
+        currentExpr = 0;
     }
 
 	switch(key) {
@@ -206,11 +209,37 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 		cursor->right();
 		break;
 	case KEY_UP:
-		cursor->up();
+    {   
+        if(editExpr) {
+		    cursor->up();
+        }
+        else {
+            if(currentExpr < RESULT_STORE_COUNT - 1 && expressions[currentExpr + 1]) {
+                ++currentExpr;
+                display.clearDrawingBuffer();
+                drawResult(currentExpr);
+                display.updateDrawing();
+            }
+            return;
+        }
 		break;
+    }
 	case KEY_DOWN:
-		cursor->down();
+    {
+        if(editExpr) {
+		    cursor->down();
+        }
+        else {
+            if(currentExpr >= 1) {
+                --currentExpr;
+                display.clearDrawingBuffer();
+                drawResult(currentExpr);
+                display.updateDrawing();
+            }
+            return;
+        }
 		break;
+    }
 	/* LETTER KEYS */
 	case KEY_A:
 		addChar(cursor, 'A');
