@@ -224,7 +224,16 @@ namespace eval {
                 auto n = static_cast<int64_t>(((Number*) lhs)->value);
                 auto d = static_cast<int64_t>(((Number*) rhs)->value);
                 //See if the division yields a whole number
-                if(n % d == 0) {
+                //Watch out for division by zero!
+                if(d == 0) {
+                    if(n == 0) {
+                        result = new Number(NAN);
+                    }
+                    else {
+                        result = new Number(n > 0 ? INFINITY : -INFINITY);
+                    }
+                }
+                else if(n % d == 0) {
                     //If the result is an integer, just push the integer instead
                     result = new Number(n / d);
                 }
