@@ -1,7 +1,7 @@
 #include "lcd12864_charset.hpp"
 
 namespace lcd {
-    const Img *CHAR_ASCII[] = {
+    const Img * const CHAR_ASCII[] = {
         &CHAR_EE,
         &CHAR_EULR,
         &CHAR_THETA,

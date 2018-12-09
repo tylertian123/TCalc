@@ -131,7 +131,7 @@ namespace lcd {
 	extern const Img CHAR_SUMMATION;
 	extern const Img CHAR_PRODUCT;
 	
-    extern const Img *CHAR_ASCII[];
+    extern const Img * const CHAR_ASCII[];
 	
 	uint8_t asciiToIndex(char);
 	const Img& getChar(char);
