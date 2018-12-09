@@ -572,14 +572,13 @@ convertToDoubleAndOperate:
             }
             case neda::ObjType::RADICAL:
             {
-                Number two(2);
                 Token *n;
                 if(((neda::Radical*) exprs[index])->n) {
                     n = evaluate((neda::Container*) ((neda::Radical*) exprs[index])->n, varc, varn, varv);
                 }
                 //No base - implied square root
                 else {
-                    n = &two;
+                    n = new Number(2);
                 }
                 Token *contents = evaluate((neda::Container*) ((neda::Radical*) exprs[index])->contents, varc, varn, varv);
 
