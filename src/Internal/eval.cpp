@@ -463,7 +463,8 @@ convertToDoubleAndOperate:
         return (ch >= '0' && ch <= '9') || ch == '.' || ch == LCD_CHAR_EE;
     }
     bool isNameChar(char ch) {
-        return (ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z') || (ch >= LCD_CHARSET_LOWBOUND && ch <= LCD_CHARSET_HIGHBOUND);
+        return (ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z') || (ch >= LCD_CHARSET_LOWBOUND && ch <= LCD_CHARSET_HIGHBOUND)
+            && ch != LCD_CHAR_EE && ch != LCD_CHAR_MUL && ch != LCD_CHAR_DIV;
     }
     char extractChar(neda::NEDAObj *obj) {
         if(obj->getType() != neda::ObjType::CHAR_TYPE) {
@@ -737,7 +738,8 @@ convertToDoubleAndOperate:
                                 arr.add(n);
                             }
                             else if(varc > 0) {
-                                for(uint8_t i = 0; i < varc; i ++) {
+                                uint8_t i;
+                                for(i = 0; i < varc; i ++) {
                                     if(strcmp(str, varn[i]) == 0) {
                                         if(varv[i]->getType() == TokenType::NUMBER) {
                                             arr.add(new Number(((Number*) varv[i])->value));
@@ -747,6 +749,11 @@ convertToDoubleAndOperate:
                                         }
                                         break;
                                     }
+                                }
+                                if(i == varc) {
+                                    freeTokens(&arr);
+                                    delete[] str;
+                                    return nullptr;
                                 }
                             }
                             allowUnary = false;

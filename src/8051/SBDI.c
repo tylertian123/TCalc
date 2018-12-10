@@ -3,9 +3,9 @@
 
 #define SBDI_CLK_DELAY 600
 
-sbit EN = P1 ^ 6;
+sbit EN = P1 ^ 4;
 sbit CLK = P1 ^ 5;
-sbit DAT = P1 ^ 4;
+sbit DAT = P1 ^ 6;
 
 void delay_cycles(unsigned int a) {
 	while(a--);

@@ -13,7 +13,7 @@
 #include "util.hpp"
 #include "ntoa.hpp"
 /********** GPIO Pins and other pin defs **********/
-GPIOPin RS(GPIOB, GPIO_Pin_12), RW(GPIOB, GPIO_Pin_13), E(GPIOB, GPIO_Pin_14),
+GPIOPin RS(GPIOB, GPIO_Pin_14), RW(GPIOB, GPIO_Pin_13), E(GPIOB, GPIO_Pin_12),
 			D7(GPIOA, GPIO_Pin_15), D6(GPIOB, GPIO_Pin_3), D5(GPIOB, GPIO_Pin_4), D4(GPIOB, GPIO_Pin_5),
 			D3(GPIOB, GPIO_Pin_6), D2(GPIOB, GPIO_Pin_7), D1(GPIOB, GPIO_Pin_8), D0(GPIOB, GPIO_Pin_9);
 lcd::LCD12864 display(RS, RW, E, D0, D1, D2, D3, D4, D5, D6, D7);
