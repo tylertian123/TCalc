@@ -109,20 +109,20 @@ extern "C" void TIM3_IRQHandler() {
 void adjustExpr(neda::Expr *ex, neda::Cursor *cursorRef) {
 	neda::CursorInfo info;
 	cursorRef->getInfo(info);
-	if(info.x > CURSOR_HORIZ_SPACING && info.y > CURSOR_VERT_SPACING
+	if(info.x >= CURSOR_HORIZ_SPACING && info.y >= CURSOR_VERT_SPACING
 			&& info.x + info.width + CURSOR_HORIZ_SPACING < 128 && info.y + info.height + CURSOR_VERT_SPACING < 64) {
 		return;
 	}
 
 	int16_t xdiff = 0, ydiff = 0;
-	if(info.x <= CURSOR_HORIZ_SPACING) {
-		xdiff = CURSOR_HORIZ_SPACING + 1 - info.x;
+	if(info.x < CURSOR_HORIZ_SPACING) {
+		xdiff = CURSOR_HORIZ_SPACING - info.x;
 	}
 	else if(info.x + info.width + CURSOR_HORIZ_SPACING >= 128) {
 		xdiff = 127 - (info.x + info.width + CURSOR_HORIZ_SPACING);
 	}
-	if(info.y <= CURSOR_VERT_SPACING) {
-		ydiff = CURSOR_VERT_SPACING + 1 - info.y;
+	if(info.y < CURSOR_VERT_SPACING) {
+		ydiff = CURSOR_VERT_SPACING - info.y;
 	}
 	else if(info.y + info.height + CURSOR_VERT_SPACING >= 64) {
 		ydiff = 63 - (info.y + info.height + CURSOR_VERT_SPACING);
@@ -228,7 +228,7 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
         calcResults[0] = expressions[0] = nullptr;
 
         newExpr->getCursor(*cursor, neda::CURSORLOCATION_END);
-        newExpr->x = CURSOR_HORIZ_SPACING + 2;
+        newExpr->x = CURSOR_HORIZ_SPACING + 1;
         newExpr->y = CURSOR_VERT_SPACING;
         editExpr = true;
         currentExpr = 0;
