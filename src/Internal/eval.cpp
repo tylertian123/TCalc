@@ -17,6 +17,8 @@
 #define TRIG_FUNC_OUTPUT(x) (useRadians ? (x) : RAD_TO_DEG(x))
 
 namespace eval {
+    
+    bool useRadians = true;
 
     /******************** Number ********************/
     Number* Number::constFromString(const char* str) {

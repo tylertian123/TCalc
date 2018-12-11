@@ -57,6 +57,7 @@ enum class DispMode {
     EXPR_ENTRY,
     TRIG_MENU,
     CONST_MENU,
+	CONFIG_MENU,
 };
 DispMode dispMode = DispMode::EXPR_ENTRY;
 
@@ -672,6 +673,7 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
     }
 	case KEY_CLEAR:
 	{
+		display.clearDrawing();
 		//Keep pointer of original
 		neda::Expr *original = cursor->expr->getTopLevel();
 		//Create new expression and change cursor location
@@ -784,8 +786,9 @@ evaluateExpression:
     }
     case KEY_CONST:
     case KEY_TRIG:
+	case KEY_CONFIG:
         //Set the display mode and reset the index
-        dispMode = key == KEY_TRIG ? DispMode::TRIG_MENU : DispMode::CONST_MENU;
+        dispMode = key == KEY_TRIG ? DispMode::TRIG_MENU : key == KEY_CONST ? DispMode::CONST_MENU : DispMode::CONFIG_MENU;
         selectorIndex = 0;
         //We need to call the function once to get the interface drawn
         //To do this, we insert a dummy value into the key buffer
@@ -920,6 +923,29 @@ void constSelectionMenuKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
     display.updateDrawing();
 }
 
+void calculatorSettingsAndConfigurationMenuKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
+	switch(key) {
+	case KEY_ENTER:
+	case KEY_CONFIG:
+		dispMode = DispMode::EXPR_ENTRY;
+		selectorIndex = 0;
+		//We need to call the function once to get the interface drawn
+		//To do this, we insert a dummy value into the key buffer
+		putKey(KEY_DUMMY);
+		return;
+	case KEY_LEFT:
+	case KEY_RIGHT:
+		eval::useRadians = !eval::useRadians;
+		break;
+	default: break;
+	}
+
+	display.clearDrawingBuffer();
+	display.drawString(1, 1, "Angles:");
+	display.drawString(64, 1, eval::useRadians ? "Radians" : "Degrees", true);
+	display.updateDrawing();
+}
+
 int main() {
 	//Init system
 	sys::initRCC();
@@ -992,6 +1018,9 @@ int main() {
             case DispMode::CONST_MENU:
                 constSelectionMenuKeyPressHandler(cursor, key);
                 break;
+			case DispMode::CONFIG_MENU:
+				calculatorSettingsAndConfigurationMenuKeyPressHandler(cursor, key);
+				break;
             default: break;
             }
 		}

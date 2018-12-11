@@ -10,7 +10,7 @@
 
 namespace eval {
 
-    bool useRadians = true;
+    extern bool useRadians;
 
     /*
      * Base Token class and type enum
