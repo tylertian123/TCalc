@@ -12,6 +12,9 @@
 #include "keydef.h"
 #include "util.hpp"
 #include "ntoa.hpp"
+
+#define VERSION_STR "V1.0"
+
 /********** GPIO Pins and other pin defs **********/
 GPIOPin RS(GPIOB, GPIO_Pin_14), RW(GPIOB, GPIO_Pin_13), E(GPIOB, GPIO_Pin_12),
 			D7(GPIOA, GPIO_Pin_15), D6(GPIOB, GPIO_Pin_3), D5(GPIOB, GPIO_Pin_4), D4(GPIOB, GPIO_Pin_5),
@@ -141,7 +144,7 @@ void addStr(neda::Cursor *cursor, const char *str) {
     }
 }
 
-#define RESULT_STORE_COUNT 3
+#define RESULT_STORE_COUNT 4
 //Previous expressions and their results
 neda::Container *calcResults[RESULT_STORE_COUNT] = { nullptr };
 neda::Container *expressions[RESULT_STORE_COUNT] = { nullptr };
@@ -963,14 +966,20 @@ int main() {
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
 	GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable, ENABLE);
 
-	//1s startup delay
-	delay::sec(1);
+	//Startup delay
+	delay::ms(100);
 
-	//Initialize display and backlight control
+	//Initialize display
 	display.init();
 	display.useExtended();
 	display.startDraw();
 	display.clearDrawing();
+
+	display.drawString(32, 25, "TCalc " VERSION_STR, true);
+	display.updateDrawing();
+
+	//Title screen delay
+	delay::ms(1500);
 
 	//Set up SBDI receiver
 	sbdi::Receiver receiver(SBDI_EN, SBDI_DATA, SBDI_CLK);
