@@ -102,10 +102,23 @@ uint8_t ftoa(double val, char *str, uint8_t ndigits, char echar) {
         if(nfrac < 0) {
             nfrac *= -1;
         }
+        char buf[64];
+        uint8_t fracLen = ltoa(nfrac, buf);
         
-        len += ltoa(nfrac, str + len);
+        uint8_t diff = ndigits - len - fracLen;
+        while(diff--) {
+            str[len++] = '0';
+        }
+        uint8_t index = 0;
+        while(fracLen--) {
+            str[len++] = buf[index++];
+        }
+
         //finally, shave off any unneeded trailing zeros
         while(str[len - 1] == '0') {
+            --len;
+        }
+        if(str[len - 1] == '.') {
             --len;
         }
         str[len] = '\0';
