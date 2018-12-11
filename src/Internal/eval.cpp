@@ -751,10 +751,14 @@ convertToDoubleAndOperate:
                                     }
                                 }
                                 if(i == varc) {
-                                    freeTokens(&arr);
-                                    delete[] str;
-                                    return nullptr;
+                                    goto varSyntaxError;
                                 }
+                            }
+                            else {
+varSyntaxError:
+                                freeTokens(&arr);
+                                delete[] str;
+                                return nullptr;
                             }
                             allowUnary = false;
                         }

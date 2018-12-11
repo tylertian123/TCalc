@@ -144,13 +144,34 @@ void addStr(neda::Cursor *cursor, const char *str) {
 //Previous expressions and their results
 neda::Container *calcResults[RESULT_STORE_COUNT] = { nullptr };
 neda::Container *expressions[RESULT_STORE_COUNT] = { nullptr };
-void drawResult(uint8_t id) {
+void drawResult(uint8_t id, bool asDecimal = false) {
     //Display the result
     display.clearDrawingBuffer();
     expressions[id]->Expr::draw(display);
+    //Convert to decimal if necessary
+    neda::Container *result;
+    if(asDecimal && calcResults[id]->contents[0]->getType() == neda::ObjType::FRACTION) {
+        result = new neda::Container();
+        //Evaluate the fraction lazily by calling evaluate
+        eval::Token *evalResult = eval::evaluate(calcResults[id]);
+        //Guaranteed to be a fraction
+        double decimalResult = ((eval::Fraction*) evalResult)->doubleVal();
+        delete evalResult;
+        char buf[64];
+        ftoa(decimalResult, buf, 16, LCD_CHAR_EE);
+        neda::addString(result, buf);
+    }
+    else {
+        result = calcResults[id];
+    }
     //Fill the area first
-    display.fill(128 - CURSOR_HORIZ_SPACING - 2 - calcResults[id]->exprWidth, 64 - CURSOR_VERT_SPACING - calcResults[id]->exprHeight, calcResults[id]->exprWidth, calcResults[id]->exprHeight, true);
-    calcResults[id]->draw(display, 128 - CURSOR_HORIZ_SPACING - 2 - calcResults[id]->exprWidth, 64 - CURSOR_VERT_SPACING - calcResults[id]->exprHeight);
+    display.fill(128 - CURSOR_HORIZ_SPACING - 2 - result->exprWidth, 64 - CURSOR_VERT_SPACING - result->exprHeight, result->exprWidth, result->exprHeight, true);
+    result->draw(display, 128 - CURSOR_HORIZ_SPACING - 2 - result->exprWidth, 64 - CURSOR_VERT_SPACING - result->exprHeight);
+    //Clean up
+    if(result != calcResults[id]) {
+        delete result;
+    }
+    display.updateDrawing();
 }
 
 //Variables
@@ -182,7 +203,7 @@ extern uint16_t selectorIndex;
 bool editExpr = true;
 uint8_t currentExpr = 0;
 void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
-    if(!editExpr && key != KEY_UP && key != KEY_DOWN) {
+    if(!editExpr && key != KEY_UP && key != KEY_DOWN && key != KEY_APPROX) {
         //If the key is a left or right, make a copy of the expression on display
         //Otherwise just insert a new expression
         neda::Container *newExpr;
@@ -228,9 +249,7 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
         else {
             if(currentExpr < RESULT_STORE_COUNT - 1 && expressions[currentExpr + 1]) {
                 ++currentExpr;
-                display.clearDrawingBuffer();
                 drawResult(currentExpr);
-                display.updateDrawing();
             }
             return;
         }
@@ -244,9 +263,7 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
         else {
             if(currentExpr >= 1) {
                 --currentExpr;
-                display.clearDrawingBuffer();
                 drawResult(currentExpr);
-                display.updateDrawing();
             }
             return;
         }
@@ -537,12 +554,14 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
             //Remove the objects from the original array
             cursor->expr->contents.removeAt(end, len);
             frac = new neda::Fraction(new neda::Container(arr), new neda::Container());
+            cursor->add(frac);
+            frac->getCursor(*cursor, neda::CURSORLOCATION_END);
         }
         else {
 		    frac = new neda::Fraction(new neda::Container(), new neda::Container());
+            cursor->add(frac);
+            frac->getCursor(*cursor, neda::CURSORLOCATION_START);
         }
-        cursor->add(frac);
-        frac->getCursor(*cursor, neda::CURSORLOCATION_START);
         //Make sure the position is updated so adjustExpr will not mess up the display
         cursor->expr->parent->parent->draw(display);
 		break;
@@ -666,6 +685,7 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 	}
 	case KEY_ENTER:
 	{
+evaluateExpression:
         editExpr = false;
 		eval::Token *result;
         neda::Container *expr = (neda::Container*) cursor->expr->getTopLevel();
@@ -748,10 +768,20 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
         }
         expressions[0] = (neda::Container*) cursor->expr->getTopLevel();
 
-        drawResult(0);
-        display.updateDrawing();
+        currentExpr = 0;
+        drawResult(0, key != KEY_ENTER);
         return;
 	}
+    case KEY_APPROX:
+    {
+        if(!editExpr) {
+            drawResult(currentExpr, true);
+            return;
+        }
+        else {
+            goto evaluateExpression;
+        }
+    }
     case KEY_CONST:
     case KEY_TRIG:
         //Set the display mode and reset the index
@@ -922,12 +952,14 @@ int main() {
 	receiver.onReceive([](uint32_t data) {
 		//Store keystroke into buffer
 		//If there is already data in the buffer then shift that data left to make room
-		putKey(data);
         if(data == KEY_SHIFT) {
             shiftLED = !shiftLED;
         }
         else if(data == KEY_CTRL) {
             ctrlLED = !ctrlLED;
+        }
+        else {
+		    putKey(data);
         }
 		statusLED = !statusLED;
 	});
