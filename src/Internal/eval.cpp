@@ -11,6 +11,11 @@
 #define CONST_VLIGHT 299792458
 #define CONST_AGRAV 9.80665
 
+#define DEG_TO_RAD(deg) ((deg) * CONST_PI / 180.0)
+#define RAD_TO_DEG(rad) ((rad) * 180.0 / CONST_PI)
+#define TRIG_FUNC_INPUT(x) (useRadians ? (x) : DEG_TO_RAD(x))
+#define TRIG_FUNC_OUTPUT(x) (useRadians ? (x) : RAD_TO_DEG(x))
+
 namespace eval {
 
     /******************** Number ********************/
@@ -393,30 +398,31 @@ convertToDoubleAndOperate:
         }
     }
     double Function::compute(double arg) {
+        
         switch(type) {
         case Type::SIN:
         {
-            return sin(arg);
+            return sin(TRIG_FUNC_INPUT(arg));
         }
         case Type::COS:
         {
-            return cos(arg);
+            return cos(TRIG_FUNC_INPUT(arg));
         }
         case Type::TAN:
         {
-            return tan(arg);
+            return tan(TRIG_FUNC_INPUT(arg));
         }
         case Type::ASIN:
         {
-            return asin(arg);
+            return TRIG_FUNC_OUTPUT(asin(arg));
         }
         case Type::ACOS:
         {
-            return acos(arg);
+            return TRIG_FUNC_OUTPUT(acos(arg));
         }
         case Type::ATAN:
         {
-            return atan(arg);
+            return TRIG_FUNC_OUTPUT(atan(arg));
         }
         case Type::LN:
         {
@@ -432,27 +438,27 @@ convertToDoubleAndOperate:
         }
         case Type::SINH:
         {
-            return sinh(arg);
+            return sinh(TRIG_FUNC_INPUT(arg));
         }
         case Type::COSH:
         {
-            return cosh(arg);
+            return cosh(TRIG_FUNC_INPUT(arg));
         }
         case Type::TANH:
         {
-            return tanh(arg);
+            return tanh(TRIG_FUNC_INPUT(arg));
         }
         case Type::ASINH:
         {
-            return asinh(arg);
+            return TRIG_FUNC_OUTPUT(asinh(arg));
         }
         case Type::ACOSH:
         {
-            return acosh(arg);
+            return TRIG_FUNC_OUTPUT(acosh(arg));
         }
         case Type::ATANH:
         {
-            return atanh(arg);
+            return TRIG_FUNC_OUTPUT(atanh(arg));
         }
         default: return NAN;
         }
