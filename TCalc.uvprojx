@@ -446,6 +446,11 @@
               <FileType>8</FileType>
               <FilePath>.\src\Internal\ntoa.cpp</FilePath>
             </File>
+            <File>
+              <FileName>snake.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\src\Internal\snake.cpp</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

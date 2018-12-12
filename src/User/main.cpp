@@ -12,6 +12,8 @@
 #include "keydef.h"
 #include "util.hpp"
 #include "ntoa.hpp"
+#include "snake.hpp"
+#include <stdlib.h>
 
 #define VERSION_STR "V1.0"
 
@@ -66,14 +68,14 @@ enum class DispMode {
 DispMode dispMode = DispMode::EXPR_ENTRY;
 
 /********** Cursor processing **********/
-void initCursorTimer() {
+void initCursorTimer(uint16_t period = 2000) {
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
 	TIM_TimeBaseInitTypeDef initStruct;
     TIM_TimeBaseStructInit(&initStruct);
 	initStruct.TIM_CounterMode = TIM_CounterMode_Up;
 	initStruct.TIM_ClockDivision = TIM_CKD_DIV1;
 	initStruct.TIM_Prescaler = 17999;
-	initStruct.TIM_Period = 2000;
+	initStruct.TIM_Period = period;
 	initStruct.TIM_RepetitionCounter = 0;
 	TIM_TimeBaseInit(TIM3, &initStruct);
 	//Set up interrupts
@@ -88,23 +90,70 @@ void initCursorTimer() {
 	TIM_ITConfig(TIM3, TIM_IT_Update, ENABLE);
 }
 
+game::SnakeBody *head;
+game::SnakeBody *tail;
+game::SnakeDirection direction = game::SnakeDirection::UP;
+game::Coords food;
+
 bool cursorOn = false;
 neda::Cursor *cursor;
 extern bool editExpr;
 extern "C" void TIM3_IRQHandler() {
 	if(TIM_GetITStatus(TIM3, TIM_IT_Update)) {
 		TIM_ClearITPendingBit(TIM3, TIM_IT_Update);
-        if(dispMode != DispMode::EXPR_ENTRY || !editExpr) {
-            return;
+        if(dispMode == DispMode::EXPR_ENTRY && editExpr) {
+            cursorOn = !cursorOn;
+            display.clearDrawingBuffer();
+            //Redraw the entire expr
+            cursor->expr->Expr::drawConnected(display);
+            if(cursorOn) {
+                cursor->draw(display);
+            }
+            display.updateDrawing();
         }
-		cursorOn = !cursorOn;
-		display.clearDrawingBuffer();
-		//Redraw the entire expr
-		cursor->expr->Expr::drawConnected(display);
-		if(cursorOn) {
-			cursor->draw(display);
-		}
-		display.updateDrawing();
+        else if(dispMode == DispMode::GAME) {
+            game::Coords nextCoords = game::getNextLocation(head, direction);
+            if((nextCoords.x == 0xFF && nextCoords.y == 0xFF) || game::inSnake(nextCoords, head)) {
+                do {
+                    delete head;
+                } while((head = head->next) != nullptr);
+                
+                head = new game::SnakeBody;
+                tail = new game::SnakeBody;
+                head->prev = nullptr;
+                head->next = tail;
+                tail->next = nullptr;
+                tail->prev = head;
+
+                head->x = 63;
+                head->y = 31;
+                tail->x = 63;
+                tail->y = 32;
+
+                food.x = rand() % 128;
+                food.y = rand() % 64;
+            }
+            if(nextCoords.x == food.x && nextCoords.y == food.y) {
+                game::moveSnake(head, tail, direction, true);
+                head = head->prev;
+
+                do {
+                    food.x = rand() % 128;
+                    food.y = rand() % 64;
+                }
+                while(game::inSnake(food, head));
+            }
+            else {
+                auto temp = tail->prev;
+                game::moveSnake(head, tail, direction);
+                head = head->prev;
+                tail = temp;
+            }
+            display.clearDrawingBuffer();
+            game::drawSnake(display, head);
+            display.setPixel(food.x, food.y, true);
+            display.updateDrawing();
+        }
 	}
 }
 
@@ -951,9 +1000,28 @@ void calculatorSettingsAndConfigurationMenuKeyPressHandler(uint16_t key) {
 }
 
 void gameKeyPressHandler(uint16_t key) {
-    display.clearDrawingBuffer();
-    display.drawString(1, 1, "Secret Mode");
-    display.updateDrawing();
+    switch(key) {
+    case KEY_LEFT:
+        if(direction != game::SnakeDirection::RIGHT) {
+            direction = game::SnakeDirection::LEFT;
+        }
+        break;
+    case KEY_RIGHT:
+        if(direction != game::SnakeDirection::LEFT) {
+            direction = game::SnakeDirection::RIGHT;
+        }
+        break;
+    case KEY_UP:
+        if(direction != game::SnakeDirection::DOWN) {
+            direction = game::SnakeDirection::UP;
+        }
+        break;
+    case KEY_DOWN:
+        if(direction != game::SnakeDirection::UP) {
+            direction = game::SnakeDirection::DOWN;
+        }
+        break;
+    }
 }
 
 int main() {
@@ -1009,6 +1077,21 @@ int main() {
     if(fetchKey() == KEY_LCT) {
         dispMode = DispMode::GAME;
         putKey(KEY_DUMMY);
+
+        head = new game::SnakeBody;
+        tail = new game::SnakeBody;
+        head->prev = nullptr;
+        head->next = tail;
+        tail->next = nullptr;
+        tail->prev = head;
+
+        head->x = 63;
+        head->y = 31;
+        tail->x = 63;
+        tail->y = 32;
+
+        food.x = rand() % 128;
+        food.y = rand() % 64;
     }
 
 	//Create cursor
@@ -1024,7 +1107,7 @@ int main() {
 	display.updateDrawing();
 
 	//Start blink
-	initCursorTimer();
+	initCursorTimer(dispMode == DispMode::GAME ? 750 : 2000);
 
 	uint16_t key = KEY_NULL;
 
