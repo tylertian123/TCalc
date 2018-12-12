@@ -61,6 +61,7 @@ enum class DispMode {
     TRIG_MENU,
     CONST_MENU,
 	CONFIG_MENU,
+    GAME,
 };
 DispMode dispMode = DispMode::EXPR_ENTRY;
 
@@ -926,7 +927,7 @@ void constSelectionMenuKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
     display.updateDrawing();
 }
 
-void calculatorSettingsAndConfigurationMenuKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
+void calculatorSettingsAndConfigurationMenuKeyPressHandler(uint16_t key) {
 	switch(key) {
 	case KEY_ENTER:
 	case KEY_CONFIG:
@@ -949,6 +950,12 @@ void calculatorSettingsAndConfigurationMenuKeyPressHandler(neda::Cursor *cursor,
 	display.updateDrawing();
 }
 
+void gameKeyPressHandler(uint16_t key) {
+    display.clearDrawingBuffer();
+    display.drawString(1, 1, "Secret Mode");
+    display.updateDrawing();
+}
+
 int main() {
 	//Init system
 	sys::initRCC();
@@ -966,6 +973,24 @@ int main() {
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
 	GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable, ENABLE);
 
+    //Set up SBDI receiver
+    sbdi::Receiver receiver(SBDI_EN, SBDI_DATA, SBDI_CLK);
+    receiver.init();
+    receiver.onReceive([](uint32_t data) {
+        //Store keystroke into buffer
+        //If there is already data in the buffer then shift that data left to make room
+        if(data == KEY_SHIFT) {
+            shiftLED = !shiftLED;
+        }
+        else if(data == KEY_CTRL) {
+            ctrlLED = !ctrlLED;
+        }
+        else {
+            putKey(data);
+        }
+        statusLED = !statusLED;
+    });
+
 	//Startup delay
 	delay::ms(100);
 
@@ -981,28 +1006,16 @@ int main() {
 	//Title screen delay
 	delay::ms(1500);
 
-	//Set up SBDI receiver
-	sbdi::Receiver receiver(SBDI_EN, SBDI_DATA, SBDI_CLK);
-	receiver.init();
-	receiver.onReceive([](uint32_t data) {
-		//Store keystroke into buffer
-		//If there is already data in the buffer then shift that data left to make room
-        if(data == KEY_SHIFT) {
-            shiftLED = !shiftLED;
-        }
-        else if(data == KEY_CTRL) {
-            ctrlLED = !ctrlLED;
-        }
-        else {
-		    putKey(data);
-        }
-		statusLED = !statusLED;
-	});
+    if(fetchKey() == KEY_LCT) {
+        dispMode = DispMode::GAME;
+        putKey(KEY_DUMMY);
+    }
 
 	//Create cursor
 	cursor = new neda::Cursor;
 
 	//Set up basic expression
+    display.clearDrawingBuffer();
 	neda::Container *master = new neda::Container();
 	master->getCursor(*cursor, neda::CURSORLOCATION_START);
 	adjustExpr(master, cursor);
@@ -1028,8 +1041,11 @@ int main() {
                 constSelectionMenuKeyPressHandler(cursor, key);
                 break;
 			case DispMode::CONFIG_MENU:
-				calculatorSettingsAndConfigurationMenuKeyPressHandler(cursor, key);
+				calculatorSettingsAndConfigurationMenuKeyPressHandler(key);
 				break;
+            case DispMode::GAME:
+                gameKeyPressHandler(key);
+                break;
             default: break;
             }
 		}
