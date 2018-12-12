@@ -95,6 +95,31 @@ game::SnakeBody *tail;
 game::SnakeDirection direction = game::SnakeDirection::UP;
 game::Coords food;
 
+#define GAME_FIELD_X_MIN 0
+#define GAME_FIELD_X_MAX 64
+#define GAME_FIELD_Y_MIN 0
+#define GAME_FIELD_Y_MAX 32
+
+void newFood() {
+    food.x = rand() % (GAME_FIELD_X_MAX - GAME_FIELD_X_MIN) + GAME_FIELD_X_MIN;
+    food.y = rand() % (GAME_FIELD_Y_MAX - GAME_FIELD_Y_MIN) + GAME_FIELD_Y_MIN;
+}
+void respawn() {
+    head = new game::SnakeBody;
+    tail = new game::SnakeBody;
+    head->prev = nullptr;
+    head->next = tail;
+    tail->next = nullptr;
+    tail->prev = head;
+
+    head->x = (GAME_FIELD_X_MAX - GAME_FIELD_X_MIN) / 2;
+    head->y = (GAME_FIELD_Y_MAX - GAME_FIELD_Y_MIN) / 2;
+    tail->x = (GAME_FIELD_X_MAX - GAME_FIELD_X_MIN) / 2;
+    tail->y = (GAME_FIELD_Y_MAX - GAME_FIELD_Y_MIN) / 2 + 1;
+
+    newFood();
+}
+
 bool cursorOn = false;
 neda::Cursor *cursor;
 extern bool editExpr;
@@ -117,30 +142,15 @@ extern "C" void TIM3_IRQHandler() {
                 do {
                     delete head;
                 } while((head = head->next) != nullptr);
-                
-                head = new game::SnakeBody;
-                tail = new game::SnakeBody;
-                head->prev = nullptr;
-                head->next = tail;
-                tail->next = nullptr;
-                tail->prev = head;
-
-                head->x = 63;
-                head->y = 31;
-                tail->x = 63;
-                tail->y = 32;
-
-                food.x = rand() % 128;
-                food.y = rand() % 64;
+                respawn();
             }
             if(nextCoords.x == food.x && nextCoords.y == food.y) {
                 game::moveSnake(head, tail, direction, true);
                 head = head->prev;
 
                 do {
-                    food.x = rand() % 128;
-                    food.y = rand() % 64;
-                }
+                	newFood();
+               }
                 while(game::inSnake(food, head));
             }
             else {
@@ -151,7 +161,10 @@ extern "C" void TIM3_IRQHandler() {
             }
             display.clearDrawingBuffer();
             game::drawSnake(display, head);
-            display.setPixel(food.x, food.y, true);
+            display.setPixel(food.x * 2, food.y * 2, true);
+            display.setPixel(food.x * 2 + 1, food.y * 2, true);
+            display.setPixel(food.x * 2, food.y * 2 + 1, true);
+            display.setPixel(food.x * 2 + 1, food.y * 2 + 1, true);
             display.updateDrawing();
         }
 	}
@@ -1021,6 +1034,8 @@ void gameKeyPressHandler(uint16_t key) {
             direction = game::SnakeDirection::DOWN;
         }
         break;
+    default:
+        break;
     }
 }
 
@@ -1078,20 +1093,7 @@ int main() {
         dispMode = DispMode::GAME;
         putKey(KEY_DUMMY);
 
-        head = new game::SnakeBody;
-        tail = new game::SnakeBody;
-        head->prev = nullptr;
-        head->next = tail;
-        tail->next = nullptr;
-        tail->prev = head;
-
-        head->x = 63;
-        head->y = 31;
-        tail->x = 63;
-        tail->y = 32;
-
-        food.x = rand() % 128;
-        food.y = rand() % 64;
+        respawn();
     }
 
 	//Create cursor
@@ -1107,7 +1109,7 @@ int main() {
 	display.updateDrawing();
 
 	//Start blink
-	initCursorTimer(dispMode == DispMode::GAME ? 750 : 2000);
+	initCursorTimer(dispMode == DispMode::GAME ? 1000 : 2000);
 
 	uint16_t key = KEY_NULL;
 
