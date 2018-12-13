@@ -355,49 +355,19 @@ convertToDoubleAndOperate:
     }
 
     /******************** Function ********************/
+    //Must be in the same order as type
+    const char * const Function::FUNCNAMES[] = {
+        "sin", "cos", "tan", "asin", "acos", "atan", "sinh", "cosh", "tanh", "asinh", "acosh", "atanh", "ln", 
+        //log10 and log2 cannot be directly entered with a string
+        "\xff", "\xff"
+    };
     Function* Function::fromString(const char *str) {
-        if(strcmp(str, "sin") == 0) {
-            return new Function(Type::SIN);
+        for(uint8_t i = 0; i < sizeof(FUNCNAMES) / sizeof(FUNCNAMES[0]); i ++) {
+            if(strcmp(str, FUNCNAMES[i]) == 0) {
+                return new Function((Function::Type) i);
+            }
         }
-        else if(strcmp(str, "cos") == 0) {
-            return new Function(Type::COS);
-        }
-        else if(strcmp(str, "tan") == 0) {
-            return new Function(Type::TAN);
-        }
-        else if(strcmp(str, "asin") == 0) {
-            return new Function(Type::ASIN);
-        }
-        else if(strcmp(str, "acos") == 0) {
-            return new Function(Type::ACOS);
-        }
-        else if(strcmp(str, "atan") == 0) {
-            return new Function(Type::ATAN);
-        }
-        else if(strcmp(str, "ln") == 0) {
-            return new Function(Type::LN);
-        }
-        else if(strcmp(str, "sinh") == 0) {
-            return new Function(Type::SINH);
-        }
-        else if(strcmp(str, "cosh") == 0) {
-            return new Function(Type::COSH);
-        }
-        else if(strcmp(str, "tanh") == 0) {
-            return new Function(Type::TANH);
-        }
-        else if(strcmp(str, "asinh") == 0) {
-            return new Function(Type::ASINH);
-        }
-        else if(strcmp(str, "acosh") == 0) {
-            return new Function(Type::ACOSH);
-        }
-        else if(strcmp(str, "atanh") == 0) {
-            return new Function(Type::ATANH);
-        }
-        else {
-            return nullptr;
-        }
+        return nullptr;
     }
     double Function::compute(double arg) {
         

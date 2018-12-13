@@ -15,7 +15,7 @@ namespace eval {
     /*
      * Base Token class and type enum
      */
-    enum class TokenType : uint8_t {
+    enum TokenType : uint8_t {
         NUMBER,
         FRACTION,
         OPERATOR,
@@ -69,7 +69,7 @@ namespace eval {
 
     class Operator : public Token {
     public:
-        enum class Type {
+        enum Type {
             PLUS, MINUS, MULTIPLY, DIVIDE, EXPONENT, 
             //Special multiplication and division
             //These operators have the highest precedence
@@ -108,9 +108,12 @@ namespace eval {
     //to make it a singleton
     class Function : public Token {
     public:
-        enum class Type : uint8_t {
+        enum Type : uint8_t {
             SIN, COS, TAN, ASIN, ACOS, ATAN, SINH, COSH, TANH, ASINH, ACOSH, ATANH, LN, LOG10, LOG2,
         };
+        //Must be in the same order as type
+        static const char * const FUNCNAMES[];
+        
         Function(Type type) : type(type) {}
 
         Type type;
