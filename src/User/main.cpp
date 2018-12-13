@@ -609,8 +609,9 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 	case KEY_FRAC:
 	{
         neda::Fraction *frac;
-        //If there's a number in front of the cursor, enclose that in the fraction
-        if(cursor->index != 0 && eval::isDigit(eval::extractChar(cursor->expr->contents[cursor->index - 1]))) {
+        //If there's a token in front of the cursor, enclose that in the fraction
+        char ch;
+        if(cursor->index != 0 && (ch = eval::extractChar(cursor->expr->contents[cursor->index - 1]), eval::isDigit(ch) || eval::isNameChar(ch))) {
             bool isNum;
             uint16_t end = eval::findTokenEnd(&cursor->expr->contents, cursor->index - 1, -1, isNum) + 1;
             uint16_t len = cursor->index - end;
