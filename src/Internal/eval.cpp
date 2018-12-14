@@ -359,7 +359,7 @@ convertToDoubleAndOperate:
     const char * const Function::FUNCNAMES[] = {
         "sin", "cos", "tan", "asin", "acos", "atan", "sinh", "cosh", "tanh", "asinh", "acosh", "atanh", "ln", 
         //log10 and log2 cannot be directly entered with a string
-        "\xff", "\xff"
+        "\xff", "\xff",
     };
     Function* Function::fromString(const char *str) {
         for(uint8_t i = 0; i < sizeof(FUNCNAMES) / sizeof(FUNCNAMES[0]); i ++) {
@@ -710,6 +710,7 @@ evaluateFunctionArguments:
                             if(end >= exprs.length() || exprs[index]->getType() != neda::ObjType::L_BRACKET) {
                                 freeTokens(&arr);
                                 delete[] str;
+                                delete func;
                                 return nullptr;
                             }
                             uint16_t nesting = 1;
@@ -730,6 +731,7 @@ evaluateFunctionArguments:
                             if(nesting != 0) {
                                 freeTokens(&arr);
                                 delete[] str;
+                                delete func;
                                 return nullptr;
                             }
                             //Now index should be right after the bracket, and end is at the closing bracket
@@ -750,6 +752,7 @@ evaluateFunctionArguments:
                                         if(nesting == 0) {
                                             freeTokens(&arr);
                                             delete[] str;
+                                            delete func;
                                             return nullptr;
                                         }
                                         --nesting;
@@ -766,6 +769,7 @@ evaluateFunctionArguments:
                                 if(!arg) {
                                     freeTokens(&arr);
                                     delete[] str;
+                                    delete func;
                                     return nullptr;
                                 }
                                 //Convert to double
@@ -782,10 +786,12 @@ evaluateFunctionArguments:
                             if(func->getNumArgs() != args.length()) {
                                 freeTokens(&arr);
                                 delete[] str;
+                                delete func;
                                 return nullptr;
                             }
                             //Evaluate
                             double result = func->compute(args.asArray());
+                            delete func;
                             //Add result
                             arr.add(new Number(result));
 
