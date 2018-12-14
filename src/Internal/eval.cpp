@@ -91,6 +91,7 @@ namespace eval {
         int64_t numB = frac.num * (newDenom / frac.denom);
         num = numA + numB;
         denom = newDenom;
+        reduce();
         return *this;
     }
     Fraction& Fraction::operator-=(const Fraction &frac) {
@@ -99,6 +100,7 @@ namespace eval {
         int64_t numB = frac.num * (newDenom / frac.denom);
         num = numA - numB;
         denom = newDenom;
+        reduce();
         return *this;
     }
     Fraction& Fraction::operator*=(const Fraction &frac) {
