@@ -705,8 +705,6 @@ convertToDoubleAndOperate:
                         //Add the function if it's valid
                         if(func) {
 evaluateFunctionArguments:
-                            //Allow unary operators after functions
-                            allowUnary = true;
                             
                             index = end;
                             if(end >= exprs.length() || exprs[index]->getType() != neda::ObjType::L_BRACKET) {
@@ -718,12 +716,15 @@ evaluateFunctionArguments:
                             ++index;
                             ++end;
                             //Find the end of this bracket
-                            for(; end < exprs.length() && nesting != 0; ++end) {
-                                if(exprs[index]->getType() == neda::ObjType::L_BRACKET) {
+                            for(; end < exprs.length(); ++end) {
+                                if(exprs[end]->getType() == neda::ObjType::L_BRACKET) {
                                     ++nesting;
                                 }
-                                else if(exprs[index]->getType() == neda::ObjType::R_BRACKET) {
+                                else if(exprs[end]->getType() == neda::ObjType::R_BRACKET) {
                                     --nesting;
+                                    if(!nesting) {
+                                        break;
+                                    }
                                 }
                             }
                             if(nesting != 0) {
@@ -787,7 +788,8 @@ evaluateFunctionArguments:
                             double result = func->compute(args.asArray());
                             //Add result
                             arr.add(new Number(result));
-                        
+
+                            allowUnary = false;
                             ++end;
                         }
                         //Otherwise see if it's a valid constant, or if it is the additional variable
