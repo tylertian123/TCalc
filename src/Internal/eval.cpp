@@ -360,6 +360,8 @@ convertToDoubleAndOperate:
         "sin", "cos", "tan", "asin", "acos", "atan", "sinh", "cosh", "tanh", "asinh", "acosh", "atanh", "ln", 
         //log10 and log2 cannot be directly entered with a string
         "\xff", "\xff",
+
+        "qdRtA", "qdRtB",
     };
     Function* Function::fromString(const char *str) {
         for(uint8_t i = 0; i < sizeof(FUNCNAMES) / sizeof(FUNCNAMES[0]); i ++) {
@@ -370,6 +372,9 @@ convertToDoubleAndOperate:
         return nullptr;
     }
     uint8_t Function::getNumArgs() const {
+        if(type == Type::QUADROOT_A || type == Type::QUADROOT_B) {
+            return 3;
+        }
         return 1;
     }
     double Function::compute(double *args) const {
@@ -434,6 +439,14 @@ convertToDoubleAndOperate:
         case Type::ATANH:
         {
             return TRIG_FUNC_OUTPUT(atanh(args[0]));
+        }
+        case Type::QUADROOT_A:
+        {
+            return (-args[1] + sqrt(args[1] * args[1] - 4 * args[0] * args[2])) / (2 * args[0]);
+        }
+        case Type::QUADROOT_B:
+        {
+            return (-args[1] - sqrt(args[1] * args[1] - 4 * args[0] * args[2])) / (2 * args[0]);
         }
         default: return NAN;
         }
