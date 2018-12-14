@@ -188,6 +188,8 @@ namespace neda {
         void recomputeHeights();
 
         virtual Container* copy() override;
+
+        void addString(const char*);
 	};
 	
 	//Fraction
@@ -478,7 +480,6 @@ namespace neda {
     };
 
     Container* makeString(const char*);
-    void addString(Container*, const char*);
 }
 
 #endif

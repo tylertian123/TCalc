@@ -435,6 +435,11 @@ namespace neda {
         
         return c;
     }
+    void Container::addString(const char *str) {
+        while(*str != '\0') {
+            add(new Character(*(str++)));
+        }
+    }
 
     //*************************** Fraction ***************************************
     uint16_t Fraction::getTopSpacing() {
@@ -1119,11 +1124,6 @@ namespace neda {
             cont->add(new Character(*(str++)));
         }
         return cont;
-    }
-    void addString(Container *cont, const char *str) {
-        while(*str != '\0') {
-            cont->add(new Character(*(str++)));
-        }
     }
 }
 

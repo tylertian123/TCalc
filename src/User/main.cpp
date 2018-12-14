@@ -226,7 +226,7 @@ void drawResult(uint8_t id, bool asDecimal = false) {
         delete evalResult;
         char buf[64];
         ftoa(decimalResult, buf, 16, LCD_CHAR_EE);
-        neda::addString(result, buf);
+        result->addString(buf);
     }
     else {
         result = calcResults[id];
@@ -811,7 +811,7 @@ evaluateExpression:
                     char buf[64];
                     //Convert the result and store it
                     ftoa(((eval::Number*) result)->value, buf, 16, LCD_CHAR_EE);
-                    neda::addString(calcResults[0], buf);
+                    calcResults[0]->addString(buf);
                 }
             }
             else {
@@ -819,9 +819,9 @@ evaluateExpression:
                 neda::Container *num = new neda::Container();
                 neda::Container *denom = new neda::Container();
                 ltoa(((eval::Fraction*) result)->num, buf);
-                neda::addString(num, buf);
+                num->addString(buf);
                 ltoa(((eval::Fraction*) result)->denom, buf);
-                neda::addString(denom, buf);
+                denom->addString(buf);
 
                 calcResults[0]->add(new neda::Fraction(num, denom));
             }
