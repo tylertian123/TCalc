@@ -87,8 +87,12 @@ uint8_t ftoa(double val, char *str, uint8_t ndigits, char echar) {
         return len;
     }
 
-    int64_t whole = (int64_t) val;
-    uint8_t len = ltoa(whole, str);
+    uint8_t len = 0;
+    uint64_t whole = abs((int64_t) val);
+    if(val < 0) {
+        str[len++] = '-';
+    }
+    len += ltoa(whole, str + len);
     //If it's an integer, finish here
     if(whole == val) {
         return len;
