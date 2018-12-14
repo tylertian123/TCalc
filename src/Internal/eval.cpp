@@ -666,7 +666,7 @@ convertToDoubleAndOperate:
                 //Add null terminator
                 str[end - index] = '\0';
 
-                Function *func;
+                Function *func = nullptr;
 
                 if(!isNum) {
                     //Special processing for logarithms:
@@ -675,7 +675,9 @@ convertToDoubleAndOperate:
                         if(end < exprs.length() && exprs[end]->getType() == neda::ObjType::SUBSCRIPT) {
                             Token *sub = evaluate((neda::Container*) ((neda::Subscript*) exprs[end])->contents, varc, varn, varv);
                             if(!sub) {
-                                goto varSyntaxError;
+                                freeTokens(&arr);
+                                delete[] str;
+                                return nullptr;
                             }
                             //Use the log change of base property
                             //Translate to 1/log(base) * log
@@ -708,7 +710,9 @@ evaluateFunctionArguments:
                             
                             index = end;
                             if(end >= exprs.length() || exprs[index]->getType() != neda::ObjType::L_BRACKET) {
-                                goto varSyntaxError;
+                                freeTokens(&arr);
+                                delete[] str;
+                                return nullptr;
                             }
                             uint16_t nesting = 1;
                             ++index;
@@ -723,7 +727,9 @@ evaluateFunctionArguments:
                                 }
                             }
                             if(nesting != 0) {
-                                goto varSyntaxError;
+                                freeTokens(&arr);
+                                delete[] str;
+                                return nullptr;
                             }
                             //Now index should be right after the bracket, and end is at the closing bracket
                             
@@ -741,7 +747,9 @@ evaluateFunctionArguments:
                                     else if(exprs[argEnd]->getType() == neda::ObjType::R_BRACKET) {
                                         //Mismatched brackets
                                         if(nesting == 0) {
-                                            goto varSyntaxError;
+                                            freeTokens(&arr);
+                                            delete[] str;
+                                            return nullptr;
                                         }
                                         --nesting;
                                         continue;
@@ -755,7 +763,9 @@ evaluateFunctionArguments:
                                 Token *arg = evaluate(&argContents, varc, varn, varv);
                                 //Cleanup
                                 if(!arg) {
-                                    goto varSyntaxError;
+                                    freeTokens(&arr);
+                                    delete[] str;
+                                    return nullptr;
                                 }
                                 //Convert to double
                                 args.add(arg->getType() == TokenType::NUMBER ? ((Number*) arg)->value : ((Fraction*) arg)->doubleVal());
@@ -769,7 +779,9 @@ evaluateFunctionArguments:
                             }
                             //Verify that the number of arguments is correct
                             if(func->getNumArgs() != args.length()) {
-                                goto varSyntaxError;
+                                freeTokens(&arr);
+                                delete[] str;
+                                return nullptr;
                             }
                             //Evaluate
                             double result = func->compute(args.asArray());
@@ -804,11 +816,12 @@ evaluateFunctionArguments:
                                     }
                                 }
                                 if(i == varc) {
-                                    goto varSyntaxError;
+                                    freeTokens(&arr);
+                                    delete[] str;
+                                    return nullptr;
                                 }
                             }
                             else {
-varSyntaxError:
                                 freeTokens(&arr);
                                 delete[] str;
                                 return nullptr;
