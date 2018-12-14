@@ -944,6 +944,7 @@ evaluateFunctionArguments:
                 delete[] vVals;
 
                 ++index;
+                allowUnary = false;
                 break;
             } 
             default: ++index; break;
