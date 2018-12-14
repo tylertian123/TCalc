@@ -123,7 +123,8 @@ namespace eval {
         }
 
         static Function* fromString(const char*);
-        double compute(double);
+        uint8_t getNumArgs() const;
+        double compute(double*) const;
     };
 
     //This will delete the collection of tokens properly. It will destory all tokens in the array.

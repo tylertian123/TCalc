@@ -369,68 +369,71 @@ convertToDoubleAndOperate:
         }
         return nullptr;
     }
-    double Function::compute(double arg) {
+    uint8_t Function::getNumArgs() const {
+        return 1;
+    }
+    double Function::compute(double *args) const {
         
         switch(type) {
         case Type::SIN:
         {
-            return sin(TRIG_FUNC_INPUT(arg));
+            return sin(TRIG_FUNC_INPUT(args[0]));
         }
         case Type::COS:
         {
-            return cos(TRIG_FUNC_INPUT(arg));
+            return cos(TRIG_FUNC_INPUT(args[0]));
         }
         case Type::TAN:
         {
-            return tan(TRIG_FUNC_INPUT(arg));
+            return tan(TRIG_FUNC_INPUT(args[0]));
         }
         case Type::ASIN:
         {
-            return TRIG_FUNC_OUTPUT(asin(arg));
+            return TRIG_FUNC_OUTPUT(asin(args[0]));
         }
         case Type::ACOS:
         {
-            return TRIG_FUNC_OUTPUT(acos(arg));
+            return TRIG_FUNC_OUTPUT(acos(args[0]));
         }
         case Type::ATAN:
         {
-            return TRIG_FUNC_OUTPUT(atan(arg));
+            return TRIG_FUNC_OUTPUT(atan(args[0]));
         }
         case Type::LN:
         {
-            return log(arg);
+            return log(args[0]);
         }
         case Type::LOG10:
         {
-            return log10(arg);
+            return log10(args[0]);
         }
         case Type::LOG2:
         {
-            return log2(arg);
+            return log2(args[0]);
         }
         case Type::SINH:
         {
-            return sinh(TRIG_FUNC_INPUT(arg));
+            return sinh(TRIG_FUNC_INPUT(args[0]));
         }
         case Type::COSH:
         {
-            return cosh(TRIG_FUNC_INPUT(arg));
+            return cosh(TRIG_FUNC_INPUT(args[0]));
         }
         case Type::TANH:
         {
-            return tanh(TRIG_FUNC_INPUT(arg));
+            return tanh(TRIG_FUNC_INPUT(args[0]));
         }
         case Type::ASINH:
         {
-            return TRIG_FUNC_OUTPUT(asinh(arg));
+            return TRIG_FUNC_OUTPUT(asinh(args[0]));
         }
         case Type::ACOSH:
         {
-            return TRIG_FUNC_OUTPUT(acosh(arg));
+            return TRIG_FUNC_OUTPUT(acosh(args[0]));
         }
         case Type::ATANH:
         {
-            return TRIG_FUNC_OUTPUT(atanh(arg));
+            return TRIG_FUNC_OUTPUT(atanh(args[0]));
         }
         default: return NAN;
         }
@@ -663,15 +666,16 @@ convertToDoubleAndOperate:
                 //Add null terminator
                 str[end - index] = '\0';
 
+                Function *func;
+
                 if(!isNum) {
                     //Special processing for logarithms:
                     if(strcmp(str, "log") == 0) {
+                        //NEEDS CHANGE!
                         if(end < exprs.length() && exprs[end]->getType() == neda::ObjType::SUBSCRIPT) {
                             Token *sub = evaluate((neda::Container*) ((neda::Subscript*) exprs[end])->contents, varc, varn, varv);
                             if(!sub) {
-                                freeTokens(&arr);
-                                delete[] str;
-                                return nullptr;
+                                goto varSyntaxError;
                             }
                             //Use the log change of base property
                             //Translate to 1/log(base) * log
@@ -691,17 +695,88 @@ convertToDoubleAndOperate:
                         else {
                             arr.add(new Function(Function::Type::LOG10));
                         }
-                        //Allow unary after functions
-                        allowUnary = true;
+                        goto evaluateFunctionArguments;
                     }
                     //Otherwise normal processing
                     else {
-                        Function *func = Function::fromString(str);
+                        func = Function::fromString(str);
                         //Add the function if it's valid
                         if(func) {
-                            arr.add(func);
+evaluateFunctionArguments:
                             //Allow unary operators after functions
                             allowUnary = true;
+                            
+                            index = end;
+                            if(end >= exprs.length() || exprs[index]->getType() != neda::ObjType::L_BRACKET) {
+                                goto varSyntaxError;
+                            }
+                            uint16_t nesting = 1;
+                            ++index;
+                            ++end;
+                            //Find the end of this bracket
+                            for(; end < exprs.length() && nesting != 0; ++end) {
+                                if(exprs[index]->getType() == neda::ObjType::L_BRACKET) {
+                                    ++nesting;
+                                }
+                                else if(exprs[index]->getType() == neda::ObjType::R_BRACKET) {
+                                    --nesting;
+                                }
+                            }
+                            if(nesting != 0) {
+                                goto varSyntaxError;
+                            }
+                            //Now index should be right after the bracket, and end is at the closing bracket
+                            
+                            DynamicArray<double> args;
+                            //Isolate each argument
+                            uint16_t argEnd = index;
+                            while(index != end) {
+                                //Take care of nested brackets
+                                uint16_t nesting = 0;
+                                for(; argEnd < end; ++argEnd) {
+                                    if(exprs[argEnd]->getType() == neda::ObjType::L_BRACKET) {
+                                        ++nesting;
+                                        continue;
+                                    }
+                                    else if(exprs[argEnd]->getType() == neda::ObjType::R_BRACKET) {
+                                        //Mismatched brackets
+                                        if(nesting == 0) {
+                                            goto varSyntaxError;
+                                        }
+                                        --nesting;
+                                        continue;
+                                    }
+                                    //Only end arguments when the nesting level is 0
+                                    if(nesting == 0 && extractChar(exprs[argEnd]) == ',') {
+                                        break;
+                                    }
+                                }
+                                DynamicArray<neda::NEDAObj*> argContents(exprs.begin() + index, exprs.begin() + argEnd);
+                                Token *arg = evaluate(&argContents, varc, varn, varv);
+                                //Cleanup
+                                if(!arg) {
+                                    goto varSyntaxError;
+                                }
+                                //Convert to double
+                                args.add(arg->getType() == TokenType::NUMBER ? ((Number*) arg)->value : ((Fraction*) arg)->doubleVal());
+                                delete arg;
+
+                                //If comma increase arg end
+                                if(extractChar(exprs[argEnd]) == ',') {
+                                    ++argEnd;
+                                }
+                                index = argEnd;
+                            }
+                            //Verify that the number of arguments is correct
+                            if(func->getNumArgs() != args.length()) {
+                                goto varSyntaxError;
+                            }
+                            //Evaluate
+                            double result = func->compute(args.asArray());
+                            //Add result
+                            arr.add(new Number(result));
+                        
+                            ++end;
                         }
                         //Otherwise see if it's a valid constant, or if it is the additional variable
                         else {
@@ -839,16 +914,13 @@ varSyntaxError:
             }
         }
 
-        //After that, we should be left with an expression with nothing but Tokens, basic operators, and functions.
+        //After that, we should be left with an expression with nothing but numbers, fractions and basic operators
         //Use shunting yard
         Deque<Token*> output(arr.length());
         Deque<Token*> stack;
         for(Token *t : arr) {
             if(t->getType() == TokenType::NUMBER || t->getType() == TokenType::FRACTION) {
                 output.enqueue(t);
-            }
-            else if(t->getType() == TokenType::FUNCTION) {
-                stack.push(t);
             }
             else {
                 //Operator
@@ -869,29 +941,6 @@ varSyntaxError:
             Token *t = output.dequeue();
             if(t->getType() == TokenType::NUMBER || t->getType() == TokenType::FRACTION) {
                 stack.push(t);
-            }
-            else if(t->getType() == TokenType::FUNCTION) {
-                //Syntax error: Not Enough Arguments
-                if(stack.isEmpty()) {
-                    //Do cleanup and return nullptr
-                    delete t;
-                    freeTokens(&output);
-                    freeTokens(&stack);
-                    return nullptr;
-                }
-                //Compute the function
-                Token *n = stack.pop();
-                Function *func = (Function*) t;
-                //n Can only be a number or fraction
-                if(n->getType() == TokenType::NUMBER) {
-                    stack.push(new Number(func->compute(((Number*) n)->value)));
-                }
-                //Calling any function on a fraction converts it into a double
-                else {
-                    stack.push(new Number(func->compute(((Fraction*) n)->doubleVal())));
-                }
-                delete n;
-                delete func;
             }
             else {
                 if(stack.length() < 2) {
