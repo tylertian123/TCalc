@@ -686,7 +686,6 @@ convertToDoubleAndOperate:
                 if(!isNum) {
                     //Special processing for logarithms:
                     if(strcmp(str, "log") == 0) {
-                        //NEEDS CHANGE!
                         if(end < exprs.length() && exprs[end]->getType() == neda::ObjType::SUBSCRIPT) {
                             Token *sub = evaluate((neda::Container*) ((neda::Subscript*) exprs[end])->contents, varc, varn, varv);
                             if(!sub) {
@@ -695,22 +694,19 @@ convertToDoubleAndOperate:
                                 return nullptr;
                             }
                             //Use the log change of base property
-                            //Translate to 1/log(base) * log
-                            arr.add(new Number(1));
-                            //Use special high-precedence division
-                            arr.add(&Operator::OP_SP_DIV);
-                            //Use base 2 because why not
-                            arr.add(new Function(Function::Type::LOG2));
-                            arr.add(sub);
-                            //Use special high-precedence multiplication
+                            double base = sub->getType() == TokenType::NUMBER ? ((Number*) sub)->value : ((Fraction*) sub)->doubleVal();
+                            delete sub;
+                            double multiplier = 1 / log2(base);
+                            arr.add(new Number(multiplier));
                             arr.add(&Operator::OP_SP_MULT);
-                            arr.add(new Function(Function::Type::LOG2));
+                            
+                            func = new Function(Function::Type::LOG2);
                             //Increment end so the index gets set properly afterwards
                             ++end;
                         }
                         //Default log base: 10
                         else {
-                            arr.add(new Function(Function::Type::LOG10));
+                            func = new Function(Function::Type::LOG10);
                         }
                         goto evaluateFunctionArguments;
                     }
@@ -720,7 +716,6 @@ convertToDoubleAndOperate:
                         //Add the function if it's valid
                         if(func) {
 evaluateFunctionArguments:
-                            
                             index = end;
                             if(end >= exprs.length() || exprs[index]->getType() != neda::ObjType::L_BRACKET) {
                                 freeTokens(&arr);
