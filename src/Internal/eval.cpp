@@ -498,10 +498,10 @@ convertToDoubleAndOperate:
         return equalsIndex;
     }
 
-    Token* evaluate(neda::Container *expr, uint8_t varc, const char **varn, Token **varv) {
-        return evaluate(&expr->contents, varc, varn, varv);
+    Token* evaluate(neda::Container *expr, uint8_t varc, const char **varn, Token **varv, uint8_t funcc, UserDefinedFunction *funcs) {
+        return evaluate(&expr->contents, varc, varn, varv, funcc, funcs);
     }
-	Token* evaluate(DynamicArray<neda::NEDAObj*> *expr, uint8_t varc, const char **varn, Token **varv) {
+	Token* evaluate(DynamicArray<neda::NEDAObj*> *expr, uint8_t varc, const char **varn, Token **varv, uint8_t funcc, UserDefinedFunction *funcs) {
 		DynamicArray<Token*, 4> arr;
         //Deref the result so the syntax won't be so awkward
         auto &exprs = *expr;
@@ -540,7 +540,7 @@ convertToDoubleAndOperate:
                 }
                 //Create the subarray, not including the two brackets
                 DynamicArray<neda::NEDAObj*> inside(exprs.begin() + index + 1, exprs.begin() + endIndex);
-                Token *insideResult = evaluate(&inside, varc, varn, varv);
+                Token *insideResult = evaluate(&inside, varc, varn, varv, funcc, funcs);
                 if(!insideResult) {
                     freeTokens(&arr);
                     return nullptr;
@@ -560,8 +560,8 @@ convertToDoubleAndOperate:
             }
             case neda::ObjType::FRACTION:
             {
-                Token *num = evaluate((neda::Container*) ((neda::Fraction*) exprs[index])->numerator, varc, varn, varv);
-                Token *denom = evaluate((neda::Container*) ((neda::Fraction*) exprs[index])->denominator, varc, varn, varv);
+                Token *num = evaluate((neda::Container*) ((neda::Fraction*) exprs[index])->numerator, varc, varn, varv, funcc, funcs);
+                Token *denom = evaluate((neda::Container*) ((neda::Fraction*) exprs[index])->denominator, varc, varn, varv, funcc, funcs);
                 if(!num || !denom) {
                     if(num) {
                         delete num;
@@ -580,7 +580,7 @@ convertToDoubleAndOperate:
             }
             case neda::ObjType::SUPERSCRIPT:
             {
-                Token *exponent = evaluate((neda::Container*) ((neda::Superscript*) exprs[index])->contents, varc, varn, varv);
+                Token *exponent = evaluate((neda::Container*) ((neda::Superscript*) exprs[index])->contents, varc, varn, varv, funcc, funcs);
                 if(!exponent) {
                     freeTokens(&arr);
                     return nullptr;
@@ -600,13 +600,13 @@ convertToDoubleAndOperate:
                 }
                 Token *n;
                 if(((neda::Radical*) exprs[index])->n) {
-                    n = evaluate((neda::Container*) ((neda::Radical*) exprs[index])->n, varc, varn, varv);
+                    n = evaluate((neda::Container*) ((neda::Radical*) exprs[index])->n, varc, varn, varv, funcc, funcs);
                 }
                 //No base - implied square root
                 else {
                     n = new Number(2);
                 }
-                Token *contents = evaluate((neda::Container*) ((neda::Radical*) exprs[index])->contents, varc, varn, varv);
+                Token *contents = evaluate((neda::Container*) ((neda::Radical*) exprs[index])->contents, varc, varn, varv, funcc, funcs);
 
                 if(!n || !contents) {
                     if(n) {
@@ -687,7 +687,7 @@ convertToDoubleAndOperate:
                     //Special processing for logarithms:
                     if(strcmp(str, "log") == 0) {
                         if(end < exprs.length() && exprs[end]->getType() == neda::ObjType::SUBSCRIPT) {
-                            Token *sub = evaluate((neda::Container*) ((neda::Subscript*) exprs[end])->contents, varc, varn, varv);
+                            Token *sub = evaluate((neda::Container*) ((neda::Subscript*) exprs[end])->contents, varc, varn, varv, funcc, funcs);
                             if(!sub) {
                                 freeTokens(&arr);
                                 delete[] str;
@@ -774,7 +774,7 @@ evaluateFunctionArguments:
                                     }
                                 }
                                 DynamicArray<neda::NEDAObj*> argContents(exprs.begin() + index, exprs.begin() + argEnd);
-                                Token *arg = evaluate(&argContents, varc, varn, varv);
+                                Token *arg = evaluate(&argContents, varc, varn, varv, funcc, funcs);
                                 //Cleanup
                                 if(!arg) {
                                     freeTokens(&arr);
@@ -861,7 +861,7 @@ evaluateFunctionArguments:
             case neda::ObjType::SIGMA_PI:
             {
                 //Evaluate the end
-                Token *end = evaluate((neda::Container*) ((neda::SigmaPi*) exprs[index])->finish, varc, varn, varv);
+                Token *end = evaluate((neda::Container*) ((neda::SigmaPi*) exprs[index])->finish, varc, varn, varv, funcc, funcs);
                 if(!end) {
                     freeTokens(&arr);
                     return nullptr;
@@ -876,7 +876,7 @@ evaluateFunctionArguments:
                 }
                 //Attempt to evaluate the starting condition assign value
                 DynamicArray<neda::NEDAObj*> startVal(startContents->begin() + equalsIndex + 1, startContents->end());
-                Token *start = evaluate(&startVal, varc, varn, varv);
+                Token *start = evaluate(&startVal, varc, varn, varv, funcc, funcs);
                 if(!start) {
                     delete end;
                     freeTokens(&arr);
@@ -906,7 +906,7 @@ evaluateFunctionArguments:
                 //While the start is still less than or equal to the end
                 while(compareTokens(start, end) <= 0) {
                     //Evaluate the inside expression
-                    Token *n = evaluate((neda::Container*) ((neda::SigmaPi*) exprs[index])->contents, varc + 1, vNames, vVals);
+                    Token *n = evaluate((neda::Container*) ((neda::SigmaPi*) exprs[index])->contents, varc + 1, vNames, vVals, funcc, funcs);
                     //If there is ever a syntax error then cleanup and exit
                     if(!n) {
                         delete end;

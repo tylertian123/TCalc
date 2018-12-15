@@ -127,6 +127,11 @@ namespace eval {
         double compute(double*) const;
     };
 
+    struct UserDefinedFunction {
+        neda::Container *expr;    
+        const char *name;
+    };
+
     //This will delete the collection of tokens properly. It will destory all tokens in the array.
     template <uint16_t Increase>
     void freeTokens(Deque<Token*, Increase> *q) {
@@ -177,8 +182,10 @@ namespace eval {
         return end;
     }
 	
-    Token* evaluate(neda::Container *expr, uint8_t varc = 0, const char **varn = nullptr, Token **varv = nullptr);
-    Token* evaluate(DynamicArray<neda::NEDAObj*>*, uint8_t varc = 0, const char **varn = nullptr, Token **varv = nullptr);
+    Token* evaluate(neda::Container *expr, uint8_t varc = 0, const char **varn = nullptr, Token **varv = nullptr,
+            uint8_t funcc = 0, UserDefinedFunction *funcs = nullptr);
+    Token* evaluate(DynamicArray<neda::NEDAObj*>*, uint8_t varc = 0, const char **varn = nullptr, Token **varv = nullptr,
+            uint8_t funcc = 0, UserDefinedFunction *funcs = nullptr);
 }
 
 #endif
