@@ -63,12 +63,12 @@ void send(unsigned char row, unsigned char col) {
 	//Handle shift and ctrl keys separately
 	if(KEYMAP_NORMAL[row][col] == KEY_SHIFT) {
 		shift = !shift;
-		sendKey(KEY_SHIFT);
+		sendKey(shift ? KEY_SHIFTON : KEY_SHIFTOFF);
 		return;
 	}
 	else if(KEYMAP_NORMAL[row][col] == KEY_CTRL) {
 		ctrl = !ctrl;
-		sendKey(KEY_CTRL);
+		sendKey(ctrl ? KEY_CTRLON : KEY_CTRLOFF);
 		return;
 	}
 	
@@ -77,13 +77,13 @@ void send(unsigned char row, unsigned char col) {
 		//Send the key, delay and deactivate shift and ctrl
 		sendKey(KEYMAP_SHIFT[row][col]);
 		delay(10);
-		sendKey(KEY_SHIFT);
+		sendKey(KEY_SHIFTOFF);
 		shift = 0;
 	}
 	else if(ctrl) {
 		sendKey(KEYMAP_CTRL[row][col]);
 		delay(10);
-		sendKey(KEY_CTRL);
+		sendKey(KEY_CTRLOFF);
 		ctrl = 0;
 	}
 	else {
