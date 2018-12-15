@@ -1063,12 +1063,18 @@ int main() {
     receiver.onReceive([](uint32_t data) {
         //Store keystroke into buffer
         //If there is already data in the buffer then shift that data left to make room
-        if(data == KEY_SHIFT) {
-            shiftLED = !shiftLED;
+        if(data == KEY_SHIFTON) {
+            shiftLED = true;
         }
-        else if(data == KEY_CTRL) {
-            ctrlLED = !ctrlLED;
-        }
+		else if(data == KEY_SHIFTOFF) {
+			shiftLED = false;
+		}
+        else if(data == KEY_CTRLON) {
+			ctrlLED = true;
+		}
+		else if(data == KEY_CTRLOFF) {
+			ctrlLED = false;
+		}
         else {
             putKey(data);
         }

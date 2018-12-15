@@ -109,6 +109,10 @@
 #define KEY_EQUAL     0x0069
 #define KEY_CONST     0x006A
 #define KEY_CLEARVAR  0x006B
+#define KEY_SHIFTON   0x006C
+#define KEY_SHIFTOFF  0x006D
+#define KEY_CTRLON    0x006E
+#define KEY_CTRLOFF   0x006F
 
 #define KEY_DUMMY     0xFFFF
 
