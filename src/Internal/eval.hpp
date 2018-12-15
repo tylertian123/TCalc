@@ -130,6 +130,8 @@ namespace eval {
     struct UserDefinedFunction {
         neda::Container *expr;    
         const char *name;
+        uint8_t argc;
+        const char **argn;
     };
 
     //This will delete the collection of tokens properly. It will destory all tokens in the array.

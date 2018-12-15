@@ -682,6 +682,7 @@ convertToDoubleAndOperate:
                 str[end - index] = '\0';
 
                 Function *func = nullptr;
+                UserDefinedFunction *uFunc = nullptr;
 
                 if(!isNum) {
                     //Special processing for logarithms:
@@ -713,8 +714,16 @@ convertToDoubleAndOperate:
                     //Otherwise normal processing
                     else {
                         func = Function::fromString(str);
+                        //If it's not a normal function then try to find a user function that matches
+                        if(!func) {
+                            for(uint8_t i = 0; i < funcc; ++i) {
+                                if(strcmp(funcs[i].name, str) == 0) {
+                                    uFunc = funcs + i;
+                                }
+                            }
+                        }
                         //Add the function if it's valid
-                        if(func) {
+                        if(func || uFunc) {
 evaluateFunctionArguments:
                             index = end;
                             if(end >= exprs.length() || exprs[index]->getType() != neda::ObjType::L_BRACKET) {
@@ -793,15 +802,59 @@ evaluateFunctionArguments:
                                 index = argEnd;
                             }
                             //Verify that the number of arguments is correct
-                            if(func->getNumArgs() != args.length()) {
+                            //Make sure to handle user-defined functions as well
+                            if((func && func->getNumArgs() != args.length()) || (uFunc && uFunc->argc != args.length())) {
                                 freeTokens(&arr);
                                 delete[] str;
                                 delete func;
                                 return nullptr;
                             }
                             //Evaluate
-                            double result = func->compute(args.asArray());
-                            delete func;
+                            double result;
+                            if(func) {
+                                result = func->compute(args.asArray());
+                                delete func;
+                            }
+                            //User-defined function
+                            else {
+                                //Construct a new argument list
+                                const char **vNames = new const char*[varc + uFunc->argc];
+                                Token **vVals = new Token*[varc + uFunc->argc];
+                                //Copy in the values
+                                for(uint8_t i = 0; i < varc; i ++) {
+                                    vNames[i] = varn[i];
+                                    vVals[i] = varv[i];
+                                }
+                                for(uint8_t i = 0; i < uFunc->argc; i ++) {
+                                    vNames[varc + i] = uFunc->argn[i];
+                                    vVals[varc + i] = new Number(args[i]);
+                                }
+
+                                //Evaluate
+                                Token *t = evaluate(uFunc->expr, varc + uFunc->argc, vNames, vVals, funcc, funcs);
+                                //Syntax error, cleanup
+                                if(!t) {
+                                    for(uint8_t i = varc; i < varc + uFunc->argc; i ++) {
+                                        delete vVals[i];
+                                    }
+                                    delete vNames;
+                                    delete vVals;
+
+                                    freeTokens(&arr);
+                                    delete[] str;
+                                    return nullptr;
+                                }
+                                //Set result
+                                result = t->getType() == TokenType::NUMBER ? ((Number*) t)->value : ((Fraction*) t)->doubleVal();
+                                delete t;
+
+                                //Cleanup
+                                for(uint8_t i = varc; i < varc + uFunc->argc; i ++) {
+                                    delete vVals[i];
+                                }
+                                delete vNames;
+                                delete vVals;
+                            }
                             //Add result
                             arr.add(new Number(result));
 
@@ -956,8 +1009,7 @@ evaluateFunctionArguments:
             }
             else {
                 //Operator
-                while(!stack.isEmpty() && (stack.peek()->getType() == TokenType::FUNCTION 
-                        || ((Operator*) stack.peek())->getPrecedence() <= ((Operator*) t)->getPrecedence())) {
+                while(!stack.isEmpty() && ((Operator*) stack.peek())->getPrecedence() <= ((Operator*) t)->getPrecedence()) {
                     output.enqueue(stack.pop());
                 }
                 stack.push(t);
