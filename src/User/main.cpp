@@ -176,25 +176,36 @@ extern "C" void TIM3_IRQHandler() {
 void adjustExpr(neda::Expr *ex, neda::Cursor *cursorRef) {
 	neda::CursorInfo info;
 	cursorRef->getInfo(info);
-	if(info.x >= CURSOR_HORIZ_SPACING && info.y >= CURSOR_VERT_SPACING
-			&& info.x + info.width + CURSOR_HORIZ_SPACING < 128 && info.y + info.height + CURSOR_VERT_SPACING < 64) {
-		return;
-	}
+    //First try to directly position the expression in the top-left corner of the display
+    uint16_t xd = CURSOR_HORIZ_SPACING - ex->x;
+    uint16_t yd = CURSOR_VERT_SPACING - ex->y;
+    //Make sure it fits
+    if(info.x + xd >= CURSOR_HORIZ_SPACING && info.y + yd >= CURSOR_VERT_SPACING
+            && info.x + info.width + xd + CURSOR_HORIZ_SPACING < 128 && info.y + info.height + yd + CURSOR_VERT_SPACING < 64) {
+        ex->updatePosition(xd, yd);
+    }
+    else {
+        //Fit the cursor normally
+        if(info.x >= CURSOR_HORIZ_SPACING && info.y >= CURSOR_VERT_SPACING
+                && info.x + info.width + CURSOR_HORIZ_SPACING < 128 && info.y + info.height + CURSOR_VERT_SPACING < 64) {
+            return;
+        }
 
-	int16_t xdiff = 0, ydiff = 0;
-	if(info.x < CURSOR_HORIZ_SPACING) {
-		xdiff = CURSOR_HORIZ_SPACING - info.x;
-	}
-	else if(info.x + info.width + CURSOR_HORIZ_SPACING >= 128) {
-		xdiff = 127 - (info.x + info.width + CURSOR_HORIZ_SPACING);
-	}
-	if(info.y < CURSOR_VERT_SPACING) {
-		ydiff = CURSOR_VERT_SPACING - info.y;
-	}
-	else if(info.y + info.height + CURSOR_VERT_SPACING >= 64) {
-		ydiff = 63 - (info.y + info.height + CURSOR_VERT_SPACING);
-	}
-	ex->updatePosition(xdiff, ydiff);
+        int16_t xdiff = 0, ydiff = 0;
+        if(info.x < CURSOR_HORIZ_SPACING) {
+            xdiff = CURSOR_HORIZ_SPACING - info.x;
+        }
+        else if(info.x + info.width + CURSOR_HORIZ_SPACING >= 128) {
+            xdiff = 127 - (info.x + info.width + CURSOR_HORIZ_SPACING);
+        }
+        if(info.y < CURSOR_VERT_SPACING) {
+            ydiff = CURSOR_VERT_SPACING - info.y;
+        }
+        else if(info.y + info.height + CURSOR_VERT_SPACING >= 64) {
+            ydiff = 63 - (info.y + info.height + CURSOR_VERT_SPACING);
+        }
+        ex->updatePosition(xdiff, ydiff);
+    }
 }
 
 //Adds a char at the cursor
