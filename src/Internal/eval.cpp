@@ -474,18 +474,21 @@ convertToDoubleAndOperate:
         double bVal = b->getType() == TokenType::NUMBER ? ((Number*) b)->value : ((Fraction*) b)->doubleVal();
         return aVal > bVal ? 1 : bVal > aVal ? -1 : 0;
     }
-    uint16_t findEquals(DynamicArray<neda::NEDAObj*> *arr) {
+    uint16_t findEquals(DynamicArray<neda::NEDAObj*> *arr, bool forceVarName) {
         uint16_t equalsIndex = 0;
         bool validName = true;
         for(auto i : *arr) {
             if(i->getType() == neda::ObjType::CHAR_TYPE && ((neda::Character*) i)->ch == '=') {
                 break;
             }
-            //In addition to finding the equals sign, also verify that the left hand side of the equals only contains valid
-            //name characters
-            if(!isNameChar(extractChar(i))) {
-                validName = false;
-                break;
+            if(forceVarName) {
+                //Check for name validity only if forceVarName is true
+                //In addition to finding the equals sign, also verify that the left hand side of the equals only contains valid
+                //name characters
+                if(!isNameChar(extractChar(i))) {
+                    validName = false;
+                    break;
+                }
             }
             ++equalsIndex;
         }
@@ -498,10 +501,10 @@ convertToDoubleAndOperate:
         return equalsIndex;
     }
 
-    Token* evaluate(neda::Container *expr, uint8_t varc, const char **varn, Token **varv) {
-        return evaluate(&expr->contents, varc, varn, varv);
+    Token* evaluate(neda::Container *expr, uint8_t varc, const char **varn, Token **varv, uint8_t funcc, UserDefinedFunction *funcs) {
+        return evaluate(&expr->contents, varc, varn, varv, funcc, funcs);
     }
-	Token* evaluate(DynamicArray<neda::NEDAObj*> *expr, uint8_t varc, const char **varn, Token **varv) {
+	Token* evaluate(DynamicArray<neda::NEDAObj*> *expr, uint8_t varc, const char **varn, Token **varv, uint8_t funcc, UserDefinedFunction *funcs) {
 		DynamicArray<Token*, 4> arr;
         //Deref the result so the syntax won't be so awkward
         auto &exprs = *expr;
@@ -540,7 +543,7 @@ convertToDoubleAndOperate:
                 }
                 //Create the subarray, not including the two brackets
                 DynamicArray<neda::NEDAObj*> inside(exprs.begin() + index + 1, exprs.begin() + endIndex);
-                Token *insideResult = evaluate(&inside, varc, varn, varv);
+                Token *insideResult = evaluate(&inside, varc, varn, varv, funcc, funcs);
                 if(!insideResult) {
                     freeTokens(&arr);
                     return nullptr;
@@ -560,8 +563,8 @@ convertToDoubleAndOperate:
             }
             case neda::ObjType::FRACTION:
             {
-                Token *num = evaluate((neda::Container*) ((neda::Fraction*) exprs[index])->numerator, varc, varn, varv);
-                Token *denom = evaluate((neda::Container*) ((neda::Fraction*) exprs[index])->denominator, varc, varn, varv);
+                Token *num = evaluate((neda::Container*) ((neda::Fraction*) exprs[index])->numerator, varc, varn, varv, funcc, funcs);
+                Token *denom = evaluate((neda::Container*) ((neda::Fraction*) exprs[index])->denominator, varc, varn, varv, funcc, funcs);
                 if(!num || !denom) {
                     if(num) {
                         delete num;
@@ -580,7 +583,7 @@ convertToDoubleAndOperate:
             }
             case neda::ObjType::SUPERSCRIPT:
             {
-                Token *exponent = evaluate((neda::Container*) ((neda::Superscript*) exprs[index])->contents, varc, varn, varv);
+                Token *exponent = evaluate((neda::Container*) ((neda::Superscript*) exprs[index])->contents, varc, varn, varv, funcc, funcs);
                 if(!exponent) {
                     freeTokens(&arr);
                     return nullptr;
@@ -600,13 +603,13 @@ convertToDoubleAndOperate:
                 }
                 Token *n;
                 if(((neda::Radical*) exprs[index])->n) {
-                    n = evaluate((neda::Container*) ((neda::Radical*) exprs[index])->n, varc, varn, varv);
+                    n = evaluate((neda::Container*) ((neda::Radical*) exprs[index])->n, varc, varn, varv, funcc, funcs);
                 }
                 //No base - implied square root
                 else {
                     n = new Number(2);
                 }
-                Token *contents = evaluate((neda::Container*) ((neda::Radical*) exprs[index])->contents, varc, varn, varv);
+                Token *contents = evaluate((neda::Container*) ((neda::Radical*) exprs[index])->contents, varc, varn, varv, funcc, funcs);
 
                 if(!n || !contents) {
                     if(n) {
@@ -682,12 +685,13 @@ convertToDoubleAndOperate:
                 str[end - index] = '\0';
 
                 Function *func = nullptr;
+                UserDefinedFunction *uFunc = nullptr;
 
                 if(!isNum) {
                     //Special processing for logarithms:
                     if(strcmp(str, "log") == 0) {
                         if(end < exprs.length() && exprs[end]->getType() == neda::ObjType::SUBSCRIPT) {
-                            Token *sub = evaluate((neda::Container*) ((neda::Subscript*) exprs[end])->contents, varc, varn, varv);
+                            Token *sub = evaluate((neda::Container*) ((neda::Subscript*) exprs[end])->contents, varc, varn, varv, funcc, funcs);
                             if(!sub) {
                                 freeTokens(&arr);
                                 delete[] str;
@@ -713,8 +717,16 @@ convertToDoubleAndOperate:
                     //Otherwise normal processing
                     else {
                         func = Function::fromString(str);
+                        //If it's not a normal function then try to find a user function that matches
+                        if(!func) {
+                            for(uint8_t i = 0; i < funcc; ++i) {
+                                if(strcmp(funcs[i].name, str) == 0) {
+                                    uFunc = funcs + i;
+                                }
+                            }
+                        }
                         //Add the function if it's valid
-                        if(func) {
+                        if(func || uFunc) {
 evaluateFunctionArguments:
                             index = end;
                             if(end >= exprs.length() || exprs[index]->getType() != neda::ObjType::L_BRACKET) {
@@ -774,7 +786,7 @@ evaluateFunctionArguments:
                                     }
                                 }
                                 DynamicArray<neda::NEDAObj*> argContents(exprs.begin() + index, exprs.begin() + argEnd);
-                                Token *arg = evaluate(&argContents, varc, varn, varv);
+                                Token *arg = evaluate(&argContents, varc, varn, varv, funcc, funcs);
                                 //Cleanup
                                 if(!arg) {
                                     freeTokens(&arr);
@@ -793,15 +805,59 @@ evaluateFunctionArguments:
                                 index = argEnd;
                             }
                             //Verify that the number of arguments is correct
-                            if(func->getNumArgs() != args.length()) {
+                            //Make sure to handle user-defined functions as well
+                            if((func && func->getNumArgs() != args.length()) || (uFunc && uFunc->argc != args.length())) {
                                 freeTokens(&arr);
                                 delete[] str;
                                 delete func;
                                 return nullptr;
                             }
                             //Evaluate
-                            double result = func->compute(args.asArray());
-                            delete func;
+                            double result;
+                            if(func) {
+                                result = func->compute(args.asArray());
+                                delete func;
+                            }
+                            //User-defined function
+                            else {
+                                //Construct a new argument list
+                                const char **vNames = new const char*[varc + uFunc->argc];
+                                Token **vVals = new Token*[varc + uFunc->argc];
+                                //Copy in the values
+                                for(uint8_t i = 0; i < varc; i ++) {
+                                    vNames[i] = varn[i];
+                                    vVals[i] = varv[i];
+                                }
+                                for(uint8_t i = 0; i < uFunc->argc; i ++) {
+                                    vNames[varc + i] = uFunc->argn[i];
+                                    vVals[varc + i] = new Number(args[i]);
+                                }
+
+                                //Evaluate
+                                Token *t = evaluate(uFunc->expr, varc + uFunc->argc, vNames, vVals, funcc, funcs);
+                                //Syntax error, cleanup
+                                if(!t) {
+                                    for(uint8_t i = varc; i < varc + uFunc->argc; i ++) {
+                                        delete vVals[i];
+                                    }
+                                    delete vNames;
+                                    delete vVals;
+
+                                    freeTokens(&arr);
+                                    delete[] str;
+                                    return nullptr;
+                                }
+                                //Set result
+                                result = t->getType() == TokenType::NUMBER ? ((Number*) t)->value : ((Fraction*) t)->doubleVal();
+                                delete t;
+
+                                //Cleanup
+                                for(uint8_t i = varc; i < varc + uFunc->argc; i ++) {
+                                    delete vVals[i];
+                                }
+                                delete vNames;
+                                delete vVals;
+                            }
                             //Add result
                             arr.add(new Number(result));
 
@@ -861,7 +917,7 @@ evaluateFunctionArguments:
             case neda::ObjType::SIGMA_PI:
             {
                 //Evaluate the end
-                Token *end = evaluate((neda::Container*) ((neda::SigmaPi*) exprs[index])->finish, varc, varn, varv);
+                Token *end = evaluate((neda::Container*) ((neda::SigmaPi*) exprs[index])->finish, varc, varn, varv, funcc, funcs);
                 if(!end) {
                     freeTokens(&arr);
                     return nullptr;
@@ -876,7 +932,7 @@ evaluateFunctionArguments:
                 }
                 //Attempt to evaluate the starting condition assign value
                 DynamicArray<neda::NEDAObj*> startVal(startContents->begin() + equalsIndex + 1, startContents->end());
-                Token *start = evaluate(&startVal, varc, varn, varv);
+                Token *start = evaluate(&startVal, varc, varn, varv, funcc, funcs);
                 if(!start) {
                     delete end;
                     freeTokens(&arr);
@@ -906,7 +962,7 @@ evaluateFunctionArguments:
                 //While the start is still less than or equal to the end
                 while(compareTokens(start, end) <= 0) {
                     //Evaluate the inside expression
-                    Token *n = evaluate((neda::Container*) ((neda::SigmaPi*) exprs[index])->contents, varc + 1, vNames, vVals);
+                    Token *n = evaluate((neda::Container*) ((neda::SigmaPi*) exprs[index])->contents, varc + 1, vNames, vVals, funcc, funcs);
                     //If there is ever a syntax error then cleanup and exit
                     if(!n) {
                         delete end;
@@ -956,8 +1012,7 @@ evaluateFunctionArguments:
             }
             else {
                 //Operator
-                while(!stack.isEmpty() && (stack.peek()->getType() == TokenType::FUNCTION 
-                        || ((Operator*) stack.peek())->getPrecedence() <= ((Operator*) t)->getPrecedence())) {
+                while(!stack.isEmpty() && ((Operator*) stack.peek())->getPrecedence() <= ((Operator*) t)->getPrecedence()) {
                     output.enqueue(stack.pop());
                 }
                 stack.push(t);
