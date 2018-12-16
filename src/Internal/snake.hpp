@@ -5,6 +5,11 @@
 #include "stm32f10x.h"
 #include "lcd12864.hpp"
 
+#define GAME_FIELD_X_MIN 16
+#define GAME_FIELD_X_MAX 48
+#define GAME_FIELD_Y_MIN 0
+#define GAME_FIELD_Y_MAX 32
+
 namespace game {
 
     enum SnakeDirection : uint8_t  {

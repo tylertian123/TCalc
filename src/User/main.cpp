@@ -96,15 +96,14 @@ game::SnakeBody *head;
 game::SnakeBody *tail;
 game::SnakeDirection direction = game::SnakeDirection::UP;
 game::Coords food;
-
-#define GAME_FIELD_X_MIN 0
-#define GAME_FIELD_X_MAX 64
-#define GAME_FIELD_Y_MIN 0
-#define GAME_FIELD_Y_MAX 32
+bool gamePaused = false;
+uint16_t gameScore = 0;
 
 void newFood() {
-    food.x = rand() % (GAME_FIELD_X_MAX - GAME_FIELD_X_MIN) + GAME_FIELD_X_MIN;
-    food.y = rand() % (GAME_FIELD_Y_MAX - GAME_FIELD_Y_MIN) + GAME_FIELD_Y_MIN;
+    do {
+        food.x = rand() % (GAME_FIELD_X_MAX - GAME_FIELD_X_MIN) + GAME_FIELD_X_MIN;
+        food.y = rand() % (GAME_FIELD_Y_MAX - GAME_FIELD_Y_MIN) + GAME_FIELD_Y_MIN;
+    } while(game::inSnake(food, head));
 }
 void respawn() {
     head = new game::SnakeBody;
@@ -114,10 +113,12 @@ void respawn() {
     tail->next = nullptr;
     tail->prev = head;
 
-    head->x = (GAME_FIELD_X_MAX - GAME_FIELD_X_MIN) / 2;
-    head->y = (GAME_FIELD_Y_MAX - GAME_FIELD_Y_MIN) / 2;
-    tail->x = (GAME_FIELD_X_MAX - GAME_FIELD_X_MIN) / 2;
-    tail->y = (GAME_FIELD_Y_MAX - GAME_FIELD_Y_MIN) / 2 + 1;
+    head->x = (GAME_FIELD_X_MAX + GAME_FIELD_X_MIN) / 2;
+    head->y = (GAME_FIELD_Y_MAX + GAME_FIELD_Y_MIN) / 2;
+    tail->x = (GAME_FIELD_X_MAX + GAME_FIELD_X_MIN) / 2;
+    tail->y = (GAME_FIELD_Y_MAX + GAME_FIELD_Y_MIN) / 2 + 1;
+
+    gameScore = 0;
 
     newFood();
 }
@@ -141,27 +142,31 @@ extern "C" void TIM3_IRQHandler() {
             display.updateDrawing();
         }
         else if(dispMode == DispMode::GAME) {
-            game::Coords nextCoords = game::getNextLocation(head, direction);
-            if((nextCoords.x == 0xFF && nextCoords.y == 0xFF) || game::inSnake(nextCoords, head)) {
-                do {
-                    delete head;
-                } while((head = head->next) != nullptr);
-                respawn();
-            }
-            if(nextCoords.x == food.x && nextCoords.y == food.y) {
-                game::moveSnake(head, tail, direction, true);
-                head = head->prev;
+            if(!gamePaused) {
+                game::Coords nextCoords = game::getNextLocation(head, direction);
+                //See if the snake ran into itself or is out of bounds
+                if((nextCoords.x == 0xFF && nextCoords.y == 0xFF) || game::inSnake(nextCoords, head)) {
+                    //Game over
+                    do {
+                        delete head;
+                    } while((head = head->next) != nullptr);
+                    respawn();
+                }
+                //Movement - eating food
+                if(nextCoords.x == food.x && nextCoords.y == food.y) {
+                    game::moveSnake(head, tail, direction, true);
+                    head = head->prev;
 
-                do {
-                	newFood();
-               }
-                while(game::inSnake(food, head));
-            }
-            else {
-                auto temp = tail->prev;
-                game::moveSnake(head, tail, direction);
-                head = head->prev;
-                tail = temp;
+                    ++gameScore;
+                    newFood();
+                }
+                //No eating food
+                else {
+                    auto temp = tail->prev;
+                    game::moveSnake(head, tail, direction);
+                    head = head->prev;
+                    tail = temp;
+                }
             }
             display.clearDrawingBuffer();
             game::drawSnake(display, head);
@@ -169,6 +174,18 @@ extern "C" void TIM3_IRQHandler() {
             display.setPixel(food.x * 2 + 1, food.y * 2, true);
             display.setPixel(food.x * 2, food.y * 2 + 1, true);
             display.setPixel(food.x * 2 + 1, food.y * 2 + 1, true);
+            display.drawLine(GAME_FIELD_X_MIN * 2 - 1, GAME_FIELD_Y_MIN * 2, GAME_FIELD_X_MIN * 2 - 1, GAME_FIELD_Y_MAX * 2 - 1);
+            display.drawLine(GAME_FIELD_X_MAX * 2, GAME_FIELD_Y_MIN * 2, GAME_FIELD_X_MAX * 2, GAME_FIELD_Y_MAX * 2 - 1);
+            
+            display.drawString(GAME_FIELD_X_MAX * 2 + 2, 1, "Score");
+            char buf[10];
+            ltoa(gameScore, buf);
+            display.drawString(GAME_FIELD_X_MAX * 2 + 2, 12, buf);
+
+            if(gamePaused) {
+                display.drawString(45, 25, "Paused", true);
+            }
+
             display.updateDrawing();
         }
 	}
@@ -1164,6 +1181,9 @@ void gameKeyPressHandler(uint16_t key) {
         if(direction != game::SnakeDirection::UP) {
             direction = game::SnakeDirection::DOWN;
         }
+        break;
+    case KEY_LCP:
+        gamePaused = !gamePaused;
         break;
     default:
         break;

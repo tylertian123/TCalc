@@ -924,7 +924,7 @@ evaluateFunctionArguments:
                 }
                 //Split the starting condition at the equals sign
                 auto startContents = &((neda::Container*) ((neda::SigmaPi*) exprs[index])->start)->contents;
-                uint16_t equalsIndex = findEquals(startContents);
+                uint16_t equalsIndex = findEquals(startContents, true);
                 if(equalsIndex == 0xFFFF) {
                     delete end;
                     freeTokens(&arr);

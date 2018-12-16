@@ -6,7 +6,7 @@ namespace game {
         uint8_t nextX = body->x, nextY = body->y;
         switch(direction) {
         case SnakeDirection::UP:
-            if(body->y > 0) {
+            if(body->y > GAME_FIELD_Y_MIN) {
                 nextY = body->y - 1;
             }
             else {
@@ -14,7 +14,7 @@ namespace game {
             }
             break;
         case SnakeDirection::DOWN:
-            if(body->y < 31) {
+            if(body->y < GAME_FIELD_Y_MAX - 1) {
                 nextY = body->y + 1;
             }
             else {
@@ -22,7 +22,7 @@ namespace game {
             }
             break;
         case SnakeDirection::LEFT:
-            if(body->x > 0) {
+            if(body->x > GAME_FIELD_X_MIN) {
                 nextX = body->x - 1;
             }
             else {
@@ -30,7 +30,7 @@ namespace game {
             }
             break;
         case SnakeDirection::RIGHT:
-            if(body->x < 63) {
+            if(body->x < GAME_FIELD_X_MAX - 1) {
                 nextX = body->x + 1;
             }
             else {
