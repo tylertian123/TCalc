@@ -474,18 +474,21 @@ convertToDoubleAndOperate:
         double bVal = b->getType() == TokenType::NUMBER ? ((Number*) b)->value : ((Fraction*) b)->doubleVal();
         return aVal > bVal ? 1 : bVal > aVal ? -1 : 0;
     }
-    uint16_t findEquals(DynamicArray<neda::NEDAObj*> *arr) {
+    uint16_t findEquals(DynamicArray<neda::NEDAObj*> *arr, bool forceVarName) {
         uint16_t equalsIndex = 0;
         bool validName = true;
         for(auto i : *arr) {
             if(i->getType() == neda::ObjType::CHAR_TYPE && ((neda::Character*) i)->ch == '=') {
                 break;
             }
-            //In addition to finding the equals sign, also verify that the left hand side of the equals only contains valid
-            //name characters
-            if(!isNameChar(extractChar(i))) {
-                validName = false;
-                break;
+            if(forceVarName) {
+                //Check for name validity only if forceVarName is true
+                //In addition to finding the equals sign, also verify that the left hand side of the equals only contains valid
+                //name characters
+                if(!isNameChar(extractChar(i))) {
+                    validName = false;
+                    break;
+                }
             }
             ++equalsIndex;
         }

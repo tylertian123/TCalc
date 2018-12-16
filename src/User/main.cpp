@@ -279,6 +279,7 @@ void updateFunc(const char *name, neda::Container *expr, uint8_t argc, const cha
             for(uint8_t j = 0; j < functions[i].argc; j ++) {
                 delete functions[i].argn[j];
             }
+            delete functions[i].argn;
             
             functions[i].expr = expr;
             functions[i].argc = argc;
@@ -291,6 +292,23 @@ void updateFunc(const char *name, neda::Container *expr, uint8_t argc, const cha
     if(i == functions.length()) {
         functions.add(eval::UserDefinedFunction(expr, name, argc, argn));
     }
+}
+void clearVarsAndFuncs() {
+    for(uint8_t i = 0; i < varNames.length(); i ++) {
+        delete varNames[i];
+        delete varVals[i];
+    }
+    varNames.empty();
+    varVals.empty();
+    for(auto func : functions) {
+        delete func.name;
+        delete func.expr;
+        for(uint8_t i = 0; i < func.argc; ++i) {
+            delete func.argn[i];
+        }
+        delete func.argn;
+    }
+    functions.empty();
 }
 
 //Key press handlers
@@ -741,17 +759,13 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 	}
     case KEY_CLEARVAR:
     {
-        for(uint8_t i = 0; i < varNames.length(); i ++) {
-            delete varNames[i];
-            delete varVals[i];
-        }
-        varNames.empty();
-        varVals.empty();
+        clearVarsAndFuncs();
         break;
     }
     //AC does the same as regular clear except it deletes the stored expressions and variables as well
     case KEY_ALLCLEAR:
     {
+        //Delete stored expressions
         for(uint8_t i = 0; i < RESULT_STORE_COUNT; i ++) {
             if(expressions[i]) {
                 delete expressions[i];
@@ -759,12 +773,7 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
                 expressions[i] = calcResults[i] = nullptr;
             }
         }
-        for(uint8_t i = 0; i < varNames.length(); i ++) {
-            delete varNames[i];
-            delete varVals[i];
-        }
-        varNames.empty();
-        varVals.empty();
+        clearVarsAndFuncs();
         //Intentional fall-through
     }
 	case KEY_CLEAR:
@@ -785,42 +794,125 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 	{
 evaluateExpression:
         editExpr = false;
-		eval::Token *result;
+		eval::Token *result = nullptr;
         neda::Container *expr = (neda::Container*) cursor->expr->getTopLevel();
 
         //First see if this is an assignment operation
-        uint16_t equalsIndex = eval::findEquals(&expr->contents);
+        uint16_t equalsIndex = eval::findEquals(&expr->contents, false);
         if(equalsIndex != 0xFFFF) {
             //Isolate the variable name
             char *vName = new char[equalsIndex + 1];
-            for(uint16_t i = 0; i < equalsIndex; i ++) {
+            bool isFunc = false;
+            bool isValid = true;
+            uint16_t i = 0;
+            for(; i < equalsIndex; i ++) {
+                //Break when there's a left bracket since we found a function definition
+                if(expr->contents[i]->getType() == neda::ObjType::L_BRACKET) {
+                    isFunc = true;
+                    break;
+                }
                 vName[i] = eval::extractChar(expr->contents[i]);
+                if(!eval::isNameChar(vName[i])) {
+                    isValid = false;
+                    break;
+                }
             }
-            vName[equalsIndex] = '\0';
-            //Evaluate
-            DynamicArray<neda::NEDAObj*> val(expr->contents.begin() + equalsIndex + 1, expr->contents.end());
-            result = eval::evaluate(&val, static_cast<uint8_t>(varNames.length()), const_cast<const char**>(varNames.asArray()), varVals.asArray());
-
-            //If result is valid, add the variable
-            if(result) {
-                //Create a copy to avoid crashes
-                eval::Token *value;
-                if(result->getType() == eval::TokenType::NUMBER) {
-                    value = new eval::Number(((eval::Number*) result)->value);
-                }
-                else {
-                    value = new eval::Fraction(((eval::Fraction*) result)->num, ((eval::Fraction*) result)->denom);
-                }
-                //Add it
-                updateVar(vName, value);
+            vName[i] = '\0';
+            //If not valid or if the length is zero, cleanup and exit
+            if(!isValid || i == 0) {
+                delete vName;
             }
             else {
-                //Delete the variable name to avoid a memory leak
-                delete vName;
+                if(isFunc) {
+                    //Now that the name has been isolated, do the same with each of the arguments
+                    uint16_t argStart = i + 1;
+                    uint16_t argEnd = i + 1;
+                    uint8_t argc = 0;
+                    DynamicArray<char*> argNames;
+
+                    //Find the closing bracket
+                    uint16_t end = argStart;
+                    for(; end < equalsIndex && expr->contents[end]->getType() != neda::ObjType::R_BRACKET; ++end);
+                    //Missing right bracket
+                    if(end == equalsIndex) {
+                        delete vName;
+                    }
+                    else {
+                        while(argStart < end) {
+                            //Find the end of each argument
+                            for(; argEnd < end; ++argEnd) {
+                                if(eval::extractChar(expr->contents[argEnd]) == ',') {
+                                    break;
+                                }
+                            }
+                            //Extract argument name
+                            char *argName = new char[argEnd - argStart + 1];
+                            for(uint16_t i = 0; i < argEnd - argStart; ++i) {
+                                argName[i] = eval::extractChar(expr->contents[argStart + i]);
+                            }
+                            //Null termination
+                            argName[argEnd - argStart] = '\0';
+                            argNames.add(argName);
+                            ++argc;
+
+                            ++argEnd;
+                            //If there's a space after the comma, skip that too
+                            if(eval::extractChar(expr->contents[argEnd]) == ' ') {
+                                ++argEnd;
+                            }
+                            argStart = argEnd;
+                        }
+
+                        //Now we should have all the arguments
+                        //Make a new array with the argument names since the DynamicArray's contents will be automatically freed
+                        char **argn = new char*[argc];
+                        //memcpy it in
+                        //Make sure the size is multiplied by the sizeof a char*
+                        memcpy(argn, argNames.asArray(), argc * sizeof(char*));
+
+                        //Make a new container that will hold the expression
+                        neda::Container *funcExpr = new neda::Container();
+                        for(uint16_t i = equalsIndex + 1; i < expr->contents.length(); ++i) {
+                            //Add each expression in
+                            //Make sure they're copied; otherwise segfaults will occur when this expr is deleted
+                            funcExpr->add(expr->contents[i]->copy());
+                        }
+
+                        //Finally add the damn thing
+                        updateFunc(vName, funcExpr, argc, const_cast<const char**>(argn));
+                        //Update the result to 1 to signify the operation succeeded
+                        result = new eval::Number(1);
+                    }
+                }
+                else {
+                    //Evaluate
+                    DynamicArray<neda::NEDAObj*> val(expr->contents.begin() + equalsIndex + 1, expr->contents.end());
+                    result = eval::evaluate(&val, static_cast<uint8_t>(varNames.length()), const_cast<const char**>(varNames.asArray()), varVals.asArray(),
+                            static_cast<uint8_t>(functions.length()), functions.asArray());
+
+                    //If result is valid, add the variable
+                    if(result) {
+                        //Create a copy to avoid crashes
+                        eval::Token *value;
+                        if(result->getType() == eval::TokenType::NUMBER) {
+                            value = new eval::Number(((eval::Number*) result)->value);
+                        }
+                        else {
+                            value = new eval::Fraction(((eval::Fraction*) result)->num, ((eval::Fraction*) result)->denom);
+                        }
+                        //Add it
+                        updateVar(vName, value);
+                    }
+                    else {
+                        //Delete the variable name to avoid a memory leak
+                        delete vName;
+                    }
+                }
             }
         }
         else {
-            result = eval::evaluate(expr, static_cast<uint8_t>(varNames.length()), const_cast<const char**>(varNames.asArray()), varVals.asArray());
+            result = eval::evaluate(expr, static_cast<uint8_t>(varNames.length()), const_cast<const char**>(varNames.asArray()), varVals.asArray(),
+                    static_cast<uint8_t>(functions.length()), functions.asArray());
         }
         //Create the container that will hold the result
         calcResults[0] = new neda::Container();

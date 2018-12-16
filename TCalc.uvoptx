@@ -157,9 +157,9 @@
         <Bp>
           <Number>0</Number>
           <Type>0</Type>
-          <LineNumber>176</LineNumber>
+          <LineNumber>834</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134227986</Address>
+          <Address>134230896</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
@@ -168,9 +168,21 @@
           <BreakIfRCount>1</BreakIfRCount>
           <Filename>&lt;1&gt;.\src\User\main.cpp</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\TCalc\src/User/main.cpp\176</Expression>
+          <Expression>\\TCalc\src/User/main.cpp\834</Expression>
         </Bp>
       </Breakpoint>
+      <WatchWindow1>
+        <Ww>
+          <count>0</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>main\expressionEntryKeyPressHandler\argStart</ItemText>
+        </Ww>
+        <Ww>
+          <count>1</count>
+          <WinNumber>1</WinNumber>
+          <ItemText>argEnd</ItemText>
+        </Ww>
+      </WatchWindow1>
       <Tracepoint>
         <THDelay>0</THDelay>
       </Tracepoint>
