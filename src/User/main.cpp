@@ -247,8 +247,8 @@ void drawResult(uint8_t id, bool asDecimal = false) {
         result = calcResults[id];
     }
     //Fill the area first
-    display.fill(128 - CURSOR_HORIZ_SPACING - 2 - result->exprWidth, 64 - CURSOR_VERT_SPACING - result->exprHeight, result->exprWidth, result->exprHeight, true);
-    result->draw(display, 128 - CURSOR_HORIZ_SPACING - 2 - result->exprWidth, 64 - CURSOR_VERT_SPACING - result->exprHeight);
+    display.fill(128 - CURSOR_HORIZ_SPACING - result->exprWidth, 64 - CURSOR_VERT_SPACING - result->exprHeight, result->exprWidth, result->exprHeight, true);
+    result->draw(display, 128 - CURSOR_HORIZ_SPACING - result->exprWidth, 64 - CURSOR_VERT_SPACING - result->exprHeight);
     //Clean up
     if(result != calcResults[id]) {
         delete result;
@@ -272,6 +272,8 @@ void updateVar(const char *name, eval::Token *value) {
             
             //Delete the name since there's no use for it anymore
             delete name;
+
+            break;
         }
     }
     //If i is equal to varNames.length() it was not found
@@ -298,6 +300,8 @@ void updateFunc(const char *name, neda::Container *expr, uint8_t argc, const cha
             
             //delete the name since it's not updated
             delete name;
+
+            break;
         }
     }
     if(i == functions.length()) {
