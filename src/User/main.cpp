@@ -251,14 +251,16 @@ DynamicArray<eval::Token*> varVals;
 //Functions
 DynamicArray<eval::UserDefinedFunction> functions;
 //Returns whether a new variable was created
-//If return value is false the name can be deleted
-bool updateVar(const char *name, eval::Token *value) {
+void updateVar(const char *name, eval::Token *value) {
     uint8_t i;
     for(i = 0; i < varNames.length(); ++i) {
         //Update it if found
         if(strcmp(varNames[i], name) == 0) {
             delete varVals[i];
             varVals[i] = value;
+            
+            //Delete the name since there's no use for it anymore
+            delete name;
         }
     }
     //If i is equal to varNames.length() it was not found
@@ -266,13 +268,10 @@ bool updateVar(const char *name, eval::Token *value) {
         //Add the var if not found
         varNames.add(name);
         varVals.add(value);
-        return true;
     }
-	return false;
 }
-//Returns whether a new function was created
-//argn should be allocated on the heap
-bool updateFunc(const char *name, neda::Container *expr, uint8_t argc, const char **argn) {
+//name and argn should be allocated on the heap
+void updateFunc(const char *name, neda::Container *expr, uint8_t argc, const char **argn) {
     uint8_t i;
     for(i = 0; i < functions.length(); ++i) {
         if(strcmp(functions[i].name, name) == 0) {
@@ -284,13 +283,14 @@ bool updateFunc(const char *name, neda::Container *expr, uint8_t argc, const cha
             functions[i].expr = expr;
             functions[i].argc = argc;
             functions[i].argn = argn;
+            
+            //delete the name since it's not updated
+            delete name;
         }
     }
     if(i == functions.length()) {
         functions.add(eval::UserDefinedFunction(expr, name, argc, argn));
-        return true;
     }
-    return false;
 }
 
 //Key press handlers
@@ -812,10 +812,7 @@ evaluateExpression:
                     value = new eval::Fraction(((eval::Fraction*) result)->num, ((eval::Fraction*) result)->denom);
                 }
                 //Add it
-                //If a new variable was not created, then delete the name to avoid memory leaks
-                if(!updateVar(vName, value)) {
-                    delete vName;
-                }
+                updateVar(vName, value);
             }
             else {
                 //Delete the variable name to avoid a memory leak
@@ -859,10 +856,7 @@ evaluateExpression:
             //Var names must be allocated on the heap
             char *name = new char[4];
             strcpy(name, "Ans");
-            //If a new variable was not created, we're free to delete the name
-            if(!updateVar(name, result)) {
-                delete name;
-            }
+            updateVar(name, result);
         }
         expressions[0] = (neda::Container*) cursor->expr->getTopLevel();
 
