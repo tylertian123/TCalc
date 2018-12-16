@@ -128,6 +128,9 @@ namespace eval {
     };
 
     struct UserDefinedFunction {
+        UserDefinedFunction(neda::Container *expr, const char *name, uint8_t argc, const char **argn)
+                : expr(expr), name(name), argc(argc), argn(argn) {}
+
         neda::Container *expr;    
         const char *name;
         uint8_t argc;

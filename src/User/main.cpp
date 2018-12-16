@@ -90,6 +90,8 @@ void initCursorTimer(uint16_t period = 2000) {
 	TIM_ITConfig(TIM3, TIM_IT_Update, ENABLE);
 }
 
+/********** Snake Game **********/
+
 game::SnakeBody *head;
 game::SnakeBody *tail;
 game::SnakeDirection direction = game::SnakeDirection::UP;
@@ -119,6 +121,8 @@ void respawn() {
 
     newFood();
 }
+
+/********** Cursor flashing and game processing **********/
 
 bool cursorOn = false;
 neda::Cursor *cursor;
@@ -242,10 +246,13 @@ void drawResult(uint8_t id, bool asDecimal = false) {
 }
 
 //Variables
-DynamicArray<char*> varNames;
+DynamicArray<const char*> varNames;
 DynamicArray<eval::Token*> varVals;
+//Functions
+DynamicArray<eval::UserDefinedFunction> functions;
 //Returns whether a new variable was created
-bool updateVar(char *name, eval::Token *value) {
+//If return value is false the name can be deleted
+bool updateVar(const char *name, eval::Token *value) {
     uint8_t i;
     for(i = 0; i < varNames.length(); ++i) {
         //Update it if found
@@ -262,6 +269,28 @@ bool updateVar(char *name, eval::Token *value) {
         return true;
     }
 	return false;
+}
+//Returns whether a new function was created
+//argn should be allocated on the heap
+bool updateFunc(const char *name, neda::Container *expr, uint8_t argc, const char **argn) {
+    uint8_t i;
+    for(i = 0; i < functions.length(); ++i) {
+        if(strcmp(functions[i].name, name) == 0) {
+            delete functions[i].expr;
+            for(uint8_t j = 0; j < functions[i].argc; j ++) {
+                delete functions[i].argn[j];
+            }
+            
+            functions[i].expr = expr;
+            functions[i].argc = argc;
+            functions[i].argn = argn;
+        }
+    }
+    if(i == functions.length()) {
+        functions.add(eval::UserDefinedFunction(expr, name, argc, argn));
+        return true;
+    }
+    return false;
 }
 
 //Key press handlers
