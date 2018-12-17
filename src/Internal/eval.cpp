@@ -147,6 +147,9 @@ namespace eval {
         case Type::PLUS:
         case Type::MINUS:
             return 3;
+        case Type::EQUALITY:
+            return 4;
+        
         default: return 0xFF;
         }
     }
@@ -169,6 +172,8 @@ namespace eval {
         case '^':
             return &OP_EXPONENT;
 
+        //Equality consists of two characters and thus cannot be determined from a single char
+
         default: return nullptr;
         }
     }
@@ -178,7 +183,8 @@ namespace eval {
              Operator::OP_DIVIDE = { Operator::Type::DIVIDE },
              Operator::OP_EXPONENT = { Operator::Type::EXPONENT },
              Operator::OP_SP_MULT = { Operator::Type::SP_MULT },
-             Operator::OP_SP_DIV = { Operator::Type::SP_DIV };
+             Operator::OP_SP_DIV = { Operator::Type::SP_DIV },
+             Operator::OP_EQUALITY = { Operator::Type::EQUALITY };
     double Operator::operate(double lhs, double rhs) {
         switch(type) {
         case Type::PLUS:
@@ -202,6 +208,10 @@ namespace eval {
         case Type::EXPONENT:
         {
             return pow(lhs, rhs);
+        }
+        case Type::EQUALITY:
+        {
+            return lhs == rhs ? 1 : 0;
         }
         default: return NAN;
         }
@@ -477,20 +487,28 @@ convertToDoubleAndOperate:
     uint16_t findEquals(DynamicArray<neda::NEDAObj*> *arr, bool forceVarName) {
         uint16_t equalsIndex = 0;
         bool validName = true;
-        for(auto i : *arr) {
-            if(i->getType() == neda::ObjType::CHAR_TYPE && ((neda::Character*) i)->ch == '=') {
-                break;
+        for(; equalsIndex < arr->length(); ++equalsIndex) {
+            //Search for equals
+            if(extractChar((*arr)[equalsIndex]) == '=') {
+                //At the same time make sure it's not a ==
+                //If it is, then skip the next character
+                if(equalsIndex + 1 < arr->length() && extractChar((*arr)[equalsIndex + 1]) == '=') {
+                    ++equalsIndex;
+                    continue;
+                }
+                else {
+                    break;
+                }
             }
             if(forceVarName) {
                 //Check for name validity only if forceVarName is true
                 //In addition to finding the equals sign, also verify that the left hand side of the equals only contains valid
                 //name characters
-                if(!isNameChar(extractChar(i))) {
+                if(!isNameChar(extractChar((*arr)[equalsIndex]))) {
                     validName = false;
                     break;
                 }
             }
-            ++equalsIndex;
         }
         //If equalsIndex is the same as the length, then the if condition was never true, return an error value
         //Or if it's at index 0 or length - 1, return null since the condition can't be complete
@@ -644,6 +662,11 @@ convertToDoubleAndOperate:
                     break;
                 }
                 Operator *op = Operator::fromChar(ch);
+                //Check for equality operator
+                if(ch == '=' && index + 1 < exprs.length() && extractChar(exprs[index + 1]) == '=') {
+                    op = &Operator::OP_EQUALITY;
+                    ++index;
+                }
                 //Check if the character is an operator
                 if (op) {
                     //Check for unary operators
