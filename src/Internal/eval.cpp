@@ -244,7 +244,17 @@ namespace eval {
         {
             return frac->pow(*rhs);
         }
-        default: break;
+        case Type::EQUALITY:
+        {
+            if(frac->num == rhs->num && frac->denom == rhs->denom) {
+                frac->num = 1;
+            }
+            else {
+                frac->num = 0;
+            }
+            frac->denom = 1;
+        }
+        default: return false;
         }
         return true;
     }

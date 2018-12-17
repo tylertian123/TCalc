@@ -374,7 +374,7 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
         calcResults[0] = expressions[0] = nullptr;
 
         newExpr->getCursor(*cursor, neda::CURSORLOCATION_END);
-        newExpr->x = CURSOR_HORIZ_SPACING + 1;
+        newExpr->x = CURSOR_HORIZ_SPACING;
         newExpr->y = CURSOR_VERT_SPACING;
         editExpr = true;
         currentExpr = 0;
