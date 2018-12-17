@@ -383,7 +383,7 @@ convertToDoubleAndOperate:
         //log10 and log2 cannot be directly entered with a string
         "\xff", "\xff",
 
-        "qdRtA", "qdRtB",
+        "qdRtA", "qdRtB", "round",
     };
     Function* Function::fromString(const char *str) {
         for(uint8_t i = 0; i < sizeof(FUNCNAMES) / sizeof(FUNCNAMES[0]); i ++) {
@@ -394,10 +394,15 @@ convertToDoubleAndOperate:
         return nullptr;
     }
     uint8_t Function::getNumArgs() const {
-        if(type == Type::QUADROOT_A || type == Type::QUADROOT_B) {
+        switch(type) {
+        case Type::QUADROOT_A:
+        case Type::QUADROOT_B:
             return 3;
+        case Type::ROUND:
+            return 2;
+        default: 
+            return 1;
         }
-        return 1;
     }
     double Function::compute(double *args) const {
         
@@ -469,6 +474,13 @@ convertToDoubleAndOperate:
         case Type::QUADROOT_B:
         {
             return (-args[1] - sqrt(args[1] * args[1] - 4 * args[0] * args[2])) / (2 * args[0]);
+        }
+        case Type::ROUND:
+        {
+            if(!isInt(args[1])) {
+                return NAN;
+            }
+            return round(args[0], args[1]);
         }
         default: return NAN;
         }

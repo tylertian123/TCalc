@@ -1,6 +1,8 @@
 #ifndef __UTIL_H__
 #define __UTIL_H__
 
+#include <math.h>
+
 //Execute method on obj with arguments if obj is not null
 #define SAFE_EXEC(obj, method, ...) if(obj) (obj)->method(__VA_ARGS__)
 //Execute method on obj with arguments and return the result if obj is not null, otherwise results in 0
@@ -31,6 +33,11 @@ inline T floorDiv(T a, T b) {
 template <typename T>
 inline bool isInt(T n) {
     return static_cast<int64_t>(n) == n;
+}
+
+inline double round(double d, int16_t decimals) {
+    double p = pow(10.0, decimals);
+    return ::round(d * p) / p;
 }
 
 #endif
