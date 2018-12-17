@@ -773,6 +773,10 @@ convertToDoubleAndOperate:
                         //Add the function if it's valid
                         if(func || uFunc) {
 evaluateFunctionArguments:
+                            //If unary is not allowed, there must be an implied multiplication
+                            if(!allowUnary) {
+                                arr.add(&Operator::OP_MULTIPLY);
+                            }
                             index = end;
                             if(end >= exprs.length() || exprs[index]->getType() != neda::ObjType::L_BRACKET) {
                                 freeTokens(&arr);
