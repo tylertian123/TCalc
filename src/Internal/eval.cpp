@@ -383,7 +383,7 @@ convertToDoubleAndOperate:
         //log10 and log2 cannot be directly entered with a string
         "\xff", "\xff",
 
-        "qdRtA", "qdRtB", "round",
+        "qdRtA", "qdRtB", "round", "abs",
     };
     Function* Function::fromString(const char *str) {
         for(uint8_t i = 0; i < sizeof(FUNCNAMES) / sizeof(FUNCNAMES[0]); i ++) {
@@ -481,6 +481,10 @@ convertToDoubleAndOperate:
                 return NAN;
             }
             return round(args[0], args[1]);
+        }
+        case Type::ABS:
+        {
+            return abs(args[0]);
         }
         default: return NAN;
         }
