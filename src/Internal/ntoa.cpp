@@ -60,8 +60,23 @@ uint8_t ftoa(double val, char *str, uint8_t ndigits, char echar) {
         str[1] = '\0';
         return 1;
     }
-    //Handle values greater or equal to 10^6 or less than or equal to 10^-5 in scientific notation
-    if(abs(val) >= 1e6) {
+    //Determine last nonzero digit for values greater than 1
+    uint8_t lastNonzero = 0;
+    if(val > 1) {
+        double val2 = val;
+        //Check if the last digit is 0
+        while(fmod(val2, 10) == 0) {
+            ++lastNonzero;
+            //If the last nonzero digit has more than 5 zeros after it, then we know we must display it in scientific notation
+            if(lastNonzero > 5) {
+                break;
+            }
+            val2 /= 10;
+        }
+    }
+
+    //Scientific notation handling
+    if(lastNonzero > 5) {
         //Divide until the number is less than 10
         uint16_t p = 0;
         while(abs(val) >= 10) {
@@ -76,6 +91,7 @@ uint8_t ftoa(double val, char *str, uint8_t ndigits, char echar) {
     } 
     else if(abs(val) <= 1e-5) {
         uint16_t p = 0;
+        //Multiply until the number is greater than 1
         while(abs(val) < 1) {
             val *= 10;
             ++p;
@@ -87,32 +103,45 @@ uint8_t ftoa(double val, char *str, uint8_t ndigits, char echar) {
         return len;
     }
 
+    //Keep track of the length of the string
     uint8_t len = 0;
+    //Isolate whole part
     uint64_t whole = abs((int64_t) val);
+    //Add negative sign if necessary
     if(val < 0) {
         str[len++] = '-';
     }
-    len += ltoa(whole, str + len);
+    //Keep track of the digits in the whole part
+    uint8_t wholeDigits = ltoa(whole, str + len);
+    len += wholeDigits;
     //If it's an integer, finish here
     if(whole == val) {
         return len;
     }
 
-    if(len < ndigits) {
+    //Otherwise if the amount of significant digits is greater than what was in the whole part
+    if(wholeDigits < ndigits) {
         str[len++] = '.';
-        double frac = val - whole;
+        //Isolate fractional part
+        //Make sure the absolute value is taken so that |frac| < 1 for all cases
+        double frac = abs(val) - whole;
         //Move the decimal point and round
-        int64_t nfrac = round(frac * powl(10, ndigits - len));
+        int64_t nfrac = round(frac * powl(10, ndigits - wholeDigits));
         if(nfrac < 0) {
             nfrac *= -1;
         }
         char buf[64];
+        //Convert fractional part
         uint8_t fracLen = ltoa(nfrac, buf);
         
-        uint8_t diff = ndigits - len - fracLen;
+        //Add any zeros missed by ltoa
+        //ndigits should equal wholeDigits + fracLen precisely if no digits were missed
+        //Otherwise the difference is calculated here
+        uint8_t diff = ndigits - wholeDigits - fracLen;
         while(diff--) {
             str[len++] = '0';
         }
+        //After inserting the zeros copy the fractional part
         uint8_t index = 0;
         while(fracLen--) {
             str[len++] = buf[index++];
@@ -127,7 +156,6 @@ uint8_t ftoa(double val, char *str, uint8_t ndigits, char echar) {
         }
         str[len] = '\0';
     }
-    //null-termination is handled by ltoa
     
     return len;
 }
