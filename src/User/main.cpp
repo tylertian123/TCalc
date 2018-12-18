@@ -63,6 +63,7 @@ enum class DispMode {
     TRIG_MENU,
     CONST_MENU,
 	CONFIG_MENU,
+    FUNC_MENU,
     GAME,
 };
 DispMode dispMode = DispMode::EXPR_ENTRY;
@@ -1007,8 +1008,9 @@ evaluateExpression:
     case KEY_CONST:
     case KEY_TRIG:
 	case KEY_CONFIG:
+    case KEY_CAT:
         //Set the display mode and reset the index
-        dispMode = key == KEY_TRIG ? DispMode::TRIG_MENU : key == KEY_CONST ? DispMode::CONST_MENU : DispMode::CONFIG_MENU;
+        dispMode = key == KEY_TRIG ? DispMode::TRIG_MENU : key == KEY_CONST ? DispMode::CONST_MENU : key == KEY_CAT ? DispMode::FUNC_MENU : DispMode::CONFIG_MENU;
         selectorIndex = 0;
         //We need to call the function once to get the interface drawn
         //To do this, we insert a dummy value into the key buffer
@@ -1026,11 +1028,11 @@ evaluateExpression:
 
 uint16_t selectorIndex = 0;
 
-const char *trigFuncs[] = {
+const char * const trigFuncs[] = {
     "sin", "cos", "tan", "arcsin", "arccos", "arctan",
     "sinh", "cosh", "tanh", "arcsinh", "arccosh", "arctanh",
 };
-const char *trigFuncNames[] = {
+const char * const trigFuncNames[] = {
     "sin", "cos", "tan", "asin", "acos", "atan",
     "sinh", "cosh", "tanh", "asinh", "acosh", "atanh",
 };
@@ -1140,6 +1142,74 @@ void constSelectionMenuKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
         y += 10;
     }
 
+    display.updateDrawing();
+}
+
+#define FUNC_COUNT 17
+const char * const allFuncDispNames[FUNC_COUNT] = {
+    "sin(angle)", "cos(angle)", "tan(angle)", "asin(x)", "acos(x)", "atan(x)", 
+    "sinh(angle)", "cosh(angle)", "tanh(angle)", "asinh(x)", "acosh(x)", "atanh(x)",
+    "ln(x)", "qdRtA(a,b,c)", "qdRtB(a,b,c)", "round(n,decimals)", "abs(x)",
+};
+
+uint16_t scrollingIndex = 0;
+void allAvailableFunctionsCatalogueSelectionMenuKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
+
+    switch(key) {
+    case KEY_CENTER:
+    case KEY_ENTER:
+    {
+        const char *s = allFuncDispNames[selectorIndex];
+        //Add until we see the null terminator or the left bracket
+        while(*s != '\0' && *s != '(') {
+            cursor->add(new neda::Character(*s++));
+        }
+        cursor->add(new neda::LeftBracket);
+    }
+        //Intentional fall-through
+    case KEY_CAT:
+        dispMode = DispMode::EXPR_ENTRY;
+        selectorIndex = 0;
+        scrollingIndex = 0;
+        //We need to call the function once to get the interface drawn
+        //To do this, we insert a dummy value into the key buffer
+        putKey(KEY_DUMMY);
+        return;
+    case KEY_UP:
+        if(selectorIndex > 0) {
+            --selectorIndex;
+            //Scrolling
+            if(selectorIndex < scrollingIndex) {
+                --scrollingIndex;
+            }
+        }
+        else {
+            selectorIndex = FUNC_COUNT - 1;
+            scrollingIndex = FUNC_COUNT - 6;
+        }
+        break;
+    case KEY_DOWN:
+        if(selectorIndex < FUNC_COUNT - 1) {
+            ++selectorIndex;
+            //Scrolling
+            if(scrollingIndex + 6 <= selectorIndex) {
+                ++scrollingIndex;
+            }
+        }
+        else {
+            selectorIndex = 0;
+            scrollingIndex = 0;
+        }
+        break;
+    default: break;
+    }
+
+    display.clearDrawingBuffer();
+    int16_t y = 1;
+    for(uint8_t i = scrollingIndex; i < scrollingIndex + 6; i ++) {
+        display.drawString(1, y, allFuncDispNames[i], selectorIndex == i);
+        y += 10;
+    }   
     display.updateDrawing();
 }
 
@@ -1291,6 +1361,9 @@ int main() {
 			case DispMode::CONFIG_MENU:
 				calculatorSettingsAndConfigurationMenuKeyPressHandler(key);
 				break;
+            case DispMode::FUNC_MENU:
+                allAvailableFunctionsCatalogueSelectionMenuKeyPressHandler(cursor, key);
+                break;
             case DispMode::GAME:
                 gameKeyPressHandler(key);
                 break;

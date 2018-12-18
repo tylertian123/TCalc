@@ -132,7 +132,7 @@ namespace eval {
         UserDefinedFunction(neda::Container *expr, const char *name, uint8_t argc, const char **argn)
                 : expr(expr), name(name), argc(argc), argn(argn) {}
 
-        neda::Container *expr;    
+        neda::Container *expr;
         const char *name;
         uint8_t argc;
         const char **argn;
