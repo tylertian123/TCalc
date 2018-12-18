@@ -404,7 +404,7 @@ convertToDoubleAndOperate:
             return 1;
         }
     }
-    Token* Function::compute(Token **args) const {
+    Token* Function::operator()(Token **args) const {
         
         switch(type) {
         case Type::SIN:
@@ -821,7 +821,7 @@ evaluateFunctionArguments:
                             }
                             //Now index should be right after the bracket, and end is at the closing bracket
                             
-                            DynamicArray<double> args;
+                            DynamicArray<Token*> args;
                             //Isolate each argument
                             uint16_t argEnd = index;
                             while(index != end) {
@@ -836,6 +836,7 @@ evaluateFunctionArguments:
                                         //Mismatched brackets
                                         if(nesting == 0) {
                                             freeTokens(&arr);
+                                            freeTokens(&args);
                                             delete[] str;
                                             delete func;
                                             return nullptr;
@@ -853,13 +854,12 @@ evaluateFunctionArguments:
                                 //Cleanup
                                 if(!arg) {
                                     freeTokens(&arr);
+                                    freeTokens(&args);
                                     delete[] str;
                                     delete func;
                                     return nullptr;
                                 }
-                                //Convert to double
-                                args.add(extractDouble(arg));
-                                delete arg;
+                                args.add(arg);
 
                                 //If comma increase arg end
                                 if(extractChar(exprs[argEnd]) == ',') {
@@ -871,14 +871,15 @@ evaluateFunctionArguments:
                             //Make sure to handle user-defined functions as well
                             if((func && func->getNumArgs() != args.length()) || (uFunc && uFunc->argc != args.length())) {
                                 freeTokens(&arr);
+                                freeTokens(&args);
                                 delete[] str;
                                 delete func;
                                 return nullptr;
                             }
                             //Evaluate
-                            double result;
+                            Token *result;
                             if(func) {
-                                result = func->compute(args.asArray());
+                                result = (*func)(args.asArray());
                                 delete func;
                             }
                             //User-defined function
@@ -893,13 +894,13 @@ evaluateFunctionArguments:
                                 }
                                 for(uint8_t i = 0; i < uFunc->argc; i ++) {
                                     vNames[varc + i] = uFunc->argn[i];
-                                    vVals[varc + i] = new Number(args[i]);
+                                    vVals[varc + i] = args[i];
                                 }
 
                                 //Evaluate
-                                Token *t = evaluate(uFunc->expr, varc + uFunc->argc, vNames, vVals, funcc, funcs);
+                                Token *result = evaluate(uFunc->expr, varc + uFunc->argc, vNames, vVals, funcc, funcs);
                                 //Syntax error, cleanup
-                                if(!t) {
+                                if(!result) {
                                     for(uint8_t i = varc; i < varc + uFunc->argc; i ++) {
                                         delete vVals[i];
                                     }
@@ -907,12 +908,10 @@ evaluateFunctionArguments:
                                     delete vVals;
 
                                     freeTokens(&arr);
+                                    freeTokens(&args);
                                     delete[] str;
                                     return nullptr;
                                 }
-                                //Set result
-                                result = extractDouble(t);
-                                delete t;
 
                                 //Cleanup
                                 for(uint8_t i = varc; i < varc + uFunc->argc; i ++) {
@@ -921,8 +920,11 @@ evaluateFunctionArguments:
                                 delete vNames;
                                 delete vVals;
                             }
+
+                            //Free args
+                            freeTokens(&args);
                             //Add result
-                            arr.add(new Number(result));
+                            arr.add(result);
 
                             allowUnary = false;
                             ++end;

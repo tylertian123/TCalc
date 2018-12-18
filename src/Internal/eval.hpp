@@ -125,7 +125,7 @@ namespace eval {
 
         static Function* fromString(const char*);
         uint8_t getNumArgs() const;
-        Token* compute(Token**) const;
+        Token* operator()(Token**) const;
     };
 
     struct UserDefinedFunction {
