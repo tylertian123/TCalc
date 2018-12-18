@@ -404,89 +404,96 @@ convertToDoubleAndOperate:
             return 1;
         }
     }
-    double Function::compute(double *args) const {
+    Token* Function::compute(Token **args) const {
         
         switch(type) {
         case Type::SIN:
         {
-            return sin(TRIG_FUNC_INPUT(args[0]));
+            return new Number(sin(TRIG_FUNC_INPUT(extractDouble(args[0]))));
         }
         case Type::COS:
         {
-            return cos(TRIG_FUNC_INPUT(args[0]));
+            return new Number(cos(TRIG_FUNC_INPUT(extractDouble(args[0]))));
         }
         case Type::TAN:
         {
-            return tan(TRIG_FUNC_INPUT(args[0]));
+            return new Number(tan(TRIG_FUNC_INPUT(extractDouble(args[0]))));
         }
         case Type::ASIN:
         {
-            return TRIG_FUNC_OUTPUT(asin(args[0]));
+            return new Number(TRIG_FUNC_OUTPUT(asin(extractDouble(args[0]))));
         }
         case Type::ACOS:
         {
-            return TRIG_FUNC_OUTPUT(acos(args[0]));
+            return new Number(TRIG_FUNC_OUTPUT(acos(extractDouble(args[0]))));
         }
         case Type::ATAN:
         {
-            return TRIG_FUNC_OUTPUT(atan(args[0]));
+            return new Number(TRIG_FUNC_OUTPUT(atan(extractDouble(args[0]))));
         }
         case Type::LN:
         {
-            return log(args[0]);
+            return new Number(log(extractDouble(args[0])));
         }
         case Type::LOG10:
         {
-            return log10(args[0]);
+            return new Number(log10(extractDouble(args[0])));
         }
         case Type::LOG2:
         {
-            return log2(args[0]);
+            return new Number(log2(extractDouble(args[0])));
         }
         case Type::SINH:
         {
-            return sinh(TRIG_FUNC_INPUT(args[0]));
+            return new Number(sinh(TRIG_FUNC_INPUT(extractDouble(args[0]))));
         }
         case Type::COSH:
         {
-            return cosh(TRIG_FUNC_INPUT(args[0]));
+            return new Number(cosh(TRIG_FUNC_INPUT(extractDouble(args[0]))));
         }
         case Type::TANH:
         {
-            return tanh(TRIG_FUNC_INPUT(args[0]));
+            return new Number(tanh(TRIG_FUNC_INPUT(extractDouble(args[0]))));
         }
         case Type::ASINH:
         {
-            return TRIG_FUNC_OUTPUT(asinh(args[0]));
+            return new Number(TRIG_FUNC_OUTPUT(asinh(extractDouble(args[0]))));
         }
         case Type::ACOSH:
         {
-            return TRIG_FUNC_OUTPUT(acosh(args[0]));
+            return new Number(TRIG_FUNC_OUTPUT(acosh(extractDouble(args[0]))));
         }
         case Type::ATANH:
         {
-            return TRIG_FUNC_OUTPUT(atanh(args[0]));
+            return new Number(TRIG_FUNC_OUTPUT(atanh(extractDouble(args[0]))));
         }
         case Type::QUADROOT_A:
         {
-            return (-args[1] + sqrt(args[1] * args[1] - 4 * args[0] * args[2])) / (2 * args[0]);
+            double a = extractDouble(args[0]), b = extractDouble(args[1]), c = extractDouble(args[2]);
+            return new Number((-b + sqrt(b * b - 4 * a * c)) / (2 * a));
         }
         case Type::QUADROOT_B:
         {
-            return (-args[1] - sqrt(args[1] * args[1] - 4 * args[0] * args[2])) / (2 * args[0]);
+            double a = extractDouble(args[0]), b = extractDouble(args[1]), c = extractDouble(args[2]);
+            return new Number((-b - sqrt(b * b - 4 * a * c)) / (2 * a));
         }
         case Type::ROUND:
         {
-            if(!isInt(args[1])) {
-                return NAN;
+            if(!isInt(extractDouble(args[1]))) {
+                return new Number(NAN);
             }
-            return round(args[0], args[1]);
+            return new Number(round(extractDouble(args[0]), extractDouble(args[1])));
         }
         case Type::ABS:
         {
-            return abs(args[0]);
+            if(args[0]->getType() == TokenType::NUMBER) {
+                return new Number(abs(((Number*) args[0])->value));
+            }
+            else {
+                return new Fraction(abs(((Fraction*) args[0])->num), ((Fraction*) args[0])->denom);
+            }
         }
-        default: return NAN;
+        default: return new Number(NAN);
         }
     }
 
@@ -504,10 +511,13 @@ convertToDoubleAndOperate:
         }
         return ((neda::Character*) obj)->ch;
     }
+    inline double extractDouble(Token *t) {
+        return t->getType() == TokenType::NUMBER ? ((Number*) t)->value : ((Fraction*) t)->doubleVal();
+    }
     //Returns positive if a > b, zero if equal, and negative if a < b
     int8_t compareTokens(Token *a, Token *b) {
-        double aVal = a->getType() == TokenType::NUMBER ? ((Number*) a)->value : ((Fraction*) a)->doubleVal();
-        double bVal = b->getType() == TokenType::NUMBER ? ((Number*) b)->value : ((Fraction*) b)->doubleVal();
+        double aVal = extractDouble(a);
+        double bVal = extractDouble(b);
         return aVal > bVal ? 1 : bVal > aVal ? -1 : 0;
     }
     uint16_t findEquals(DynamicArray<neda::NEDAObj*> *arr, bool forceVarName) {
@@ -747,7 +757,7 @@ convertToDoubleAndOperate:
                                 return nullptr;
                             }
                             //Use the log change of base property
-                            double base = sub->getType() == TokenType::NUMBER ? ((Number*) sub)->value : ((Fraction*) sub)->doubleVal();
+                            double base = extractDouble(sub);
                             delete sub;
                             double multiplier = 1 / log2(base);
                             arr.add(new Number(multiplier));
@@ -848,7 +858,7 @@ evaluateFunctionArguments:
                                     return nullptr;
                                 }
                                 //Convert to double
-                                args.add(arg->getType() == TokenType::NUMBER ? ((Number*) arg)->value : ((Fraction*) arg)->doubleVal());
+                                args.add(extractDouble(arg));
                                 delete arg;
 
                                 //If comma increase arg end
@@ -901,7 +911,7 @@ evaluateFunctionArguments:
                                     return nullptr;
                                 }
                                 //Set result
-                                result = t->getType() == TokenType::NUMBER ? ((Number*) t)->value : ((Fraction*) t)->doubleVal();
+                                result = extractDouble(t);
                                 delete t;
 
                                 //Cleanup

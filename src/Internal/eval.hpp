@@ -125,7 +125,7 @@ namespace eval {
 
         static Function* fromString(const char*);
         uint8_t getNumArgs() const;
-        double compute(double*) const;
+        Token* compute(Token**) const;
     };
 
     struct UserDefinedFunction {
@@ -159,6 +159,7 @@ namespace eval {
     bool isDigit(char);
     bool isNameChar(char);
     char extractChar(neda::NEDAObj*);
+    double extractDouble(Token*);
     int8_t compareNumericals(const Token*, const Token*);
     uint16_t findEquals(DynamicArray<neda::NEDAObj*>*, bool forceVarName = true);
 
