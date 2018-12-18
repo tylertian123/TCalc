@@ -78,7 +78,7 @@ namespace eval {
         }
 
         //Now that the denominator is positive, we can make sure the result we get is also positive
-        int64_t divisor = gcd(num, denom);
+        int64_t divisor = labs(gcd(num, denom));
         if(divisor == 1) {
             return;
         }
@@ -347,7 +347,7 @@ namespace eval {
             if(isInt(((Number*) lhs)->value)) {
                 //This operation is not guaranteed to succeed
                 //Construct fraction since it's not going to be temporary if this operation succeeds
-                Fraction *lhsFrac = new Fraction((uint64_t) ((Number*) lhs)->value, 1);
+                Fraction *lhsFrac = new Fraction((int64_t) ((Number*) lhs)->value, 1);
                 bool success = operateOn(lhsFrac, (Fraction*) rhs);
                 if(success) {
                     if(lhsFrac->isInteger()) {
