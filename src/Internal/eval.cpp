@@ -383,7 +383,7 @@ convertToDoubleAndOperate:
         //log10 and log2 cannot be directly entered with a string
         "\xff", "\xff",
 
-        "qdRtA", "qdRtB", "round", "abs",
+        "qdRtA", "qdRtB", "round", "abs", "fact",
     };
     Function* Function::fromString(const char *str) {
         for(uint8_t i = 0; i < sizeof(FUNCNAMES) / sizeof(FUNCNAMES[0]); i ++) {
@@ -492,6 +492,19 @@ convertToDoubleAndOperate:
             else {
                 return new Fraction(abs(((Fraction*) args[0])->num), ((Fraction*) args[0])->denom);
             }
+        }
+        case Type::FACT:
+        {
+            double x = extractDouble(args[0]);
+            if(!isInt(x) || x < 0) {
+                return new Number(NAN);
+            }
+            double d = 1;
+            while(x > 0) {
+                d *= x;
+                --x;
+            }
+            return new Number(d);
         }
         default: return new Number(NAN);
         }
