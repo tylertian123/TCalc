@@ -968,7 +968,13 @@ evaluateExpression:
                 char buf[64];
                 neda::Container *num = new neda::Container();
                 neda::Container *denom = new neda::Container();
-                ltoa(((eval::Fraction*) result)->num, buf);
+
+                //Display negative fractions with the minus sign in front
+                if(((eval::Fraction*) result)->num < 0) {
+                    calcResults[0]->add(new neda::Character('-'));
+                }
+
+                ltoa(labs(((eval::Fraction*) result)->num), buf);
                 num->addString(buf);
                 ltoa(((eval::Fraction*) result)->denom, buf);
                 denom->addString(buf);
