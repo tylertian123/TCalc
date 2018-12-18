@@ -1146,6 +1146,8 @@ void constSelectionMenuKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 }
 
 #define FUNC_COUNT 17
+#define FUNC_SCROLLBAR_WIDTH 4
+constexpr uint16_t FUNC_SCROLLBAR_HEIGHT = 6 * 64 / FUNC_COUNT;
 const char * const allFuncDispNames[FUNC_COUNT] = {
     "sin(angle)", "cos(angle)", "tan(angle)", "asin(x)", "acos(x)", "atan(x)", 
     "sinh(angle)", "cosh(angle)", "tanh(angle)", "asinh(x)", "acosh(x)", "atanh(x)",
@@ -1209,7 +1211,9 @@ void allAvailableFunctionsCatalogueSelectionMenuKeyPressHandler(neda::Cursor *cu
     for(uint8_t i = scrollingIndex; i < scrollingIndex + 6; i ++) {
         display.drawString(1, y, allFuncDispNames[i], selectorIndex == i);
         y += 10;
-    }   
+    }
+    uint16_t scrollbarLocation = static_cast<uint16_t>(scrollingIndex * 64 / FUNC_COUNT);
+    display.fill(128 - FUNC_SCROLLBAR_WIDTH, scrollbarLocation, FUNC_SCROLLBAR_WIDTH, FUNC_SCROLLBAR_HEIGHT);
     display.updateDrawing();
 }
 
