@@ -794,6 +794,7 @@ convertToDoubleAndOperate:
                             for(uint8_t i = 0; i < funcc; ++i) {
                                 if(strcmp(funcs[i].name, str) == 0) {
                                     uFunc = funcs + i;
+                                    break;
                                 }
                             }
                         }
@@ -914,9 +915,6 @@ evaluateFunctionArguments:
                                 Token *result = evaluate(uFunc->expr, varc + uFunc->argc, vNames, vVals, funcc, funcs);
                                 //Syntax error, cleanup
                                 if(!result) {
-                                    for(uint8_t i = varc; i < varc + uFunc->argc; i ++) {
-                                        delete vVals[i];
-                                    }
                                     delete vNames;
                                     delete vVals;
 
@@ -927,9 +925,6 @@ evaluateFunctionArguments:
                                 }
 
                                 //Cleanup
-                                for(uint8_t i = varc; i < varc + uFunc->argc; i ++) {
-                                    delete vVals[i];
-                                }
                                 delete vNames;
                                 delete vVals;
                             }
