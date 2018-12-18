@@ -1145,10 +1145,10 @@ void constSelectionMenuKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
     display.updateDrawing();
 }
 
-#define FUNC_COUNT 18
+#define BUILTIN_FUNC_COUNT 18
+uint16_t funcCount = BUILTIN_FUNC_COUNT;
 #define FUNC_SCROLLBAR_WIDTH 4
-constexpr uint16_t FUNC_SCROLLBAR_HEIGHT = 6 * 64 / FUNC_COUNT;
-const char * const allFuncDispNames[FUNC_COUNT] = {
+const char * const allFuncDispNames[BUILTIN_FUNC_COUNT] = {
     "sin(angle)", "cos(angle)", "tan(angle)", "asin(x)", "acos(x)", "atan(x)", 
     "sinh(angle)", "cosh(angle)", "tanh(angle)", "asinh(x)", "acosh(x)", "atanh(x)",
     "ln(x)", "qdRtA(a,b,c)", "qdRtB(a,b,c)", "round(n,decimals)", "abs(x)", "fact(x)",
@@ -1156,15 +1156,20 @@ const char * const allFuncDispNames[FUNC_COUNT] = {
 
 uint16_t scrollingIndex = 0;
 void allAvailableFunctionsCatalogueSelectionMenuKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
-
+    funcCount = BUILTIN_FUNC_COUNT + functions.length();
     switch(key) {
     case KEY_CENTER:
     case KEY_ENTER:
     {
-        const char *s = allFuncDispNames[selectorIndex];
-        //Add until we see the null terminator or the left bracket
-        while(*s != '\0' && *s != '(') {
-            cursor->add(new neda::Character(*s++));
+        if(selectorIndex < BUILTIN_FUNC_COUNT) {
+            const char *s = allFuncDispNames[selectorIndex];
+            //Add until we see the null terminator or the left bracket
+            while(*s != '\0' && *s != '(') {
+                cursor->add(new neda::Character(*s++));
+            }
+        }
+        else {
+            addStr(cursor, functions[selectorIndex - BUILTIN_FUNC_COUNT].name);
         }
         cursor->add(new neda::LeftBracket);
     }
@@ -1186,12 +1191,12 @@ void allAvailableFunctionsCatalogueSelectionMenuKeyPressHandler(neda::Cursor *cu
             }
         }
         else {
-            selectorIndex = FUNC_COUNT - 1;
-            scrollingIndex = FUNC_COUNT - 6;
+            selectorIndex = funcCount - 1;
+            scrollingIndex = funcCount - 6;
         }
         break;
     case KEY_DOWN:
-        if(selectorIndex < FUNC_COUNT - 1) {
+        if(selectorIndex < funcCount - 1) {
             ++selectorIndex;
             //Scrolling
             if(scrollingIndex + 6 <= selectorIndex) {
@@ -1209,11 +1214,42 @@ void allAvailableFunctionsCatalogueSelectionMenuKeyPressHandler(neda::Cursor *cu
     display.clearDrawingBuffer();
     int16_t y = 1;
     for(uint8_t i = scrollingIndex; i < scrollingIndex + 6; i ++) {
-        display.drawString(1, y, allFuncDispNames[i], selectorIndex == i);
+        if(i < BUILTIN_FUNC_COUNT) {
+            display.drawString(1, y, allFuncDispNames[i], selectorIndex == i);
+        }
+        else {
+            eval::UserDefinedFunction func = functions[i - BUILTIN_FUNC_COUNT];
+            uint16_t len = strlen(func.name);
+            //2 for brackets, one for each comma except the last one
+            uint16_t totalLen = len + 2 + func.argc - 1;
+            for(uint8_t j = 0; j < func.argc; ++j) {
+                totalLen += strlen(func.argn[j]);
+            }
+            char *fullname = new char[totalLen + 1];
+            //Copy the name
+            strcpy(fullname, func.name);
+            fullname[len++] = '(';
+            //Copy each one of the arguments
+            for(uint8_t j = 0; j < func.argc; ++j) {
+                strcpy(fullname + len, func.argn[j]);
+                len += strlen(func.argn[j]);
+                //If not the last, then add a comma
+                if(j + 1 != func.argc) {
+                    fullname[len++] = ',';
+                }
+            }
+            fullname[len++] = ')';
+            fullname[len] = '\0';
+
+            display.drawString(1, y, fullname, selectorIndex == i);
+            
+            delete fullname;
+        }
         y += 10;
     }
-    uint16_t scrollbarLocation = static_cast<uint16_t>(scrollingIndex * 64 / FUNC_COUNT);
-    display.fill(128 - FUNC_SCROLLBAR_WIDTH, scrollbarLocation, FUNC_SCROLLBAR_WIDTH, FUNC_SCROLLBAR_HEIGHT);
+    uint16_t scrollbarLocation = static_cast<uint16_t>(scrollingIndex * 64 / funcCount);
+    uint16_t scrollbarHeight = 6 * 64 / funcCount;
+    display.fill(128 - FUNC_SCROLLBAR_WIDTH, scrollbarLocation, FUNC_SCROLLBAR_WIDTH, scrollbarHeight);
     display.updateDrawing();
 }
 
