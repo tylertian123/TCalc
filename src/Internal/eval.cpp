@@ -258,7 +258,7 @@ namespace eval {
         }
         return true;
     }
-    Token* Operator::operate(Token *lhs, Token *rhs) {
+    Token* Operator::operator()(Token *lhs, Token *rhs) {
         TokenType lType = lhs->getType();
         TokenType rType = rhs->getType();
         Token *result = nullptr;
@@ -642,7 +642,7 @@ convertToDoubleAndOperate:
                     freeTokens(&arr);
                     return nullptr;
                 }
-                arr.add(Operator::OP_DIVIDE.operate(num, denom));
+                arr.add(Operator::OP_DIVIDE(num, denom));
 
                 ++index;
                 allowUnary = false;
@@ -697,7 +697,7 @@ convertToDoubleAndOperate:
                     ((Fraction*) n)->num = ((Fraction*) n)->denom;
                     ((Fraction*) n)->denom = temp;
                 }
-                arr.add(Operator::OP_EXPONENT.operate(contents, n));
+                arr.add(Operator::OP_EXPONENT(contents, n));
 
                 ++index;
                 allowUnary = false;
@@ -1054,7 +1054,7 @@ evaluateFunctionArguments:
                     }
                     //Add or multiply the expressions
                     //Operate takes care of deletion
-                    val = (type.data == lcd::CHAR_SUMMATION.data ? Operator::OP_PLUS : Operator::OP_MULTIPLY).operate(val, n);
+                    val = (type.data == lcd::CHAR_SUMMATION.data ? Operator::OP_PLUS : Operator::OP_MULTIPLY)(val, n);
                     //Add one to the start
                     if(start->getType() == TokenType::NUMBER) {
                         ++((Number*) start)->value;
@@ -1115,7 +1115,7 @@ evaluateFunctionArguments:
                 }
                 Token *rhs = stack.pop();
                 Token *lhs = stack.pop();
-                stack.push(((Operator*) t)->operate(lhs, rhs));
+                stack.push((*((Operator*) t))(lhs, rhs));
             }
         }
 

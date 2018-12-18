@@ -96,7 +96,7 @@ namespace eval {
         //Operates on two numericals, taking into account fractions and everything
         //The returned numerical is allocated on the heap and needs to be freed
         //The input is deleted
-        Token* operate(Token*, Token*);
+        Token* operator()(Token*, Token*);
     
     private:
         Operator(Type type) : type(type) {}
