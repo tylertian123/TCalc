@@ -64,6 +64,7 @@ enum class DispMode {
     CONST_MENU,
 	CONFIG_MENU,
     FUNC_MENU,
+    RECALL_MENU,
     GAME,
 };
 DispMode dispMode = DispMode::EXPR_ENTRY;
@@ -1009,8 +1010,9 @@ evaluateExpression:
     case KEY_TRIG:
 	case KEY_CONFIG:
     case KEY_CAT:
+    case KEY_RECALL:
         //Set the display mode and reset the index
-        dispMode = key == KEY_TRIG ? DispMode::TRIG_MENU : key == KEY_CONST ? DispMode::CONST_MENU : key == KEY_CAT ? DispMode::FUNC_MENU : DispMode::CONFIG_MENU;
+        dispMode = key == KEY_TRIG ? DispMode::TRIG_MENU : key == KEY_CONST ? DispMode::CONST_MENU : key == KEY_CAT ? DispMode::FUNC_MENU : key == KEY_RECALL ? DispMode::RECALL_MENU : DispMode::CONFIG_MENU;
         selectorIndex = 0;
         //We need to call the function once to get the interface drawn
         //To do this, we insert a dummy value into the key buffer
@@ -1145,6 +1147,31 @@ void constSelectionMenuKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
     display.updateDrawing();
 }
 
+char* getFuncFullName(eval::UserDefinedFunction func) {
+    uint16_t len = strlen(func.name);
+    //2 for brackets, one for each comma except the last one
+    uint16_t totalLen = len + 2 + func.argc - 1;
+    for(uint8_t j = 0; j < func.argc; ++j) {
+        totalLen += strlen(func.argn[j]);
+    }
+    char *fullname = new char[totalLen + 1];
+    //Copy the name
+    strcpy(fullname, func.name);
+    fullname[len++] = '(';
+    //Copy each one of the arguments
+    for(uint8_t j = 0; j < func.argc; ++j) {
+        strcpy(fullname + len, func.argn[j]);
+        len += strlen(func.argn[j]);
+        //If not the last, then add a comma
+        if(j + 1 != func.argc) {
+            fullname[len++] = ',';
+        }
+    }
+    fullname[len++] = ')';
+    fullname[len] = '\0';
+    return fullname;
+}
+
 #define BUILTIN_FUNC_COUNT 18
 uint16_t funcCount = BUILTIN_FUNC_COUNT;
 #define FUNC_SCROLLBAR_WIDTH 4
@@ -1219,30 +1246,8 @@ void allAvailableFunctionsCatalogueSelectionMenuKeyPressHandler(neda::Cursor *cu
         }
         else {
             eval::UserDefinedFunction func = functions[i - BUILTIN_FUNC_COUNT];
-            uint16_t len = strlen(func.name);
-            //2 for brackets, one for each comma except the last one
-            uint16_t totalLen = len + 2 + func.argc - 1;
-            for(uint8_t j = 0; j < func.argc; ++j) {
-                totalLen += strlen(func.argn[j]);
-            }
-            char *fullname = new char[totalLen + 1];
-            //Copy the name
-            strcpy(fullname, func.name);
-            fullname[len++] = '(';
-            //Copy each one of the arguments
-            for(uint8_t j = 0; j < func.argc; ++j) {
-                strcpy(fullname + len, func.argn[j]);
-                len += strlen(func.argn[j]);
-                //If not the last, then add a comma
-                if(j + 1 != func.argc) {
-                    fullname[len++] = ',';
-                }
-            }
-            fullname[len++] = ')';
-            fullname[len] = '\0';
-
+            auto fullname = getFuncFullName(func);
             display.drawString(1, y, fullname, selectorIndex == i);
-            
             delete fullname;
         }
         y += 10;
@@ -1250,6 +1255,81 @@ void allAvailableFunctionsCatalogueSelectionMenuKeyPressHandler(neda::Cursor *cu
     uint16_t scrollbarLocation = static_cast<uint16_t>(scrollingIndex * 64 / funcCount);
     uint16_t scrollbarHeight = 6 * 64 / funcCount;
     display.fill(128 - FUNC_SCROLLBAR_WIDTH, scrollbarLocation, FUNC_SCROLLBAR_WIDTH, scrollbarHeight);
+    display.updateDrawing();
+}
+
+void recallUserDefinedFunctionsDefinitionsMenuKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
+    switch(key) {
+    case KEY_CENTER:
+    case KEY_ENTER:
+    {
+        if(functions.length() > 0) {
+            for(auto ex : functions[selectorIndex].expr->contents) {
+                cursor->add(ex->copy());
+            }
+        }
+    }
+    //Intentional fall-through
+    case KEY_RECALL:
+        dispMode = DispMode::EXPR_ENTRY;
+        selectorIndex = 0;
+        scrollingIndex = 0;
+        //We need to call the function once to get the interface drawn
+        //To do this, we insert a dummy value into the key buffer
+        putKey(KEY_DUMMY);
+        return;
+    case KEY_UP:
+        if(functions.length() > 0) {
+            if(selectorIndex > 0) {
+                --selectorIndex;
+                //Scrolling
+                if(selectorIndex < scrollingIndex) {
+                    --scrollingIndex;
+                }
+            }
+            else {
+                selectorIndex = functions.length() - 1;
+                scrollingIndex = max(0, functions.length() - 6);
+            }
+        }
+        break;
+    case KEY_DOWN:
+        if(functions.length() > 0) {
+            if(selectorIndex < functions.length() - 1) {
+                ++selectorIndex;
+                //Scrolling
+                if(scrollingIndex + 6 <= selectorIndex) {
+                    ++scrollingIndex;
+                }
+            }
+            else {
+                selectorIndex = 0;
+                scrollingIndex = 0;
+            }
+        }
+        break;
+    default: break;
+    }
+
+    display.clearDrawingBuffer();
+    if(functions.length() == 0) {
+        display.drawString(1, 1, "No Functions to");
+        display.drawString(1, 11, "Recall");
+    }
+    else {
+        int16_t y = 1;
+        for(uint8_t i = scrollingIndex; i < scrollingIndex + 6 && i < functions.length(); i ++) {
+            eval::UserDefinedFunction func = functions[i];
+            auto fullname = getFuncFullName(func);
+            display.drawString(1, y, fullname, selectorIndex == i);
+            delete fullname;
+            y += 10;
+        }
+
+        uint16_t scrollbarLocation = static_cast<uint16_t>(scrollingIndex * 64 / functions.length());
+        uint16_t scrollbarHeight = 6 * 64 / functions.length();
+        display.fill(128 - FUNC_SCROLLBAR_WIDTH, scrollbarLocation, FUNC_SCROLLBAR_WIDTH, scrollbarHeight);
+    }
     display.updateDrawing();
 }
 
@@ -1403,6 +1483,9 @@ int main() {
 				break;
             case DispMode::FUNC_MENU:
                 allAvailableFunctionsCatalogueSelectionMenuKeyPressHandler(cursor, key);
+                break;
+            case DispMode::RECALL_MENU:
+                recallUserDefinedFunctionsDefinitionsMenuKeyPressHandler(cursor, key);
                 break;
             case DispMode::GAME:
                 gameKeyPressHandler(key);

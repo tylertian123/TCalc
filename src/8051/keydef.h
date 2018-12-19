@@ -113,6 +113,7 @@
 #define KEY_SHIFTOFF  0x006D
 #define KEY_CTRLON    0x006E
 #define KEY_CTRLOFF   0x006F
+#define KEY_RECALL    0x0070
 
 #define KEY_DUMMY     0xFFFF
 
