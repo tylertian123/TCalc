@@ -912,7 +912,7 @@ evaluateFunctionArguments:
                                 }
 
                                 //Evaluate
-                                Token *result = evaluate(uFunc->expr, varc + uFunc->argc, vNames, vVals, funcc, funcs);
+                                result = evaluate(uFunc->expr, varc + uFunc->argc, vNames, vVals, funcc, funcs);
                                 //Syntax error, cleanup
                                 if(!result) {
                                     delete vNames;
