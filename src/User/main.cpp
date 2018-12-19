@@ -1182,6 +1182,32 @@ const char * const allFuncDispNames[BUILTIN_FUNC_COUNT] = {
 };
 
 uint16_t scrollingIndex = 0;
+void scrollUp(uint16_t len) {
+    if(selectorIndex > 0) {
+        --selectorIndex;
+        //Scrolling
+        if(selectorIndex < scrollingIndex) {
+            --scrollingIndex;
+        }
+    }
+    else {
+        selectorIndex = len - 1;
+        scrollingIndex = max(len - 6, 0);
+    }
+}
+void scrollDown(uint16_t len) {
+    if(selectorIndex < len - 1) {
+        ++selectorIndex;
+        //Scrolling
+        if(scrollingIndex + 6 <= selectorIndex) {
+            ++scrollingIndex;
+        }
+    }
+    else {
+        selectorIndex = 0;
+        scrollingIndex = 0;
+    }
+}
 void allAvailableFunctionsCatalogueSelectionMenuKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
     funcCount = BUILTIN_FUNC_COUNT + functions.length();
     switch(key) {
@@ -1210,30 +1236,10 @@ void allAvailableFunctionsCatalogueSelectionMenuKeyPressHandler(neda::Cursor *cu
         putKey(KEY_DUMMY);
         return;
     case KEY_UP:
-        if(selectorIndex > 0) {
-            --selectorIndex;
-            //Scrolling
-            if(selectorIndex < scrollingIndex) {
-                --scrollingIndex;
-            }
-        }
-        else {
-            selectorIndex = funcCount - 1;
-            scrollingIndex = funcCount - 6;
-        }
+        scrollUp(funcCount);
         break;
     case KEY_DOWN:
-        if(selectorIndex < funcCount - 1) {
-            ++selectorIndex;
-            //Scrolling
-            if(scrollingIndex + 6 <= selectorIndex) {
-                ++scrollingIndex;
-            }
-        }
-        else {
-            selectorIndex = 0;
-            scrollingIndex = 0;
-        }
+        scrollDown(funcCount);
         break;
     default: break;
     }
@@ -1279,34 +1285,10 @@ void recallUserDefinedFunctionsDefinitionsMenuKeyPressHandler(neda::Cursor *curs
         putKey(KEY_DUMMY);
         return;
     case KEY_UP:
-        if(functions.length() > 0) {
-            if(selectorIndex > 0) {
-                --selectorIndex;
-                //Scrolling
-                if(selectorIndex < scrollingIndex) {
-                    --scrollingIndex;
-                }
-            }
-            else {
-                selectorIndex = functions.length() - 1;
-                scrollingIndex = max(0, functions.length() - 6);
-            }
-        }
+        scrollUp(functions.length());
         break;
     case KEY_DOWN:
-        if(functions.length() > 0) {
-            if(selectorIndex < functions.length() - 1) {
-                ++selectorIndex;
-                //Scrolling
-                if(scrollingIndex + 6 <= selectorIndex) {
-                    ++scrollingIndex;
-                }
-            }
-            else {
-                selectorIndex = 0;
-                scrollingIndex = 0;
-            }
-        }
+        scrollDown(functions.length());
         break;
     default: break;
     }

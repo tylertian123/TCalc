@@ -148,42 +148,42 @@ namespace lcd {
         0x20,
     };
     const Img CHAR_EXMK(CHAR_EXMK_DATA, 1, 5, 9);
-    const uint8_t CHAR_DBLQ_DATA[] = {
-        0x50,
-        0x50,
-        0x50,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-    };
-    const Img CHAR_DBLQ(CHAR_DBLQ_DATA, 1, 5, 9);
-    const uint8_t CHAR_NSGN_DATA[] = {
-        0x50,
-        0x50,
-        0xf8,
-        0x50,
-        0x50,
-        0x50,
-        0xf8,
-        0x50,
-        0x50,
-    };
-    const Img CHAR_NSGN(CHAR_NSGN_DATA, 1, 5, 9);
-    const uint8_t CHAR_DLR_DATA[] = {
-        0x20,
-        0x70,
-        0xa8,
-        0xa0,
-        0x70,
-        0x28,
-        0xa8,
-        0x70,
-        0x20,
-    };
-    const Img CHAR_DLR(CHAR_DLR_DATA, 1, 5, 9);
+    // const uint8_t CHAR_DBLQ_DATA[] = {
+    //     0x50,
+    //     0x50,
+    //     0x50,
+    //     0x00,
+    //     0x00,
+    //     0x00,
+    //     0x00,
+    //     0x00,
+    //     0x00,
+    // };
+    // const Img CHAR_DBLQ(CHAR_DBLQ_DATA, 1, 5, 9);
+    // const uint8_t CHAR_NSGN_DATA[] = {
+    //     0x50,
+    //     0x50,
+    //     0xf8,
+    //     0x50,
+    //     0x50,
+    //     0x50,
+    //     0xf8,
+    //     0x50,
+    //     0x50,
+    // };
+    // const Img CHAR_NSGN(CHAR_NSGN_DATA, 1, 5, 9);
+    // const uint8_t CHAR_DLR_DATA[] = {
+    //     0x20,
+    //     0x70,
+    //     0xa8,
+    //     0xa0,
+    //     0x70,
+    //     0x28,
+    //     0xa8,
+    //     0x70,
+    //     0x20,
+    // };
+    // const Img CHAR_DLR(CHAR_DLR_DATA, 1, 5, 9);
     const uint8_t CHAR_PCT_DATA[] = {
         0x08,
         0xc8,
@@ -196,30 +196,30 @@ namespace lcd {
         0x98,
     };
     const Img CHAR_PCT(CHAR_PCT_DATA, 1, 5, 9);
-    const uint8_t CHAR_AND_DATA[] = {
-        0x60,
-        0x90,
-        0x90,
-        0x90,
-        0x60,
-        0xa8,
-        0x90,
-        0x90,
-        0x68,
-    };
-    const Img CHAR_AND(CHAR_AND_DATA, 1, 5, 9);
-    const uint8_t CHAR_SGLQ_DATA[] = {
-        0x20,
-        0x20,
-        0x20,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-    };
-    const Img CHAR_SGLQ(CHAR_SGLQ_DATA, 1, 5, 9);
+    // const uint8_t CHAR_AND_DATA[] = {
+    //     0x60,
+    //     0x90,
+    //     0x90,
+    //     0x90,
+    //     0x60,
+    //     0xa8,
+    //     0x90,
+    //     0x90,
+    //     0x68,
+    // };
+    // const Img CHAR_AND(CHAR_AND_DATA, 1, 5, 9);
+    // const uint8_t CHAR_SGLQ_DATA[] = {
+    //     0x20,
+    //     0x20,
+    //     0x20,
+    //     0x00,
+    //     0x00,
+    //     0x00,
+    //     0x00,
+    //     0x00,
+    //     0x00,
+    // };
+    // const Img CHAR_SGLQ(CHAR_SGLQ_DATA, 1, 5, 9);
     const uint8_t CHAR_LBKT_DATA[] = {
         0x10,
         0x20,
@@ -244,18 +244,18 @@ namespace lcd {
         0x40,
     };
     const Img CHAR_RBKT(CHAR_RBKT_DATA, 1, 5, 9);
-    const uint8_t CHAR_ASTK_DATA[] = {
-        0x00,
-        0x20,
-        0xa8,
-        0x70,
-        0xa8,
-        0x20,
-        0x00,
-        0x00,
-        0x00,
-    };
-    const Img CHAR_ASTK(CHAR_ASTK_DATA, 1, 5, 9);
+    // const uint8_t CHAR_ASTK_DATA[] = {
+    //     0x00,
+    //     0x20,
+    //     0xa8,
+    //     0x70,
+    //     0xa8,
+    //     0x20,
+    //     0x00,
+    //     0x00,
+    //     0x00,
+    // };
+    // const Img CHAR_ASTK(CHAR_ASTK_DATA, 1, 5, 9);
     const uint8_t CHAR_PLUS_DATA[] = {
         0x00,
         0x00,
@@ -304,42 +304,42 @@ namespace lcd {
         0x60,
     };
     const Img CHAR_DOT(CHAR_DOT_DATA, 1, 5, 9);
-    const uint8_t CHAR_SLSH_DATA[] = {
-        0x08,
-        0x08,
-        0x10,
-        0x10,
-        0x20,
-        0x20,
-        0x40,
-        0x40,
-        0x80,
-    };
-    const Img CHAR_SLSH(CHAR_SLSH_DATA, 1, 5, 9);
-    const uint8_t CHAR_CLN_DATA[] = {
-        0x00,
-        0x60,
-        0x60,
-        0x00,
-        0x00,
-        0x60,
-        0x60,
-        0x00,
-        0x00,
-    };
-    const Img CHAR_CLN(CHAR_CLN_DATA, 1, 5, 9);
-    const uint8_t CHAR_SMCN_DATA[] = {
-        0x00,
-        0x60,
-        0x60,
-        0x00,
-        0x00,
-        0x60,
-        0x60,
-        0x20,
-        0x40,
-    };
-    const Img CHAR_SMCN(CHAR_SMCN_DATA, 1, 5, 9);
+    // const uint8_t CHAR_SLSH_DATA[] = {
+    //     0x08,
+    //     0x08,
+    //     0x10,
+    //     0x10,
+    //     0x20,
+    //     0x20,
+    //     0x40,
+    //     0x40,
+    //     0x80,
+    // };
+    // const Img CHAR_SLSH(CHAR_SLSH_DATA, 1, 5, 9);
+    // const uint8_t CHAR_CLN_DATA[] = {
+    //     0x00,
+    //     0x60,
+    //     0x60,
+    //     0x00,
+    //     0x00,
+    //     0x60,
+    //     0x60,
+    //     0x00,
+    //     0x00,
+    // };
+    // const Img CHAR_CLN(CHAR_CLN_DATA, 1, 5, 9);
+    // const uint8_t CHAR_SMCN_DATA[] = {
+    //     0x00,
+    //     0x60,
+    //     0x60,
+    //     0x00,
+    //     0x00,
+    //     0x60,
+    //     0x60,
+    //     0x20,
+    //     0x40,
+    // };
+    // const Img CHAR_SMCN(CHAR_SMCN_DATA, 1, 5, 9);
     const uint8_t CHAR_LSTN_DATA[] = {
         0x08,
         0x10,
@@ -376,30 +376,30 @@ namespace lcd {
         0x80,
     };
     const Img CHAR_GTTN(CHAR_GTTN_DATA, 1, 5, 9);
-    const uint8_t CHAR_QNMK_DATA[] = {
-        0x70,
-        0x88,
-        0x88,
-        0x08,
-        0x10,
-        0x20,
-        0x20,
-        0x00,
-        0x20,
-    };
-    const Img CHAR_QNMK(CHAR_QNMK_DATA, 1, 5, 9);
-    const uint8_t CHAR_ATSB_DATA[] = {
-        0x70,
-        0x88,
-        0x88,
-        0x08,
-        0x68,
-        0xa8,
-        0xa8,
-        0xa8,
-        0x70,
-    };
-    const Img CHAR_ATSB(CHAR_ATSB_DATA, 1, 5, 9);
+    // const uint8_t CHAR_QNMK_DATA[] = {
+    //     0x70,
+    //     0x88,
+    //     0x88,
+    //     0x08,
+    //     0x10,
+    //     0x20,
+    //     0x20,
+    //     0x00,
+    //     0x20,
+    // };
+    // const Img CHAR_QNMK(CHAR_QNMK_DATA, 1, 5, 9);
+    // const uint8_t CHAR_ATSB_DATA[] = {
+    //     0x70,
+    //     0x88,
+    //     0x88,
+    //     0x08,
+    //     0x68,
+    //     0xa8,
+    //     0xa8,
+    //     0xa8,
+    //     0x70,
+    // };
+    // const Img CHAR_ATSB(CHAR_ATSB_DATA, 1, 5, 9);
     const uint8_t CHAR_A_DATA[] = {
         0x20,
         0x50,
