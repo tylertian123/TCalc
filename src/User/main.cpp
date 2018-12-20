@@ -303,6 +303,7 @@ void updateVar(const char *name, eval::Token *value) {
     }
 }
 //name and argn should be allocated on the heap
+char* getFuncFullName(eval::UserDefinedFunction);
 void updateFunc(const char *name, neda::Container *expr, uint8_t argc, const char **argn) {
     uint8_t i;
     for(i = 0; i < functions.length(); ++i) {
@@ -312,10 +313,12 @@ void updateFunc(const char *name, neda::Container *expr, uint8_t argc, const cha
                 delete functions[i].argn[j];
             }
             delete functions[i].argn;
+            delete functions[i].fullname;
             
             functions[i].expr = expr;
             functions[i].argc = argc;
             functions[i].argn = argn;
+            functions[i].fullname = getFuncFullName(functions[i]);
             
             //delete the name since it's not updated
             delete name;
@@ -324,7 +327,9 @@ void updateFunc(const char *name, neda::Container *expr, uint8_t argc, const cha
         }
     }
     if(i == functions.length()) {
-        functions.add(eval::UserDefinedFunction(expr, name, argc, argn));
+        eval::UserDefinedFunction func(expr, name, argc, argn);
+        func.fullname = getFuncFullName(func);
+        functions.add(func);
     }
 }
 void clearVarsAndFuncs() {
@@ -341,6 +346,7 @@ void clearVarsAndFuncs() {
             delete func.argn[i];
         }
         delete func.argn;
+        delete func.fullname;
     }
     functions.empty();
 }
@@ -1251,10 +1257,7 @@ void allAvailableFunctionsCatalogueSelectionMenuKeyPressHandler(neda::Cursor *cu
             display.drawString(1, y, allFuncDispNames[i], selectorIndex == i);
         }
         else {
-            eval::UserDefinedFunction func = functions[i - BUILTIN_FUNC_COUNT];
-            auto fullname = getFuncFullName(func);
-            display.drawString(1, y, fullname, selectorIndex == i);
-            delete fullname;
+            display.drawString(1, y, functions[i - BUILTIN_FUNC_COUNT].fullname, selectorIndex == i);
         }
         y += 10;
     }
@@ -1301,10 +1304,7 @@ void recallUserDefinedFunctionsDefinitionsMenuKeyPressHandler(neda::Cursor *curs
     else {
         int16_t y = 1;
         for(uint8_t i = scrollingIndex; i < scrollingIndex + 6 && i < functions.length(); i ++) {
-            eval::UserDefinedFunction func = functions[i];
-            auto fullname = getFuncFullName(func);
-            display.drawString(1, y, fullname, selectorIndex == i);
-            delete fullname;
+            display.drawString(1, y, functions[i].fullname, selectorIndex == i);
             y += 10;
         }
 

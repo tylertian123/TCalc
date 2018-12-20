@@ -59,7 +59,7 @@ namespace lcd {
 	extern const Img CHAR_7;
 	extern const Img CHAR_8;
 	extern const Img CHAR_9;
-	//extern const Img CHAR_CLN;
+	extern const Img CHAR_CLN;
 	//extern const Img CHAR_SMCN;
 	extern const Img CHAR_LSTN;
 	extern const Img CHAR_EQL;

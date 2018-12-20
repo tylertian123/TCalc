@@ -316,18 +316,18 @@ namespace lcd {
     //     0x80,
     // };
     // const Img CHAR_SLSH(CHAR_SLSH_DATA, 1, 5, 9);
-    // const uint8_t CHAR_CLN_DATA[] = {
-    //     0x00,
-    //     0x60,
-    //     0x60,
-    //     0x00,
-    //     0x00,
-    //     0x60,
-    //     0x60,
-    //     0x00,
-    //     0x00,
-    // };
-    // const Img CHAR_CLN(CHAR_CLN_DATA, 1, 5, 9);
+    const uint8_t CHAR_CLN_DATA[] = {
+        0x00,
+        0x60,
+        0x60,
+        0x00,
+        0x00,
+        0x60,
+        0x60,
+        0x00,
+        0x00,
+    };
+    const Img CHAR_CLN(CHAR_CLN_DATA, 1, 5, 9);
     // const uint8_t CHAR_SMCN_DATA[] = {
     //     0x00,
     //     0x60,
