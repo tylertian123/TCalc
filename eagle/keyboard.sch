@@ -9558,13 +9558,13 @@ CONN_05x2
 <part name="S59" library="switch-omron" library_urn="urn:adsk.eagle:library:377" deviceset="10-XX" device="" package3d_urn="urn:adsk.eagle:package:27496/1"/>
 <part name="S60" library="switch-omron" library_urn="urn:adsk.eagle:library:377" deviceset="10-XX" device="" package3d_urn="urn:adsk.eagle:package:27496/1"/>
 <part name="U$1" library="TCalc" deviceset="STC12C5616AD-28PIN" device="" package3d_urn="urn:adsk.eagle:package:6673337/1"/>
-<part name="JOYSTICK" library="pinhead" library_urn="urn:adsk.eagle:library:325" deviceset="PINHD-1X5" device="5X2MM" package3d_urn="urn:adsk.eagle:package:22466/2"/>
+<part name="J3" library="pinhead" library_urn="urn:adsk.eagle:library:325" deviceset="PINHD-1X5" device="" package3d_urn="urn:adsk.eagle:package:22469/2"/>
 <part name="GND1" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
 <part name="Q1" library="special" library_urn="urn:adsk.eagle:library:367" deviceset="XTAL/S" device="" package3d_urn="urn:adsk.eagle:package:26647/2" value="12MHz"/>
 <part name="C1" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="C-EU" device="025-025X050" package3d_urn="urn:adsk.eagle:package:23629/2" value="30pF"/>
 <part name="C2" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="C-EU" device="025-025X050" package3d_urn="urn:adsk.eagle:package:23629/2" value="30pF"/>
 <part name="P+1" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="VCC" device=""/>
-<part name="PROG1" library="pinhead" library_urn="urn:adsk.eagle:library:325" deviceset="PINHD-1X4" device="" package3d_urn="urn:adsk.eagle:package:22407/2"/>
+<part name="J2" library="pinhead" library_urn="urn:adsk.eagle:library:325" deviceset="PINHD-1X4" device="" package3d_urn="urn:adsk.eagle:package:22407/2"/>
 <part name="P+2" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="VCC" device=""/>
 <part name="R1" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-US_" device="0204/7" package3d_urn="urn:adsk.eagle:package:23498/1" value="1K"/>
 <part name="R2" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-US_" device="0204/7" package3d_urn="urn:adsk.eagle:package:23498/1" value="1K"/>
@@ -9575,6 +9575,9 @@ CONN_05x2
 <sheets>
 <sheet>
 <plain>
+<text x="22.86" y="76.2" size="1.778" layer="91">Keyboard Programming Header</text>
+<text x="170.18" y="86.36" size="1.778" layer="91">Joystick Connection</text>
+<text x="215.9" y="43.18" size="1.778" layer="91">Connection to Main Module</text>
 </plain>
 <instances>
 <instance part="FRAME1" gate="G$1" x="-40.64" y="-15.24" smashed="yes">
@@ -9823,7 +9826,7 @@ CONN_05x2
 <attribute name="VALUE" x="234.315" y="135.89" size="1.778" layer="96"/>
 </instance>
 <instance part="U$1" gate="G$1" x="109.22" y="58.42" smashed="yes"/>
-<instance part="JOYSTICK" gate="A" x="182.88" y="73.66" smashed="yes">
+<instance part="J3" gate="A" x="182.88" y="73.66" smashed="yes">
 <attribute name="NAME" x="176.53" y="81.915" size="1.778" layer="95"/>
 <attribute name="VALUE" x="176.53" y="63.5" size="1.778" layer="96"/>
 </instance>
@@ -9845,7 +9848,7 @@ CONN_05x2
 <instance part="P+1" gate="VCC" x="147.32" y="88.9" smashed="yes">
 <attribute name="VALUE" x="144.78" y="86.36" size="1.778" layer="96" rot="R90"/>
 </instance>
-<instance part="PROG1" gate="A" x="38.1" y="68.58" smashed="yes" rot="R180">
+<instance part="J2" gate="A" x="38.1" y="68.58" smashed="yes" rot="R180">
 <attribute name="NAME" x="44.45" y="60.325" size="1.778" layer="95" rot="R180"/>
 <attribute name="VALUE" x="44.45" y="76.2" size="1.778" layer="96" rot="R180"/>
 </instance>
@@ -10389,14 +10392,14 @@ CONN_05x2
 <wire x1="66.04" y1="33.02" x2="66.04" y2="25.4" width="0.1524" layer="91"/>
 <wire x1="66.04" y1="25.4" x2="93.98" y2="25.4" width="0.1524" layer="91"/>
 <junction x="66.04" y="33.02"/>
-<pinref part="PROG1" gate="A" pin="2"/>
+<pinref part="J2" gate="A" pin="2"/>
 <wire x1="40.64" y1="66.04" x2="55.88" y2="66.04" width="0.1524" layer="91"/>
 <wire x1="55.88" y1="66.04" x2="55.88" y2="25.4" width="0.1524" layer="91"/>
 <wire x1="55.88" y1="25.4" x2="66.04" y2="25.4" width="0.1524" layer="91"/>
 <junction x="66.04" y="25.4"/>
 <label x="45.72" y="66.04" size="1.778" layer="95"/>
 <wire x1="160.02" y1="76.2" x2="165.1" y2="76.2" width="0.1524" layer="91"/>
-<pinref part="JOYSTICK" gate="A" pin="1"/>
+<pinref part="J3" gate="A" pin="1"/>
 <wire x1="165.1" y1="76.2" x2="167.64" y2="78.74" width="0.1524" layer="91"/>
 <wire x1="167.64" y1="78.74" x2="180.34" y2="78.74" width="0.1524" layer="91"/>
 <label x="170.18" y="78.74" size="1.778" layer="95"/>
@@ -10415,7 +10418,7 @@ CONN_05x2
 </net>
 <net name="XAXIS" class="0">
 <segment>
-<pinref part="JOYSTICK" gate="A" pin="3"/>
+<pinref part="J3" gate="A" pin="3"/>
 <wire x1="180.34" y1="73.66" x2="162.56" y2="73.66" width="0.1524" layer="91"/>
 <label x="170.18" y="73.66" size="1.778" layer="95"/>
 <wire x1="162.56" y1="73.66" x2="162.56" y2="55.88" width="0.1524" layer="91"/>
@@ -10426,7 +10429,7 @@ CONN_05x2
 </net>
 <net name="YAXIS" class="0">
 <segment>
-<pinref part="JOYSTICK" gate="A" pin="4"/>
+<pinref part="J3" gate="A" pin="4"/>
 <wire x1="180.34" y1="71.12" x2="165.1" y2="71.12" width="0.1524" layer="91"/>
 <label x="170.18" y="71.12" size="1.778" layer="95"/>
 <pinref part="U$1" gate="G$1" pin="P1.2"/>
@@ -10437,7 +10440,7 @@ CONN_05x2
 </net>
 <net name="BTN" class="0">
 <segment>
-<pinref part="JOYSTICK" gate="A" pin="5"/>
+<pinref part="J3" gate="A" pin="5"/>
 <wire x1="180.34" y1="68.58" x2="167.64" y2="68.58" width="0.1524" layer="91"/>
 <wire x1="167.64" y1="68.58" x2="167.64" y2="53.34" width="0.1524" layer="91"/>
 <label x="170.18" y="68.58" size="1.778" layer="95"/>
@@ -10616,7 +10619,7 @@ CONN_05x2
 <wire x1="147.32" y1="78.74" x2="142.24" y2="78.74" width="0.1524" layer="91"/>
 <wire x1="142.24" y1="78.74" x2="124.46" y2="78.74" width="0.1524" layer="91"/>
 <wire x1="147.32" y1="86.36" x2="147.32" y2="83.82" width="0.1524" layer="91"/>
-<pinref part="PROG1" gate="A" pin="1"/>
+<pinref part="J2" gate="A" pin="1"/>
 <wire x1="147.32" y1="83.82" x2="147.32" y2="78.74" width="0.1524" layer="91"/>
 <wire x1="40.64" y1="63.5" x2="58.42" y2="63.5" width="0.1524" layer="91"/>
 <wire x1="58.42" y1="63.5" x2="58.42" y2="83.82" width="0.1524" layer="91"/>
@@ -10625,7 +10628,7 @@ CONN_05x2
 <label x="45.72" y="63.5" size="1.778" layer="95"/>
 <wire x1="147.32" y1="78.74" x2="165.1" y2="78.74" width="0.1524" layer="91"/>
 <junction x="147.32" y="78.74"/>
-<pinref part="JOYSTICK" gate="A" pin="2"/>
+<pinref part="J3" gate="A" pin="2"/>
 <wire x1="165.1" y1="78.74" x2="167.64" y2="76.2" width="0.1524" layer="91"/>
 <wire x1="167.64" y1="76.2" x2="180.34" y2="76.2" width="0.1524" layer="91"/>
 <label x="170.18" y="76.2" size="1.778" layer="95"/>
@@ -10661,7 +10664,7 @@ CONN_05x2
 <pinref part="U$1" gate="G$1" pin="RXD/P3.0"/>
 <wire x1="63.5" y1="71.12" x2="93.98" y2="71.12" width="0.1524" layer="91"/>
 <label x="81.28" y="71.12" size="1.778" layer="95"/>
-<pinref part="PROG1" gate="A" pin="3"/>
+<pinref part="J2" gate="A" pin="3"/>
 <wire x1="40.64" y1="68.58" x2="60.96" y2="68.58" width="0.1524" layer="91"/>
 <wire x1="60.96" y1="68.58" x2="63.5" y2="71.12" width="0.1524" layer="91"/>
 <label x="45.72" y="68.58" size="1.778" layer="95"/>
@@ -10677,7 +10680,7 @@ CONN_05x2
 <pinref part="U$1" gate="G$1" pin="TXD/P3.1"/>
 <wire x1="63.5" y1="68.58" x2="93.98" y2="68.58" width="0.1524" layer="91"/>
 <label x="81.28" y="68.58" size="1.778" layer="95"/>
-<pinref part="PROG1" gate="A" pin="4"/>
+<pinref part="J2" gate="A" pin="4"/>
 <wire x1="40.64" y1="71.12" x2="60.96" y2="71.12" width="0.1524" layer="91"/>
 <wire x1="60.96" y1="71.12" x2="63.5" y2="68.58" width="0.1524" layer="91"/>
 <label x="45.72" y="71.12" size="1.778" layer="95"/>
