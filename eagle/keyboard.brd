@@ -3,7 +3,7 @@
 <eagle version="9.2.2">
 <drawing>
 <settings>
-<setting alwaysvectorfont="no"/>
+<setting alwaysvectorfont="yes"/>
 <setting verticaltext="up"/>
 </settings>
 <grid distance="0.5" unitdist="mm" unit="mm" style="lines" multiple="1" display="yes" altdistance="5" altunitdist="mil" altunit="mil"/>
@@ -2497,9 +2497,8 @@ design rules under a new name.</description>
 <attribute name="NAME" x="76.839" y="78" size="1.27" layer="25" rot="R90" align="bottom-center"/>
 <attribute name="VALUE" x="113.161" y="78" size="1.27" layer="27" rot="R90" align="top-center"/>
 </element>
-<element name="J4" library="pinhead" library_urn="urn:adsk.eagle:library:325" package="1X07" package3d_urn="urn:adsk.eagle:package:22477/2" value="" x="155" y="77" smashed="yes" rot="R270">
-<attribute name="NAME" x="156.8288" y="85.9662" size="1.27" layer="25" ratio="10" rot="R270"/>
-<attribute name="VALUE" x="151.825" y="85.89" size="1.27" layer="27" rot="R270"/>
+<element name="J4" library="pinhead" library_urn="urn:adsk.eagle:library:325" package="1X07" package3d_urn="urn:adsk.eagle:package:22477/2" value="RESERVED" x="155" y="77" smashed="yes" rot="R270">
+<attribute name="VALUE" x="156.825" y="85.39" size="1.27" layer="27" rot="R270"/>
 </element>
 </elements>
 <signals>

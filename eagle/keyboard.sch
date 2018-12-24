@@ -9764,7 +9764,7 @@ CONN_05x2
 <part name="R3" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-US_" device="0204/7" package3d_urn="urn:adsk.eagle:package:23498/1" value="1K"/>
 <part name="J1" library="SparkFun-Connectors" library_urn="urn:adsk.eagle:library:513" deviceset="CONN_05X2" device="SHD_LOCK" package3d_urn="urn:adsk.eagle:package:38007/1"/>
 <part name="C3" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="C-EU" device="025-030X050" package3d_urn="urn:adsk.eagle:package:23631/1" value="0.1uF"/>
-<part name="J4" library="pinhead" library_urn="urn:adsk.eagle:library:325" deviceset="PINHD-1X7" device="" package3d_urn="urn:adsk.eagle:package:22477/2"/>
+<part name="J4" library="pinhead" library_urn="urn:adsk.eagle:library:325" deviceset="PINHD-1X7" device="" package3d_urn="urn:adsk.eagle:package:22477/2" value="RESERVED"/>
 </parts>
 <sheets>
 <sheet>
