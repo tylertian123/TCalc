@@ -17894,6 +17894,52 @@ Holes are 0.05".
 <text x="-4.445" y="10.287" size="0.6096" layer="25" font="vector" ratio="20">&gt;NAME</text>
 <text x="-4.445" y="-10.922" size="0.6096" layer="27" font="vector" ratio="20">&gt;VALUE</text>
 </package>
+<package name="USB-AB-MICRO-SMD" urn="urn:adsk.eagle:footprint:37926/1" library_version="1">
+<description>&lt;h3&gt;USB Type AB - SMT&lt;/h3&gt;
+&lt;br&gt; Basic silk outline&lt;/br&gt;
+&lt;p&gt;Specifications:
+&lt;ul&gt;&lt;li&gt;Pin count:5 main, 3 shield&lt;/li&gt;
+&lt;/ul&gt;&lt;/p&gt;
+&lt;p&gt;&lt;b&gt;Datasheet referenced for footprint: http://www.morethanall.com//upload/products_pdf/87340574052ba5151280ca.pdf&lt;/b&gt;&lt;/p&gt;
+&lt;p&gt;Example device(s):
+&lt;ul&gt;&lt;li&gt;USB AB&lt;/li&gt;
+&lt;/ul&gt;&lt;/p&gt;</description>
+<text x="-4.66" y="5.96" size="0.3048" layer="51">PCB Front</text>
+<text x="-1.27" y="4.699" size="0.6096" layer="25" font="vector" ratio="20">&gt;NAME</text>
+<text x="-1.27" y="-4.699" size="0.6096" layer="27" font="vector" ratio="20" align="top-left">&gt;VALUE</text>
+<text x="-1.27" y="5.969" size="0.4064" layer="25">&gt;NAME</text>
+<text x="-1.27" y="5.461" size="0.4064" layer="27">&gt;VALUE</text>
+<wire x1="-3" y1="5.6" x2="-2.3" y2="5.3" width="0.08" layer="51"/>
+<wire x1="-2.3" y1="5.3" x2="-2.4" y2="5.5" width="0.08" layer="51"/>
+<wire x1="-2.3" y1="5.3" x2="-2.5" y2="5.2" width="0.08" layer="51"/>
+<wire x1="-2.15" y1="3.9" x2="-2.15" y2="-3.9" width="0.127" layer="49"/>
+<wire x1="2.85" y1="3.9" x2="2.85" y2="-3.9" width="0.127" layer="49"/>
+<wire x1="2.85" y1="3.9" x2="-2.15" y2="3.9" width="0.127" layer="49"/>
+<wire x1="2.85" y1="-3.9" x2="-2.15" y2="-3.9" width="0.127" layer="49"/>
+<wire x1="2.981959375" y1="3.99288125" x2="2" y2="3.99288125" width="0.3048" layer="21"/>
+<wire x1="2" y1="3.99288125" x2="2" y2="4" width="0.3048" layer="21"/>
+<wire x1="3" y1="4" x2="3" y2="3" width="0.3048" layer="21"/>
+<wire x1="2" y1="-4" x2="3" y2="-4" width="0.3048" layer="21"/>
+<wire x1="3" y1="-4" x2="3" y2="-3" width="0.3048" layer="21"/>
+<wire x1="-1" y1="4" x2="-2" y2="4" width="0.3048" layer="21"/>
+<wire x1="-1" y1="-4" x2="-2" y2="-4" width="0.3048" layer="21"/>
+<smd name="D+1" x="2.7" y="0" dx="0.4" dy="1.4" layer="1" rot="R90"/>
+<smd name="D-1" x="2.7" y="0.65" dx="0.4" dy="1.4" layer="1" rot="R90"/>
+<smd name="VBUS1" x="2.7" y="1.3" dx="0.4" dy="1.4" layer="1" rot="R90"/>
+<smd name="ID1" x="2.7" y="-0.65" dx="0.4" dy="1.4" layer="1" rot="R90"/>
+<smd name="GND1" x="2.7" y="-1.3" dx="0.4" dy="1.4" layer="1" rot="R90"/>
+<smd name="SHLD2" x="0" y="3.68" dx="1.5" dy="1.8" layer="1"/>
+<smd name="SHLD1" x="0" y="-3.68" dx="1.5" dy="1.8" layer="1"/>
+<smd name="SHLD3" x="0" y="0" dx="1.5" dy="2.5" layer="1"/>
+<hole x="2.2" y="1.9" drill="0.85"/>
+<hole x="2.2" y="-1.9" drill="0.85"/>
+<rectangle x1="-0.75" y1="2.784" x2="0.75" y2="4.584" layer="31"/>
+<rectangle x1="-0.35" y1="-0.75" x2="0.35" y2="0.75" layer="31"/>
+<rectangle x1="-0.75" y1="-4.584" x2="0.75" y2="-2.784" layer="31"/>
+<rectangle x1="-0.85" y1="2.684" x2="0.85" y2="4.684" layer="29"/>
+<rectangle x1="-0.85" y1="-4.684" x2="0.85" y2="-2.684" layer="29"/>
+<rectangle x1="-0.85" y1="-1.35" x2="0.85" y2="1.35" layer="29"/>
+</package>
 </packages>
 <packages3d>
 <package3d name="2X5" urn="urn:adsk.eagle:package:38012/1" type="box" library_version="1">
@@ -18021,6 +18067,20 @@ CONN_05x2
 <packageinstance name="2X5-SHROUDED-NS"/>
 </packageinstances>
 </package3d>
+<package3d name="USB-AB-MICRO-SMD" urn="urn:adsk.eagle:package:38266/1" type="box" library_version="1">
+<description>USB Type AB - SMT
+ Basic silk outline
+Specifications:
+Pin count:5 main, 3 shield
+
+Datasheet referenced for footprint: http://www.morethanall.com//upload/products_pdf/87340574052ba5151280ca.pdf
+Example device(s):
+USB AB
+</description>
+<packageinstances>
+<packageinstance name="USB-AB-MICRO-SMD"/>
+</packageinstances>
+</package3d>
 </packages3d>
 <symbols>
 <symbol name="CONN_05X2" urn="urn:adsk.eagle:symbol:37732/1" library_version="1">
@@ -18052,6 +18112,24 @@ CONN_05x2
 <pin name="5" x="-7.62" y="0" visible="pad" length="middle" direction="pas" swaplevel="1"/>
 <pin name="3" x="-7.62" y="2.54" visible="pad" length="middle" direction="pas" swaplevel="1"/>
 <pin name="1" x="-7.62" y="5.08" visible="pad" length="middle" direction="pas" swaplevel="1"/>
+</symbol>
+<symbol name="USB_AB" urn="urn:adsk.eagle:symbol:37925/1" library_version="1">
+<description>&lt;h3&gt;USB Type AB&lt;/h3&gt;
+&lt;p&gt;Capable of OTG. 
+&lt;br&gt;5-pins: USBVCC, GND, D+, D-, USBID&lt;/p&gt;</description>
+<wire x1="2.54" y1="6.35" x2="-2.54" y2="6.35" width="0.254" layer="94"/>
+<wire x1="-2.54" y1="6.35" x2="-2.54" y2="-6.35" width="0.254" layer="94"/>
+<wire x1="-2.54" y1="-6.35" x2="2.54" y2="-6.35" width="0.254" layer="94"/>
+<wire x1="2.54" y1="6.35" x2="2.54" y2="-6.35" width="0.254" layer="94"/>
+<text x="1.27" y="-5.334" size="1.9304" layer="94" rot="R90">USB AB</text>
+<text x="-2.54" y="6.604" size="1.778" layer="95" font="vector">&gt;NAME</text>
+<text x="-2.54" y="-6.604" size="1.778" layer="96" font="vector" align="top-left">&gt;VALUE</text>
+<pin name="D+" x="-5.08" y="0" visible="pad" length="short"/>
+<pin name="D-" x="-5.08" y="-2.54" visible="pad" length="short"/>
+<pin name="VBUS" x="-5.08" y="-5.08" visible="pad" length="short" direction="pwr"/>
+<pin name="GND" x="-5.08" y="5.08" visible="pad" length="short" direction="pwr"/>
+<pin name="USBID" x="-5.08" y="2.54" visible="pad" length="short"/>
+<pin name="SHIELD" x="5.08" y="0" visible="pad" length="short" rot="R180"/>
 </symbol>
 </symbols>
 <devicesets>
@@ -18278,6 +18356,37 @@ CONN_05x2
 <technology name="">
 <attribute name="PROD_ID" value="CONN-08671" constant="no"/>
 <attribute name="SF_ID" value="PRT-08506" constant="no"/>
+</technology>
+</technologies>
+</device>
+</devices>
+</deviceset>
+<deviceset name="USB_AB" urn="urn:adsk.eagle:component:38370/1" prefix="J" uservalue="yes" library_version="1">
+<description>&lt;h3&gt;USB Type AB Micro Connector&lt;/h3&gt;
+&lt;p&gt;OTG-compatible. 5 pins, 3 shield pins&lt;/p&gt;
+&lt;p&gt;SparkFun Products:
+&lt;ul&gt;&lt;li&gt;&lt;a href=”https://www.sparkfun.com/products/13613”&gt;IOIO-OTG&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=”https://www.sparkfun.com/products/13664”&gt;SparkFun SAMD21 Mini Breakout&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;/p&gt;</description>
+<gates>
+<gate name="G$1" symbol="USB_AB" x="0" y="0"/>
+</gates>
+<devices>
+<device name="_SMT" package="USB-AB-MICRO-SMD">
+<connects>
+<connect gate="G$1" pin="D+" pad="D+1"/>
+<connect gate="G$1" pin="D-" pad="D-1"/>
+<connect gate="G$1" pin="GND" pad="GND1"/>
+<connect gate="G$1" pin="SHIELD" pad="SHLD1 SHLD2 SHLD3"/>
+<connect gate="G$1" pin="USBID" pad="ID1"/>
+<connect gate="G$1" pin="VBUS" pad="VBUS1"/>
+</connects>
+<package3dinstances>
+<package3dinstance package3d_urn="urn:adsk.eagle:package:38266/1"/>
+</package3dinstances>
+<technologies>
+<technology name="">
+<attribute name="PROD_ID" value="CONN-11794"/>
 </technology>
 </technologies>
 </device>
@@ -20408,75 +20517,6 @@ Marquardt, RAFI, ITT, and others&lt;p&gt;
 </deviceset>
 </devicesets>
 </library>
-<library name="MicroUSB">
-<packages>
-<package name="USB-MICRO-SMD">
-<wire x1="-2.15" y1="3.9" x2="-2.15" y2="-3.9" width="0.127" layer="49"/>
-<wire x1="2.85" y1="3.9" x2="2.85" y2="-3.9" width="0.127" layer="49"/>
-<wire x1="2.85" y1="3.9" x2="-2.15" y2="3.9" width="0.127" layer="49"/>
-<wire x1="2.85" y1="-3.9" x2="-2.15" y2="-3.9" width="0.127" layer="49"/>
-<wire x1="2.981959375" y1="3.99288125" x2="2" y2="3.99288125" width="0.3048" layer="21"/>
-<wire x1="2" y1="3.99288125" x2="2" y2="4" width="0.3048" layer="21"/>
-<wire x1="3" y1="4" x2="3" y2="3" width="0.3048" layer="21"/>
-<wire x1="2" y1="-4" x2="3" y2="-4" width="0.3048" layer="21"/>
-<wire x1="3" y1="-4" x2="3" y2="-3" width="0.3048" layer="21"/>
-<wire x1="-1" y1="4" x2="-2" y2="4" width="0.3048" layer="21"/>
-<wire x1="-1" y1="-4" x2="-2" y2="-4" width="0.3048" layer="21"/>
-<wire x1="1.89991875" y1="1.6002" x2="2.499359375" y2="1.6002" width="0" layer="21"/>
-<rectangle x1="-0.75" y1="2.784" x2="0.75" y2="4.584" layer="1"/>
-<rectangle x1="-0.75" y1="-4.584" x2="0.75" y2="-2.784" layer="1"/>
-<rectangle x1="-0.75" y1="2.784" x2="0.75" y2="4.584" layer="31"/>
-<rectangle x1="-0.75" y1="-4.584" x2="0.75" y2="-2.784" layer="31"/>
-<rectangle x1="-0.85" y1="2.684" x2="0.85" y2="4.684" layer="29"/>
-<rectangle x1="-0.85" y1="-4.684" x2="0.85" y2="-2.684" layer="29"/>
-<smd name="D+1" x="2.7" y="0" dx="0.4" dy="1.4" layer="1" rot="R90"/>
-<smd name="D-1" x="2.7" y="0.65" dx="0.4" dy="1.4" layer="1" rot="R90"/>
-<smd name="GND1" x="2.7" y="-1.3" dx="0.4" dy="1.4" layer="1" rot="R90"/>
-<smd name="ID1" x="2.7" y="-0.65" dx="0.4" dy="1.4" layer="1" rot="R90"/>
-<smd name="VBUS1" x="2.7" y="1.3" dx="0.4" dy="1.4" layer="1" rot="R90"/>
-<text x="-1.27" y="5.969" size="0.4064" layer="25">&gt;NAME</text>
-<text x="-1.27" y="5.461" size="0.4064" layer="27">&gt;VALUE</text>
-<hole x="2.2" y="1.9" drill="0.85"/>
-<hole x="2.2" y="-1.9" drill="0.85"/>
-</package>
-</packages>
-<symbols>
-<symbol name="USB_AB">
-<description>USB AB, 5-pins: USBVCC, GND, D+, D-, USBID.</description>
-<wire x1="2.54" y1="6.35" x2="-2.54" y2="6.35" width="0.254" layer="94"/>
-<wire x1="-2.54" y1="6.35" x2="-2.54" y2="-6.35" width="0.254" layer="94"/>
-<wire x1="-2.54" y1="-6.35" x2="2.54" y2="-6.35" width="0.254" layer="94"/>
-<pin name="D+" x="-5.08" y="0" visible="pad" length="short"/>
-<pin name="D-" x="-5.08" y="-2.54" visible="pad" length="short"/>
-<pin name="GND" x="-5.08" y="5.08" visible="pad" length="short"/>
-<pin name="USBID" x="-5.08" y="2.54" visible="pad" length="short"/>
-<pin name="VBUS" x="-5.08" y="-5.08" visible="pad" length="short"/>
-<text x="1.27" y="-6.096" size="2.54" layer="94" rot="R90">USBAB</text>
-</symbol>
-</symbols>
-<devicesets>
-<deviceset name="USB" prefix="U" uservalue="yes">
-<description>This is a USB AB connector that is compatible with USB OTG. i.e. this connector can serve as a host or device</description>
-<gates>
-<gate name="G$1" symbol="USB_AB" x="0" y="0"/>
-</gates>
-<devices>
-<device name="&quot;&quot;" package="USB-MICRO-SMD">
-<connects>
-<connect gate="G$1" pin="D+" pad="D+1"/>
-<connect gate="G$1" pin="D-" pad="D-1"/>
-<connect gate="G$1" pin="GND" pad="GND1"/>
-<connect gate="G$1" pin="USBID" pad="ID1"/>
-<connect gate="G$1" pin="VBUS" pad="VBUS1"/>
-</connects>
-<technologies>
-<technology name=""/>
-</technologies>
-</device>
-</devices>
-</deviceset>
-</devicesets>
-</library>
 </libraries>
 <attributes>
 </attributes>
@@ -20488,9 +20528,9 @@ Marquardt, RAFI, ITT, and others&lt;p&gt;
 </classes>
 <parts>
 <part name="FRAME1" library="frames" library_urn="urn:adsk.eagle:library:229" deviceset="A3L-LOC" device=""/>
-<part name="IC1" library="micro-stm_v3" deviceset="STM32F103R*T" device="" technology="C"/>
+<part name="IC1" library="micro-stm_v3" deviceset="STM32F103R*T" device="" technology="C" value="STM32F103"/>
 <part name="C1" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="CPOL-US" device="E2-5" package3d_urn="urn:adsk.eagle:package:23346/2" value="33uF"/>
-<part name="IC2" library="lm1117" deviceset="LM1117IMPX-ADJ" device=""/>
+<part name="IC2" library="lm1117" deviceset="LM1117IMPX-ADJ" device="" value="LM1117"/>
 <part name="P+5" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="VCC" device=""/>
 <part name="C2" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="C-EU" device="025-025X050" package3d_urn="urn:adsk.eagle:package:23629/2" value="0.1uF"/>
 <part name="GND5" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
@@ -20529,7 +20569,7 @@ Marquardt, RAFI, ITT, and others&lt;p&gt;
 <part name="R7" library="rcl" library_urn="urn:adsk.eagle:library:334" deviceset="R-US_" device="0204/7" package3d_urn="urn:adsk.eagle:package:23498/1" value="1K"/>
 <part name="LED5" library="led" library_urn="urn:adsk.eagle:library:259" deviceset="LED" device="5MM" package3d_urn="urn:adsk.eagle:package:15799/2" value="GREEN"/>
 <part name="S1" library="switch-misc" library_urn="urn:adsk.eagle:library:376" deviceset="PVA2R" device="" package3d_urn="urn:adsk.eagle:package:27428/1"/>
-<part name="U1" library="MicroUSB" deviceset="USB" device="&quot;&quot;"/>
+<part name="U1" library="SparkFun-Connectors" library_urn="urn:adsk.eagle:library:513" deviceset="USB_AB" device="_SMT" package3d_urn="urn:adsk.eagle:package:38266/1"/>
 <part name="GND1" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
 <part name="P+1" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="VCC" device=""/>
 </parts>

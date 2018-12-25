@@ -2,3 +2,4 @@
 *.[bsh]##
 *.pro
 *.job
+/CAMOutputs/
