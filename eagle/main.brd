@@ -1342,19 +1342,10 @@ type 0204, grid 7.5 mm</description>
 <pad name="P$18" x="57.18" y="2.5" drill="1" diameter="1.6764" shape="long" rot="R270"/>
 <pad name="P$19" x="59.72" y="2.5" drill="1" diameter="1.6764" shape="long" rot="R270"/>
 <pad name="P$20" x="62.26" y="2.5" drill="1" diameter="1.6764" shape="long" rot="R270" first="yes"/>
-<wire x1="92.5" y1="8.2" x2="92.5" y2="61.9" width="0.127" layer="21"/>
-<wire x1="92.5" y1="61.9" x2="2.5" y2="61.9" width="0.127" layer="21"/>
-<wire x1="2.5" y1="61.9" x2="2.5" y2="8.2" width="0.127" layer="21"/>
-<wire x1="2.5" y1="8.2" x2="92.5" y2="8.2" width="0.127" layer="21"/>
-<wire x1="11.05" y1="15.65" x2="11.05" y2="54.45" width="0.127" layer="21"/>
-<wire x1="11.05" y1="54.45" x2="81.75" y2="54.45" width="0.127" layer="21"/>
-<wire x1="81.75" y1="54.45" x2="81.75" y2="15.65" width="0.127" layer="21"/>
-<wire x1="81.75" y1="15.65" x2="11.05" y2="15.65" width="0.127" layer="21"/>
 <pad name="P$21" x="2.5" y="2.5" drill="2.54" diameter="3.81"/>
 <pad name="P$22" x="90.5" y="2.5" drill="2.54" diameter="3.81"/>
 <pad name="P$23" x="90.5" y="67.5" drill="2.54" diameter="3.81"/>
 <pad name="P$24" x="2.5" y="67.5" drill="2.54" diameter="3.81"/>
-<text x="46" y="50" size="5.08" layer="25" ratio="6" align="center">TRULY GLCD 128x64</text>
 </package>
 </packages>
 </library>
@@ -2460,17 +2451,18 @@ design rules under a new name.</description>
 <wire x1="34.54" y1="5.96" x2="38.5" y2="2" width="0.4" layer="1"/>
 <wire x1="46.54" y1="7.985" x2="46.54" y2="5.96" width="0.4" layer="1"/>
 <wire x1="46.54" y1="5.96" x2="50.5" y2="2" width="0.4" layer="1"/>
-<wire x1="46.54" y1="7.985" x2="53.56" y2="15.005" width="0.1524" layer="1"/>
-<wire x1="53.56" y1="15.005" x2="53.56" y2="21.5" width="0.1524" layer="1"/>
+<wire x1="46.54" y1="7.985" x2="53.5275" y2="14.9725" width="0.1524" layer="1"/>
 <wire x1="53.56" y1="15.005" x2="58.64" y2="20.085" width="0.1524" layer="1"/>
-<wire x1="58.64" y1="20.085" x2="58.64" y2="21.5" width="0.1524" layer="1"/>
 <wire x1="19.3" y1="8.947" x2="19.3" y2="16.2" width="0.4" layer="1"/>
 <wire x1="19.3" y1="16.2" x2="18" y2="17.5" width="0.4" layer="1"/>
-<wire x1="18" y1="17.5" x2="18" y2="21.5" width="0.4" layer="1"/>
 <wire x1="60.19" y1="92" x2="60.19" y2="79.81" width="0.4" layer="1"/>
 <wire x1="60.19" y1="79.81" x2="75" y2="65" width="0.4" layer="1"/>
 <wire x1="75" y1="65" x2="75" y2="55.89" width="0.4" layer="1"/>
 <wire x1="75" y1="55.89" x2="74.9" y2="55.79" width="0.4" layer="1"/>
+<wire x1="18" y1="17.5" x2="18" y2="21.5" width="0.4" layer="1"/>
+<wire x1="58.64" y1="21.5" x2="58.64" y2="20.085" width="0.1524" layer="1"/>
+<wire x1="53.56" y1="21.5" x2="53.56" y2="15.005" width="0.1524" layer="1"/>
+<wire x1="53.56" y1="15.005" x2="53.5275" y2="14.9725" width="0.1524" layer="1"/>
 </signal>
 <signal name="SBDI_EN">
 <contactref element="J1" pad="3"/>
@@ -2708,8 +2700,8 @@ design rules under a new name.</description>
 <wire x1="52.290621875" y1="18.815621875" x2="52.290621875" y2="22.655021875" width="0.25" layer="1"/>
 <wire x1="52.290621875" y1="22.655021875" x2="53.1356" y2="23.5" width="0.25" layer="1"/>
 <wire x1="53.1356" y1="23.5" x2="62.26746875" y2="23.5" width="0.25" layer="1"/>
-<wire x1="62.26746875" y1="23.5" x2="63.72" y2="22.04746875" width="0.25" layer="1"/>
-<wire x1="63.72" y1="22.04746875" x2="63.72" y2="21.5" width="0.25" layer="1"/>
+<wire x1="63.72" y1="22.04746875" x2="62.26746875" y2="23.5" width="0.25" layer="1"/>
+<wire x1="63.72" y1="21.5" x2="63.72" y2="22.04746875" width="0.25" layer="1"/>
 </signal>
 <signal name="DB0">
 <contactref element="GLCD2" pad="P$7"/>
@@ -2718,10 +2710,10 @@ design rules under a new name.</description>
 <wire x1="38.608525" y1="56.9647625" x2="38.4647625" y2="56.9647625" width="0.1524" layer="1"/>
 <via x="38.4647625" y="56.9647625" extent="1-16" drill="0.35"/>
 <wire x1="39.25" y1="56.3232875" x2="38.608525" y2="56.9647625" width="0.1524" layer="1"/>
-<wire x1="33.24" y1="21.5" x2="33.24" y2="29.74" width="0.1524" layer="16"/>
 <wire x1="33.24" y1="29.74" x2="34.5" y2="31" width="0.1524" layer="16"/>
 <wire x1="34.5" y1="53" x2="38.4647625" y2="56.9647625" width="0.1524" layer="16"/>
 <wire x1="34.5" y1="31" x2="34.5" y2="53" width="0.1524" layer="16"/>
+<wire x1="33.24" y1="21.5" x2="33.24" y2="29.74" width="0.1524" layer="16"/>
 </signal>
 <signal name="DB1">
 <contactref element="GLCD2" pad="P$8"/>
@@ -2729,11 +2721,11 @@ design rules under a new name.</description>
 <wire x1="39.75" y1="55.75" x2="39.75" y2="56.9647625" width="0.1524" layer="1"/>
 <wire x1="39.75" y1="56.9647625" x2="39.35738125" y2="57.35738125" width="0.1524" layer="1"/>
 <via x="39.35738125" y="57.35738125" extent="1-16" drill="0.35"/>
-<wire x1="35.78" y1="21.5" x2="35.78" y2="30.72" width="0.1524" layer="16"/>
-<wire x1="35.78" y1="30.72" x2="35.5" y2="31" width="0.1524" layer="16"/>
 <wire x1="35.5" y1="31" x2="35.5" y2="52.5" width="0.1524" layer="16"/>
 <wire x1="35.5" y1="52.5" x2="39.35738125" y2="56.35738125" width="0.1524" layer="16"/>
 <wire x1="39.35738125" y1="56.35738125" x2="39.35738125" y2="57.35738125" width="0.1524" layer="16"/>
+<wire x1="35.78" y1="21.5" x2="35.78" y2="30.72" width="0.1524" layer="16"/>
+<wire x1="35.78" y1="30.72" x2="35.5" y2="31" width="0.1524" layer="16"/>
 </signal>
 <signal name="DB2">
 <contactref element="GLCD2" pad="P$9"/>
@@ -2741,11 +2733,11 @@ design rules under a new name.</description>
 <wire x1="40.25" y1="55.75" x2="40.25" y2="57.75" width="0.1524" layer="1"/>
 <wire x1="40.25" y1="57.75" x2="40" y2="58" width="0.1524" layer="1"/>
 <via x="40" y="58" extent="1-16" drill="0.35"/>
-<wire x1="38.32" y1="21.5" x2="38.32" y2="37.82" width="0.1524" layer="16"/>
 <wire x1="39" y1="55" x2="40" y2="56" width="0.1524" layer="16"/>
 <wire x1="40" y1="56" x2="40" y2="58" width="0.1524" layer="16"/>
 <wire x1="38.32" y1="37.82" x2="39" y2="38.5" width="0.1524" layer="16"/>
 <wire x1="39" y1="38.5" x2="39" y2="55" width="0.1524" layer="16"/>
+<wire x1="38.32" y1="21.5" x2="38.32" y2="37.82" width="0.1524" layer="16"/>
 </signal>
 <signal name="DB3">
 <contactref element="GLCD2" pad="P$10"/>
@@ -2753,11 +2745,12 @@ design rules under a new name.</description>
 <wire x1="40.75" y1="55.75" x2="40.75" y2="58.25" width="0.1524" layer="1"/>
 <wire x1="40.75" y1="58.25" x2="41" y2="58.5" width="0.1524" layer="1"/>
 <via x="41" y="58.5" extent="1-16" drill="0.35"/>
-<wire x1="40.86" y1="21.5" x2="40.86" y2="35.64" width="0.1524" layer="16"/>
-<wire x1="40.86" y1="35.64" x2="40" y2="36.5" width="0.1524" layer="16"/>
+<wire x1="40.75" y1="35.75" x2="40" y2="36.5" width="0.1524" layer="16"/>
 <wire x1="40" y1="36.5" x2="40" y2="54.5" width="0.1524" layer="16"/>
 <wire x1="41" y1="55.5" x2="41" y2="58.5" width="0.1524" layer="16"/>
 <wire x1="40" y1="54.5" x2="41" y2="55.5" width="0.1524" layer="16"/>
+<wire x1="40.86" y1="21.5" x2="40.86" y2="35.64" width="0.1524" layer="16"/>
+<wire x1="40.86" y1="35.64" x2="40.75" y2="35.75" width="0.1524" layer="16"/>
 </signal>
 <signal name="DB4">
 <contactref element="GLCD2" pad="P$11"/>
@@ -2766,26 +2759,25 @@ design rules under a new name.</description>
 <wire x1="41.25" y1="57.5" x2="42" y2="58.25" width="0.1524" layer="1"/>
 <wire x1="42" y1="58.25" x2="42" y2="58.5" width="0.1524" layer="1"/>
 <via x="42" y="58.5" extent="1-16" drill="0.35"/>
-<wire x1="43.4" y1="21.5" x2="43.4" y2="35.1" width="0.1524" layer="16"/>
 <wire x1="42" y1="55" x2="42" y2="58.5" width="0.1524" layer="16"/>
 <wire x1="43.4" y1="35.1" x2="41" y2="37.5" width="0.1524" layer="16"/>
 <wire x1="41" y1="37.5" x2="41" y2="54" width="0.1524" layer="16"/>
 <wire x1="41" y1="54" x2="42" y2="55" width="0.1524" layer="16"/>
+<wire x1="43.4" y1="21.5" x2="43.4" y2="35.1" width="0.1524" layer="16"/>
 </signal>
 <signal name="DB5">
 <contactref element="GLCD2" pad="P$12"/>
 <contactref element="IC1" pad="35"/>
 <wire x1="41.75" y1="55.75" x2="41.75" y2="57.25" width="0.1524" layer="1"/>
 <wire x1="41.75" y1="57.25" x2="43" y2="58.5" width="0.1524" layer="1"/>
-<wire x1="45.94" y1="21.5" x2="45.94" y2="35.56" width="0.1524" layer="16"/>
 <wire x1="45.94" y1="35.56" x2="44" y2="37.5" width="0.1524" layer="16"/>
 <wire x1="44" y1="37.5" x2="44" y2="42" width="0.1524" layer="16"/>
 <wire x1="44" y1="42" x2="42" y2="44" width="0.1524" layer="16"/>
-<wire x1="43" y1="54.5" x2="43" y2="57.5" width="0.1524" layer="16"/>
+<wire x1="43" y1="54.5" x2="43" y2="58.5" width="0.1524" layer="16"/>
 <wire x1="42" y1="44" x2="42" y2="53.5" width="0.1524" layer="16"/>
 <wire x1="42" y1="53.5" x2="43" y2="54.5" width="0.1524" layer="16"/>
 <via x="43" y="58.5" extent="1-16" drill="0.35"/>
-<wire x1="43" y1="58.5" x2="43" y2="57.5" width="0.1524" layer="16"/>
+<wire x1="45.94" y1="21.5" x2="45.94" y2="35.56" width="0.1524" layer="16"/>
 </signal>
 <signal name="DB6">
 <contactref element="GLCD2" pad="P$13"/>
@@ -2794,14 +2786,15 @@ design rules under a new name.</description>
 <wire x1="43" y1="57.5" x2="44.5" y2="57.5" width="0.1524" layer="1"/>
 <via x="44.5" y="57.5" extent="1-16" drill="0.35"/>
 <wire x1="42.25" y1="56.75" x2="43" y2="57.5" width="0.1524" layer="1"/>
-<wire x1="48.48" y1="21.5" x2="48.48" y2="34.02" width="0.1524" layer="16"/>
-<wire x1="48.48" y1="34.02" x2="47" y2="35.5" width="0.1524" layer="16"/>
+<wire x1="48.25" y1="34.25" x2="47" y2="35.5" width="0.1524" layer="16"/>
 <wire x1="47" y1="35.5" x2="47" y2="41" width="0.1524" layer="16"/>
 <wire x1="47" y1="41" x2="43" y2="45" width="0.1524" layer="16"/>
 <wire x1="43" y1="45" x2="43" y2="53" width="0.1524" layer="16"/>
 <wire x1="44" y1="54" x2="44" y2="57" width="0.1524" layer="16"/>
 <wire x1="44" y1="57" x2="44.5" y2="57.5" width="0.1524" layer="16"/>
 <wire x1="43" y1="53" x2="44" y2="54" width="0.1524" layer="16"/>
+<wire x1="48.48" y1="21.5" x2="48.48" y2="34.02" width="0.1524" layer="16"/>
+<wire x1="48.48" y1="34.02" x2="48.25" y2="34.25" width="0.1524" layer="16"/>
 </signal>
 <signal name="DB7">
 <contactref element="GLCD2" pad="P$14"/>
@@ -2809,25 +2802,27 @@ design rules under a new name.</description>
 <wire x1="42.75" y1="55.75" x2="43.5" y2="56.5" width="0.1524" layer="1"/>
 <wire x1="43.5" y1="56.5" x2="45.5" y2="56.5" width="0.1524" layer="1"/>
 <via x="45.5" y="56.5" extent="1-16" drill="0.35"/>
-<wire x1="51.02" y1="21.5" x2="51.02" y2="32.98" width="0.1524" layer="16"/>
 <wire x1="44" y1="46.5" x2="44" y2="52.5" width="0.1524" layer="16"/>
 <wire x1="44" y1="52.5" x2="45" y2="53.5" width="0.1524" layer="16"/>
 <wire x1="45" y1="53.5" x2="45" y2="56" width="0.1524" layer="16"/>
 <wire x1="45" y1="56" x2="45.5" y2="56.5" width="0.1524" layer="16"/>
-<wire x1="51.02" y1="32.98" x2="48" y2="36" width="0.1524" layer="16"/>
+<wire x1="51" y1="33" x2="48" y2="36" width="0.1524" layer="16"/>
 <wire x1="48" y1="36" x2="48" y2="42.5" width="0.1524" layer="16"/>
 <wire x1="48" y1="42.5" x2="44" y2="46.5" width="0.1524" layer="16"/>
+<wire x1="51.02" y1="21.5" x2="51.02" y2="32.98" width="0.1524" layer="16"/>
+<wire x1="51.02" y1="32.98" x2="51" y2="33" width="0.1524" layer="16"/>
 </signal>
 <signal name="EN">
 <contactref element="GLCD2" pad="P$6"/>
 <contactref element="IC1" pad="53"/>
-<wire x1="30.7" y1="21.5" x2="30.7" y2="39.8" width="0.1524" layer="16"/>
-<wire x1="30.7" y1="39.8" x2="26.5" y2="44" width="0.1524" layer="16"/>
+<wire x1="30.5" y1="40" x2="26.5" y2="44" width="0.1524" layer="16"/>
 <wire x1="26.5" y1="44" x2="26.5" y2="47" width="0.1524" layer="16"/>
 <wire x1="26.5" y1="47" x2="30" y2="50.5" width="0.1524" layer="16"/>
 <wire x1="33.25" y1="51.75" x2="31.25" y2="51.75" width="0.1524" layer="1"/>
 <wire x1="31.25" y1="51.75" x2="30" y2="50.5" width="0.1524" layer="1"/>
 <via x="30" y="50.5" extent="1-16" drill="0.35"/>
+<wire x1="30.7" y1="21.5" x2="30.7" y2="39.8" width="0.1524" layer="16"/>
+<wire x1="30.7" y1="39.8" x2="30.5" y2="40" width="0.1524" layer="16"/>
 </signal>
 <signal name="RW">
 <contactref element="GLCD2" pad="P$5"/>
@@ -2837,8 +2832,8 @@ design rules under a new name.</description>
 <via x="29.5" y="51.5" extent="1-16" drill="0.35"/>
 <wire x1="29.5" y1="51.5" x2="25.5" y2="47.5" width="0.1524" layer="16"/>
 <wire x1="25.5" y1="47.5" x2="25.5" y2="43" width="0.1524" layer="16"/>
-<wire x1="25.5" y1="43" x2="28.16" y2="40.34" width="0.1524" layer="16"/>
-<wire x1="28.16" y1="40.34" x2="28.16" y2="21.5" width="0.1524" layer="16"/>
+<wire x1="28.16" y1="40.34" x2="25.5" y2="43" width="0.1524" layer="16"/>
+<wire x1="28.16" y1="21.5" x2="28.16" y2="40.34" width="0.1524" layer="16"/>
 </signal>
 <signal name="RS">
 <contactref element="GLCD2" pad="P$4"/>
@@ -2847,7 +2842,7 @@ design rules under a new name.</description>
 <wire x1="29.25" y1="52.75" x2="29" y2="52.5" width="0.1524" layer="1"/>
 <via x="29" y="52.5" extent="1-16" drill="0.35"/>
 <wire x1="29" y1="52.5" x2="24.5" y2="48" width="0.1524" layer="16"/>
-<wire x1="24.5" y1="41.5" x2="25.62" y2="40.38" width="0.1524" layer="16"/>
+<wire x1="25.62" y1="40.38" x2="24.5" y2="41.5" width="0.1524" layer="16"/>
 <wire x1="24.5" y1="48" x2="24.5" y2="41.5" width="0.1524" layer="16"/>
 <wire x1="25.62" y1="21.5" x2="25.62" y2="40.38" width="0.1524" layer="16"/>
 </signal>

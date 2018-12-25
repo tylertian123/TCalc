@@ -290,19 +290,10 @@ DIN A3, landscape with location and doc. field</description>
 <pad name="P$18" x="57.18" y="2.5" drill="1" diameter="1.6764" shape="long" rot="R270"/>
 <pad name="P$19" x="59.72" y="2.5" drill="1" diameter="1.6764" shape="long" rot="R270"/>
 <pad name="P$20" x="62.26" y="2.5" drill="1" diameter="1.6764" shape="long" rot="R270" first="yes"/>
-<wire x1="92.5" y1="8.2" x2="92.5" y2="61.9" width="0.127" layer="21"/>
-<wire x1="92.5" y1="61.9" x2="2.5" y2="61.9" width="0.127" layer="21"/>
-<wire x1="2.5" y1="61.9" x2="2.5" y2="8.2" width="0.127" layer="21"/>
-<wire x1="2.5" y1="8.2" x2="92.5" y2="8.2" width="0.127" layer="21"/>
-<wire x1="11.05" y1="15.65" x2="11.05" y2="54.45" width="0.127" layer="21"/>
-<wire x1="11.05" y1="54.45" x2="81.75" y2="54.45" width="0.127" layer="21"/>
-<wire x1="81.75" y1="54.45" x2="81.75" y2="15.65" width="0.127" layer="21"/>
-<wire x1="81.75" y1="15.65" x2="11.05" y2="15.65" width="0.127" layer="21"/>
 <pad name="P$21" x="2.5" y="2.5" drill="2.54" diameter="3.81"/>
 <pad name="P$22" x="90.5" y="2.5" drill="2.54" diameter="3.81"/>
 <pad name="P$23" x="90.5" y="67.5" drill="2.54" diameter="3.81"/>
 <pad name="P$24" x="2.5" y="67.5" drill="2.54" diameter="3.81"/>
-<text x="46" y="50" size="5.08" layer="25" ratio="6" align="center">TRULY GLCD 128x64</text>
 </package>
 </packages>
 <symbols>
