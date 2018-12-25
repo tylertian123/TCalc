@@ -20572,6 +20572,8 @@ Marquardt, RAFI, ITT, and others&lt;p&gt;
 <part name="U1" library="SparkFun-Connectors" library_urn="urn:adsk.eagle:library:513" deviceset="USB_AB" device="_SMT" package3d_urn="urn:adsk.eagle:package:38266/1"/>
 <part name="GND1" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="GND" device=""/>
 <part name="P+1" library="supply1" library_urn="urn:adsk.eagle:library:371" deviceset="VCC" device=""/>
+<part name="JP4" library="pinhead" library_urn="urn:adsk.eagle:library:325" deviceset="PINHD-1X3" device="" package3d_urn="urn:adsk.eagle:package:22458/2"/>
+<part name="JP5" library="pinhead" library_urn="urn:adsk.eagle:library:325" deviceset="PINHD-1X3" device="" package3d_urn="urn:adsk.eagle:package:22458/2"/>
 </parts>
 <sheets>
 <sheet>
@@ -20584,6 +20586,8 @@ Programming</text>
 <text x="30.48" y="-40.64" size="1.778" layer="91">Connection To Keyboard
 Module</text>
 <text x="-5.08" y="-73.66" size="1.778" layer="91">Indicator Lights</text>
+<text x="124.46" y="12.7" size="1.778" layer="91">LCD Support</text>
+<text x="124.46" y="-30.48" size="1.778" layer="91">LCD Support</text>
 </plain>
 <instances>
 <instance part="FRAME1" gate="G$1" x="-195.58" y="-132.08" smashed="yes">
@@ -20653,9 +20657,9 @@ Module</text>
 <attribute name="NAME" x="-78.74" y="-41.91" size="1.778" layer="95"/>
 <attribute name="VALUE" x="-73.025" y="-44.45" size="1.778" layer="96"/>
 </instance>
-<instance part="R2" gate="G$1" x="-93.98" y="-35.56" smashed="yes" rot="R90">
-<attribute name="NAME" x="-95.4786" y="-39.37" size="1.778" layer="95" rot="R90"/>
-<attribute name="VALUE" x="-90.678" y="-39.37" size="1.778" layer="96" rot="R90"/>
+<instance part="R2" gate="G$1" x="-88.9" y="-35.56" smashed="yes" rot="R90">
+<attribute name="NAME" x="-90.3986" y="-39.37" size="1.778" layer="95" rot="R90"/>
+<attribute name="VALUE" x="-85.598" y="-39.37" size="1.778" layer="96" rot="R90"/>
 </instance>
 <instance part="C10" gate="G$1" x="-66.04" y="-45.72" smashed="yes">
 <attribute name="NAME" x="-64.516" y="-45.339" size="1.778" layer="95"/>
@@ -20752,6 +20756,14 @@ Module</text>
 </instance>
 <instance part="P+1" gate="VCC" x="68.58" y="73.66" smashed="yes">
 <attribute name="VALUE" x="66.04" y="71.12" size="1.778" layer="96" rot="R90"/>
+</instance>
+<instance part="JP4" gate="A" x="129.54" y="2.54" smashed="yes">
+<attribute name="NAME" x="123.19" y="8.255" size="1.778" layer="95"/>
+<attribute name="VALUE" x="123.19" y="-5.08" size="1.778" layer="96"/>
+</instance>
+<instance part="JP5" gate="A" x="129.54" y="-40.64" smashed="yes">
+<attribute name="NAME" x="123.19" y="-34.925" size="1.778" layer="95"/>
+<attribute name="VALUE" x="123.19" y="-48.26" size="1.778" layer="96"/>
 </instance>
 </instances>
 <busses>
@@ -21046,17 +21058,7 @@ Module</text>
 <junction x="-45.72" y="66.04"/>
 <junction x="-45.72" y="63.5"/>
 <label x="-66.04" y="71.12" size="1.778" layer="95"/>
-<pinref part="R2" gate="G$1" pin="2"/>
-<pinref part="C9" gate="G$1" pin="1"/>
-<wire x1="-71.12" y1="-30.48" x2="-93.98" y2="-30.48" width="0.1524" layer="91"/>
-<junction x="-71.12" y="-30.48"/>
-<pinref part="IC1" gate="MCU" pin="VDDA"/>
-<wire x1="-60.96" y1="-33.02" x2="-63.5" y2="-33.02" width="0.1524" layer="91"/>
-<wire x1="-63.5" y1="-33.02" x2="-63.5" y2="-30.48" width="0.1524" layer="91"/>
-<wire x1="-63.5" y1="-30.48" x2="-71.12" y2="-30.48" width="0.1524" layer="91"/>
-<wire x1="-93.98" y1="-30.48" x2="-93.98" y2="48.26" width="0.1524" layer="91"/>
 <wire x1="-93.98" y1="48.26" x2="-45.72" y2="48.26" width="0.1524" layer="91"/>
-<junction x="-93.98" y="-30.48"/>
 <wire x1="-45.72" y1="48.26" x2="-45.72" y2="63.5" width="0.1524" layer="91"/>
 <pinref part="JP2" gate="A" pin="1"/>
 <wire x1="27.94" y1="-5.08" x2="15.24" y2="-5.08" width="0.1524" layer="91"/>
@@ -21065,14 +21067,29 @@ Module</text>
 <wire x1="15.24" y1="48.26" x2="-45.72" y2="48.26" width="0.1524" layer="91"/>
 <junction x="-45.72" y="48.26"/>
 <label x="-40.64" y="48.26" size="1.778" layer="95"/>
+<pinref part="R2" gate="G$1" pin="2"/>
+<pinref part="C9" gate="G$1" pin="1"/>
+<wire x1="-71.12" y1="-30.48" x2="-88.9" y2="-30.48" width="0.1524" layer="91"/>
+<junction x="-71.12" y="-30.48"/>
+<pinref part="IC1" gate="MCU" pin="VDDA"/>
+<wire x1="-60.96" y1="-33.02" x2="-63.5" y2="-33.02" width="0.1524" layer="91"/>
+<wire x1="-63.5" y1="-33.02" x2="-63.5" y2="-30.48" width="0.1524" layer="91"/>
+<wire x1="-63.5" y1="-30.48" x2="-71.12" y2="-30.48" width="0.1524" layer="91"/>
 <label x="-93.98" y="-17.78" size="1.778" layer="95"/>
+<wire x1="-93.98" y1="48.26" x2="-93.98" y2="-30.48" width="0.1524" layer="91"/>
+<wire x1="-93.98" y1="-30.48" x2="-88.9" y2="-30.48" width="0.1524" layer="91"/>
+<junction x="-88.9" y="-30.48"/>
+<pinref part="JP1" gate="A" pin="3"/>
+<wire x1="-50.8" y1="-63.5" x2="-93.98" y2="-63.5" width="0.1524" layer="91"/>
+<wire x1="-93.98" y1="-63.5" x2="-93.98" y2="-30.48" width="0.1524" layer="91"/>
+<junction x="-93.98" y="-30.48"/>
 </segment>
 </net>
 <net name="N$6" class="0">
 <segment>
 <pinref part="R2" gate="G$1" pin="1"/>
 <pinref part="IC1" gate="MCU" pin="NRST"/>
-<wire x1="-93.98" y1="-40.64" x2="-71.12" y2="-40.64" width="0.1524" layer="91"/>
+<wire x1="-88.9" y1="-40.64" x2="-71.12" y2="-40.64" width="0.1524" layer="91"/>
 <pinref part="RESET" gate="1" pin="S"/>
 <wire x1="-71.12" y1="-40.64" x2="-66.04" y2="-40.64" width="0.1524" layer="91"/>
 <wire x1="-66.04" y1="-40.64" x2="-60.96" y2="-40.64" width="0.1524" layer="91"/>
@@ -21084,10 +21101,6 @@ Module</text>
 <pinref part="C10" gate="G$1" pin="1"/>
 <wire x1="-66.04" y1="-43.18" x2="-66.04" y2="-40.64" width="0.1524" layer="91"/>
 <junction x="-66.04" y="-40.64"/>
-<pinref part="JP1" gate="A" pin="3"/>
-<wire x1="-50.8" y1="-63.5" x2="-93.98" y2="-63.5" width="0.1524" layer="91"/>
-<wire x1="-93.98" y1="-63.5" x2="-93.98" y2="-40.64" width="0.1524" layer="91"/>
-<junction x="-93.98" y="-40.64"/>
 </segment>
 </net>
 <net name="N$10" class="0">
@@ -21291,12 +21304,13 @@ Module</text>
 <wire x1="-7.62" y1="-35.56" x2="-15.24" y2="-35.56" width="0.1524" layer="91"/>
 </segment>
 </net>
-<net name="N$8" class="0">
+<net name="USB_POWER" class="0">
 <segment>
 <pinref part="U1" gate="G$1" pin="VBUS"/>
 <wire x1="33.02" y1="81.28" x2="33.02" y2="71.12" width="0.1524" layer="91"/>
 <pinref part="S1" gate="1" pin="P"/>
 <wire x1="33.02" y1="71.12" x2="48.26" y2="71.12" width="0.1524" layer="91"/>
+<label x="33.02" y="71.12" size="1.778" layer="95"/>
 </segment>
 </net>
 </nets>
