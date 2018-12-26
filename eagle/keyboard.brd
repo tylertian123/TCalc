@@ -3,7 +3,7 @@
 <eagle version="9.2.2">
 <drawing>
 <settings>
-<setting alwaysvectorfont="no"/>
+<setting alwaysvectorfont="yes"/>
 <setting verticaltext="up"/>
 </settings>
 <grid distance="0.5" unitdist="mm" unit="mm" style="lines" multiple="1" display="yes" altdistance="5" altunitdist="mil" altunit="mil"/>
@@ -181,6 +181,66 @@ Connector</text>
 <text x="125" y="89.5" size="1.6764" layer="21">Designed in Canada
 by Tyler Tian</text>
 <text x="124.5" y="95.5" size="2.2" layer="21">TCalc Keyboard Module</text>
+<text x="65" y="60" size="1.5" layer="25" align="bottom-center">Q</text>
+<text x="75" y="60" size="1.5" layer="25" align="bottom-center">W</text>
+<text x="85" y="60" size="1.5" layer="25" align="bottom-center">E</text>
+<text x="95" y="60" size="1.5" layer="25" align="bottom-center">R</text>
+<text x="105" y="60" size="1.5" layer="25" align="bottom-center">T</text>
+<text x="115" y="60" size="1.5" layer="25" align="bottom-center">Y</text>
+<text x="125" y="60" size="1.5" layer="25" align="bottom-center">U</text>
+<text x="135" y="60" size="1.5" layer="25" align="bottom-center">I</text>
+<text x="145" y="60" size="1.5" layer="25" align="bottom-center">O</text>
+<text x="155" y="60" size="1.5" layer="25" align="bottom-center">P</text>
+<text x="65" y="50" size="1.5" layer="25" align="bottom-center">A</text>
+<text x="75" y="50" size="1.5" layer="25" align="bottom-center">S</text>
+<text x="85" y="50" size="1.5" layer="25" align="bottom-center">D</text>
+<text x="95" y="50" size="1.5" layer="25" align="bottom-center">F</text>
+<text x="105" y="50" size="1.5" layer="25" align="bottom-center">G</text>
+<text x="115" y="50" size="1.5" layer="25" align="bottom-center">H</text>
+<text x="125" y="50" size="1.5" layer="25" align="bottom-center">J</text>
+<text x="135" y="50" size="1.5" layer="25" align="bottom-center">K</text>
+<text x="145" y="50" size="1.5" layer="25" align="bottom-center">L</text>
+<text x="155" y="50" size="1.2" layer="25" align="bottom-center">Cfg</text>
+<text x="65" y="40" size="1" layer="25" align="bottom-center">Shift</text>
+<text x="75" y="40" size="1.5" layer="25" align="bottom-center">Z</text>
+<text x="85" y="40" size="1.5" layer="25" align="bottom-center">X</text>
+<text x="95" y="40" size="1.5" layer="25" align="bottom-center">C</text>
+<text x="105" y="40" size="1.5" layer="25" align="bottom-center">V</text>
+<text x="115" y="40" size="1.5" layer="25" align="bottom-center">B</text>
+<text x="125" y="40" size="1.5" layer="25" align="bottom-center">N</text>
+<text x="135" y="40" size="1.5" layer="25" align="bottom-center">M</text>
+<text x="145" y="40.5" size="3" layer="25" align="bottom-center">,</text>
+<text x="155" y="40" size="1.2" layer="25" align="bottom-center">Ctrl</text>
+<text x="65" y="30" size="1.5" layer="25" align="bottom-center">(</text>
+<text x="75" y="30" size="1.5" layer="25" align="bottom-center">)</text>
+<text x="85" y="30" size="1.5" layer="25" align="bottom-center">7</text>
+<text x="95" y="30" size="1.5" layer="25" align="bottom-center">8</text>
+<text x="105" y="30" size="1.5" layer="25" align="bottom-center">9</text>
+<text x="115" y="30" size="1.5" layer="25" align="bottom-center">0</text>
+<text x="125" y="30" size="1.5" layer="25" align="bottom-center">+</text>
+<text x="135" y="30" size="1.5" layer="25" align="bottom-center">-</text>
+<text x="145" y="30" size="1.2" layer="25" align="bottom-center">Del</text>
+<text x="155" y="30" size="1.2" layer="25" align="bottom-center">AC</text>
+<text x="65" y="20" size="1.2" layer="25" align="bottom-center">Trig</text>
+<text x="75" y="20" size="1" layer="25" align="bottom-center">Func</text>
+<text x="85" y="20" size="1.5" layer="25" align="bottom-center">4</text>
+<text x="95" y="20" size="1.5" layer="25" align="bottom-center">5</text>
+<text x="105" y="20" size="1.5" layer="25" align="bottom-center">6</text>
+<text x="115" y="20" size="2" layer="25" align="bottom-center">.</text>
+<text x="125" y="20" size="1.5" layer="25" align="bottom-center">×</text>
+<text x="135" y="20" size="1.5" layer="25" align="bottom-center">÷</text>
+<text x="85" y="10" size="1.5" layer="25" align="bottom-center">1</text>
+<text x="95" y="10" size="1.5" layer="25" align="bottom-center">2</text>
+<text x="105" y="10" size="1.5" layer="25" align="bottom-center">3</text>
+<text x="145" y="10" size="1.5" layer="25" align="bottom-center">√</text>
+<text x="155" y="10" size="1.5" layer="25" align="bottom-center">π</text>
+<text x="115" y="10" size="1.2" layer="25" align="bottom-center">EE</text>
+<text x="125" y="10" size="1.2" layer="25" align="bottom-center">Ans</text>
+<text x="135" y="10" size="0.8" layer="25" align="bottom-center">Enter</text>
+<text x="65" y="10" size="1.2" layer="25" align="bottom-center">exp</text>
+<text x="75" y="10" size="1.2" layer="25" align="bottom-center">log</text>
+<text x="145" y="20" size="1.2" layer="25" align="bottom-center">x²</text>
+<text x="155" y="20" size="1.2" layer="25" align="bottom-center">xʸ</text>
 </plain>
 <libraries>
 <library name="rcl" urn="urn:adsk.eagle:library:334">
@@ -1966,12 +2026,12 @@ design rules under a new name.</description>
 </autorouter>
 <elements>
 <element name="C1" library="rcl" library_urn="urn:adsk.eagle:library:334" package="C025-025X050" package3d_urn="urn:adsk.eagle:package:23629/2" value="30pF" x="89" y="65" smashed="yes" rot="R180">
-<attribute name="NAME" x="90" y="63.3" size="1.27" layer="25" ratio="10" rot="R180"/>
+<attribute name="NAME" x="85" y="66.8" size="1.27" layer="25" ratio="10" rot="R180"/>
 <attribute name="SPICEPREFIX" value="C" x="66.14" y="171.68" size="1.778" layer="27" rot="R180" display="off"/>
 <attribute name="VALUE" x="86.2" y="65.4" size="1.27" layer="27" ratio="10" rot="R180"/>
 </element>
 <element name="C2" library="rcl" library_urn="urn:adsk.eagle:library:334" package="C025-025X050" package3d_urn="urn:adsk.eagle:package:23629/2" value="30pF" x="95" y="65" smashed="yes" rot="R180">
-<attribute name="NAME" x="95.686" y="63.276" size="1.27" layer="25" ratio="10" rot="R180"/>
+<attribute name="NAME" x="100.186" y="66.776" size="1.27" layer="25" ratio="10" rot="R180"/>
 <attribute name="SPICEPREFIX" value="C" x="65.79" y="171.68" size="1.778" layer="27" rot="R180" display="off"/>
 <attribute name="VALUE" x="102.086" y="65.394" size="1.27" layer="27" ratio="10" rot="R180"/>
 </element>
@@ -2016,7 +2076,6 @@ design rules under a new name.</description>
 <element name="S1" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="65" y="56" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="68.81" y="116.96" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="68.81" y="116.96" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="61.317" y="52.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="68.81" y="116.96" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="68.81" y="116.96" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="70.08" y="52.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2024,7 +2083,6 @@ design rules under a new name.</description>
 <element name="S10" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="155" y="56" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="199.45" y="124.58" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="199.45" y="124.58" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="151.317" y="52.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="199.45" y="124.58" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="199.45" y="124.58" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="160.08" y="52.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2032,7 +2090,6 @@ design rules under a new name.</description>
 <element name="S11" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="65" y="46" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="109.45" y="124.74" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="109.45" y="124.74" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="61.317" y="42.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="109.45" y="124.74" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="109.45" y="124.74" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="70.08" y="42.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2040,7 +2097,6 @@ design rules under a new name.</description>
 <element name="S12" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="75" y="46" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="119.45" y="134.9" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="119.45" y="134.9" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="71.317" y="42.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="119.45" y="134.9" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="119.45" y="134.9" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="80.08" y="42.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2048,7 +2104,6 @@ design rules under a new name.</description>
 <element name="S13" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="85" y="46" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="138.34" y="63.78" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="138.34" y="63.78" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="81.317" y="42.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="138.34" y="63.78" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="138.34" y="63.78" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="90.08" y="42.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2056,7 +2111,6 @@ design rules under a new name.</description>
 <element name="S14" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="95" y="46" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="148.34" y="73.94" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="148.34" y="73.94" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="91.317" y="42.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="148.34" y="73.94" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="148.34" y="73.94" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="100.08" y="42.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2064,7 +2118,6 @@ design rules under a new name.</description>
 <element name="S15" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="105" y="46" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="158.34" y="84.1" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="158.34" y="84.1" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="101.317" y="42.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="158.34" y="84.1" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="158.34" y="84.1" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="110.08" y="42.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2072,7 +2125,6 @@ design rules under a new name.</description>
 <element name="S16" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="115" y="46" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="168.34" y="94.26" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="168.34" y="94.26" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="111.317" y="42.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="168.34" y="94.26" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="168.34" y="94.26" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="120.08" y="42.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2080,7 +2132,6 @@ design rules under a new name.</description>
 <element name="S17" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="125" y="46" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="178.34" y="104.42" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="178.34" y="104.42" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="121.317" y="42.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="178.34" y="104.42" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="178.34" y="104.42" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="130.08" y="42.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2088,7 +2139,6 @@ design rules under a new name.</description>
 <element name="S18" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="135" y="46" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="188.34" y="114.58" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="188.34" y="114.58" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="131.317" y="42.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="188.34" y="114.58" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="188.34" y="114.58" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="140.08" y="42.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2096,7 +2146,6 @@ design rules under a new name.</description>
 <element name="S19" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="145" y="46" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="198.34" y="124.74" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="198.34" y="124.74" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="141.317" y="42.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="198.34" y="124.74" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="198.34" y="124.74" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="150.08" y="42.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2104,7 +2153,6 @@ design rules under a new name.</description>
 <element name="S2" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="75" y="56" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="78.81" y="127.12" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="78.81" y="127.12" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="71.317" y="52.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="78.81" y="127.12" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="78.81" y="127.12" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="80.08" y="52.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2112,7 +2160,6 @@ design rules under a new name.</description>
 <element name="S20" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="155" y="46" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="208.34" y="134.9" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="208.34" y="134.9" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="151.317" y="42.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="208.34" y="134.9" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="208.34" y="134.9" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="160.08" y="42.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2120,7 +2167,6 @@ design rules under a new name.</description>
 <element name="S21" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="65" y="36" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="127.23" y="53.78" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="127.23" y="53.78" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="61.317" y="32.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="127.23" y="53.78" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="127.23" y="53.78" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="70.08" y="32.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2128,7 +2174,6 @@ design rules under a new name.</description>
 <element name="S22" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="75" y="36" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="137.23" y="63.94" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="137.23" y="63.94" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="71.317" y="32.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="137.23" y="63.94" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="137.23" y="63.94" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="80.08" y="32.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2136,7 +2181,6 @@ design rules under a new name.</description>
 <element name="S23" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="85" y="36" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="147.23" y="74.1" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="147.23" y="74.1" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="81.317" y="32.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="147.23" y="74.1" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="147.23" y="74.1" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="90.08" y="32.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2144,7 +2188,6 @@ design rules under a new name.</description>
 <element name="S24" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="95" y="36" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="157.23" y="84.26" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="157.23" y="84.26" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="91.317" y="32.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="157.23" y="84.26" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="157.23" y="84.26" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="100.08" y="32.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2152,7 +2195,6 @@ design rules under a new name.</description>
 <element name="S25" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="105" y="36" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="167.23" y="94.42" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="167.23" y="94.42" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="101.317" y="32.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="167.23" y="94.42" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="167.23" y="94.42" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="110.08" y="32.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2160,7 +2202,6 @@ design rules under a new name.</description>
 <element name="S26" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="115" y="36" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="177.23" y="104.58" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="177.23" y="104.58" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="111.317" y="32.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="177.23" y="104.58" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="177.23" y="104.58" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="120.08" y="32.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2168,7 +2209,6 @@ design rules under a new name.</description>
 <element name="S27" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="125" y="36" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="187.23" y="114.74" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="187.23" y="114.74" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="121.317" y="32.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="187.23" y="114.74" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="187.23" y="114.74" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="130.08" y="32.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2176,7 +2216,6 @@ design rules under a new name.</description>
 <element name="S28" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="135" y="36" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="197.23" y="124.9" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="197.23" y="124.9" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="131.317" y="32.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="197.23" y="124.9" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="197.23" y="124.9" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="140.08" y="32.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2184,7 +2223,6 @@ design rules under a new name.</description>
 <element name="S29" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="145" y="36" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="216.12" y="53.78" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="216.12" y="53.78" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="141.317" y="32.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="216.12" y="53.78" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="216.12" y="53.78" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="150.08" y="32.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2192,7 +2230,6 @@ design rules under a new name.</description>
 <element name="S3" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="85" y="56" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="88.81" y="137.28" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="88.81" y="137.28" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="81.317" y="52.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="88.81" y="137.28" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="88.81" y="137.28" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="90.08" y="52.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2200,7 +2237,6 @@ design rules under a new name.</description>
 <element name="S30" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="155" y="36" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="226.12" y="63.94" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="226.12" y="63.94" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="151.317" y="32.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="226.12" y="63.94" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="226.12" y="63.94" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="160.08" y="32.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2208,7 +2244,6 @@ design rules under a new name.</description>
 <element name="S31" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="65" y="26" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="136.12" y="64.1" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="136.12" y="64.1" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="61.317" y="22.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="136.12" y="64.1" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="136.12" y="64.1" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="70.08" y="22.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2216,7 +2251,6 @@ design rules under a new name.</description>
 <element name="S32" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="75" y="26" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="146.12" y="74.26" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="146.12" y="74.26" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="71.317" y="22.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="146.12" y="74.26" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="146.12" y="74.26" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="80.08" y="22.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2224,7 +2258,6 @@ design rules under a new name.</description>
 <element name="S33" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="85" y="26" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="156.12" y="84.42" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="156.12" y="84.42" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="81.317" y="22.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="156.12" y="84.42" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="156.12" y="84.42" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="90.08" y="22.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2232,7 +2265,6 @@ design rules under a new name.</description>
 <element name="S34" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="95" y="26" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="166.12" y="94.58" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="166.12" y="94.58" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="91.317" y="22.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="166.12" y="94.58" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="166.12" y="94.58" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="100.08" y="22.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2240,7 +2272,6 @@ design rules under a new name.</description>
 <element name="S35" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="105" y="26" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="176.12" y="104.74" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="176.12" y="104.74" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="101.317" y="22.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="176.12" y="104.74" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="176.12" y="104.74" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="110.08" y="22.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2248,7 +2279,6 @@ design rules under a new name.</description>
 <element name="S36" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="115" y="26" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="186.12" y="114.9" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="186.12" y="114.9" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="111.317" y="22.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="186.12" y="114.9" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="186.12" y="114.9" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="120.08" y="22.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2256,7 +2286,6 @@ design rules under a new name.</description>
 <element name="S37" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="125" y="26" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="205.01" y="43.78" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="205.01" y="43.78" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="121.317" y="22.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="205.01" y="43.78" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="205.01" y="43.78" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="130.08" y="22.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2264,7 +2293,6 @@ design rules under a new name.</description>
 <element name="S38" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="135" y="26" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="215.01" y="53.94" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="215.01" y="53.94" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="131.317" y="22.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="215.01" y="53.94" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="215.01" y="53.94" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="140.08" y="22.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2272,7 +2300,6 @@ design rules under a new name.</description>
 <element name="S39" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="145" y="26" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="225.01" y="64.1" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="225.01" y="64.1" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="141.317" y="22.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="225.01" y="64.1" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="225.01" y="64.1" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="150.08" y="22.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2280,7 +2307,6 @@ design rules under a new name.</description>
 <element name="S4" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="95" y="56" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="98.81" y="147.44" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="98.81" y="147.44" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="91.317" y="52.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="98.81" y="147.44" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="98.81" y="147.44" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="100.08" y="52.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2288,7 +2314,6 @@ design rules under a new name.</description>
 <element name="S40" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="155" y="26" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="235.01" y="74.26" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="235.01" y="74.26" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="151.317" y="22.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="235.01" y="74.26" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="235.01" y="74.26" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="160.08" y="22.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2296,7 +2321,6 @@ design rules under a new name.</description>
 <element name="S41" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="65" y="16" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="145.01" y="74.42" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="145.01" y="74.42" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="61.317" y="12.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="145.01" y="74.42" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="145.01" y="74.42" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="70.08" y="12.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2304,7 +2328,6 @@ design rules under a new name.</description>
 <element name="S42" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="75" y="16" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="155.01" y="84.58" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="155.01" y="84.58" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="71.317" y="12.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="155.01" y="84.58" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="155.01" y="84.58" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="80.08" y="12.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2312,7 +2335,6 @@ design rules under a new name.</description>
 <element name="S43" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="85" y="16" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="165.01" y="94.74" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="165.01" y="94.74" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="81.317" y="12.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="165.01" y="94.74" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="165.01" y="94.74" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="90.08" y="12.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2320,7 +2342,6 @@ design rules under a new name.</description>
 <element name="S44" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="95" y="16" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="175.01" y="104.9" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="175.01" y="104.9" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="91.317" y="12.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="175.01" y="104.9" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="175.01" y="104.9" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="100.08" y="12.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2328,7 +2349,6 @@ design rules under a new name.</description>
 <element name="S45" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="105" y="16" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="193.9" y="33.78" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="193.9" y="33.78" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="101.317" y="12.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="193.9" y="33.78" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="193.9" y="33.78" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="110.08" y="12.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2336,7 +2356,6 @@ design rules under a new name.</description>
 <element name="S46" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="115" y="16" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="203.9" y="43.94" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="203.9" y="43.94" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="111.317" y="12.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="203.9" y="43.94" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="203.9" y="43.94" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="120.08" y="12.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2344,7 +2363,6 @@ design rules under a new name.</description>
 <element name="S47" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="125" y="16" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="213.9" y="54.1" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="213.9" y="54.1" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="121.317" y="12.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="213.9" y="54.1" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="213.9" y="54.1" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="130.08" y="12.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2352,7 +2370,6 @@ design rules under a new name.</description>
 <element name="S48" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="135" y="16" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="223.9" y="64.26" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="223.9" y="64.26" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="131.317" y="12.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="223.9" y="64.26" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="223.9" y="64.26" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="140.08" y="12.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2360,7 +2377,6 @@ design rules under a new name.</description>
 <element name="S49" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="145" y="16" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="233.9" y="74.42" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="233.9" y="74.42" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="141.317" y="12.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="233.9" y="74.42" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="233.9" y="74.42" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="150.08" y="12.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2368,7 +2384,6 @@ design rules under a new name.</description>
 <element name="S5" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="105" y="56" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="149.45" y="73.78" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="149.45" y="73.78" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="101.317" y="52.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="149.45" y="73.78" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="149.45" y="73.78" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="110.08" y="52.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2376,7 +2391,6 @@ design rules under a new name.</description>
 <element name="S50" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="155" y="16" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="243.9" y="84.58" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="243.9" y="84.58" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="151.317" y="12.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="243.9" y="84.58" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="243.9" y="84.58" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="160.08" y="12.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2384,7 +2398,6 @@ design rules under a new name.</description>
 <element name="S51" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="65" y="6" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="153.9" y="84.74" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="153.9" y="84.74" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="61.317" y="2.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="153.9" y="84.74" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="153.9" y="84.74" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="70.08" y="2.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2392,7 +2405,6 @@ design rules under a new name.</description>
 <element name="S52" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="75" y="6" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="163.9" y="94.9" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="163.9" y="94.9" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="71.317" y="2.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="163.9" y="94.9" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="163.9" y="94.9" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="80.08" y="2.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2400,7 +2412,6 @@ design rules under a new name.</description>
 <element name="S53" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="85" y="6" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="182.79" y="23.78" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="182.79" y="23.78" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="81.317" y="2.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="182.79" y="23.78" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="182.79" y="23.78" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="90.08" y="2.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2408,7 +2419,6 @@ design rules under a new name.</description>
 <element name="S54" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="95" y="6" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="192.79" y="33.94" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="192.79" y="33.94" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="91.317" y="2.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="192.79" y="33.94" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="192.79" y="33.94" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="100.08" y="2.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2416,7 +2426,6 @@ design rules under a new name.</description>
 <element name="S55" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="105" y="6" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="202.79" y="44.1" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="202.79" y="44.1" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="101.317" y="2.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="202.79" y="44.1" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="202.79" y="44.1" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="110.08" y="2.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2424,7 +2433,6 @@ design rules under a new name.</description>
 <element name="S56" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="115" y="6" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="212.79" y="54.26" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="212.79" y="54.26" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="111.317" y="2.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="212.79" y="54.26" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="212.79" y="54.26" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="120.08" y="2.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2432,7 +2440,6 @@ design rules under a new name.</description>
 <element name="S57" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="125" y="6" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="222.79" y="64.42" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="222.79" y="64.42" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="121.317" y="2.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="222.79" y="64.42" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="222.79" y="64.42" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="130.08" y="2.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2440,7 +2447,6 @@ design rules under a new name.</description>
 <element name="S58" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="135" y="6" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="232.79" y="74.58" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="232.79" y="74.58" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="131.317" y="2.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="232.79" y="74.58" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="232.79" y="74.58" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="140.08" y="2.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2448,7 +2454,6 @@ design rules under a new name.</description>
 <element name="S59" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="145" y="6" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="242.79" y="84.74" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="242.79" y="84.74" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="141.317" y="2.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="242.79" y="84.74" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="242.79" y="84.74" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="150.08" y="2.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2456,7 +2461,6 @@ design rules under a new name.</description>
 <element name="S6" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="115" y="56" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="159.45" y="83.94" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="159.45" y="83.94" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="111.317" y="52.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="159.45" y="83.94" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="159.45" y="83.94" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="120.08" y="52.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2464,7 +2468,6 @@ design rules under a new name.</description>
 <element name="S60" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="155" y="6" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="252.79" y="94.9" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="252.79" y="94.9" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="151.317" y="2.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="252.79" y="94.9" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="252.79" y="94.9" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="160.08" y="2.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2472,7 +2475,6 @@ design rules under a new name.</description>
 <element name="S7" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="125" y="56" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="169.45" y="94.1" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="169.45" y="94.1" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="121.317" y="52.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="169.45" y="94.1" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="169.45" y="94.1" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="130.08" y="52.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2480,7 +2482,6 @@ design rules under a new name.</description>
 <element name="S8" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="135" y="56" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="179.45" y="104.26" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="179.45" y="104.26" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="131.317" y="52.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="179.45" y="104.26" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="179.45" y="104.26" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="140.08" y="52.952" size="1.27" layer="27" ratio="10" rot="R90"/>
@@ -2488,7 +2489,6 @@ design rules under a new name.</description>
 <element name="S9" library="switch-omron" library_urn="urn:adsk.eagle:library:377" package="B3F-10XX" package3d_urn="urn:adsk.eagle:package:27496/1" value="" x="145" y="56" smashed="yes" rot="R90">
 <attribute name="MF" value="" x="189.45" y="114.42" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="MPN" value="B3F-1000" x="189.45" y="114.42" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="141.317" y="52.952" size="1.27" layer="25" ratio="10" rot="R90"/>
 <attribute name="OC_FARNELL" value="176432" x="189.45" y="114.42" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="OC_NEWARK" value="36M3542" x="189.45" y="114.42" size="1.778" layer="27" rot="R90" display="off"/>
 <attribute name="VALUE" x="150.08" y="52.952" size="1.27" layer="27" ratio="10" rot="R90"/>
