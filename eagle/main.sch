@@ -21177,8 +21177,8 @@ Module</text>
 <wire x1="76.2" y1="-10.16" x2="48.26" y2="-10.16" width="0.1524" layer="91"/>
 </segment>
 <segment>
-<pinref part="IC1" gate="MCU" pin="PC9"/>
-<wire x1="-60.96" y1="22.86" x2="-76.2" y2="22.86" width="0.1524" layer="91"/>
+<pinref part="IC1" gate="MCU" pin="PB12"/>
+<wire x1="-15.24" y1="30.48" x2="-5.08" y2="30.48" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="DB1" class="0">
@@ -21187,8 +21187,8 @@ Module</text>
 <wire x1="76.2" y1="-12.7" x2="48.26" y2="-12.7" width="0.1524" layer="91"/>
 </segment>
 <segment>
-<pinref part="IC1" gate="MCU" pin="PC8"/>
-<wire x1="-60.96" y1="20.32" x2="-76.2" y2="20.32" width="0.1524" layer="91"/>
+<pinref part="IC1" gate="MCU" pin="PB13"/>
+<wire x1="-15.24" y1="33.02" x2="-5.08" y2="33.02" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="DB2" class="0">
@@ -21197,8 +21197,8 @@ Module</text>
 <wire x1="76.2" y1="-15.24" x2="48.26" y2="-15.24" width="0.1524" layer="91"/>
 </segment>
 <segment>
-<pinref part="IC1" gate="MCU" pin="PC7"/>
-<wire x1="-60.96" y1="17.78" x2="-76.2" y2="17.78" width="0.1524" layer="91"/>
+<pinref part="IC1" gate="MCU" pin="PB14"/>
+<wire x1="-15.24" y1="35.56" x2="-5.08" y2="35.56" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="DB3" class="0">
@@ -21207,8 +21207,8 @@ Module</text>
 <wire x1="76.2" y1="-17.78" x2="48.26" y2="-17.78" width="0.1524" layer="91"/>
 </segment>
 <segment>
-<pinref part="IC1" gate="MCU" pin="PC6"/>
-<wire x1="-60.96" y1="15.24" x2="-76.2" y2="15.24" width="0.1524" layer="91"/>
+<pinref part="IC1" gate="MCU" pin="PB15"/>
+<wire x1="-15.24" y1="38.1" x2="-5.08" y2="38.1" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="DB4" class="0">
@@ -21217,8 +21217,8 @@ Module</text>
 <wire x1="76.2" y1="-20.32" x2="48.26" y2="-20.32" width="0.1524" layer="91"/>
 </segment>
 <segment>
-<pinref part="IC1" gate="MCU" pin="PB15"/>
-<wire x1="-15.24" y1="38.1" x2="-5.08" y2="38.1" width="0.1524" layer="91"/>
+<pinref part="IC1" gate="MCU" pin="PC6"/>
+<wire x1="-60.96" y1="15.24" x2="-76.2" y2="15.24" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="DB5" class="0">
@@ -21227,8 +21227,8 @@ Module</text>
 <wire x1="76.2" y1="-22.86" x2="48.26" y2="-22.86" width="0.1524" layer="91"/>
 </segment>
 <segment>
-<pinref part="IC1" gate="MCU" pin="PB14"/>
-<wire x1="-15.24" y1="35.56" x2="-5.08" y2="35.56" width="0.1524" layer="91"/>
+<pinref part="IC1" gate="MCU" pin="PC7"/>
+<wire x1="-60.96" y1="17.78" x2="-76.2" y2="17.78" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="DB6" class="0">
@@ -21237,8 +21237,8 @@ Module</text>
 <wire x1="76.2" y1="-25.4" x2="48.26" y2="-25.4" width="0.1524" layer="91"/>
 </segment>
 <segment>
-<pinref part="IC1" gate="MCU" pin="PB13"/>
-<wire x1="-15.24" y1="33.02" x2="-5.08" y2="33.02" width="0.1524" layer="91"/>
+<pinref part="IC1" gate="MCU" pin="PC8"/>
+<wire x1="-60.96" y1="20.32" x2="-76.2" y2="20.32" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="DB7" class="0">
@@ -21247,8 +21247,8 @@ Module</text>
 <wire x1="76.2" y1="-27.94" x2="48.26" y2="-27.94" width="0.1524" layer="91"/>
 </segment>
 <segment>
-<pinref part="IC1" gate="MCU" pin="PB12"/>
-<wire x1="-15.24" y1="30.48" x2="-5.08" y2="30.48" width="0.1524" layer="91"/>
+<pinref part="IC1" gate="MCU" pin="PC9"/>
+<wire x1="-60.96" y1="22.86" x2="-76.2" y2="22.86" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="EN" class="0">
