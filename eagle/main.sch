@@ -270,26 +270,26 @@ DIN A3, landscape with location and doc. field</description>
 <circle x="2.5" y="67.5" radius="1.25" width="0.127" layer="45"/>
 <circle x="90.5" y="2.5" radius="1.25" width="0.127" layer="45"/>
 <circle x="90.5" y="67.5" radius="1.25" width="0.127" layer="45"/>
-<pad name="P$1" x="14" y="2.5" drill="1" diameter="1.6764" shape="long" rot="R270"/>
-<pad name="P$2" x="16.54" y="2.5" drill="1" diameter="1.6764" shape="long" rot="R270"/>
-<pad name="P$3" x="19.08" y="2.5" drill="1" diameter="1.6764" shape="long" rot="R270"/>
-<pad name="P$4" x="21.62" y="2.5" drill="1" diameter="1.6764" shape="long" rot="R270"/>
-<pad name="P$5" x="24.16" y="2.5" drill="1" diameter="1.6764" shape="long" rot="R270"/>
-<pad name="P$6" x="26.7" y="2.5" drill="1" diameter="1.6764" shape="long" rot="R270"/>
-<pad name="P$7" x="29.24" y="2.5" drill="1" diameter="1.6764" shape="long" rot="R270"/>
-<pad name="P$8" x="31.78" y="2.5" drill="1" diameter="1.6764" shape="long" rot="R270"/>
-<pad name="P$9" x="34.32" y="2.5" drill="1" diameter="1.6764" shape="long" rot="R270"/>
-<pad name="P$10" x="36.86" y="2.5" drill="1" diameter="1.6764" shape="long" rot="R270"/>
-<pad name="P$11" x="39.4" y="2.5" drill="1" diameter="1.6764" shape="long" rot="R270"/>
-<pad name="P$12" x="41.94" y="2.5" drill="1" diameter="1.6764" shape="long" rot="R270"/>
-<pad name="P$13" x="44.48" y="2.5" drill="1" diameter="1.6764" shape="long" rot="R270"/>
-<pad name="P$14" x="47.02" y="2.5" drill="1" diameter="1.6764" shape="long" rot="R270"/>
-<pad name="P$15" x="49.56" y="2.5" drill="1" diameter="1.6764" shape="long" rot="R270"/>
-<pad name="P$16" x="52.1" y="2.5" drill="1" diameter="1.6764" shape="long" rot="R270"/>
-<pad name="P$17" x="54.64" y="2.5" drill="1" diameter="1.6764" shape="long" rot="R270"/>
-<pad name="P$18" x="57.18" y="2.5" drill="1" diameter="1.6764" shape="long" rot="R270"/>
-<pad name="P$19" x="59.72" y="2.5" drill="1" diameter="1.6764" shape="long" rot="R270"/>
-<pad name="P$20" x="62.26" y="2.5" drill="1" diameter="1.6764" shape="long" rot="R270" first="yes"/>
+<pad name="20" x="14" y="2.5" drill="1" diameter="1.6764" shape="long" rot="R270"/>
+<pad name="19" x="16.54" y="2.5" drill="1" diameter="1.6764" shape="long" rot="R270"/>
+<pad name="18" x="19.08" y="2.5" drill="1" diameter="1.6764" shape="long" rot="R270"/>
+<pad name="17" x="21.62" y="2.5" drill="1" diameter="1.6764" shape="long" rot="R270"/>
+<pad name="16" x="24.16" y="2.5" drill="1" diameter="1.6764" shape="long" rot="R270"/>
+<pad name="15" x="26.7" y="2.5" drill="1" diameter="1.6764" shape="long" rot="R270"/>
+<pad name="14" x="29.24" y="2.5" drill="1" diameter="1.6764" shape="long" rot="R270"/>
+<pad name="13" x="31.78" y="2.5" drill="1" diameter="1.6764" shape="long" rot="R270"/>
+<pad name="12" x="34.32" y="2.5" drill="1" diameter="1.6764" shape="long" rot="R270"/>
+<pad name="11" x="36.86" y="2.5" drill="1" diameter="1.6764" shape="long" rot="R270"/>
+<pad name="10" x="39.4" y="2.5" drill="1" diameter="1.6764" shape="long" rot="R270"/>
+<pad name="9" x="41.94" y="2.5" drill="1" diameter="1.6764" shape="long" rot="R270"/>
+<pad name="8" x="44.48" y="2.5" drill="1" diameter="1.6764" shape="long" rot="R270"/>
+<pad name="7" x="47.02" y="2.5" drill="1" diameter="1.6764" shape="long" rot="R270"/>
+<pad name="6" x="49.56" y="2.5" drill="1" diameter="1.6764" shape="long" rot="R270"/>
+<pad name="5" x="52.1" y="2.5" drill="1" diameter="1.6764" shape="long" rot="R270"/>
+<pad name="4" x="54.64" y="2.5" drill="1" diameter="1.6764" shape="long" rot="R270"/>
+<pad name="3" x="57.18" y="2.5" drill="1" diameter="1.6764" shape="long" rot="R270"/>
+<pad name="2" x="59.72" y="2.5" drill="1" diameter="1.6764" shape="long" rot="R270"/>
+<pad name="1" x="62.26" y="2.5" drill="1" diameter="1.6764" shape="long" rot="R270" first="yes"/>
 <pad name="P$21" x="2.5" y="2.5" drill="2.54" diameter="3.81"/>
 <pad name="P$22" x="90.5" y="2.5" drill="2.54" diameter="3.81"/>
 <pad name="P$23" x="90.5" y="67.5" drill="2.54" diameter="3.81"/>
@@ -333,26 +333,26 @@ DIN A3, landscape with location and doc. field</description>
 <devices>
 <device name="" package="GLCD_TRULY_128X64_20_PINES">
 <connects>
-<connect gate="G$1" pin="BLA" pad="P$19"/>
-<connect gate="G$1" pin="BLK" pad="P$20"/>
-<connect gate="G$1" pin="CS1" pad="P$15"/>
-<connect gate="G$1" pin="CS2" pad="P$16"/>
-<connect gate="G$1" pin="DB0" pad="P$7"/>
-<connect gate="G$1" pin="DB1" pad="P$8"/>
-<connect gate="G$1" pin="DB2" pad="P$9"/>
-<connect gate="G$1" pin="DB3" pad="P$10"/>
-<connect gate="G$1" pin="DB4" pad="P$11"/>
-<connect gate="G$1" pin="DB5" pad="P$12"/>
-<connect gate="G$1" pin="DB6" pad="P$13"/>
-<connect gate="G$1" pin="DB7" pad="P$14"/>
-<connect gate="G$1" pin="EN" pad="P$6"/>
-<connect gate="G$1" pin="NC" pad="P$18"/>
-<connect gate="G$1" pin="RS" pad="P$4"/>
-<connect gate="G$1" pin="RSTB" pad="P$17"/>
-<connect gate="G$1" pin="RW" pad="P$5"/>
-<connect gate="G$1" pin="VDD" pad="P$2"/>
-<connect gate="G$1" pin="VO" pad="P$3"/>
-<connect gate="G$1" pin="VSS" pad="P$1"/>
+<connect gate="G$1" pin="BLA" pad="19"/>
+<connect gate="G$1" pin="BLK" pad="20"/>
+<connect gate="G$1" pin="CS1" pad="15"/>
+<connect gate="G$1" pin="CS2" pad="16"/>
+<connect gate="G$1" pin="DB0" pad="7"/>
+<connect gate="G$1" pin="DB1" pad="8"/>
+<connect gate="G$1" pin="DB2" pad="9"/>
+<connect gate="G$1" pin="DB3" pad="10"/>
+<connect gate="G$1" pin="DB4" pad="11"/>
+<connect gate="G$1" pin="DB5" pad="12"/>
+<connect gate="G$1" pin="DB6" pad="13"/>
+<connect gate="G$1" pin="DB7" pad="14"/>
+<connect gate="G$1" pin="EN" pad="6"/>
+<connect gate="G$1" pin="NC" pad="18"/>
+<connect gate="G$1" pin="RS" pad="4"/>
+<connect gate="G$1" pin="RSTB" pad="17"/>
+<connect gate="G$1" pin="RW" pad="5"/>
+<connect gate="G$1" pin="VDD" pad="2"/>
+<connect gate="G$1" pin="VO" pad="3"/>
+<connect gate="G$1" pin="VSS" pad="1"/>
 </connects>
 <technologies>
 <technology name=""/>
