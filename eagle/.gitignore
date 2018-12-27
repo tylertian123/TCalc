@@ -3,3 +3,11 @@
 *.pro
 *.job
 /CAMOutputs/
+*.zip
+*.png
+*.html
+*.xls
+*.xlsx
+*.cam
+*.png
+
