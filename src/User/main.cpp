@@ -1388,6 +1388,7 @@ int main() {
     //Set up SBDI receiver
     sbdi::Receiver receiver(SBDI_EN, SBDI_DATA, SBDI_CLK);
     receiver.init();
+	
     receiver.onReceive([](uint32_t data) {
         //Store keystroke into buffer
         //If there is already data in the buffer then shift that data left to make room
@@ -1447,7 +1448,8 @@ int main() {
 	initCursorTimer(dispMode == DispMode::GAME ? 1000 : 2000);
 
 	uint16_t key = KEY_NULL;
-
+	
+	SBDI_EN.init(GPIO_Mode_IN_FLOATING, GPIO_Speed_10MHz);
     while(true) {
 		if((key = fetchKey()) != KEY_NULL) {
             switch(dispMode) {

@@ -94,6 +94,40 @@ uint8_t EXTIPin::getEXTIIRQChannel() {
 	}
 }
 
+uint8_t EXTIPin::getEXTIPinSource() {
+    uint8_t pinSource = 0;
+    uint16_t pinDef = pin.pin;
+    
+    while((pinDef >>= 1) != 0) {
+        pinSource ++;
+    }
+    return pinSource;
+}
+
+uint8_t EXTIPin::getEXTIPortSource() {
+    if(pin.port == GPIOA) {
+		return GPIO_PortSourceGPIOA;
+	}
+	else if(pin.port == GPIOB) {
+		return GPIO_PortSourceGPIOB;
+	}
+	else if(pin.port == GPIOC) {
+		return GPIO_PortSourceGPIOC;
+	}
+	else if(pin.port == GPIOD) {
+		return GPIO_PortSourceGPIOD;
+	}
+	else if(pin.port == GPIOE) {
+		return GPIO_PortSourceGPIOE;
+	}
+	else if(pin.port == GPIOF) {
+		return GPIO_PortSourceGPIOF;
+	}
+	else {
+		return GPIO_PortSourceGPIOG;
+	}
+}
+
 EXTIPin::operator bool() const {
 	return pin;
 }
@@ -112,7 +146,9 @@ void EXTIPin::init(GPIOSpeed_TypeDef speed, EXTITrigger_TypeDef trigger, uint8_t
 	initStruct.EXTI_Trigger = trigger;
 	
 	EXTI_Init(&initStruct);
-	
+
+    GPIO_EXTILineConfig(getEXTIPortSource(), getEXTIPinSource());
+
 	NVIC_InitTypeDef nvicInitStruct;
 	nvicInitStruct.NVIC_IRQChannelCmd = ENABLE;
 	nvicInitStruct.NVIC_IRQChannel = getEXTIIRQChannel();

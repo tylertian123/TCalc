@@ -18,6 +18,9 @@ public:
 	
 	uint32_t getEXTILine();
 	uint8_t getEXTIIRQChannel();
+
+    uint8_t getEXTIPinSource();
+    uint8_t getEXTIPortSource();
 	
 	operator bool() const;
 	
