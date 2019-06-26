@@ -1095,13 +1095,127 @@ namespace neda {
     }
 
     // *************************** Matrix ***************************************
+    ObjType Matrix::getType() {
+        return ObjType::MATRIX;
+    }
     Matrix::~Matrix() {
         for(uint16_t i = 0; i < m * n; i ++) {
             DESTROY_IF_NONNULL(contents[i]);
         }
         delete[] contents;
     }
+    uint16_t Matrix::rowTopSpacing_0(uint8_t row) {
+        uint16_t rowMax = 0;
+        for(uint8_t j = 0; j < n; j ++) {
+            rowMax = max(rowMax, static_cast<uint16_t>(SAFE_EXEC_0(contents[index_0(j, row)], getTopSpacing)));
+        }
+        return rowMax;
+    }
+    uint16_t Matrix::rowHeight_0(uint8_t row) {
+        uint16_t rowMax = 0;
+        for(uint8_t j = 0; j < n; j ++) {
+            rowMax = max(rowMax, static_cast<uint16_t>(SAFE_ACCESS_0(contents[index_0(j, row)], exprHeight)));
+        }
+        return rowMax;
+    }
+    uint16_t Matrix::colWidth_0(uint8_t col) {
+        uint16_t colMax = 0;
+        for(uint8_t j = 0; j < m; j ++) {
+            colMax = max(colMax, static_cast<uint16_t>(SAFE_ACCESS_0(contents[index_0(col, j)], exprHeight)));
+        }
+        return colMax;
+    }
+    uint16_t Matrix::getTopSpacing() {
+        // Go through every row in the top half
+        uint16_t total = 0;
+        for(uint8_t i = 0; i < m / 2; i ++) {
+            total += rowHeight_0(i);
+        }
+        // Add edge spacing (top)
+        total += TOP_SPACING;
+        // Add spacing between rows
+        if(m / 2 != 0) {
+            total += (m / 2 - 1) * ENTRY_SPACING;
+        }
+        // The top spacing is divided into two scenarios
+        // Scenario 1: even number of rows
+        if(m % 2 == 0) {
+            // Add spacing between middle two rows
+            total += ENTRY_SPACING / 2;
+        }
+        // Scenario 2: odd number of rows
+        else {
+            // Add the top spacing of the middle row
+            total += rowTopSpacing_0(m / 2 + 1);
+        }
+        return total;
+    }
+    void Matrix::computeHeight() {
+        uint16_t total = 0;
+        for(uint8_t i = 0; i < m; i ++) {
+            // For every row find the max height
+            total += rowHeight_0(i);
+        }
+        total += (m - 1) * ENTRY_SPACING;
+        total += 2 * TOP_SPACING;
+        SAFE_EXEC(parent, computeHeight);
+    }
+    void Matrix::computeWidth() {
+        uint16_t total = 0;
+        for(uint8_t i = 0; i < n; i ++) {
+            total += colWidth_0(i);
+        }
+        total += (n - 1) * ENTRY_SPACING;
+        total += 2 * SIDE_SPACING;
+        SAFE_EXEC(parent, computeWidth);
+    }
+    void Matrix::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
+        this->x = x;
+        this->y = y;
+        VERIFY_INBOUNDS(x, y);
 
+        // Draw contents first
+        // Cache column widths
+        uint16_t *colWidths = new uint16_t[n];
+        for(uint8_t i = 0; i < n; i ++) {
+            colWidths[i] = colWidth_0(n);
+        }
+
+        // Go row-by-row
+        uint16_t exprY = y + TOP_SPACING;
+        for(uint8_t row = 0; row < m; row ++) {
+            uint16_t exprX = x + SIDE_SPACING;
+            uint16_t topSpacing = rowTopSpacing_0(m);
+            
+            for(uint8_t col = 0; col < n; col ++) {
+                uint16_t index = index_0(col, row);
+                contents[index]->draw(dest, exprX, exprY + (topSpacing - contents[index]->getTopSpacing()));
+                exprX += colWidths[col] + ENTRY_SPACING;
+            }
+            
+            exprY += rowHeight_0(row) + ENTRY_SPACING;
+        }
+
+        // Draw square brackets
+        for(uint16_t i = 0; i < exprHeight; i ++) {
+            dest.setPixel(x, y + i, true);
+            dest.setPixel(x + exprWidth - 1, y + i, true);
+        }
+        dest.setPixel(x + 1, y, true);
+        dest.setPixel(x + 1, y + exprHeight - 1, true);
+        dest.setPixel(x + exprWidth - 2, y, true);
+        dest.setPixel(x + exprWidth - 2, y + exprHeight - 1, true);
+
+        delete[] colWidths;
+    }
+    void Matrix::getCursor(Cursor &cursor, CursorLocation location) {
+        if(location == CURSORLOCATION_START) {
+            SAFE_EXEC(contents[0], getCursor, cursor, location);
+        }
+        else {
+            SAFE_EXEC(contents[n - 1], getCursor, cursor, location);
+        }
+    }
 
     // *************************** Cursor ***************************************
     void Cursor::draw(lcd::LCD12864 &dest) {

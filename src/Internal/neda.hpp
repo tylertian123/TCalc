@@ -39,6 +39,7 @@ namespace neda {
         SUPERSCRIPT,
         SUBSCRIPT,
         SIGMA_PI,
+        MATRIX,
     };
 	
     /*
@@ -453,7 +454,9 @@ namespace neda {
 
         virtual ~Matrix();
 
-        static constexpr uint16_t SPACING = 3;
+        static constexpr uint16_t ENTRY_SPACING = 3;
+        static constexpr uint16_t SIDE_SPACING = 3;
+        static constexpr uint16_t TOP_SPACING = 2;
 
         // Rows
         const uint8_t m;
@@ -466,12 +469,33 @@ namespace neda {
         inline uint16_t index(uint8_t row, uint8_t col) {
             return (col - 1) + (row - 1) * n;
         }
+        // Maps zero-based indexing to index in contents array
+        inline uint16_t index_0(uint8_t x, uint8_t y) {
+            return x + y * n;
+        }
+        // Sets an entry
+        // DOES NOT RECOMPUTE THE SIZE!
         inline void setEntry(uint8_t row, uint8_t col, Expr *entry) {
             contents[index(row, col)] = entry;
+            entry->parent = this;
         }
         inline Expr* getEntry(uint8_t row, uint8_t col) {
             return contents[index(row, col)];
         }
+
+        // 0-based indexing!
+        uint16_t rowTopSpacing_0(uint8_t row);
+        uint16_t rowHeight_0(uint8_t row);
+        uint16_t colWidth_0(uint8_t col);
+
+        virtual uint16_t getTopSpacing() override;
+        virtual void computeWidth() override;
+        virtual void computeHeight() override;
+        virtual void draw(lcd::LCD12864&, int16_t, int16_t) override;
+
+        virtual void getCursor(Cursor&, CursorLocation) override;
+
+        virtual ObjType getType() override;
     };
 	
 	/*
