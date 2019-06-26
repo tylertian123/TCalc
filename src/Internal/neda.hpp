@@ -150,9 +150,9 @@ namespace neda {
 			computeHeight();
 		}
 
-        static const uint16_t EMPTY_EXPR_WIDTH = 5;
-        static const uint16_t EMPTY_EXPR_HEIGHT = 9;
-        static const uint16_t EXPR_SPACING = 1;
+        static constexpr uint16_t EMPTY_EXPR_WIDTH = 5;
+        static constexpr uint16_t EMPTY_EXPR_HEIGHT = 9;
+        static constexpr uint16_t EXPR_SPACING = 1;
 		
 		void add(NEDAObj*);
         NEDAObj* remove(uint16_t);
@@ -295,8 +295,8 @@ namespace neda {
 			computeHeight();
 		}
 		
-		static const uint16_t CONTENTS_N_OVERLAP = 7;
-		static const uint16_t SIGN_N_OVERLAP = 1;
+		static constexpr uint16_t CONTENTS_N_OVERLAP = 7;
+		static constexpr uint16_t SIGN_N_OVERLAP = 1;
 		
 		virtual uint16_t getTopSpacing() override;
 		virtual void computeWidth() override;
@@ -336,7 +336,7 @@ namespace neda {
             computeHeight();
         }
 
-        static const uint16_t OVERLAP = 4;
+        static constexpr uint16_t OVERLAP = 4;
 
         virtual uint16_t getTopSpacing() override;
         virtual void computeWidth() override;
@@ -373,7 +373,7 @@ namespace neda {
 			computeHeight();
 		}
 		
-		static const uint16_t OVERLAP = 4;
+		static constexpr uint16_t OVERLAP = 4;
 		
 		virtual uint16_t getTopSpacing() override;
 		virtual void computeWidth() override;
@@ -412,7 +412,7 @@ namespace neda {
 			computeHeight();
 		}
 
-        static const uint16_t CONTENT_SYMBOL_OVERLAP = 12;
+        static constexpr uint16_t CONTENT_SYMBOL_OVERLAP = 12;
 		
 		virtual uint16_t getTopSpacing() override;
 		virtual void computeWidth() override;
@@ -441,6 +441,38 @@ namespace neda {
 
         virtual SigmaPi* copy() override;
 	};
+
+    // Matrix/Column Vector
+    class Matrix : public Expr {
+    public:
+        Matrix(uint8_t m, uint8_t n) : m(m), n(n) {
+            // Allocate array and set all entries to null
+            contents = new Expr*[m * n];
+            memset(contents, NULL, m * n * sizeof(Expr*));
+        }
+
+        virtual ~Matrix();
+
+        static constexpr uint16_t SPACING = 3;
+
+        // Rows
+        const uint8_t m;
+        // Cols
+        const uint8_t n;
+        Expr **contents;
+
+        // Maps row and column to index in contents array 
+        // DOES NOT CHECK FOR BOUNDS
+        inline uint16_t index(uint8_t row, uint8_t col) {
+            return (col - 1) + (row - 1) * n;
+        }
+        inline void setEntry(uint8_t row, uint8_t col, Expr *entry) {
+            contents[index(row, col)] = entry;
+        }
+        inline Expr* getEntry(uint8_t row, uint8_t col) {
+            return contents[index(row, col)];
+        }
+    };
 	
 	/*
 	 * This struct contains info about the cursor's position and size.

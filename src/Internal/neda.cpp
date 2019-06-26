@@ -1094,6 +1094,15 @@ namespace neda {
         return new SigmaPi(symbol, (neda::Expr*) start->copy(), (neda::Expr*) finish->copy(), (neda::Expr*) contents->copy());
     }
 
+    // *************************** Matrix ***************************************
+    Matrix::~Matrix() {
+        for(uint16_t i = 0; i < m * n; i ++) {
+            DESTROY_IF_NONNULL(contents[i]);
+        }
+        delete[] contents;
+    }
+
+
     // *************************** Cursor ***************************************
     void Cursor::draw(lcd::LCD12864 &dest) {
         expr->drawCursor(dest, *this);
