@@ -115,7 +115,7 @@ uint8_t ftoa(double val, char *str, uint8_t ndigits, char echar) {
     uint8_t wholeDigits = ltoa(whole, str + len);
     len += wholeDigits;
     //If it's an integer, finish here
-    if(whole == val) {
+    if (whole == abs(val)) {
         return len;
     }
 
@@ -126,9 +126,18 @@ uint8_t ftoa(double val, char *str, uint8_t ndigits, char echar) {
         //Make sure the absolute value is taken so that |frac| < 1 for all cases
         double frac = abs(val) - whole;
         //Move the decimal point and round
-        int64_t nfrac = round(frac * powl(10, ndigits - wholeDigits));
-        if(nfrac < 0) {
+        double mult = pow(10.0, ndigits - wholeDigits);
+        int64_t nfrac = round(frac * mult);
+        if (nfrac < 0) {
             nfrac *= -1;
+        }
+        // If the fractional part turns out to be the same as the multiplier then it rounds to 1
+        if (nfrac == mult) {
+            // Take the whole part of the original value and increment its absolute value by 1
+            int64_t rval = val;
+            rval += (val > 0 ? 1 : -1);
+            // Call ltoa on it and return the result
+            return ltoa(rval, str);
         }
         char buf[64];
         //Convert fractional part
