@@ -941,7 +941,8 @@ evaluateFunctionArguments:
                         else {
                             // If unary operators are not allowed, which means that the previous token was not an operator,
                             // There must be an implied multiplication 
-                            if(!allowUnary) {
+                            // Unless the last token was a multiply, which means there was an unary operator
+                            if(!allowUnary && (arr.length() != 0 && arr[arr.length() - 1] != &Operator::OP_MULTIPLY)) {
                                 arr.add(&Operator::OP_MULTIPLY);
                             }
                             // If n is nonnull it must be added, so no need for cleanup
