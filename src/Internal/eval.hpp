@@ -22,6 +22,7 @@ namespace eval {
         L_BRACKET,
         R_BRACKET,
         FUNCTION,
+        MATRIX,
     };
     class Token {
     public:
@@ -102,8 +103,6 @@ namespace eval {
         Operator(Type type) : type(type) {}
     };
 
-    // For now, functions only take one argument
-    // Multi-arg functions might be added in the future.
     // Even though only one instance of each type of function is needed, because there are a lot of functions, it is not worth it
     // to make it a singleton
     class Function : public Token {
@@ -126,6 +125,39 @@ namespace eval {
         static Function* fromString(const char*);
         uint8_t getNumArgs() const;
         Token* operator()(Token**) const;
+    };
+
+    class Matrix : public Token {
+    public:
+        Matrix(uint8_t m, uint8_t n) : m(m), n(n) {
+            contents = new double[m * n];
+            memset(contents, 0, sizeof(double) * m * n);
+        }
+
+        ~Matrix() {
+            delete[] contents;
+        }
+
+        const uint8_t m;
+        const uint8_t n;
+        
+        double *contents;
+
+        // Maps zero-based indexing to index in contents array
+        inline uint16_t index_0(uint8_t x, uint8_t y) {
+            return x + y * n;
+        }
+        // Sets an entry
+        inline void setEntry(uint8_t row, uint8_t col, double entry) {
+            contents[index_0(col, row)] = entry;
+        }
+        inline double getEntry(uint8_t row, uint8_t col) {
+            return contents[index_0(col, row)];
+        }
+
+        virtual TokenType getType() override {
+            return TokenType::MATRIX;
+        }
     };
 
     struct UserDefinedFunction {
