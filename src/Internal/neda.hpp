@@ -495,6 +495,8 @@ namespace neda {
 
         virtual void getCursor(Cursor&, CursorLocation) override;
 
+        virtual Matrix* copy() override;
+
         virtual ObjType getType() override;
     };
 	

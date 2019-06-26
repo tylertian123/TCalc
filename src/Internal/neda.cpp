@@ -1121,7 +1121,7 @@ namespace neda {
     uint16_t Matrix::colWidth_0(uint8_t col) {
         uint16_t colMax = 0;
         for(uint8_t j = 0; j < m; j ++) {
-            colMax = max(colMax, static_cast<uint16_t>(SAFE_ACCESS_0(contents[index_0(col, j)], exprHeight)));
+            colMax = max(colMax, static_cast<uint16_t>(SAFE_ACCESS_0(contents[index_0(col, j)], exprWidth)));
         }
         return colMax;
     }
@@ -1158,6 +1158,7 @@ namespace neda {
         }
         total += (m - 1) * ENTRY_SPACING;
         total += 2 * TOP_SPACING;
+        exprHeight = total;
         SAFE_EXEC(parent, computeHeight);
     }
     void Matrix::computeWidth() {
@@ -1167,6 +1168,7 @@ namespace neda {
         }
         total += (n - 1) * ENTRY_SPACING;
         total += 2 * SIDE_SPACING;
+        exprWidth = total;
         SAFE_EXEC(parent, computeWidth);
     }
     void Matrix::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
@@ -1178,14 +1180,14 @@ namespace neda {
         // Cache column widths
         uint16_t *colWidths = new uint16_t[n];
         for(uint8_t i = 0; i < n; i ++) {
-            colWidths[i] = colWidth_0(n);
+            colWidths[i] = colWidth_0(i);
         }
 
         // Go row-by-row
         uint16_t exprY = y + TOP_SPACING;
         for(uint8_t row = 0; row < m; row ++) {
             uint16_t exprX = x + SIDE_SPACING;
-            uint16_t topSpacing = rowTopSpacing_0(m);
+            uint16_t topSpacing = rowTopSpacing_0(row);
             
             for(uint8_t col = 0; col < n; col ++) {
                 uint16_t index = index_0(col, row);
@@ -1215,6 +1217,17 @@ namespace neda {
         else {
             SAFE_EXEC(contents[n - 1], getCursor, cursor, location);
         }
+    }
+    Matrix* Matrix::copy() {
+        Matrix *mat = new Matrix(m, n);
+        
+        for(uint16_t i = 0; i < m * n; i ++) {
+            mat->contents[i] = (neda::Expr*) contents[i]->copy();
+            mat->contents[i]->parent = mat;
+        }
+        mat->exprWidth = exprWidth;
+        mat->exprHeight = exprHeight;
+        return mat;
     }
 
     // *************************** Cursor ***************************************
