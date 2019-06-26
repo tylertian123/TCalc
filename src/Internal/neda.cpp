@@ -1133,18 +1133,19 @@ namespace neda {
         }
         // Add edge spacing (top)
         total += TOP_SPACING;
-        // Add spacing between rows
-        if(m / 2 != 0) {
-            total += (m / 2 - 1) * ENTRY_SPACING;
-        }
+        
         // The top spacing is divided into two scenarios
         // Scenario 1: even number of rows
         if(m % 2 == 0) {
+            // Add spacing between rows
+            total += (m / 2 - 1) * ENTRY_SPACING;
             // Add spacing between middle two rows
             total += ENTRY_SPACING / 2;
         }
         // Scenario 2: odd number of rows
         else {
+            // Add spacing between rows
+            total += m / 2 * ENTRY_SPACING;
             // Add the top spacing of the middle row
             total += rowTopSpacing_0(m / 2);
         }
