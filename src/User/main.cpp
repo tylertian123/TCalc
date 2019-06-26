@@ -65,6 +65,7 @@ enum class DispMode {
 	CONFIG_MENU,
     FUNC_MENU,
     RECALL_MENU,
+    MATRIX_MENU,
     GAME,
 };
 DispMode dispMode = DispMode::EXPR_ENTRY;
@@ -351,11 +352,12 @@ void clearVarsAndFuncs() {
     functions.empty();
 }
 
-//Key press handlers
-//Probably gonna make this name shorter, but couldn't bother.
+// Key press handlers
+// Probably gonna make this name shorter, but couldn't bother.
 extern uint16_t selectorIndex;
 bool editExpr = true;
 uint8_t currentExpr = 0;
+uint8_t matRows = 0, matCols = 0;
 void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
     if(!editExpr && key != KEY_UP && key != KEY_DOWN && key != KEY_APPROX) {
         // If the key is a left or right, make a copy of the expression on display
@@ -773,14 +775,32 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
         break;
     }
     case KEY_MATRIX:
-    {
-        neda::Matrix *mat = new neda::Matrix(1, 1);
-        mat->setEntry(1, 1, new neda::Container());
-        cursor->add(mat);
-        mat->getCursor(*cursor, neda::CURSORLOCATION_START);
-        cursor->expr->parent->parent->draw(display);
-        mat->computeWidth();
-        mat->computeHeight();
+    {   
+        // matRows == 0 means it was not set
+        // So change mode to set matrix size
+        if(matRows == 0) {
+            matRows = matCols = 1;
+            dispMode = DispMode::MATRIX_MENU;
+            goto dispModeChange;
+        }
+        else {
+            neda::Matrix *mat = new neda::Matrix(matRows, matCols);
+            for(uint8_t i = 0; i < matRows; i ++) {
+                for(uint8_t j = 0; j < matCols; j ++) {
+                    mat->setEntry(i, j, new neda::Container());
+                }
+            }
+
+            cursor->add(mat);
+            mat->getCursor(*cursor, neda::CURSORLOCATION_START);
+            cursor->expr->parent->parent->draw(display);
+            // These have to be called manually since setting the entries do not trigger size recalculations
+            mat->computeWidth();
+            mat->computeHeight();
+
+            // Reset matRows
+            matRows = 0;
+        }
         break;
     }
 	/* OTHER */
@@ -1024,12 +1044,21 @@ evaluateExpression:
         }
     }
     case KEY_CONST:
+        dispMode = DispMode::CONST_MENU;
+        goto dispModeChange;
     case KEY_TRIG:
+        dispMode = DispMode::TRIG_MENU;
+        goto dispModeChange;
 	case KEY_CONFIG:
+        dispMode = DispMode::CONFIG_MENU;
+        goto dispModeChange;
     case KEY_CAT:
+        dispMode = DispMode::FUNC_MENU;
+        goto dispModeChange;
     case KEY_RECALL:
-        // Set the display mode and reset the index
-        dispMode = key == KEY_TRIG ? DispMode::TRIG_MENU : key == KEY_CONST ? DispMode::CONST_MENU : key == KEY_CAT ? DispMode::FUNC_MENU : key == KEY_RECALL ? DispMode::RECALL_MENU : DispMode::CONFIG_MENU;
+        dispMode = DispMode::RECALL_MENU;
+// Set the display mode and reset the index
+dispModeChange:
         selectorIndex = 0;
         // We need to call the function once to get the interface drawn
         // To do this, we insert a dummy value into the key buffer
@@ -1328,6 +1357,7 @@ void recallUserDefinedFunctionsDefinitionsMenuKeyPressHandler(neda::Cursor *curs
 
 void calculatorSettingsAndConfigurationMenuKeyPressHandler(uint16_t key) {
 	switch(key) {
+    case KEY_CENTER:
 	case KEY_ENTER:
 	case KEY_CONFIG:
 		dispMode = DispMode::EXPR_ENTRY;
@@ -1347,6 +1377,58 @@ void calculatorSettingsAndConfigurationMenuKeyPressHandler(uint16_t key) {
 	display.drawString(1, 1, "Angles:");
 	display.drawString(64, 1, eval::useRadians ? "Radians" : "Degrees", true);
 	display.updateDrawing();
+}
+
+void matrixSizeSelectionMenuKeyPressHandler(uint16_t key) {
+    switch(key) {
+    case KEY_CENTER:
+    case KEY_ENTER:
+        dispMode = DispMode::EXPR_ENTRY;
+        selectorIndex = 0;
+        // Insert a KEY_MATRIX so we go back to the matrix entry processing
+        putKey(KEY_MATRIX);
+        return;
+    case KEY_LEFT:
+    case KEY_RIGHT:
+        selectorIndex = !selectorIndex;
+        break;
+    case KEY_UP:
+        if(selectorIndex == 0) {
+            if(matRows < 255) {
+                matRows ++;
+            }
+        }
+        else {
+            if(matCols < 255) {
+                matCols ++;
+            }
+        }
+        break;
+    case KEY_DOWN:
+        if(selectorIndex == 0) {
+            if(matRows > 1) {
+                matRows --;
+            }
+        }
+        else {
+            if(matCols > 1) {
+                matCols --;
+            }
+        }
+        break;
+    }
+
+    display.clearDrawingBuffer();
+    display.drawString(1, 1, "Matrix Size:");
+
+    char sizeBuf[8];
+    uint8_t len = ltoa(matRows, sizeBuf);
+    display.drawString(48, 13, sizeBuf, selectorIndex == 0);
+    display.drawString(48 + len * 6, 13, "x");
+    ltoa(matCols, sizeBuf);
+    display.drawString(54 + len * 6, 13, sizeBuf, selectorIndex == 1);
+
+    display.updateDrawing();
 }
 
 void gameKeyPressHandler(uint16_t key) {
@@ -1481,6 +1563,9 @@ int main() {
                 break;
             case DispMode::RECALL_MENU:
                 recallUserDefinedFunctionsDefinitionsMenuKeyPressHandler(cursor, key);
+                break;
+            case DispMode::MATRIX_MENU:
+                matrixSizeSelectionMenuKeyPressHandler(key);
                 break;
             case DispMode::GAME:
                 gameKeyPressHandler(key);

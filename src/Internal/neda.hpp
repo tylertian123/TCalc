@@ -464,11 +464,6 @@ namespace neda {
         const uint8_t n;
         Expr **contents;
 
-        // Maps row and column to index in contents array 
-        // DOES NOT CHECK FOR BOUNDS
-        inline uint16_t index(uint8_t row, uint8_t col) {
-            return (col - 1) + (row - 1) * n;
-        }
         // Maps zero-based indexing to index in contents array
         inline uint16_t index_0(uint8_t x, uint8_t y) {
             return x + y * n;
@@ -476,11 +471,11 @@ namespace neda {
         // Sets an entry
         // DOES NOT RECOMPUTE THE SIZE!
         inline void setEntry(uint8_t row, uint8_t col, Expr *entry) {
-            contents[index(row, col)] = entry;
+            contents[index_0(row, col)] = entry;
             entry->parent = this;
         }
         inline Expr* getEntry(uint8_t row, uint8_t col) {
-            return contents[index(row, col)];
+            return contents[index_0(row, col)];
         }
 
         // 0-based indexing!
