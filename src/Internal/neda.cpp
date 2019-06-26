@@ -1218,6 +1218,78 @@ namespace neda {
             SAFE_EXEC(contents[n - 1], getCursor, cursor, location);
         }
     }
+    void Matrix::left(Expr *ex, Cursor &cursor) {
+        // Find the index
+        uint8_t x, y;
+        for(x = 0; x < n; x ++) {
+            for(y = 0; y < m; y ++) {
+                if(ex == contents[index_0(x, y)]) {
+                    goto loopEnd;
+                }
+            }
+        }
+loopEnd:
+        if(x != 0 && x != n) {
+            SAFE_EXEC(contents[index_0(x - 1, y)], getCursor, cursor, CURSORLOCATION_END);
+        }
+        else {
+            SAFE_EXEC(parent, left, this, cursor);
+        }
+    }
+    void Matrix::right(Expr *ex, Cursor &cursor) {
+        // Find the index
+        uint8_t x, y;
+        for(x = 0; x < n; x ++) {
+            for(y = 0; y < m; y ++) {
+                if(ex == contents[index_0(x, y)]) {
+                    goto loopEnd;
+                }
+            }
+        }
+loopEnd:
+        if(x < n - 1) {
+            SAFE_EXEC(contents[index_0(x + 1, y)], getCursor, cursor, CURSORLOCATION_START);
+        }
+        else {
+            SAFE_EXEC(parent, right, this, cursor);
+        }
+    }
+    void Matrix::up(Expr *ex, Cursor &cursor) {
+        // Find the index
+        uint8_t x, y;
+        for(x = 0; x < n; x ++) {
+            for(y = 0; y < m; y ++) {
+                if(ex == contents[index_0(x, y)]) {
+                    goto loopEnd;
+                }
+            }
+        }
+loopEnd:
+        if(y != 0 && y != m) {
+            SAFE_EXEC(contents[index_0(x, y - 1)], getCursor, cursor, CURSORLOCATION_END);
+        }
+        else {
+            SAFE_EXEC(parent, up, this, cursor);
+        }
+    }
+    void Matrix::down(Expr *ex, Cursor &cursor) {
+        // Find the index
+        uint8_t x, y;
+        for(x = 0; x < n; x ++) {
+            for(y = 0; y < m; y ++) {
+                if(ex == contents[index_0(x, y)]) {
+                    goto loopEnd;
+                }
+            }
+        }
+loopEnd:
+        if(y < m - 1) {
+            SAFE_EXEC(contents[index_0(x, y + 1)], getCursor, cursor, CURSORLOCATION_START);
+        }
+        else {
+            SAFE_EXEC(parent, down, this, cursor);
+        }
+    }
     Matrix* Matrix::copy() {
         Matrix *mat = new Matrix(m, n);
         

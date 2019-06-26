@@ -454,7 +454,7 @@ namespace neda {
 
         virtual ~Matrix();
 
-        static constexpr uint16_t ENTRY_SPACING = 3;
+        static constexpr uint16_t ENTRY_SPACING = 4;
         static constexpr uint16_t SIDE_SPACING = 3;
         static constexpr uint16_t TOP_SPACING = 2;
 
@@ -493,6 +493,10 @@ namespace neda {
         virtual void computeHeight() override;
         virtual void draw(lcd::LCD12864&, int16_t, int16_t) override;
 
+        virtual void left(Expr*, Cursor&) override;
+        virtual void right(Expr*, Cursor&) override;
+        virtual void up(Expr*, Cursor&) override;
+        virtual void down(Expr*, Cursor&) override;
         virtual void getCursor(Cursor&, CursorLocation) override;
 
         virtual Matrix* copy() override;
