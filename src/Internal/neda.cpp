@@ -1146,7 +1146,7 @@ namespace neda {
         // Scenario 2: odd number of rows
         else {
             // Add the top spacing of the middle row
-            total += rowTopSpacing_0(m / 2 + 1);
+            total += rowTopSpacing_0(m / 2);
         }
         return total;
     }

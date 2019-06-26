@@ -774,13 +774,13 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
     }
     case KEY_MATRIX:
     {
-        // neda::Matrix *mat = new neda::Matrix(1, 1);
-        // mat->setEntry(1, 1, new neda::Container());
-        // cursor->add(mat);
-        // mat->getCursor(*cursor, neda::CURSORLOCATION_START);
-        // cursor->expr->parent->parent->draw(display);
-        // mat->computeWidth();
-        // mat->computeHeight();
+        neda::Matrix *mat = new neda::Matrix(1, 1);
+        mat->setEntry(1, 1, new neda::Container());
+        cursor->add(mat);
+        mat->getCursor(*cursor, neda::CURSORLOCATION_START);
+        cursor->expr->parent->parent->draw(display);
+        mat->computeWidth();
+        mat->computeHeight();
         break;
     }
 	/* OTHER */
