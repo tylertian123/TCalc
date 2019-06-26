@@ -18,14 +18,14 @@
 namespace neda {
 
     class Cursor;
-    //Note: CursorInfo is the specific position of the cursor on the display, with x and y coordinates
-    //CursorLocation can either be START or END and is used to get a cursor at the start or end of the expr.
+    // Note: CursorInfo is the specific position of the cursor on the display, with x and y coordinates
+    // CursorLocation can either be START or END and is used to get a cursor at the start or end of the expr.
     struct CursorInfo;
     typedef bool CursorLocation;
     constexpr CursorLocation CURSORLOCATION_START = 0;
     constexpr CursorLocation CURSORLOCATION_END = 1;
 
-    //Enum of all NEDA object types
+    // Enum of all NEDA object types
     enum class ObjType : uint8_t {
         NULL_TYPE,
         CHAR_TYPE,
@@ -86,7 +86,7 @@ namespace neda {
      */
 	class Expr : public NEDAObj {
 	public:
-        //The width, height, x and y coordinates are all cached
+        // The width, height, x and y coordinates are all cached
 		virtual void computeWidth() = 0;
 		virtual void computeHeight() = 0;
 
@@ -94,13 +94,13 @@ namespace neda {
 	
 		virtual uint16_t getTopSpacing() = 0;
 	
-        //Draws the expr at the specified coords, updating the cached x and y as it goes
+        // Draws the expr at the specified coords, updating the cached x and y as it goes
 		virtual void draw(lcd::LCD12864&, int16_t, int16_t) = 0;
-        //Draws the expr at the cached coords
+        // Draws the expr at the cached coords
         void draw(lcd::LCD12864&);
-        //Draws all expressions that are connected in some way to this one. e.g. its parents, siblings, grandparents, etc.
+        // Draws all expressions that are connected in some way to this one. e.g. its parents, siblings, grandparents, etc.
         void drawConnected(lcd::LCD12864&);
-        //Gets the one top-level expr, a direct parent of this expr that has no parent
+        // Gets the one top-level expr, a direct parent of this expr that has no parent
         Expr* getTopLevel();
 	
 		virtual ~Expr() {};
@@ -126,7 +126,7 @@ namespace neda {
      */
 	class Container : public Expr {
 	public:
-		//Constructor from dynamic array of Expression pointers, copy constructor and default constructor
+		// Constructor from dynamic array of Expression pointers, copy constructor and default constructor
 		Container(const DynamicArray<NEDAObj*> &exprs) : contents(exprs) {
             for(NEDAObj* ex : contents) {
                 if(ex->getType() != ObjType::CHAR_TYPE) {
@@ -184,7 +184,7 @@ namespace neda {
         virtual void updatePosition(int16_t, int16_t) override;
 	
 		DynamicArray<NEDAObj*> contents;
-        //Recomputes the heights of all expressions that have heights dependent on others
+        // Recomputes the heights of all expressions that have heights dependent on others
         void recomputeHeights();
 
         virtual Container* copy() override;
@@ -192,7 +192,7 @@ namespace neda {
         void addString(const char*);
 	};
 	
-	//Fraction
+	// Fraction
 	class Fraction : public Expr {
 	public:
 		Fraction(Expr *numerator, Expr *denominator) : numerator(numerator), denominator(denominator) {
@@ -246,8 +246,8 @@ namespace neda {
         virtual void computeWidth() override;
         virtual void computeHeight() override;
         virtual void draw(lcd::LCD12864&, int16_t, int16_t) override;
-        //Do nothing
-        //Realistically this method is never going to be called on LeftBracket anyways
+        // Do nothing
+        // Realistically this method is never going to be called on LeftBracket anyways
         virtual void getCursor(Cursor &cursor, CursorLocation location) override {}
         virtual ObjType getType() override {
             return ObjType::L_BRACKET;
@@ -266,8 +266,8 @@ namespace neda {
         virtual void computeWidth() override;
         virtual void computeHeight() override;
         virtual void draw(lcd::LCD12864&, int16_t, int16_t) override;
-        //Do nothing
-        //Realistically this method is never going to be called on RightBracket anyways
+        // Do nothing
+        // Realistically this method is never going to be called on RightBracket anyways
         virtual void getCursor(Cursor &cursor, CursorLocation location) override {}
         virtual ObjType getType() override {
             return ObjType::R_BRACKET;
@@ -277,7 +277,7 @@ namespace neda {
     };
 
 	
-	//n-th root expression
+	// n-th root expression
 	class Radical : public Expr {
 	public:
 		Radical(Expr *contents, Expr *n) : contents(contents), n(n) {
@@ -360,7 +360,7 @@ namespace neda {
         virtual Superscript* copy() override;
     };
 
-	//Subscript
+	// Subscript
 	class Subscript : public Expr {
 	public:
 		Subscript(Expr *contents) : contents(contents) {
@@ -397,7 +397,7 @@ namespace neda {
         virtual Subscript* copy() override;
 	};
 	
-	//Summation (Sigma) or Product (Pi)
+	// Summation (Sigma) or Product (Pi)
 	class SigmaPi : public Expr {
 	public:
 		SigmaPi(const lcd::LCD12864Image &symbol, Expr *start, Expr *finish, Expr *contents) : symbol(symbol), start(start), finish(finish), contents(contents) {

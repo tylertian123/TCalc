@@ -23,7 +23,7 @@ public:
             maxLen = oldMaxLen;
             return false;
         }
-        //Adjust the queue to accommodate for the change
+        // Adjust the queue to accommodate for the change
         contents = (T*) tmp;
         uint16_t i = maxLen - 1;
         uint16_t index = (start + len) % maxLen;
@@ -43,7 +43,7 @@ public:
     }
 
     bool enqueue(T elem) {
-        //Check for overflow
+        // Check for overflow
         if(len + 1 > maxLen) {
             if(!increaseSize(IncreaseAmount)) {
                 return false;
@@ -55,7 +55,7 @@ public:
         return true;
     }
     bool push(T elem) {
-        //Check for overflow
+        // Check for overflow
         if(len + 1 > maxLen) {
             if(!increaseSize(IncreaseAmount)) {
                 return false;

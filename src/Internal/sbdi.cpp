@@ -3,7 +3,7 @@
 
 namespace sbdi {
 	
-	//Because of how callbacks work, unfortunately Receiver has to be a singleton
+	// Because of how callbacks work, unfortunately Receiver has to be a singleton
 	Receiver *receiverInstance;
 	bool transmissionStarted = false;
 	
@@ -19,15 +19,15 @@ namespace sbdi {
 		EN.setCallback(Receiver_EN_Callback);
 	}
 	void Receiver_EN_Callback() {
-		//Rising Edge - Transmission over
+		// Rising Edge - Transmission over
 		if(receiverInstance->EN) {
 			transmissionStarted = false;
-			//Call callback if set
+			// Call callback if set
 			if(receiverInstance->callback) {
 				receiverInstance->callback(receiverInstance->buffer);
 			}
 		}
-		//Falling Edge - Transmission started
+		// Falling Edge - Transmission started
 		else {
 			transmissionStarted = true;
 			receiverInstance->buffer = 0;

@@ -71,8 +71,8 @@ namespace eval {
     public:
         enum Type {
             PLUS, MINUS, MULTIPLY, DIVIDE, EXPONENT, EQUALITY,
-            //Special multiplication and division
-            //These operators have the highest precedence
+            // Special multiplication and division
+            // These operators have the highest precedence
             SP_MULT, SP_DIV,
         };
 
@@ -85,34 +85,34 @@ namespace eval {
         }
 
         static Operator* fromChar(char);
-        //Because there are only a set number of possible operators, we can keep singletons
+        // Because there are only a set number of possible operators, we can keep singletons
         static Operator OP_PLUS, OP_MINUS, OP_MULTIPLY, OP_DIVIDE, OP_EXPONENT, OP_SP_MULT, OP_SP_DIV, OP_EQUALITY;
 
         double operate(double, double);
-        //Returns whether the operation was successful (in the case of fractional exponentiation)
-        //Ugly, I know.
+        // Returns whether the operation was successful (in the case of fractional exponentiation)
+        // Ugly, I know.
         bool operateOn(Fraction*, Fraction*);
 
-        //Operates on two numericals, taking into account fractions and everything
-        //The returned numerical is allocated on the heap and needs to be freed
-        //The input is deleted
+        // Operates on two numericals, taking into account fractions and everything
+        // The returned numerical is allocated on the heap and needs to be freed
+        // The input is deleted
         Token* operator()(Token*, Token*);
     
     private:
         Operator(Type type) : type(type) {}
     };
 
-    //For now, functions only take one argument
-    //Multi-arg functions might be added in the future.
-    //Even though only one instance of each type of function is needed, because there are a lot of functions, it is not worth it
-    //to make it a singleton
+    // For now, functions only take one argument
+    // Multi-arg functions might be added in the future.
+    // Even though only one instance of each type of function is needed, because there are a lot of functions, it is not worth it
+    // to make it a singleton
     class Function : public Token {
     public:
         enum Type : uint8_t {
             SIN, COS, TAN, ASIN, ACOS, ATAN, SINH, COSH, TANH, ASINH, ACOSH, ATANH, LN, LOG10, LOG2, QUADROOT_A, QUADROOT_B,
             ROUND, ABS, FACT,
         };
-        //Must be in the same order as type
+        // Must be in the same order as type
         static const char * const FUNCNAMES[];
         
         Function(Type type) : type(type) {}
@@ -141,7 +141,7 @@ namespace eval {
         const char *fullname;
     };
 
-    //This will delete the collection of tokens properly. It will destory all tokens in the array.
+    // This will delete the collection of tokens properly. It will destory all tokens in the array.
     template <uint16_t Increase>
     void freeTokens(Deque<Token*, Increase> *q) {
         while (!q->isEmpty()) {
@@ -171,16 +171,16 @@ namespace eval {
         int16_t end = start;
         for (; end < arr->length() && end >= 0; end += direction) {
             char ch = extractChar((*arr)[end]);
-            //Special processing for the first char
+            // Special processing for the first char
             if (end == start) {
-                //The first digit has to be either a number or a name char (operators are handled)
+                // The first digit has to be either a number or a name char (operators are handled)
                 isNum = isDigit(ch);
             }
             else {
-                //Otherwise, break if one of the three conditions:
-                //The char is neither a name char or digit, and that it's not a plus or minus followed by an ee
-                //Or if the token is a number and the char is a name char
-                //Or if the token is not a number and the char is a digit
+                // Otherwise, break if one of the three conditions:
+                // The char is neither a name char or digit, and that it's not a plus or minus followed by an ee
+                // Or if the token is a number and the char is a name char
+                // Or if the token is not a number and the char is a digit
                 bool inc = isNameChar(ch);
                 bool id = isDigit(ch);
                 if ((!inc && !id && !((ch == '+' || ch == '-') && extractChar((*arr)[end - direction]) == LCD_CHAR_EE))

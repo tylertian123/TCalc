@@ -13,14 +13,14 @@
 template <typename T, uint16_t IncreaseAmount = 1>
 class DynamicArray {
 public:
-	//Creates a new DynamicArray with a default length of 0
+	// Creates a new DynamicArray with a default length of 0
 	DynamicArray() : contents((T*)malloc(0)), len(0), maxLen(0) {}
-	//Creates a new DynamicArray with a starting maximum length
+	// Creates a new DynamicArray with a starting maximum length
 	DynamicArray(uint16_t initialCapacity) : len(0), maxLen(initialCapacity) {
-		//Make sure the length is multipled by the size of T
+		// Make sure the length is multipled by the size of T
 		contents = (T*)malloc(sizeof(T) * initialCapacity);
 	}
-	//Copy constructor
+	// Copy constructor
 	DynamicArray(const DynamicArray &other) : len(other.len), maxLen(other.maxLen) {
 		contents = (T*)malloc(sizeof(T) * maxLen);
 
@@ -30,16 +30,16 @@ public:
 	}
 	typedef T* iterator;
 	typedef const T* const_iterator;
-	//Iterator constructor
+	// Iterator constructor
 	DynamicArray(const_iterator start, const_iterator fin) : len(fin - start), maxLen(fin - start) {
 		contents = (T*)malloc(sizeof(T) * maxLen);
 
 		for (iterator i = begin(); i != end(); i++) {
-			//Go through every elem and initialize its value
+			// Go through every elem and initialize its value
 			*i = *(start++);
 		}
 	}
-	//Array constructor from an array and size
+	// Array constructor from an array and size
 	DynamicArray(const T *arr, uint16_t len) : len(len), maxLen(len) {
 		contents = (T*)malloc(sizeof(T) * maxLen);
 
@@ -51,44 +51,44 @@ public:
 		free(contents);
 	}
 
-    //Retrieves the length of this DynamicArray
+    // Retrieves the length of this DynamicArray
 	uint16_t length() const {
 		return len;
 	}
-    //Retrieves the maximum length of this DynamicArray (the length it can be before having to reallocate)
+    // Retrieves the maximum length of this DynamicArray (the length it can be before having to reallocate)
 	uint16_t maxLength() const {
 		return maxLen;
 	}
-    //Resizes the maximum length
+    // Resizes the maximum length
 	bool resize(uint16_t newSize) {
 		uint16_t oldSize = maxLen;
-		//Ignore if the new size is less than the length
+		// Ignore if the new size is less than the length
 		if (newSize < len) {
 			return true;
 		}
-		//Otherwise reallocate memory
+		// Otherwise reallocate memory
 		maxLen = newSize;
-		//Make sure the length is multipled by the size of T
+		// Make sure the length is multipled by the size of T
 		void *tmp = realloc(contents, sizeof(T) * newSize);
-		//Oh crap we ran out of memory
+		// Oh crap we ran out of memory
 		if (!tmp) {
-			//Reset max len
+			// Reset max len
 			maxLen = oldSize;
 			return false;
 		}
 		contents = (T*)tmp;
 		return true;
 	}
-    //Reallocates the contents so that all extra space is freed
+    // Reallocates the contents so that all extra space is freed
 	void minimize() {
 		resize(len);
 	}
     
 	bool add(const T &elem) {
 		len++;
-		//If the new length is more than what we can store then reallocate
+		// If the new length is more than what we can store then reallocate
 		if (len > maxLen) {
-			//Minus one because len is already increased
+			// Minus one because len is already increased
 			if (!resize(len + IncreaseAmount - 1)) {
 				return false;
 			}
@@ -103,8 +103,8 @@ public:
 				return false;
 			}
 		}
-		//Iterate backwards to move the elements
-		//This way we don't have to keep a buffer
+		// Iterate backwards to move the elements
+		// This way we don't have to keep a buffer
 		for (uint16_t i = len - 1; i > where; i--) {
 			contents[i] = contents[i - 1];
 		}
@@ -112,18 +112,18 @@ public:
 		return true;
 	}
 	void removeAt(uint16_t where, uint16_t howMany = 1) {
-		//Ignore if out of bounds
+		// Ignore if out of bounds
 		if (where + howMany - 1 >= len) {
 			return;
 		}
 		len -= howMany;
-		//Shift all elements after the index back
+		// Shift all elements after the index back
 		for (uint16_t i = where - 1 + howMany; i < len; i++) {
 			contents[i] = contents[i + howMany];
 		}
 	}
 	T pop() {
-		//Simply decrement the length, no need to waste time clearing out the memory
+		// Simply decrement the length, no need to waste time clearing out the memory
         if(len > 0) {
 		    len--;
         }
@@ -134,7 +134,7 @@ public:
 	}
 	template <uint16_t Increase>
 	bool merge(const DynamicArray<T, Increase> *other) {
-		//Expand memory and stuff
+		// Expand memory and stuff
 		len += other->length();
 		if (len > maxLen) {
 			uint16_t old = maxLen;
@@ -147,7 +147,7 @@ public:
 			}
 			contents = (T*)tmp;
 		}
-		//Iterate and copy elements
+		// Iterate and copy elements
 		auto itThis = begin() + len - other->length();
 		for (auto itOther = other->begin(); itThis != end() && itOther != other->end(); itThis++, itOther++) {
 			*itThis = *itOther;
@@ -162,7 +162,7 @@ public:
         return contents;
     }
 
-	//WARNING: Does not check for out of bounds!
+	// WARNING: Does not check for out of bounds!
 	const T& operator[](uint16_t i) const {
 		return contents[i];
 	}

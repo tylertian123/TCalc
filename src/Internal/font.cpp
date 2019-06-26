@@ -1157,7 +1157,7 @@ namespace lcd {
 	};
 	const Img CHAR_UNKNOWN(CHAR_UNKNOWN_DATA, 4, 30, 9);
 	
-	//Special characters
+	// Special characters
     const uint8_t CHAR_AGV_DATA[] = {
         0x00, 0x00,
         0x00, 0x00,

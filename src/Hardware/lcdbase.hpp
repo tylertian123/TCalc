@@ -4,8 +4,8 @@
 #include "delay.hpp"
 #include "gpiopin.hpp"
 
-#define LCD_ENABLE_DELAY 10 //Cycles
-#define LCD_PRINTF_BUFFER_SIZE 128 //Characters
+#define LCD_ENABLE_DELAY 10 // Cycles
+#define LCD_PRINTF_BUFFER_SIZE 128 // Characters
 
 namespace lcd {
 	

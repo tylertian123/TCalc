@@ -1,6 +1,6 @@
 #include "delay.hpp"
 
-#define SYSCLK_FREQUENCY 72 //MHz
+#define SYSCLK_FREQUENCY 72 // MHz
 
 namespace delay {
 	
@@ -9,16 +9,16 @@ namespace delay {
 	}
 	
 	void us(uint16_t microSeconds) {
-		//Set SysTick reload value
+		// Set SysTick reload value
 		SysTick->LOAD = microSeconds * SYSCLK_FREQUENCY;
-		//Clear current value
+		// Clear current value
 		SysTick->VAL = 0x00000000;
-		//Set SysTick to use system clock, no interrupts and start timer
-		SysTick->CTRL = 0x00000005; //0000 0000 0000 0000 0000 0000 0000 0101
-		//Constantly check for timer overflow
-		while(!(SysTick->CTRL & 0x00010000)); //0000 0000 0000 0001 0000 0000 0000 0000
-		//Stop SysTick
-		SysTick->CTRL = 0x00000004; //0000 0000 0000 0000 0000 0000 0000 0100
+		// Set SysTick to use system clock, no interrupts and start timer
+		SysTick->CTRL = 0x00000005; // 0000 0000 0000 0000 0000 0000 0000 0101
+		// Constantly check for timer overflow
+		while(!(SysTick->CTRL & 0x00010000)); // 0000 0000 0000 0001 0000 0000 0000 0000
+		// Stop SysTick
+		SysTick->CTRL = 0x00000004; // 0000 0000 0000 0000 0000 0000 0000 0100
 	}
 	void ms(uint16_t ms) {
 		while(ms --) us((uint16_t) 1000);

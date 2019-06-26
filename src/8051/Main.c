@@ -60,7 +60,7 @@ void sendKey(unsigned short key) {
 	SBDI_EndTransmission();
 }
 void send(unsigned char row, unsigned char col) {
-	//Handle shift and ctrl keys separately
+	// Handle shift and ctrl keys separately
 	if(KEYMAP_NORMAL[row][col] == KEY_SHIFT) {
 		shift = !shift;
 		sendKey(shift ? KEY_SHIFTON : KEY_SHIFTOFF);
@@ -72,9 +72,9 @@ void send(unsigned char row, unsigned char col) {
 		return;
 	}
 	
-	//Check if shift and ctrl keys are down
+	// Check if shift and ctrl keys are down
 	if(shift) {
-		//Send the key, delay and deactivate shift and ctrl
+		// Send the key, delay and deactivate shift and ctrl
 		sendKey(KEYMAP_SHIFT[row][col]);
 		delay(10);
 		sendKey(KEY_SHIFTOFF);
@@ -97,7 +97,7 @@ void checkAndSend(unsigned char row) {
 		return;
 	}
 	
-	//Key hold checker same logic as joystick's
+	// Key hold checker same logic as joystick's
 	send(row, col);
 	while(checkCols() == col) {
 		if(holdCounter <= HOLD_COUNTER_MAX) {
@@ -116,35 +116,35 @@ void main(void) {
 	unsigned char holdCounter = 0;
 	
 	delay(1000);
-	//Set input pins to high impedance mode
-	P1M0 |= 0x06; //0000 0110
-	P1M1 &= 0xF9; //1111 1001
-	//Turn on ADC power
+	// Set input pins to high impedance mode
+	P1M0 |= 0x06; // 0000 0110
+	P1M1 &= 0xF9; // 1111 1001
+	// Turn on ADC power
 	ADC_CONTR |= 0x80;
-	//Configure ADC
-	//1 conversion per 90 CPU cycles
-	ADC_CONTR |= 0x60; //0110 0000
-	//Clear ADC Flag
-	ADC_CONTR &= 0xEF; //1110 1111
+	// Configure ADC
+	// 1 conversion per 90 CPU cycles
+	ADC_CONTR |= 0x60; // 0110 0000
+	// Clear ADC Flag
+	ADC_CONTR &= 0xEF; // 1110 1111
 	
 	BUTTON = 1;
 	resetRows();
 	resetCols();
 	while(1) {
-		//Check for left and right
+		// Check for left and right
 		result = ADC_SyncConv(CHANNEL_X_AXIS);
-		//Check if the value is below the min threshold, and that the last time we checked it was above
+		// Check if the value is below the min threshold, and that the last time we checked it was above
 		if(result < MIN_THRESH) {
-			//First send the key
+			// First send the key
 			sendKey(KEY_LEFT);
-			//Then check if the stick is held down
+			// Then check if the stick is held down
 			while(ADC_SyncConv(CHANNEL_X_AXIS) < MIN_THRESH) {
-				//While holding down and the counter does not exceed the max, increment the counter and delay
+				// While holding down and the counter does not exceed the max, increment the counter and delay
 				if(holdCounter <= HOLD_COUNTER_MAX) {
 					holdCounter ++;
 					delay(10);
 				}
-				//Otherwise send the key and delay
+				// Otherwise send the key and delay
 				else {
 					sendKey(KEY_LEFT);
 					delay(REPEAT_KEY_DELAY);
@@ -167,7 +167,7 @@ void main(void) {
 			holdCounter = 0;
 		}
 		
-		//Check for up and down
+		// Check for up and down
 		result = ADC_SyncConv(CHANNEL_Y_AXIS);
 		if(result < MIN_THRESH) {
 			sendKey(KEY_UP);

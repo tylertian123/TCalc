@@ -16,43 +16,43 @@ void resetCols() {
 
 unsigned char checkCols() {
 	if(!COL1) {
-		//DEBOUNCE(COL1);
+		// DEBOUNCE(COL1);
 		return 0;
 	}
 	if(!COL2) {
-		//DEBOUNCE(COL2);
+		// DEBOUNCE(COL2);
 		return 1;
 	}
 	if(!COL3) {
-		//DEBOUNCE(COL3);
+		// DEBOUNCE(COL3);
 		return 2;
 	}
 	if(!COL4) {
-		//DEBOUNCE(COL4);
+		// DEBOUNCE(COL4);
 		return 3;
 	}
 	if(!COL5) {
-		//DEBOUNCE(COL5);
+		// DEBOUNCE(COL5);
 		return 4;
 	}
 	if(!COL6) {
-		//DEBOUNCE(COL6);
+		// DEBOUNCE(COL6);
 		return 5;
 	}
 	if(!COL7) {
-		//DEBOUNCE(COL7);
+		// DEBOUNCE(COL7);
 		return 6;
 	}
 	if(!COL8) {
-		//DEBOUNCE(COL8);
+		// DEBOUNCE(COL8);
 		return 7;
 	}
 	if(!COL9) {
-		//DEBOUNCE(COL9);
+		// DEBOUNCE(COL9);
 		return 8;
 	}
 	if(!COL10) {
-		//DEBOUNCE(COL10);
+		// DEBOUNCE(COL10);
 		return 9;
 	}
 	return 0xFF;

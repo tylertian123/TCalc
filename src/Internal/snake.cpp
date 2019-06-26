@@ -45,15 +45,15 @@ namespace game {
         Coords next = getNextLocation(head, direction);
 
         if(!eatsFood) {
-            //Disconnect the tail
+            // Disconnect the tail
             if(tail->prev) {
                 tail->prev->next = nullptr;
                 tail->prev = nullptr;
             }
-            //Update position
+            // Update position
             tail->x = next.x;
             tail->y = next.y;
-            //Connect this to the head
+            // Connect this to the head
             if(head != tail) {
                 tail->next = head;
                 head->prev = tail;

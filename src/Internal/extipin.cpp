@@ -55,12 +55,12 @@ void EXTIPin::setCallback(CallbackFunction callback) {
 		EXTI15Callback = callback;
 		break;
 	default:
-		break; //throw YouAreAnIdiotError();
+		break; // throw YouAreAnIdiotError();
 	}
 }
 
 uint32_t EXTIPin::getEXTILine() {
-	//Turns out the definitions are the exact same!
+	// Turns out the definitions are the exact same!
 	return (uint32_t) pin.pin;
 }
 
@@ -90,7 +90,7 @@ uint8_t EXTIPin::getEXTIIRQChannel() {
 	case GPIO_Pin_15:
 		return EXTI15_10_IRQn;
 	default:
-		return 0xFF; //throw YouAreAnIdiotError();
+		return 0xFF; // throw YouAreAnIdiotError();
 	}
 }
 

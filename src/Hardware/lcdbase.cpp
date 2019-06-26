@@ -16,14 +16,14 @@ namespace lcd {
 	#define INIT_O(x) x.init(GPIO_Mode_Out_PP, GPIO_Speed_2MHz)
 	
 	void LCDBase::initGPIO() {
-		//Initialize the pins for output first
+		// Initialize the pins for output first
 		INIT_O(RS);
 		INIT_O(RW);
 		INIT_O(E);
 		
 		setGPIOMode(WRITE_CONFIG);
 		
-		//Reset the data pins just in case
+		// Reset the data pins just in case
 		setDataPort(0x00);
 		RS = false;
 		RW = false;
@@ -49,8 +49,8 @@ namespace lcd {
 		timeout = t;
 	}
 	
-	//These functions set and read from the data port
-	//If in four wire interface, only the lowest 4 bits will be written
+	// These functions set and read from the data port
+	// If in four wire interface, only the lowest 4 bits will be written
 	void LCDBase::setDataPort(uint8_t data) {
 		if(!FOUR_WIRE_INTERFACE) {
 			D0 = data & 0x01;
@@ -70,7 +70,7 @@ namespace lcd {
 			D7 = data & 0x08;
 		}
 	}
-	//If in four wire interface, only a nibble will be read
+	// If in four wire interface, only a nibble will be read
 	uint8_t LCDBase::readDataPort() {
 		setGPIOMode(READ_CONFIG);
 		uint8_t result = FOUR_WIRE_INTERFACE ? (D7 << 3 | D6 << 2 | D5 << 1 | D4 << 0) : 
@@ -91,15 +91,15 @@ namespace lcd {
 		E = true;
 		LCD_EDELAY;
 		uint32_t timeoutCounter = 0;
-		//Initialize to read the busy flag
+		// Initialize to read the busy flag
 		INIT_I(D7);
-		//Wait until the pin is cleared
+		// Wait until the pin is cleared
 		while(D7) {
 			timeoutCounter++;
 			delay::us(1);
-			//Handle timeout
+			// Handle timeout
 			if(timeoutCounter > timeout) {
-				//Make sure to reset enable pin after
+				// Make sure to reset enable pin after
 				E = false;
 				INIT_O(D7);
 				return false;
@@ -151,7 +151,7 @@ namespace lcd {
 		__enable_irq();
 		return true;
 	}
-	//The busy flag cannnot be checked before initialization, thus delays are used instead of busy flag checking
+	// The busy flag cannnot be checked before initialization, thus delays are used instead of busy flag checking
 	void LCDBase::writeCommandNoWait(uint8_t cmd) {
 		__disable_irq();
 		
@@ -243,11 +243,11 @@ namespace lcd {
 		return true;
 	}
 	bool LCDBase::printf(const char *fmt, ...) {
-		//Buffer used to store formatted string
+		// Buffer used to store formatted string
 		char buf[LCD_PRINTF_BUFFER_SIZE] = { 0 };
 		std::va_list args;
 		va_start(args, fmt);
-		//Use vsnprintf to safely format the string and put into the buffer
+		// Use vsnprintf to safely format the string and put into the buffer
 		vsnprintf(buf, LCD_PRINTF_BUFFER_SIZE, fmt, args);
 		return writeString(buf);
 	}

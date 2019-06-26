@@ -18,7 +18,7 @@
 */
 namespace neda {
 
-    //*************************** Character ***************************************
+    // *************************** Character ***************************************
     void Character::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
         dest.drawImage(x, y, lcd::getChar(ch));
     }
@@ -32,11 +32,11 @@ namespace neda {
         return new Character(ch);
     }
 	
-	//*************************** Expr ***************************************
+	// *************************** Expr ***************************************
     void Expr::draw(lcd::LCD12864 &dest) {
         draw(dest, x, y);
     }
-    //Default impl: Call the parent's cursor method, if it has one
+    // Default impl: Call the parent's cursor method, if it has one
     void Expr::left(Expr *ex, Cursor &cursor) {
         SAFE_EXEC(parent, left, this, cursor);
     }
@@ -65,13 +65,13 @@ namespace neda {
         y += dy;
     }
 	
-	//*************************** Container ***************************************
+	// *************************** Container ***************************************
     uint16_t Container::getTopSpacing() {
         if(contents.length() == 0) {
             return EMPTY_EXPR_HEIGHT / 2;
         }
         uint16_t maxTopSpacing = 0;
-        //Take the max of all the top spacings
+        // Take the max of all the top spacings
         for(NEDAObj *ex : contents) {
             if(ex->getType() == ObjType::CHAR_TYPE) {
                 maxTopSpacing = max(static_cast<uint16_t>(((Character*) ex)->getHeight() / 2), maxTopSpacing);
@@ -84,14 +84,14 @@ namespace neda {
         return maxTopSpacing;
     }
 	void Container::computeWidth() {
-		//An empty Container has a default width and height
+		// An empty Container has a default width and height
 		if(contents.length() == 0) {
 			exprWidth = EMPTY_EXPR_WIDTH;
             SAFE_EXEC(parent, computeWidth);
             return;
 		}
 		
-		//Add up all the Expressions's widths
+		// Add up all the Expressions's widths
 		exprWidth = 0;
         for(auto it = contents.begin(); it != contents.end(); it ++) {
             NEDAObj *ex = *it;
@@ -112,20 +112,20 @@ namespace neda {
 			return;
 		}
 
-        //Computing the height takes special logic as it is more than just taking the max of all the children's heights.
-        //In the case of expressions such as 1^2+3_4, the height is greater than the max of all the children because the 1 and 3
-        //have to line up.
+        // Computing the height takes special logic as it is more than just taking the max of all the children's heights.
+        // In the case of expressions such as 1^2+3_4, the height is greater than the max of all the children because the 1 and 3
+        // have to line up.
 		uint16_t maxTopSpacing = getTopSpacing();
-		//Take the max of all the top spacings
+		// Take the max of all the top spacings
 		
-        //Now with the max top spacing we can compute the heights and see what the max is
+        // Now with the max top spacing we can compute the heights and see what the max is
         uint16_t maxHeight = 0;
         for(NEDAObj *ex : contents) {
-            //To calculate the height of any expression in this container, we essentially "replace" the top spacing with the max top
-            //spacing, so that there is now a padding on the top. This is done in the expression below.
-            //When that expression's top spacing is the max top spacing, the expression will be touching the top of the container.
-            //Therefore, its height is just the height. In other cases, it will be increased by the difference between the max top
-            //spacing and the top spacing.
+            // To calculate the height of any expression in this container, we essentially "replace" the top spacing with the max top
+            // spacing, so that there is now a padding on the top. This is done in the expression below.
+            // When that expression's top spacing is the max top spacing, the expression will be touching the top of the container.
+            // Therefore, its height is just the height. In other cases, it will be increased by the difference between the max top
+            // spacing and the top spacing.
             uint16_t height = ex->getType() == ObjType::CHAR_TYPE ? 
                     ((Character*) ex)->getHeight() - ((Character*) ex)->getHeight() / 2 + maxTopSpacing
                     : (SAFE_ACCESS_0((Expr*) ex, exprHeight) - SAFE_EXEC_0((Expr*) ex, getTopSpacing)) + maxTopSpacing;
@@ -140,7 +140,7 @@ namespace neda {
         VERIFY_INBOUNDS(x, y);
 
         if(contents.length() == 0) {
-            //Empty container shows up as a box
+            // Empty container shows up as a box
             for(uint16_t w = 0; w < exprWidth; w ++) {
                 dest.setPixel(x + w, y, true);
                 dest.setPixel(x + w, y + exprHeight - 1, true);
@@ -152,19 +152,19 @@ namespace neda {
             return;
         }
 
-        //Special logic in drawing to make sure everything lines up
+        // Special logic in drawing to make sure everything lines up
         uint16_t maxTopSpacing = getTopSpacing();
 
         for(auto it = contents.begin(); it != contents.end(); it ++) {
             NEDAObj *ex = *it;
-            //Skip the expression if it's null
+            // Skip the expression if it's null
             if(!ex) {
                 continue;
             }
-            //For each expression, its top padding is the difference between the max top spacing and its top spacing.
-            //E.g. A tall expression like 1^2 would have a higher top spacing than 3, so the max top spacing would be its top spacing;
-            //So when drawing the 1^2, there is no difference between the max top spacing and the top spacing, and therefore it has
-            //no top padding. But when drawing the 3, the difference between its top spacing and the max creates a top padding.
+            // For each expression, its top padding is the difference between the max top spacing and its top spacing.
+            // E.g. A tall expression like 1^2 would have a higher top spacing than 3, so the max top spacing would be its top spacing;
+            // So when drawing the 1^2, there is no difference between the max top spacing and the top spacing, and therefore it has
+            // no top padding. But when drawing the 3, the difference between its top spacing and the max creates a top padding.
             if(ex->getType() == ObjType::CHAR_TYPE) {
                 Character *ch = (Character*) ex;
                 ch->draw(dest, x, y + (maxTopSpacing - ch->getHeight() / 2));
@@ -173,7 +173,7 @@ namespace neda {
             else {
                 Expr *expr = (Expr*) ex;
                 expr->draw(dest, x, y + (maxTopSpacing - expr->getTopSpacing()));
-                //Increase x so nothing overlaps
+                // Increase x so nothing overlaps
                 x += expr->exprWidth + EXPR_SPACING;
             }
         }
@@ -229,13 +229,13 @@ namespace neda {
         }
     }
     void Container::left(Expr *ex, Cursor &cursor) {
-        //Check if the cursor is already in this expr
+        // Check if the cursor is already in this expr
         if(!ex || cursor.expr == this) {
             if(cursor.index == 0) {
                 SAFE_EXEC(parent, left, this, cursor);
             }
             else {
-                //Check if we can go into the next expr
+                // Check if we can go into the next expr
                 --cursor.index;
                 if(contents[cursor.index]->getType() != ObjType::CHAR_TYPE && contents[cursor.index]->getType() != ObjType::L_BRACKET 
                         && contents[cursor.index]->getType() != ObjType::R_BRACKET) {
@@ -243,14 +243,14 @@ namespace neda {
                 }
             }
         }
-        //Otherwise bring the cursor into this expr
+        // Otherwise bring the cursor into this expr
         else {
             for(uint16_t i = 0; i < contents.length(); i ++) {
-                //Find the expr the request came from
+                // Find the expr the request came from
                 if(contents[i] == ex) {
-                    //Set the expr the cursor is in
+                    // Set the expr the cursor is in
                     cursor.expr = this;
-                    //Set the index
+                    // Set the index
                     cursor.index = i;
                     break;
                 }
@@ -263,12 +263,12 @@ namespace neda {
                 SAFE_EXEC(parent, right, this, cursor);
             }
             else {
-                //If we can go into the next expr then do so
+                // If we can go into the next expr then do so
                 if(cursor.index < contents.length() && contents[cursor.index]->getType() != ObjType::CHAR_TYPE
                     && contents[cursor.index]->getType() != ObjType::L_BRACKET && contents[cursor.index]->getType() != ObjType::R_BRACKET) {
                     ((Expr*) contents[cursor.index])->getCursor(cursor, CURSORLOCATION_START);
                 }
-                //Otherwise move the cursor
+                // Otherwise move the cursor
                 else {
                     ++cursor.index;
                 }
@@ -288,30 +288,30 @@ namespace neda {
         if(ex != nullptr && ex->getType() == ObjType::SUBSCRIPT) {
             uint16_t index = indexOf(ex);
             if(index != 0xFFFF) {
-                //Place the cursor in front of the subscript
+                // Place the cursor in front of the subscript
                 cursor.index = index;
                 cursor.expr = this;
             }
         }
         else {
-            //Find the nearest superscript
+            // Find the nearest superscript
             for(auto it = contents.begin() + cursor.index; it != contents.end(); ++it) {
                 NEDAObj *ex = *it;
-                //Iterate until we hit an element that isn't a char
+                // Iterate until we hit an element that isn't a char
                 if(ex->getType() != ObjType::CHAR_TYPE) {
-                    //If it's a superscript then place the cursor into it and return
+                    // If it's a superscript then place the cursor into it and return
                     if(ex->getType() == ObjType::SUPERSCRIPT) {
                         ((Expr*) ex)->getCursor(cursor, CURSORLOCATION_START);
                         return;
                     }
-                    //Otherwise break the loop
+                    // Otherwise break the loop
                     else {
                         break;
                     }
                 }
             }
 
-            //If none found then pass the call up
+            // If none found then pass the call up
             SAFE_EXEC(parent, up, this, cursor);
         }
     }
@@ -319,23 +319,23 @@ namespace neda {
         if(ex != nullptr && ex->getType() == ObjType::SUPERSCRIPT) {
             uint16_t index = indexOf(ex);
             if(index != 0xFFFF) {
-                //Place the cursor to the front of the superscript
+                // Place the cursor to the front of the superscript
                 cursor.index = index;
                 cursor.expr = this;
             }
         }
         else {
-            //Find the nearest subscript
+            // Find the nearest subscript
             for(auto it = contents.begin() + cursor.index; it != contents.end(); ++it) {
                 NEDAObj *ex = *it;
-                //Iterate until we hit an element that isn't a char
+                // Iterate until we hit an element that isn't a char
                 if(ex->getType() != ObjType::CHAR_TYPE) {
-                    //If it's a subscript then place the cursor into it and return
+                    // If it's a subscript then place the cursor into it and return
                     if(ex->getType() == ObjType::SUBSCRIPT) {
                         ((Expr*) ex)->getCursor(cursor, CURSORLOCATION_START);
                         return;
                     }
-                    //Otherwise break the loop
+                    // Otherwise break the loop
                     else {
                         break;
                     }
@@ -359,18 +359,18 @@ namespace neda {
         --cursorX;
         out.x = cursorX;
         out.width = 2;
-        //Adjust the size and location of the cursor based on a reference element
+        // Adjust the size and location of the cursor based on a reference element
         NEDAObj *ref;
-        //If the cursor's index is not 0, then take the elem in front
+        // If the cursor's index is not 0, then take the elem in front
         if(cursor.index != 0) {
             ref = contents[cursor.index - 1];
         }
         else {
-            //Otherwise take the elem after if the container is not empty
+            // Otherwise take the elem after if the container is not empty
             if(contents.length() > 0) {
                 ref = contents[cursor.index];
             }
-            //If container is empty, use default value and return
+            // If container is empty, use default value and return
             else {
                 out.y = y;
                 out.height = EMPTY_EXPR_HEIGHT;
@@ -406,7 +406,7 @@ namespace neda {
         computeWidth();
         computeHeight();
     }
-    //Returns the expression removed for deletion
+    // Returns the expression removed for deletion
     NEDAObj* Container::removeAtCursor(Cursor &cursor) {
         if(cursor.index != 0) {
             NEDAObj *obj = contents[--cursor.index];
@@ -441,14 +441,14 @@ namespace neda {
         }
     }
 
-    //*************************** Fraction ***************************************
+    // *************************** Fraction ***************************************
     uint16_t Fraction::getTopSpacing() {
-        //The top spacing of a fraction is equal to the height of its numerator, plus a pixel of spacing between the numerator and
-        //the fraction line.
+        // The top spacing of a fraction is equal to the height of its numerator, plus a pixel of spacing between the numerator and
+        // the fraction line.
         return SAFE_ACCESS_0(numerator, exprHeight) + 1;
     }
 	void Fraction::computeWidth() {
-		//Take the greater of the widths and add 2 for the spacing at the sides
+		// Take the greater of the widths and add 2 for the spacing at the sides
         uint16_t numeratorWidth = SAFE_ACCESS_0(numerator, exprWidth);
 		uint16_t denominatorWidth = SAFE_ACCESS_0(denominator, exprWidth);
 		exprWidth = max(numeratorWidth, denominatorWidth) + 2;
@@ -457,7 +457,7 @@ namespace neda {
 	void Fraction::computeHeight() {
 		uint16_t numeratorHeight = SAFE_ACCESS_0(numerator, exprHeight);
 		uint16_t denominatorHeight = SAFE_ACCESS_0(denominator, exprHeight);
-		//Take the sum of the heights and add 3 for the fraction line
+		// Take the sum of the heights and add 3 for the fraction line
 		exprHeight = numeratorHeight + denominatorHeight + 3;
         SAFE_EXEC(parent, computeHeight);
 	}
@@ -465,16 +465,16 @@ namespace neda {
         this->x = x;
         this->y = y;
         VERIFY_INBOUNDS(x, y);
-		//Watch out for null pointers
+		// Watch out for null pointers
         ASSERT_NONNULL(numerator);
         ASSERT_NONNULL(denominator);
 		
 		uint16_t width = exprWidth;
-		//Center horizontally
+		// Center horizontally
 		numerator->draw(dest, x + (width - numerator->exprWidth) / 2, y);
 		uint16_t numHeight = numerator->exprHeight;
 		for(uint16_t i = 0; i < width; i ++) {
-			//Draw the fraction line
+			// Draw the fraction line
 			dest.setPixel(x + i, y + numHeight + 1, true);
 		}
 		denominator->draw(dest, x + (width - denominator->exprWidth) / 2, y + numHeight + 3);
@@ -535,9 +535,9 @@ namespace neda {
         return new Fraction((neda::Expr*) numerator->copy(), (neda::Expr*) denominator->copy());
     }
 	
-	//*************************** LeftBracket ***************************************
+	// *************************** LeftBracket ***************************************
     uint16_t LeftBracket::getTopSpacing() {
-        //Parent must be a Container
+        // Parent must be a Container
         if(!parent) {
             return 0xFFFF;
         }
@@ -545,17 +545,17 @@ namespace neda {
         auto &parentContents = parentContainer->contents;
         uint16_t index = parentContainer->indexOf(this);
         uint16_t maxSpacing = 0;
-        //Used to find the end of the brackets
+        // Used to find the end of the brackets
         uint16_t nesting = 1;
         for(auto it = parentContents.begin() + index + 1; it != parentContents.end(); ++ it) {
             NEDAObj *ex = *it;
-            //Increase/Decrease the nesting depth if we see a bracket
+            // Increase/Decrease the nesting depth if we see a bracket
             if(ex->getType() == ObjType::L_BRACKET) {
                 nesting ++;
             }
             else if(ex->getType() == ObjType::R_BRACKET) {
                 nesting --;
-                //Exit if nesting depth is 0
+                // Exit if nesting depth is 0
                 if(!nesting) {
                     break;
                 }
@@ -569,7 +569,7 @@ namespace neda {
                 }
             }
         }
-        //If there is nothing after this left bracket, give it a default
+        // If there is nothing after this left bracket, give it a default
         return maxSpacing ? maxSpacing : Container::EMPTY_EXPR_HEIGHT / 2;
     }
     void LeftBracket::computeWidth() {
@@ -577,11 +577,11 @@ namespace neda {
     }
     void LeftBracket::computeHeight() {
         if(!parent) {
-            //Default
+            // Default
             exprHeight = Container::EMPTY_EXPR_HEIGHT;
             return;
         }
-        //Parent must be a Container
+        // Parent must be a Container
         Container *parentContainer = (Container*) parent;
         auto &parentContents = parentContainer->contents;
         uint16_t index = parentContainer->indexOf(this);
@@ -608,7 +608,7 @@ namespace neda {
                 }
             }
         }
-        //If there is nothing after this left bracket, give it a default
+        // If there is nothing after this left bracket, give it a default
         exprHeight = maxHeight ? maxHeight : Container::EMPTY_EXPR_HEIGHT;
     }
     void LeftBracket::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
@@ -628,9 +628,9 @@ namespace neda {
         return new LeftBracket();
     }
 
-    //*************************** RightBracket ***************************************
+    // *************************** RightBracket ***************************************
     uint16_t RightBracket::getTopSpacing() {
-        //Parent must be a Container
+        // Parent must be a Container
         if(!parent) {
             return 0xFFFF;
         }
@@ -638,18 +638,18 @@ namespace neda {
         auto &parentContents = parentContainer->contents;
         uint16_t index = parentContainer->indexOf(this);
         uint16_t maxSpacing = 0;
-        //Used to find the end of the brackets
+        // Used to find the end of the brackets
         uint16_t nesting = 1;
-        //Iterate backwards
+        // Iterate backwards
         for(auto it = parentContents.begin() + index - 1; it >= parentContents.begin(); -- it) {
             NEDAObj *ex = *it;
-            //Increase/Decrease the nesting depth if we see a bracket
+            // Increase/Decrease the nesting depth if we see a bracket
             if(ex->getType() == ObjType::R_BRACKET) {
                 nesting ++;
             }
             else if(ex->getType() == ObjType::L_BRACKET) {
                 nesting --;
-                //Exit if nesting depth is 0
+                // Exit if nesting depth is 0
                 if(!nesting) {
                     break;
                 }
@@ -663,7 +663,7 @@ namespace neda {
                 }
             }
         }
-        //If there is nothing after this left bracket, give it a default
+        // If there is nothing after this left bracket, give it a default
         return maxSpacing ? maxSpacing : Container::EMPTY_EXPR_HEIGHT / 2;
     }
     void RightBracket::computeWidth() {
@@ -671,18 +671,18 @@ namespace neda {
     }
     void RightBracket::computeHeight() {
         if(!parent) {
-            //Default
+            // Default
             exprHeight = Container::EMPTY_EXPR_HEIGHT;
             return;
         }
-        //Parent must be a Container
+        // Parent must be a Container
         Container *parentContainer = (Container*) parent;
         auto &parentContents = parentContainer->contents;
         uint16_t index = parentContainer->indexOf(this);
         uint16_t maxHeight = 0;
         uint16_t nesting = 1;
         uint16_t maxTopSpacing = getTopSpacing();
-        //Iterate backwards
+        // Iterate backwards
         for(auto it = parentContents.begin() + index - 1; it >= parentContents.begin(); -- it) {
             NEDAObj *ex = *it;
             if(ex->getType() == ObjType::R_BRACKET) {
@@ -703,7 +703,7 @@ namespace neda {
                 }
             }
         }
-        //If there is nothing after this left bracket, give it a default
+        // If there is nothing after this left bracket, give it a default
         exprHeight = maxHeight ? maxHeight : Container::EMPTY_EXPR_HEIGHT;
     }
     void RightBracket::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
@@ -723,7 +723,7 @@ namespace neda {
         return new RightBracket();
     }
 	
-	//*************************** Radical ***************************************
+	// *************************** Radical ***************************************
 	uint16_t Radical::getTopSpacing() {
 		if(!n) { 
 			return SAFE_EXEC_0(contents, getTopSpacing) + 2;
@@ -789,7 +789,7 @@ namespace neda {
         DESTROY_IF_NONNULL(n);
 	}
     void Radical::left(Expr *ex, Cursor &cursor) {
-        //Move cursor to n only if the cursor is currently under the radical sign, and n is non-null
+        // Move cursor to n only if the cursor is currently under the radical sign, and n is non-null
         if(ex == contents && n) {
             SAFE_EXEC(n, getCursor, cursor, CURSORLOCATION_END);
         }
@@ -828,7 +828,7 @@ namespace neda {
         return new Radical((neda::Expr*) contents->copy(), n ? (neda::Expr*) n->copy() : nullptr);
     }
 
-    //*************************** Superscript ***************************************
+    // *************************** Superscript ***************************************
     uint16_t Superscript::getTopSpacing() {
         if(!parent) {
             return SAFE_ACCESS_0(contents, exprHeight) + Container::EMPTY_EXPR_HEIGHT / 2 - OVERLAP;
@@ -836,7 +836,7 @@ namespace neda {
         Container *parentContainer = (Container*) parent;
         auto &parentContents = parentContainer->contents;
         uint16_t index = parentContainer->indexOf(this);
-        //Look at the expression right before it. If there is no expression before, return the default
+        // Look at the expression right before it. If there is no expression before, return the default
         if(index == 0) {
             return SAFE_ACCESS_0(contents, exprHeight) + Container::EMPTY_EXPR_HEIGHT / 2 - OVERLAP;
         }
@@ -857,7 +857,7 @@ namespace neda {
         Container *parentContainer = (Container*) parent;
         auto &parentContents = parentContainer->contents;
         uint16_t index = parentContainer->indexOf(this);
-        //Look at the expression right before it. If there is no expression before, return the default
+        // Look at the expression right before it. If there is no expression before, return the default
         if(index == 0) {
             exprHeight = SAFE_ACCESS_0(contents, exprHeight) + Container::EMPTY_EXPR_HEIGHT - OVERLAP;
             SAFE_EXEC(parent, computeHeight);
@@ -895,7 +895,7 @@ namespace neda {
         return new Superscript((neda::Expr*) contents->copy());
     }
 	
-	//*************************** Subscript ***************************************
+	// *************************** Subscript ***************************************
 	uint16_t Subscript::getTopSpacing() {
 		if(!parent) {
             return Container::EMPTY_EXPR_HEIGHT / 2;
@@ -903,7 +903,7 @@ namespace neda {
         Container *parentContainer = (Container*) parent;
         auto &parentContents = parentContainer->contents;
         uint16_t index = parentContainer->indexOf(this);
-        //Look at the expression right before it. If there is no expression before, return the default
+        // Look at the expression right before it. If there is no expression before, return the default
         if(index == 0) {
             return Container::EMPTY_EXPR_HEIGHT / 2;
         }
@@ -925,7 +925,7 @@ namespace neda {
         Container *parentContainer = (Container*) parent;
         auto &parentContents = parentContainer->contents;
         uint16_t index = parentContainer->indexOf(this);
-        //Look at the expression right before it. If there is no expression before, return the default
+        // Look at the expression right before it. If there is no expression before, return the default
         if(index == 0) {
             exprHeight = Container::EMPTY_EXPR_HEIGHT - OVERLAP + SAFE_ACCESS_0(contents, exprHeight);
             return;
@@ -970,13 +970,13 @@ namespace neda {
         return new Subscript((neda::Expr*) contents->copy());
     }
 	
-	//*************************** SigmaPi ***************************************
+	// *************************** SigmaPi ***************************************
 	uint16_t SigmaPi::getTopSpacing() {
-        //The top spacing of this expr can be split into two cases: when the contents are tall and when the contents are short.
-        //When the contents are tall enough, the result is simply the top spacing of the contents (b)
-        //Otherwise, it is the distance from the top to the middle of the base of the contents.
-        //Therefore, we add up the heights of the expr at the top, the spacing, and the overlap between the symbol and the contents,
-        //then subtract half of the base height of the contents (height - top spacing)
+        // The top spacing of this expr can be split into two cases: when the contents are tall and when the contents are short.
+        // When the contents are tall enough, the result is simply the top spacing of the contents (b)
+        // Otherwise, it is the distance from the top to the middle of the base of the contents.
+        // Therefore, we add up the heights of the expr at the top, the spacing, and the overlap between the symbol and the contents,
+        // then subtract half of the base height of the contents (height - top spacing)
 		uint16_t a = SAFE_ACCESS_0(finish, exprHeight) + 2 + CONTENT_SYMBOL_OVERLAP 
                 - (SAFE_ACCESS_0(contents, exprHeight) - SAFE_EXEC_0(contents, getTopSpacing));
 		uint16_t b = SAFE_EXEC_0(contents, getTopSpacing);
@@ -989,12 +989,12 @@ namespace neda {
         SAFE_EXEC(parent, computeWidth);
 	}
 	void SigmaPi::computeHeight() {
-        //Top spacings - Taken from neda::SigmaPi::getTopSpacing()
+        // Top spacings - Taken from neda::SigmaPi::getTopSpacing()
         uint16_t a = SAFE_ACCESS_0(finish, exprHeight) + 2 + CONTENT_SYMBOL_OVERLAP 
                 - (SAFE_ACCESS_0(contents, exprHeight) - SAFE_EXEC_0(contents, getTopSpacing));
         uint16_t b = SAFE_EXEC_0(contents, getTopSpacing);
         uint16_t maxTopSpacing = max(a, b);
-        //Logic same as neda::Container::exprHeight
+        // Logic same as neda::Container::exprHeight
         uint16_t symbolHeight = SAFE_ACCESS_0(finish, exprHeight) + 2 + symbol.height + 2 + SAFE_ACCESS_0(start, exprHeight)
                 + maxTopSpacing - a;
         uint16_t bodyHeight = SAFE_ACCESS_0(contents, exprHeight) + maxTopSpacing - b;
@@ -1010,16 +1010,16 @@ namespace neda {
         ASSERT_NONNULL(finish);
         ASSERT_NONNULL(contents);
         
-        //Top spacings - Taken from neda::SigmaPi::getTopSpacing()
+        // Top spacings - Taken from neda::SigmaPi::getTopSpacing()
         uint16_t a = SAFE_ACCESS_0(finish, exprHeight) + 2 + CONTENT_SYMBOL_OVERLAP 
                 - (SAFE_ACCESS_0(contents, exprHeight) - SAFE_EXEC_0(contents, getTopSpacing));
         uint16_t b = SAFE_EXEC_0(contents, getTopSpacing);
         uint16_t maxTopSpacing = max(a, b);
-        //Logic same as neda::Container::draw()
+        // Logic same as neda::Container::draw()
         uint16_t symbolYOffset = maxTopSpacing - a;
         uint16_t contentsYOffset = maxTopSpacing - b;
 
-        //Center the top, the bottom and the symbol
+        // Center the top, the bottom and the symbol
         uint16_t widest = max(start->exprWidth, max(finish->exprWidth, symbol.width));
         finish->draw(dest, x + (widest - finish->exprWidth) / 2, y + symbolYOffset);
         dest.drawImage(x + (widest - symbol.width) / 2, y + finish->exprHeight + 2 + symbolYOffset, symbol);
@@ -1094,7 +1094,7 @@ namespace neda {
         return new SigmaPi(symbol, (neda::Expr*) start->copy(), (neda::Expr*) finish->copy(), (neda::Expr*) contents->copy());
     }
 
-    //*************************** Cursor ***************************************
+    // *************************** Cursor ***************************************
     void Cursor::draw(lcd::LCD12864 &dest) {
         expr->drawCursor(dest, *this);
     }
@@ -1117,7 +1117,7 @@ namespace neda {
         expr->addAtCursor(obj, *this);
     }
 
-    //*************************** Misc ***************************************
+    // *************************** Misc ***************************************
     Container* makeString(const char *str) {
         Container *cont = new Container;
         while(*str != '\0') {
