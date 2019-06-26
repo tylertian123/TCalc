@@ -106,3 +106,10 @@ graph
 fracfmt
 equal
 const
+clearvar
+shifton
+shiftoff
+ctrlon
+ctrloff
+recall
+matrix
