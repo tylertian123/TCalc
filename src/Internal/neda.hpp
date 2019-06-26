@@ -471,11 +471,11 @@ namespace neda {
         // Sets an entry
         // DOES NOT RECOMPUTE THE SIZE!
         inline void setEntry(uint8_t row, uint8_t col, Expr *entry) {
-            contents[index_0(row, col)] = entry;
+            contents[index_0(col, row)] = entry;
             entry->parent = this;
         }
         inline Expr* getEntry(uint8_t row, uint8_t col) {
-            return contents[index_0(row, col)];
+            return contents[index_0(col, row)];
         }
 
         // 0-based indexing!
