@@ -991,6 +991,7 @@ evaluateExpression:
             calcResults[0]->add(new neda::Character(LCD_CHAR_SERR));
         }
         else {
+            // Note: result is not deleted since updateVar needs it
             if(result->getType() == eval::TokenType::NUMBER) {
                 if(isnan(((eval::Number*) result)->value)) {
                     // No complex numbers allowed!!

@@ -407,7 +407,7 @@ convertToDoubleAndOperate:
         }
     }
     Token* Function::operator()(Token **args) const {
-        
+        // TODO: Matrix processing
         switch(type) {
         case Type::SIN:
         {
@@ -527,6 +527,7 @@ convertToDoubleAndOperate:
         return ((neda::Character*) obj)->ch;
     }
     inline double extractDouble(Token *t) {
+        // TODO: Matrix processing
         return t->getType() == TokenType::NUMBER ? ((Number*) t)->value : ((Fraction*) t)->doubleVal();
     }
     // Returns positive if a > b, zero if equal, and negative if a < b
@@ -1165,6 +1166,7 @@ evaluateFunctionArguments:
                     // Operate takes care of deletion
                     val = (type.data == lcd::CHAR_SUMMATION.data ? Operator::OP_PLUS : Operator::OP_MULTIPLY)(val, n);
                     // Add one to the counter variable
+                    // TODO: Matrix processing
                     if(start->getType() == TokenType::NUMBER) {
                         ++((Number*) start)->value;
                     }
@@ -1184,7 +1186,42 @@ evaluateFunctionArguments:
                 ++index;
                 allowUnary = false;
                 break;
-            } 
+            } // neda::ObjType::SIGMA_PI
+
+            // Matrices
+            case neda::ObjType::MATRIX:
+            {
+                neda::Matrix *nMat = static_cast<neda::Matrix*>(exprs[index]);
+                // Convert to a eval::Matrix
+                Matrix *mat = new Matrix(nMat->m, nMat->n);
+                // Evaluate every entry
+                for(uint16_t i = 0; i < nMat->m * nMat->n; i ++) {
+                    Token *n = evaluate((neda::Container*) nMat->contents[i], varc, varn, varv, funcc, funcs);
+                    // Check for syntax error
+                    if(!n) {
+                        delete mat;
+                        freeTokens(&arr);
+                        return nullptr;
+                    }
+                    // No tensors allowed!
+                    if(n->getType() == TokenType::MATRIX) {
+                        delete mat;
+                        delete n;
+                        freeTokens(&arr);
+                        return new Number(NAN);
+                    }
+                    // Ignore fractions and just use their numerical values
+                    mat->contents[i] = extractDouble(n);
+                    delete n;
+                }
+                // Insert value
+                arr.add(mat);
+                // Move on to the next object
+                ++index;
+                allowUnary = false;
+                break;
+            } // neda::ObjType::MATRIX
+
             default: ++index; break;
             }
         }

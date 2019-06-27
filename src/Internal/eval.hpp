@@ -178,7 +178,7 @@ namespace eval {
     void freeTokens(Deque<Token*, Increase> *q) {
         while (!q->isEmpty()) {
             Token *t = q->dequeue();
-            if (t->getType() == TokenType::NUMBER || t->getType() == TokenType::FRACTION || t->getType() == TokenType::FUNCTION) {
+            if (t->getType() == TokenType::MATRIX || t->getType() == TokenType::NUMBER || t->getType() == TokenType::FRACTION || t->getType() == TokenType::FUNCTION) {
                 delete t;
             }
         }
@@ -186,7 +186,7 @@ namespace eval {
     template <uint16_t Increase>
     void freeTokens(DynamicArray<Token*, Increase> *q) {
         for(Token *t : *q) {
-            if (t->getType() == TokenType::NUMBER || t->getType() == TokenType::FRACTION || t->getType() == TokenType::FUNCTION) {
+            if (t->getType() == TokenType::MATRIX || t->getType() == TokenType::NUMBER || t->getType() == TokenType::FRACTION || t->getType() == TokenType::FUNCTION) {
                 delete t;
             }
         }
