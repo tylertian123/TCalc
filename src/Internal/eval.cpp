@@ -692,7 +692,12 @@ convertToDoubleAndOperate:
                     freeTokens(&arr);
                     return nullptr;
                 }
-                // TODO: Matrix processing
+                // If the exponent is a matrix, return NaN
+                // We really don't want to do the Taylor series of exp(A)
+                if(exponent->getType() == TokenType::MATRIX) {
+                    freeTokens(&arr);
+                    return new Number(NAN);
+                }
                 // Otherwise, turn it into an exponentiation operator and the value of the exponent
                 arr.add(&Operator::OP_EXPONENT);
                 arr.add(exponent);
@@ -736,12 +741,19 @@ convertToDoubleAndOperate:
                 if(n->getType() == TokenType::NUMBER) {
                     ((Number*) n)->value = 1 / ((Number*) n)->value;
                 }
-                else {
+                else if(n->getType() == TokenType::FRACTION) {
                     int64_t temp = ((Fraction*) n)->num;
                     ((Fraction*) n)->num = ((Fraction*) n)->denom;
                     ((Fraction*) n)->denom = temp;
                 }
-                // TODO: Matrix processing
+                // If it's neither a number nor a fraction, then it's a matrix...
+                // Don't even bother
+                else {
+                    delete n;
+                    delete contents;
+                    freeTokens(&arr);
+                    return new Number(NAN);
+                }
                 // Evaluate the radical and add the result to the tokens array
                 arr.add(Operator::OP_EXPONENT(contents, n));
                 // Move on to the next object
@@ -1182,9 +1194,8 @@ evaluateFunctionArguments:
         Deque<Token*> output(arr.length());
         Deque<Token*> stack;
         for(Token *t : arr) {
-            // If token is a number or a fraction, put it in the queue
-            // TODO: Matrix processing
-            if(t->getType() == TokenType::NUMBER || t->getType() == TokenType::FRACTION) {
+            // If token is a number, fraction or matrix, put it in the queue
+            if(t->getType() == TokenType::NUMBER || t->getType() == TokenType::FRACTION || t->getType() == TokenType::MATRIX) {
                 output.enqueue(t);
             }
             else {
@@ -1207,9 +1218,8 @@ evaluateFunctionArguments:
         while(!output.isEmpty()) {
             // Read a token
             Token *t = output.dequeue();
-            // If token is a number or fraction, push onto stack
-            // TODO: Matrix processing
-            if(t->getType() == TokenType::NUMBER || t->getType() == TokenType::FRACTION) {
+            // If token is a number, fraction or matrix, push onto sta
+            if(t->getType() == TokenType::NUMBER || t->getType() == TokenType::FRACTION || t->getType() == TokenType::MATRIX) {
                 stack.push(t);
             }
             // Operator
