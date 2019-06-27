@@ -258,7 +258,9 @@ namespace eval {
         }
         return true;
     }
+    // Operates on two tokens and returns the result
     Token* Operator::operator()(Token *lhs, Token *rhs) {
+        // TODO: Matrix processing
         TokenType lType = lhs->getType();
         TokenType rType = rhs->getType();
         Token *result = nullptr;
@@ -568,20 +570,39 @@ convertToDoubleAndOperate:
         return equalsIndex;
     }
 
+    // Overloaded instance of the other evaluate() for convenience. Works directly on neda::Containers.
     Token* evaluate(neda::Container *expr, uint8_t varc, const char **varn, Token **varv, uint8_t funcc, UserDefinedFunction *funcs) {
         return evaluate(&expr->contents, varc, varn, varv, funcc, funcs);
     }
+    /*
+     * Evaluates an expression and returns a token result
+     * Returns nullptr on syntax errors
+     * 
+     * Parameters:
+     * expr - a pointer to a DynamicArray of neda::NEDAObjs representing an expression
+     * varc - User-defined variable count
+     * varn - An array of strings of user-defined variable names
+     * varv - An array of user-define variable values
+     * funcc - User-defined function count
+     * funcs - An array of user-defined functions (stored in structs of UserDefinedFunctions)
+     */
 	Token* evaluate(DynamicArray<neda::NEDAObj*> *expr, uint8_t varc, const char **varn, Token **varv, uint8_t funcc, UserDefinedFunction *funcs) {
-		DynamicArray<Token*, 4> arr;
+		// This function first parses the NEDA expression to convert it into eval tokens
+        // It then converts the infix notation to postfix with shunting-yard
+        // And finally evaluates it and returns the result
+        // This dynamic array holds the result of the first stage (basic parsing)
+        DynamicArray<Token*, 4> arr;
         // Deref the result so the syntax won't be so awkward
         auto &exprs = *expr;
         uint16_t index = 0;
         // This variable keeps track of whether the last token was an operator
         // It is used for unary operators like the unary minus and plus
         bool allowUnary = true;
-
+        // Loop over every NEDA object
+        // Since many types of NEDA objects require index increments of more than 1, using a while loop is more clear than a for loop
         while (index < exprs.length()) {
             switch (exprs[index]->getType()) {
+            // Left bracket
             case neda::ObjType::L_BRACKET:
             {
                 // If the last token was not an operator, then it must be an implied multiplication
@@ -593,11 +614,13 @@ convertToDoubleAndOperate:
                 uint16_t nesting = 1;
                 uint16_t endIndex = index + 1;
                 for(; endIndex < exprs.length(); ++endIndex) {
+                    // Increase or decrease the nesting level accordingly to find the correct right bracket
                     if(exprs[endIndex]->getType() == neda::ObjType::L_BRACKET) {
                         ++nesting;
                     }
                     else if(exprs[endIndex]->getType() == neda::ObjType::R_BRACKET) {
                         --nesting;
+                        // If nesting level reaches 0, then we found it
                         if(!nesting) {
                             break;
                         }
@@ -608,67 +631,89 @@ convertToDoubleAndOperate:
                     freeTokens(&arr);
                     return nullptr;
                 }
-                // Create the subarray, not including the two brackets
+                // Construct a new array of NEDA objects that includes all object inside the brackets (but not the brackets themselves!)
                 DynamicArray<neda::NEDAObj*> inside(exprs.begin() + index + 1, exprs.begin() + endIndex);
+                // Recursively calculate the content inside
                 Token *insideResult = evaluate(&inside, varc, varn, varv, funcc, funcs);
+                // If syntax error inside bracket, clean up and return null
                 if(!insideResult) {
                     freeTokens(&arr);
                     return nullptr;
                 }
+                // Otherwise, add result to token array
                 arr.add(insideResult);
-
+                // Move on to the next part
                 index = endIndex + 1;
                 // No unary after a pair
                 allowUnary = false;
                 break;
-            }
-            // Right brackets by themselves mean mismatched parentheses
+            } // neda::ObjType::L_BRACKET
+
+            // Right brackets
             case neda::ObjType::R_BRACKET:
             {
+                // Since the processing for left brackets also handle their corresponding right brackets,
+                // encountering a right bracket means there are mismatched parentheses. 
+                // Clean up and signal error.
                 freeTokens(&arr);
                 return nullptr;
-            }
+            } // neda::ObjType::R_BRACKET
+
+            // Fractions
             case neda::ObjType::FRACTION:
             {
+                // Recursively the numerator and denominator
                 Token *num = evaluate((neda::Container*) ((neda::Fraction*) exprs[index])->numerator, varc, varn, varv, funcc, funcs);
                 Token *denom = evaluate((neda::Container*) ((neda::Fraction*) exprs[index])->denominator, varc, varn, varv, funcc, funcs);
+                // If one of them results in an error, clean up and return null
                 if(!num || !denom) {
-                    if(num) {
-                        delete num;
-                    }
-                    if(denom) {
-                        delete denom;
-                    }
+                    // Since deleting nullptrs are allowed, no need for checking
+                    delete num;
+                    delete denom;
                     freeTokens(&arr);
                     return nullptr;
                 }
+                // Otherwise, call the division operator to evaluate the fraction and add it to the tokens list
                 arr.add(Operator::OP_DIVIDE(num, denom));
-
+                // Move on to the next object
                 ++index;
+                // No unary operators after a fraction
                 allowUnary = false;
                 break;
-            }
+            } // neda::ObjType::FRACTION
+
+            // Superscripts (exponentiation)
             case neda::ObjType::SUPERSCRIPT:
             {
+                // Recursively evaluate the exponent
                 Token *exponent = evaluate((neda::Container*) ((neda::Superscript*) exprs[index])->contents, varc, varn, varv, funcc, funcs);
+                // If an error occurs, clean up and return null
                 if(!exponent) {
                     freeTokens(&arr);
                     return nullptr;
                 }
+                // TODO: Matrix processing
+                // Otherwise, turn it into an exponentiation operator and the value of the exponent
                 arr.add(&Operator::OP_EXPONENT);
                 arr.add(exponent);
-
+                // Move on to the next token
                 ++index;
+                // No unary after a superscript
                 allowUnary = false;
                 break;
-            }
+            } // neda::ObjType::SUPERSCRIPT
+
+            // Radicals
             case neda::ObjType::RADICAL:
-            {
-                // If the last token was not an operator, then it must be an implied multiplication
+            {   
+                // If unary operators are not allowed, then the last token was not an operator
+                // Then there must be an implied multiplication
                 if(!allowUnary) {
                     arr.add(&Operator::OP_MULTIPLY);
                 }
+                // Used to store the base
                 Token *n;
+                // If the base exists, recursively evaluate it
                 if(((neda::Radical*) exprs[index])->n) {
                     n = evaluate((neda::Container*) ((neda::Radical*) exprs[index])->n, varc, varn, varv, funcc, funcs);
                 }
@@ -676,19 +721,18 @@ convertToDoubleAndOperate:
                 else {
                     n = new Number(2);
                 }
+                // Recursively evaluate the contents of the radical
                 Token *contents = evaluate((neda::Container*) ((neda::Radical*) exprs[index])->contents, varc, varn, varv, funcc, funcs);
-
+                // If an error occurs, clean up and return null
                 if(!n || !contents) {
-                    if(n) {
-                        delete n;
-                    }
-                    if(contents) {
-                        delete contents;
-                    }
+                    // nullptr deletion allowed; no need for checking
+                    delete n;
+                    delete contents;
                     freeTokens(&arr);
                     return nullptr;
                 }
-                // Take the inverse of n
+                // Convert the radical into an exponentiation operation
+                // Separate processing for numbers vs fractions
                 if(n->getType() == TokenType::NUMBER) {
                     ((Number*) n)->value = 1 / ((Number*) n)->value;
                 }
@@ -697,21 +741,29 @@ convertToDoubleAndOperate:
                     ((Fraction*) n)->num = ((Fraction*) n)->denom;
                     ((Fraction*) n)->denom = temp;
                 }
+                // TODO: Matrix processing
+                // Evaluate the radical and add the result to the tokens array
                 arr.add(Operator::OP_EXPONENT(contents, n));
-
+                // Move on to the next object
                 ++index;
+                // No unary after a radical
                 allowUnary = false;
                 break;
-            }
+            } // neda::ObjType::RADICAL
+
+            // Characters
             case neda::ObjType::CHAR_TYPE:
-            {
+            {   
+                // Get the character
                 char ch = extractChar(exprs[index]);
+                // If the character is a space, ignore it
                 if (ch == ' ') {
                     ++index;
                     break;
                 }
+                // See if the character is a known operator
                 Operator *op = Operator::fromChar(ch);
-                // Check for equality operator
+                // Check for equality operator which is two characters and not handled by Operator::fromChar
                 if(ch == '=' && index + 1 < exprs.length() && extractChar(exprs[index + 1]) == '=') {
                     op = &Operator::OP_EQUALITY;
                     ++index;
@@ -719,29 +771,36 @@ convertToDoubleAndOperate:
                 // Check if the character is an operator
                 if (op) {
                     // Check for unary operators
-                    // Last token must be an operator
                     if(allowUnary && (op->type == Operator::Type::PLUS || op->type == Operator::Type::MINUS)) {
                         // If we do encounter a unary operator, translate it to multiplication
                         // This is so that the order of operations won't be messed up (namely exponentiation)
+                        // Allow unary pluses, but don't do anything
                         if(op->type == Operator::Type::MINUS) {
                             arr.add(new Number(-1));
                             arr.add(&Operator::OP_MULTIPLY);
                         }
+                        // Move on to the next object
                         ++index;
+                        // No unary operators after unary operators
                         allowUnary = false;
                         break;
                     }
                     else {
+                        // Otherwise add the operator normally
                         arr.add(op);
+                        // Move on to the next object
                         ++index;
+                        // Allow unary operators after normal operators
                         allowUnary = true;
                         break;
                     }
                 }
 
-                // Find the end
+                // Otherwise, it's probably a number or a variable
                 bool isNum;
+                // Find its end
                 uint16_t end = findTokenEnd(&exprs, index, 1, isNum);
+                // Copy over the characters into a string
                 char *str = new char[end - index + 1];
                 for (uint16_t i = index; i < end; i++) {
                     char ch = extractChar(exprs[i]);
@@ -758,41 +817,51 @@ convertToDoubleAndOperate:
 
                 Function *func = nullptr;
                 UserDefinedFunction *uFunc = nullptr;
-
+                // If the token isn't a number
                 if(!isNum) {
                     // Special processing for logarithms:
                     if(strcmp(str, "log") == 0) {
+                        // See if the next object is a subscript (log base)
                         if(end < exprs.length() && exprs[end]->getType() == neda::ObjType::SUBSCRIPT) {
+                            // If subscript exists, recursively evaluate it
                             Token *sub = evaluate((neda::Container*) ((neda::Subscript*) exprs[end])->contents, varc, varn, varv, funcc, funcs);
+                            // If an error occurs, clean up and return
                             if(!sub) {
                                 freeTokens(&arr);
                                 delete[] str;
                                 return nullptr;
                             }
-                            // Use the log change of base property
+                            // Use the log change of base property to convert it to a base 2 log
                             double base = extractDouble(sub);
                             delete sub;
                             double multiplier = 1 / log2(base);
+                            // Convert it to a multiplication with a base 2 log
                             arr.add(new Number(multiplier));
+                            // Use special multiply to ensure the order of operations do not mess it up
                             arr.add(&Operator::OP_SP_MULT);
-                            
+                            // The function is base 2 log
                             func = new Function(Function::Type::LOG2);
                             // Increment end so the index gets set properly afterwards
                             ++end;
                         }
                         // Default log base: 10
                         else {
+                            // The function is base 10 log
                             func = new Function(Function::Type::LOG10);
                         }
+                        // Move on to evaluate arguments 
                         goto evaluateFunctionArguments;
                     }
-                    // Otherwise normal processing
+                    // If it's not a log, see if it's a built-in function
                     else {
                         func = Function::fromString(str);
                         // If it's not a normal function then try to find a user function that matches
                         if(!func) {
+                            // Loop through all functions
                             for(uint8_t i = 0; i < funcc; ++i) {
+                                // Compare with all the names of user-defined functions
                                 if(strcmp(funcs[i].name, str) == 0) {
+                                    // If found, set uFunc to point to it
                                     uFunc = funcs + i;
                                     break;
                                 }
@@ -805,10 +874,13 @@ evaluateFunctionArguments:
                             if(!allowUnary) {
                                 arr.add(&Operator::OP_MULTIPLY);
                             }
+                            // Find the end of the arguments list
                             index = end;
+                            // If the next token is not a left bracket, syntax error
                             if(end >= exprs.length() || exprs[index]->getType() != neda::ObjType::L_BRACKET) {
                                 freeTokens(&arr);
                                 delete[] str;
+                                // No need to check if func is nonnull
                                 delete func;
                                 return nullptr;
                             }
@@ -817,6 +889,7 @@ evaluateFunctionArguments:
                             ++end;
                             // Find the end of this bracket
                             for(; end < exprs.length(); ++end) {
+                                // Increase and decrease the nesting level accordingly and exit when nesting level is 0
                                 if(exprs[end]->getType() == neda::ObjType::L_BRACKET) {
                                     ++nesting;
                                 }
@@ -827,6 +900,7 @@ evaluateFunctionArguments:
                                     }
                                 }
                             }
+                            // If after the loop exists, nesting is nonzero then there are mismatched parentheses
                             if(nesting != 0) {
                                 freeTokens(&arr);
                                 delete[] str;
@@ -834,38 +908,43 @@ evaluateFunctionArguments:
                                 return nullptr;
                             }
                             // Now index should be right after the bracket, and end is at the closing bracket
-                            
-                            DynamicArray<Token*> args;
                             // Isolate each argument
+                            DynamicArray<Token*> args;
                             uint16_t argEnd = index;
                             while(index != end) {
                                 // Take care of nested brackets
                                 uint16_t nesting = 0;
+                                // Find the end of this argument
                                 for(; argEnd < end; ++argEnd) {
+                                    // Increase and decrease nesting accordingly
                                     if(exprs[argEnd]->getType() == neda::ObjType::L_BRACKET) {
                                         ++nesting;
                                         continue;
                                     }
                                     else if(exprs[argEnd]->getType() == neda::ObjType::R_BRACKET) {
-                                        // Mismatched brackets
-                                        if(nesting == 0) {
+                                        // Arguments can only end by a comma
+                                        // Thus if nesting ever reaches a level less than zero, there are mismatched parentheses
+                                        if(!nesting) {
                                             freeTokens(&arr);
                                             freeTokens(&args);
                                             delete[] str;
                                             delete func;
                                             return nullptr;
                                         }
+                                        // Decrease nesting since we now know it's nonzero
                                         --nesting;
                                         continue;
                                     }
                                     // Only end arguments when the nesting level is 0
+                                    // This ensures that expressions like f(g(x, y), 0) get parsed properly
                                     if(nesting == 0 && extractChar(exprs[argEnd]) == ',') {
                                         break;
                                     }
                                 }
+                                // Recursively evaluate the contents of the argument
                                 DynamicArray<neda::NEDAObj*> argContents(exprs.begin() + index, exprs.begin() + argEnd);
                                 Token *arg = evaluate(&argContents, varc, varn, varv, funcc, funcs);
-                                // Cleanup
+                                // Cleanup on syntax error
                                 if(!arg) {
                                     freeTokens(&arr);
                                     freeTokens(&args);
@@ -873,9 +952,10 @@ evaluateFunctionArguments:
                                     delete func;
                                     return nullptr;
                                 }
+                                // Add to arguments list
                                 args.add(arg);
 
-                                // If comma increase arg end
+                                // If we ended on a comma (this argument isn't the last), skip it
                                 if(extractChar(exprs[argEnd]) == ',') {
                                     ++argEnd;
                                 }
@@ -892,20 +972,29 @@ evaluateFunctionArguments:
                             }
                             // Evaluate
                             Token *result;
+                            // Regular function - cast and call to evaluate
                             if(func) {
                                 result = (*func)(args.asArray());
                                 delete func;
                             }
                             // User-defined function
                             else {
-                                // Construct a new argument list
+                                // Evaluate a user-defined function by creating a new environment in which the variables list
+                                // also contain the function arguments. The other variables and functions are also kept so that
+                                // functions can call other functions. 
+                                // However this does not handle recursion! Since there exists no way in TCalc to define an exit
+                                // condition for a recursive function, recursion will result in an infinite loop and eventual
+                                // stack overflow!!
+
+                                // Construct a new variables list containing the arguments and normal variables
                                 const char **vNames = new const char*[varc + uFunc->argc];
                                 Token **vVals = new Token*[varc + uFunc->argc];
-                                // Copy in the values
+                                // Copy in the names and values of variables
                                 for(uint8_t i = 0; i < varc; i ++) {
                                     vNames[i] = varn[i];
                                     vVals[i] = varv[i];
                                 }
+                                // Copy in the names and values of function arguments
                                 for(uint8_t i = 0; i < uFunc->argc; i ++) {
                                     vNames[varc + i] = uFunc->argn[i];
                                     vVals[varc + i] = args[i];
@@ -933,11 +1022,11 @@ evaluateFunctionArguments:
                             freeTokens(&args);
                             // Add result
                             arr.add(result);
-
+                            // No unary after functions
                             allowUnary = false;
                             ++end;
                         }
-                        // Otherwise see if it's a valid constant, or if it is the additional variable
+                        // If not a function, check if it's a constant or a variable
                         else {
                             // If unary operators are not allowed, which means that the previous token was not an operator,
                             // There must be an implied multiplication 
@@ -945,15 +1034,21 @@ evaluateFunctionArguments:
                             if(!allowUnary && (arr.length() != 0 && arr[arr.length() - 1] != &Operator::OP_MULTIPLY)) {
                                 arr.add(&Operator::OP_MULTIPLY);
                             }
-                            // If n is nonnull it must be added, so no need for cleanup
+                            // If n is nonnull it must be added, so no need for cleanup for this dynamically allocated variable
                             Number *n = Number::constFromString(str);
+                            // Add if it's a valid constant
                             if(n) {
                                 arr.add(n);
                             }
-                            else if(varc > 0) {
+                            // Otherwise check if it's a valid variable
+                            else {
+                                // Loop through all variables
                                 uint8_t i;
                                 for(i = 0; i < varc; i ++) {
+                                    // Compare with each variable name
                                     if(strcmp(str, varn[i]) == 0) {
+                                        // We found a match!
+                                        // TODO: Matrix processing
                                         if(varv[i]->getType() == TokenType::NUMBER) {
                                             arr.add(new Number(((Number*) varv[i])->value));
                                         }
@@ -963,42 +1058,44 @@ evaluateFunctionArguments:
                                         break;
                                     }
                                 }
+                                // If no match was found, cleanup and return
                                 if(i == varc) {
                                     freeTokens(&arr);
                                     delete[] str;
                                     return nullptr;
                                 }
                             }
-                            else {
-                                freeTokens(&arr);
-                                delete[] str;
-                                return nullptr;
-                            }
                             allowUnary = false;
                         }
                     }
                 }
+                // If it's a number, parse it with atof and add its value
                 else {
                     arr.add(new Number(atof(str)));
                     index = end;
                     allowUnary = false;
                 }
+                // Clean up the string buffer and move on
                 delete[] str;
                 index = end;
                 break;
 
-            }
+            } // neda::ObjType::CHAR_TYPE
+
+            // Summation (sigma) or product (pi)
             case neda::ObjType::SIGMA_PI:
             {
-                // Evaluate the end
+                // First recursively evaluate the end value
                 Token *end = evaluate((neda::Container*) ((neda::SigmaPi*) exprs[index])->finish, varc, varn, varv, funcc, funcs);
                 if(!end) {
                     freeTokens(&arr);
                     return nullptr;
                 }
+                // Evaluate the starting value
                 // Split the starting condition at the equals sign
                 auto startContents = &((neda::Container*) ((neda::SigmaPi*) exprs[index])->start)->contents;
                 uint16_t equalsIndex = findEquals(startContents, true);
+                // If equals sign not found, syntax error
                 if(equalsIndex == 0xFFFF) {
                     delete end;
                     freeTokens(&arr);
@@ -1014,22 +1111,26 @@ evaluateFunctionArguments:
                 }
                 // Isolate the variable name
                 char *vName = new char[equalsIndex + 1];
+                // Extract each character
                 for(uint16_t i = 0; i < equalsIndex; i ++) {
                     vName[i] = extractChar((*startContents)[i]);
                 }
+                // Null termination
                 vName[equalsIndex] = '\0';
 
                 // Construct new variable arrays
                 const char **vNames = new const char*[varc + 1];
                 Token **vVals = new Token*[varc + 1];
-                // Copy existing
+                // Copy existing variables
                 for(uint8_t i = 0; i < varc; i ++) {
                     vNames[i] = varn[i];
                     vVals[i] = varv[i];
                 }
+                // Copy in the counter variable
                 vNames[varc] = vName;
                 vVals[varc] = start;
 
+                // Find the type of operation by extracting the symbol
                 auto &type = ((neda::SigmaPi*) exprs[index])->symbol;
                 // Different starting values for summation and product
                 Token *val = new Number(type.data == lcd::CHAR_SUMMATION.data ? 0 : 1);
@@ -1051,7 +1152,7 @@ evaluateFunctionArguments:
                     // Add or multiply the expressions
                     // Operate takes care of deletion
                     val = (type.data == lcd::CHAR_SUMMATION.data ? Operator::OP_PLUS : Operator::OP_MULTIPLY)(val, n);
-                    // Add one to the start
+                    // Add one to the counter variable
                     if(start->getType() == TokenType::NUMBER) {
                         ++((Number*) start)->value;
                     }
@@ -1067,7 +1168,7 @@ evaluateFunctionArguments:
                 delete[] vName;
                 delete[] vNames;
                 delete[] vVals;
-
+                // Move on to the next object
                 ++index;
                 allowUnary = false;
                 break;
@@ -1081,17 +1182,22 @@ evaluateFunctionArguments:
         Deque<Token*> output(arr.length());
         Deque<Token*> stack;
         for(Token *t : arr) {
+            // If token is a number or a fraction, put it in the queue
+            // TODO: Matrix processing
             if(t->getType() == TokenType::NUMBER || t->getType() == TokenType::FRACTION) {
                 output.enqueue(t);
             }
             else {
                 // Operator
+                // Pop all items on the stack that have higher precedence and put into the output queue
                 while(!stack.isEmpty() && ((Operator*) stack.peek())->getPrecedence() <= ((Operator*) t)->getPrecedence()) {
                     output.enqueue(stack.pop());
                 }
+                // Push the operator
                 stack.push(t);
             }
         }
+        // Transfer all the contents of the stack to the queue
         while(!stack.isEmpty()) {
             output.enqueue(stack.pop());
         }
@@ -1099,18 +1205,25 @@ evaluateFunctionArguments:
         // Evaluate
         // Reuse stack
         while(!output.isEmpty()) {
+            // Read a token
             Token *t = output.dequeue();
+            // If token is a number or fraction, push onto stack
+            // TODO: Matrix processing
             if(t->getType() == TokenType::NUMBER || t->getType() == TokenType::FRACTION) {
                 stack.push(t);
             }
+            // Operator
             else {
+                // If there aren't enough operators, syntax error
                 if(stack.length() < 2) {
                     freeTokens(&output);
                     freeTokens(&stack);
                     return nullptr;
                 }
+                // Pop the left and right hand side operands
                 Token *rhs = stack.pop();
                 Token *lhs = stack.pop();
+                // Operate and push
                 stack.push((*((Operator*) t))(lhs, rhs));
             }
         }
