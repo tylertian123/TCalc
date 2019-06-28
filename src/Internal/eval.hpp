@@ -150,16 +150,22 @@ namespace eval {
         double *contents;
 
         // Maps zero-based indexing to index in contents array
-        inline uint16_t index_0(uint8_t x, uint8_t y) {
+        inline uint16_t index_0(uint8_t x, uint8_t y) const {
             return x + y * n;
         }
         // Sets an entry
         inline void setEntry(uint8_t row, uint8_t col, double entry) {
             contents[index_0(col, row)] = entry;
         }
-        inline double getEntry(uint8_t row, uint8_t col) {
+        inline double getEntry(uint8_t row, uint8_t col) const {
             return contents[index_0(col, row)];
         }
+
+        static Matrix* add(const Matrix&, const Matrix&);
+        static Matrix* subtract(const Matrix&, const Matrix&);
+        static Matrix* multiply(const Matrix&, double);
+        static Matrix* multiply(const Matrix&, const Matrix&);
+        static double dot(const Matrix&, const Matrix&);
 
         virtual TokenType getType() override {
             return TokenType::MATRIX;

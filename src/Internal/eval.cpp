@@ -133,6 +133,63 @@ namespace eval {
         return true;
     }
 
+    /******************** Matrix ********************/
+    Matrix* Matrix::add(const Matrix &a, const Matrix &b) {
+        // Make sure two matrices are the same size
+        if(a.m != b.m || a.n != b.n) {
+            return nullptr;
+        }
+
+        Matrix *result = new Matrix(a.m, a.n);
+        for(uint16_t i = 0; i < a.m * a.n; i ++) {
+            result->contents[i] = a.contents[i] + b.contents[i];
+        }
+        return result;
+    }
+    Matrix* Matrix::subtract(const Matrix &a, const Matrix &b) {
+        // Make sure two matrices are the same size
+        if(a.m != b.m || a.n != b.n) {
+            return nullptr;
+        }
+
+        Matrix *result = new Matrix(a.m, a.n);
+        for(uint16_t i = 0; i < a.m * a.n; i ++) {
+            result->contents[i] = a.contents[i] - b.contents[i];
+        }
+        return result;
+    }
+    Matrix* Matrix::multiply(const Matrix &a, const Matrix &b) {
+        // Make sure the two matrices can be multiplied with each other
+        if(a.n != b.m) {
+            return nullptr;
+        }
+
+        Matrix *result = new Matrix(a.m, b.n);
+        for(uint8_t row = 0; row < a.m; row ++) {
+            for(uint8_t col = 0; col < b.n; col ++) {
+                // Take the dot product
+                double sum = 0;
+                for(uint8_t i = 0; i < a.n; i ++) {
+                    sum += a.getEntry(row, i) * b.getEntry(i, col);
+                }
+                result->setEntry(row, col, sum);
+            }
+        }
+        return result;
+    }
+    double Matrix::dot(const Matrix &a, const Matrix &b) {
+        if(a.n == 1 && b.n == 1 && a.m == b.m) {
+            double sum = 0;
+            for(uint8_t i = 0; i < a.m; i ++) {
+                sum += a.contents[i] * b.contents[i];
+            }
+            return sum;
+        }
+        else {
+            return NAN;
+        }
+    }
+
     /******************** Operator ********************/
     uint8_t Operator::getPrecedence() const {
         switch(type) {
@@ -381,71 +438,36 @@ convertToDoubleAndOperate:
         else if(lType == TokenType::MATRIX && rType == TokenType::MATRIX) {
             Matrix *lMat = (Matrix*) lhs;
             Matrix *rMat = (Matrix*) rhs;
-            // Matrix addition/subtraction
-            if(type == Type::PLUS || type == Type::MINUS) {
-                // Make sure two matrices are the same size
-                if(lMat->m != rMat->m || lMat->n != rMat->n) {
-                    delete lhs;
-                    delete rhs;
-                    return new Number(NAN);
-                }
 
-                result = new Matrix(lMat->m, lMat->n);
-                for(uint16_t i = 0; i < lMat->m * lMat->n; i ++) {
-                    if(type == Type::PLUS) {
-                        static_cast<Matrix*>(result)->contents[i] = lMat->contents[i] + rMat->contents[i];
-                    }
-                    else {
-                        static_cast<Matrix*>(result)->contents[i] = lMat->contents[i] - rMat->contents[i];
-                    }
+            if(type == Type::PLUS) {
+                result = Matrix::add(*lMat, *rMat);
+                // If not possible return NAN
+                if(!result) {
+                    result = new Number(NAN);
                 }
-                delete lhs;
-                delete rhs; 
+            }
+            else if(type == Type::MINUS) {
+                result = Matrix::subtract(*lMat, *rMat);
+                // If not possible return NAN
+                if(!result) {
+                    result = new Number(NAN);
+                }
             }
             else if(type == Type::MULTIPLY) {
-                // Make sure the two matrices can be multiplied with each other
-                if(lMat->n != rMat->m) {
-                    // If the number of columns in A does not equal the number of rows in B, the multiplication is undefined
-                    // ... unless it was a dot product between two vectors which uses the same symbol
-                    // So check if the two matrices are both vectors with the same number of dimensions
-                    if(lMat->n == 1 && rMat->n == 1 && lMat->m == rMat->m) {
-                        double dot = 0;
-                        for(uint8_t i = 0; i < lMat->m; i ++) {
-                            dot += lMat->contents[i] * rMat->contents[i];
-                        }
-                        result = new Number(dot);
-
-                        delete lhs; 
-                        delete rhs;
-                        return result;
-                    }
-                    else {
-                        delete lhs;
-                        delete rhs;
-                        return new Number(NAN);
-                    }
+                result = Matrix::multiply(*lMat, *rMat);
+                if(!result) {
+                    // If regular multiplication is not possible, see if the dot product can be computed
+                    // Since if the dot product isn't possible, dot will return NAN, we can directly return the result of the call
+                    result = new Number(Matrix::dot(*lMat, *rMat));
                 }
-
-                result = new Matrix(lMat->m, rMat->n);
-                for(uint8_t row = 0; row < lMat->m; row ++) {
-                    for(uint8_t col = 0; col < rMat->n; col ++) {
-                        // Take the dot product
-                        double sum = 0;
-                        for(uint8_t i = 0; i < lMat->n; i ++) {
-                            sum += lMat->getEntry(row, i) * rMat->getEntry(i, col);
-                        }
-                        static_cast<Matrix*>(result)->setEntry(row, col, sum);
-                    }
-                }
-                delete lhs;
-                delete rhs;
             }
             // Operation unsupported!
             else {
-                delete lhs;
-                delete rhs;
-                return new Number(NAN);
+                result = new Number(NAN);
             }
+
+            delete lhs;
+            delete rhs;
         }
         return result;
     }
