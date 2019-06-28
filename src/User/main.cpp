@@ -790,13 +790,13 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
                     mat->setEntry(i, j, new neda::Container());
                 }
             }
+            // These have to be called manually since setting the entries do not trigger size recalculations
+            mat->computeWidth();
+            mat->computeHeight();
 
             cursor->add(mat);
             mat->getCursor(*cursor, neda::CURSORLOCATION_START);
             cursor->expr->parent->parent->draw(display);
-            // These have to be called manually since setting the entries do not trigger size recalculations
-            mat->computeWidth();
-            mat->computeHeight();
 
             // Reset matRows
             matRows = 0;
