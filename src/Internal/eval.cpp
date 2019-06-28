@@ -399,13 +399,31 @@ convertToDoubleAndOperate:
                         static_cast<Matrix*>(result)->contents[i] = lMat->contents[i] - rMat->contents[i];
                     }
                 }
+                delete lhs;
+                delete rhs; 
             }
             else if(type == Type::MULTIPLY) {
                 // Make sure the two matrices can be multiplied with each other
                 if(lMat->n != rMat->m) {
-                    delete lhs;
-                    delete rhs;
-                    return new Number(NAN);
+                    // If the number of columns in A does not equal the number of rows in B, the multiplication is undefined
+                    // ... unless it was a dot product between two vectors which uses the same symbol
+                    // So check if the two matrices are both vectors with the same number of dimensions
+                    if(lMat->n == 1 && rMat->n == 1 && lMat->m == rMat->m) {
+                        double dot = 0;
+                        for(uint8_t i = 0; i < lMat->m; i ++) {
+                            dot += lMat->contents[i] * rMat->contents[i];
+                        }
+                        result = new Number(dot);
+
+                        delete lhs; 
+                        delete rhs;
+                        return result;
+                    }
+                    else {
+                        delete lhs;
+                        delete rhs;
+                        return new Number(NAN);
+                    }
                 }
 
                 result = new Matrix(lMat->m, rMat->n);
@@ -419,6 +437,8 @@ convertToDoubleAndOperate:
                         static_cast<Matrix*>(result)->setEntry(row, col, sum);
                     }
                 }
+                delete lhs;
+                delete rhs;
             }
             // Operation unsupported!
             else {
