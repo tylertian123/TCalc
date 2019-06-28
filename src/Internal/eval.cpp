@@ -259,6 +259,7 @@ namespace eval {
         return true;
     }
     // Operates on two tokens and returns the result
+    // Note: This also deletes the operands!
     Token* Operator::operator()(Token *lhs, Token *rhs) {
         // TODO: Matrix processing
         TokenType lType = lhs->getType();
@@ -345,7 +346,8 @@ namespace eval {
                 delete rhs;
             }
         }
-        else {
+        // One fraction: fraction operation if the other one is integer, normal operation if not
+        else if(lType == TokenType::NUMBER && rType == TokenType::FRACTION) {
             if(isInt(((Number*) lhs)->value)) {
                 // This operation is not guaranteed to succeed
                 // Construct fraction since it's not going to be temporary if this operation succeeds
@@ -373,6 +375,56 @@ convertToDoubleAndOperate:
                 result = new Number(operate(((Number*) lhs)->value, ((Fraction*) rhs)->doubleVal()));
                 delete lhs;
                 delete rhs;
+            }
+        }
+        // Two matrices
+        else if(lType == TokenType::MATRIX && rType == TokenType::MATRIX) {
+            Matrix *lMat = (Matrix*) lhs;
+            Matrix *rMat = (Matrix*) rhs;
+            // Matrix addition/subtraction
+            if(type == Type::PLUS || type == Type::MINUS) {
+                // Make sure two matrices are the same size
+                if(lMat->m != rMat->m || lMat->n != rMat->n) {
+                    delete lhs;
+                    delete rhs;
+                    return new Number(NAN);
+                }
+
+                result = new Matrix(lMat->m, lMat->n);
+                for(uint16_t i = 0; i < lMat->m * lMat->n; i ++) {
+                    if(type == Type::PLUS) {
+                        static_cast<Matrix*>(result)->contents[i] = lMat->contents[i] + rMat->contents[i];
+                    }
+                    else {
+                        static_cast<Matrix*>(result)->contents[i] = lMat->contents[i] - rMat->contents[i];
+                    }
+                }
+            }
+            else if(type == Type::MULTIPLY) {
+                // Make sure the two matrices can be multiplied with each other
+                if(lMat->n != rMat->m) {
+                    delete lhs;
+                    delete rhs;
+                    return new Number(NAN);
+                }
+
+                result = new Matrix(lMat->m, rMat->n);
+                for(uint8_t row = 0; row < lMat->m; row ++) {
+                    for(uint8_t col = 0; col < rMat->n; col ++) {
+                        // Take the dot product
+                        double sum = 0;
+                        for(uint8_t i = 0; i < lMat->n; i ++) {
+                            sum += lMat->getEntry(row, i) * rMat->getEntry(i, col);
+                        }
+                        static_cast<Matrix*>(result)->setEntry(row, col, sum);
+                    }
+                }
+            }
+            // Operation unsupported!
+            else {
+                delete lhs;
+                delete rhs;
+                return new Number(NAN);
             }
         }
         return result;
