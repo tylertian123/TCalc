@@ -196,6 +196,52 @@ namespace eval {
             return NAN;
         }
     }
+    double Matrix::det() const {
+        // No determinant for nonsquare matrices
+        if(m != n) {
+            return NAN;
+        }
+        // Matrices with size 1
+        if(m == 1) {
+            return contents[0];
+        }
+        return Matrix::det(*this);
+    }
+    double Matrix::det(const Matrix &mat) {
+        // 2x2 matrix
+        if(mat.m == 2) {
+            return mat.contents[0] * mat.contents[3] - mat.contents[1] * mat.contents[2];
+        }
+        // Otherwise split into smaller matrices and recurse
+        double d = 0;
+        // Use the first row
+        for(uint8_t i = 0; i < mat.m; i ++) {
+            // Construct sub-matrix
+            Matrix minor(mat.m - 1, mat.m - 1);
+            // Copy in all the values
+            uint16_t index = 0;
+            // The minor ignores the row and column the number chosen is on
+            // The row is, of course, always the first row
+            // Therefore start directly at index m to skip that row
+            for(uint16_t j = mat.m; j < mat.m * mat.m; j ++) {
+                // Also ignore the column the chosen number is on
+                // If the result of the index modulo the number of items in a row is equal to i, then they must be in the same row
+                if(j % mat.m != i) {
+                    minor.contents[index++] = mat.contents[j];
+                }
+            }
+            // Now do a recursive call to compute the determinant of the minor and multiply that by the term
+            double value = Matrix::det(minor) * mat.contents[i];
+            // Decide whether to add or subtract based on i
+            if(i % 2 == 0) {
+                d += value;
+            }
+            else {
+                d -= value;
+            }
+        }
+        return d;
+    }
 
     /******************** Operator ********************/
     uint8_t Operator::getPrecedence() const {
@@ -523,7 +569,7 @@ convertToDoubleAndOperate:
         // log10 and log2 cannot be directly entered with a string
         "\xff", "\xff",
 
-        "qdRtA", "qdRtB", "round", "abs", "fact",
+        "qdRtA", "qdRtB", "round", "abs", "fact", "det",
     };
     Function* Function::fromString(const char *str) {
         for(uint8_t i = 0; i < sizeof(FUNCNAMES) / sizeof(FUNCNAMES[0]); i ++) {
@@ -646,6 +692,16 @@ convertToDoubleAndOperate:
                 --x;
             }
             return new Number(d);
+        }
+        case Type::DET:
+        {
+            // Syntax error: determinant of a scalar??
+            if(args[0]->getType() != TokenType::MATRIX) {
+                return nullptr;
+            }
+            Matrix *mat = (Matrix*) args[0];
+            
+            return new Number(mat->det());
         }
         default: return new Number(NAN);
         }

@@ -109,7 +109,7 @@ namespace eval {
     public:
         enum Type : uint8_t {
             SIN, COS, TAN, ASIN, ACOS, ATAN, SINH, COSH, TANH, ASINH, ACOSH, ATANH, LN, LOG10, LOG2, QUADROOT_A, QUADROOT_B,
-            ROUND, ABS, FACT,
+            ROUND, ABS, FACT, DET,
         };
         // Must be in the same order as type
         static const char * const FUNCNAMES[];
@@ -166,10 +166,15 @@ namespace eval {
         static Matrix* multiply(const Matrix&, double);
         static Matrix* multiply(const Matrix&, const Matrix&);
         static double dot(const Matrix&, const Matrix&);
+        double det() const;
 
         virtual TokenType getType() override {
             return TokenType::MATRIX;
         }
+    
+    private:
+        // This method does not check for size and only accepts matrices larger than 2*2
+        static double det(const Matrix&);
     };
 
     struct UserDefinedFunction {
