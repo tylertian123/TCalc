@@ -177,6 +177,13 @@ namespace eval {
         }
         return result;
     }
+    Matrix* Matrix::multiply(const Matrix &a, double scalar) {
+        Matrix *result = new Matrix(a.m, a.n);
+        for(uint16_t i = 0; i < a.m * a.n; i ++) {
+            result->contents[i] = a.contents[i] * scalar;
+        }
+        return result;
+    }
     double Matrix::dot(const Matrix &a, const Matrix &b) {
         if(a.n == 1 && b.n == 1 && a.m == b.m) {
             double sum = 0;
@@ -466,6 +473,43 @@ convertToDoubleAndOperate:
                 result = new Number(NAN);
             }
 
+            delete lhs;
+            delete rhs;
+        }
+        // Matrix and scalar
+        else if(lType == TokenType::MATRIX && rType == TokenType::NUMBER || rType == TokenType::FRACTION) {
+            Matrix *lMat = (Matrix*) lhs;
+            double rDouble = extractDouble(rhs);
+
+            if(type == Type::MULTIPLY) {
+                result = Matrix::multiply(*lMat, rDouble);
+            }
+            else if(type == Type::DIVIDE) {
+                result = Matrix::multiply(*lMat, 1.0 / rDouble);
+            }
+            // Operation unsuppored!
+            else {
+                result = new Number(NAN);
+            }
+
+            delete lhs;
+            delete rhs;
+        }
+        else if((lType == TokenType::NUMBER || lType == TokenType::FRACTION) && TokenType::MATRIX) {
+            double lDouble = extractDouble(lhs);
+            Matrix *rMat = (Matrix*) rhs;
+
+            if(type == Type::MULTIPLY) {
+                result = Matrix::multiply(*rMat, lDouble);
+            }
+            else {
+                result = new Number(NAN);
+            }
+
+            delete lhs;
+            delete rhs;
+        }
+        else {
             delete lhs;
             delete rhs;
         }
