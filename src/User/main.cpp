@@ -963,13 +963,16 @@ evaluateExpression:
 
                     // If result is valid, add the variable
                     if(result) {
-                        // Create a copy to avoid crashes
+                        // Create a copy since the result is shared between the history and the variable values
                         eval::Token *value;
                         if(result->getType() == eval::TokenType::NUMBER) {
                             value = new eval::Number(((eval::Number*) result)->value);
                         }
-                        else {
+                        else if(result->getType() == eval::TokenType::FRACTION) {
                             value = new eval::Fraction(((eval::Fraction*) result)->num, ((eval::Fraction*) result)->denom);
+                        }
+                        else {
+                            value = new eval::Matrix(*((eval::Matrix*) result));
                         }
                         // Add it
                         updateVar(vName, value);
@@ -1004,7 +1007,7 @@ evaluateExpression:
                     calcResults[0]->addString(buf);
                 }
             }
-            else {
+            else if(result->getType() == eval::TokenType::FRACTION) {
                 char buf[64];
                 neda::Container *num = new neda::Container();
                 neda::Container *denom = new neda::Container();
@@ -1020,6 +1023,26 @@ evaluateExpression:
                 denom->addString(buf);
 
                 calcResults[0]->add(new neda::Fraction(num, denom));
+            }
+            // Matrix
+            else {
+                char buf[64];
+                eval::Matrix *mat = (eval::Matrix*) result;
+                // Create NEDA matrix
+                neda::Matrix *nMat = new neda::Matrix(mat->m, mat->n);
+                // Go through every entry
+                for(uint16_t i = 0; i < mat->m * mat->n; i ++) {
+                    // Create a container for the entry
+                    neda::Container *cont = new neda::Container();
+                    nMat->contents[i] = cont;
+                    // Convert the number
+                    ftoa(mat->contents[i], buf, 16, LCD_CHAR_EE);
+                    cont->addString(buf);
+                }
+                nMat->computeWidth();
+                nMat->computeHeight();
+
+                calcResults[0]->add(nMat);
             }
 
             // Now update the value of the Ans variable

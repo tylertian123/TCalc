@@ -407,7 +407,8 @@ convertToDoubleAndOperate:
         }
     }
     Token* Function::operator()(Token **args) const {
-        // TODO: Matrix processing
+        // Since extractDouble returns NAN if the input is a matrix, functions that don't support matrices
+        // will simply return NAN
         switch(type) {
         case Type::SIN:
         {
