@@ -526,9 +526,11 @@ convertToDoubleAndOperate:
         }
         return ((neda::Character*) obj)->ch;
     }
+    // Returns the double value of a Token
+    // The token must be a number or fraction. Otherwise NaN will be returned.
     inline double extractDouble(Token *t) {
-        // TODO: Matrix processing
-        return t->getType() == TokenType::NUMBER ? ((Number*) t)->value : ((Fraction*) t)->doubleVal();
+        return t->getType() == TokenType::NUMBER ? ((Number*) t)->value 
+                : (t->getType() == TokenType::FRACTION ? ((Fraction*) t)->doubleVal() : NAN);
     }
     // Returns positive if a > b, zero if equal, and negative if a < b
     int8_t compareTokens(Token *a, Token *b) {
@@ -696,6 +698,7 @@ convertToDoubleAndOperate:
                 // If the exponent is a matrix, return NaN
                 // We really don't want to do the Taylor series of exp(A)
                 if(exponent->getType() == TokenType::MATRIX) {
+                    delete exponent;
                     freeTokens(&arr);
                     return new Number(NAN);
                 }
@@ -1061,12 +1064,15 @@ evaluateFunctionArguments:
                                     // Compare with each variable name
                                     if(strcmp(str, varn[i]) == 0) {
                                         // We found a match!
-                                        // TODO: Matrix processing
                                         if(varv[i]->getType() == TokenType::NUMBER) {
                                             arr.add(new Number(((Number*) varv[i])->value));
                                         }
-                                        else {
+                                        else if(varv[i]->getType() == TokenType::FRACTION) {
                                             arr.add(new Fraction(((Fraction*) varv[i])->num, ((Fraction*) varv[i])->denom));
+                                        }
+                                        // Matrices
+                                        else {
+                                            arr.add(new Matrix(*((Matrix*) varv[i])));
                                         }
                                         break;
                                     }
@@ -1117,8 +1123,16 @@ evaluateFunctionArguments:
                 // Attempt to evaluate the starting condition assign value
                 DynamicArray<neda::NEDAObj*> startVal(startContents->begin() + equalsIndex + 1, startContents->end());
                 Token *start = evaluate(&startVal, varc, varn, varv, funcc, funcs);
+                // Check for syntax error
                 if(!start) {
                     delete end;
+                    freeTokens(&arr);
+                    return nullptr;
+                }
+                // Matrices are not allowed as counters
+                if(start->getType() == TokenType::MATRIX) {
+                    delete end;
+                    delete start;
                     freeTokens(&arr);
                     return nullptr;
                 }
@@ -1166,10 +1180,10 @@ evaluateFunctionArguments:
                     // Operate takes care of deletion
                     val = (type.data == lcd::CHAR_SUMMATION.data ? Operator::OP_PLUS : Operator::OP_MULTIPLY)(val, n);
                     // Add one to the counter variable
-                    // TODO: Matrix processing
                     if(start->getType() == TokenType::NUMBER) {
                         ++((Number*) start)->value;
                     }
+                    // Since counter cannot be a matrix, if it's not a number then it must be a fraction
                     else {
                         ((Fraction*) start)->num += ((Fraction*) start)->denom;
                     }

@@ -134,6 +134,12 @@ namespace eval {
             memset(contents, 0, sizeof(double) * m * n);
         }
 
+        // Copy constructor
+        Matrix(const Matrix &mat) : m(mat.m), n(mat.n) {
+            contents = new double[m * n];
+            memcpy(contents, mat.contents, sizeof(double) * m * n);
+        }
+
         ~Matrix() {
             delete[] contents;
         }
