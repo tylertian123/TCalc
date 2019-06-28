@@ -1258,6 +1258,10 @@ evaluateFunctionArguments:
             // Matrices
             case neda::ObjType::MATRIX:
             {
+                // If the last token was not an operator, then it must be an implied multiplication
+                if(!allowUnary) {
+                    arr.add(&Operator::OP_MULTIPLY);
+                }
                 neda::Matrix *nMat = static_cast<neda::Matrix*>(exprs[index]);
                 // Convert to a eval::Matrix
                 Matrix *mat = new Matrix(nMat->m, nMat->n);
