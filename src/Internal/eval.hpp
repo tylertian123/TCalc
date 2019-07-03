@@ -160,6 +160,12 @@ namespace eval {
         inline double getEntry(uint8_t row, uint8_t col) const {
             return contents[index_0(col, row)];
         }
+        inline double& operator[](const int index) {
+            return contents[index];
+        }
+        inline const double& operator[](const int index) const {
+            return contents[index];
+        }
 
         static Matrix* add(const Matrix&, const Matrix&);
         static Matrix* subtract(const Matrix&, const Matrix&);

@@ -142,7 +142,7 @@ namespace eval {
 
         Matrix *result = new Matrix(a.m, a.n);
         for(uint16_t i = 0; i < a.m * a.n; i ++) {
-            result->contents[i] = a.contents[i] + b.contents[i];
+            (*result)[i] = a[i] + b[i];
         }
         return result;
     }
@@ -154,7 +154,7 @@ namespace eval {
 
         Matrix *result = new Matrix(a.m, a.n);
         for(uint16_t i = 0; i < a.m * a.n; i ++) {
-            result->contents[i] = a.contents[i] - b.contents[i];
+            (*result)[i] = a[i] - b[i];
         }
         return result;
     }
@@ -180,7 +180,7 @@ namespace eval {
     Matrix* Matrix::multiply(const Matrix &a, double scalar) {
         Matrix *result = new Matrix(a.m, a.n);
         for(uint16_t i = 0; i < a.m * a.n; i ++) {
-            result->contents[i] = a.contents[i] * scalar;
+            (*result)[i] = a[i] * scalar;
         }
         return result;
     }
@@ -188,7 +188,7 @@ namespace eval {
         if(a.n == 1 && b.n == 1 && a.m == b.m) {
             double sum = 0;
             for(uint8_t i = 0; i < a.m; i ++) {
-                sum += a.contents[i] * b.contents[i];
+                sum += a[i] * b[i];
             }
             return sum;
         }
@@ -249,9 +249,9 @@ namespace eval {
         }
         
         Matrix *result = new Matrix(3, 1);
-        result->contents[0] = a.contents[1] * b.contents[2] - a.contents[2] * b.contents[1];
-        result->contents[1] = a.contents[2] * b.contents[0] - a.contents[0] * b.contents[2];
-        result->contents[2] = a.contents[0] * b.contents[1] - a.contents[1] * b.contents[0];
+        (*result)[0] = a[1] * b[2] - a[2] * b[1];
+        (*result)[1] = a[2] * b[0] - a[0] * b[2];
+        (*result)[2] = a[0] * b[1] - a[1] * b[0];
         return result;
     }
 
