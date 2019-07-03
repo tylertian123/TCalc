@@ -109,7 +109,7 @@ namespace eval {
     public:
         enum Type : uint8_t {
             SIN, COS, TAN, ASIN, ACOS, ATAN, SINH, COSH, TANH, ASINH, ACOSH, ATANH, LN, LOG10, LOG2, QUADROOT_A, QUADROOT_B,
-            ROUND, ABS, FACT, DET,
+            ROUND, ABS, FACT, DET, LEN,
         };
         // Must be in the same order as type
         static const char * const FUNCNAMES[];
@@ -173,6 +173,7 @@ namespace eval {
         static Matrix* multiply(const Matrix&, const Matrix&);
         static double dot(const Matrix&, const Matrix&);
         double det() const;
+        double len() const;
         static Matrix* cross(const Matrix&, const Matrix&);
 
         virtual TokenType getType() override {

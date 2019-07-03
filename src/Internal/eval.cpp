@@ -242,6 +242,16 @@ namespace eval {
         }
         return d;
     }
+    double Matrix::len() const {
+        if(n != 1) {
+            return NAN;
+        }
+        double sum = 0;
+        for(uint8_t i = 0; i < m; i ++) {
+            sum += contents[i] * contents[i];
+        }
+        return sqrt(sum);
+    }
     Matrix* Matrix::cross(const Matrix &a, const Matrix &b) {
         // Only supported for 3d vectors
         if(a.m != 3 || a.n != 1 || b.m != 3 || b.n != 1) {
@@ -589,7 +599,7 @@ convertToDoubleAndOperate:
         // log10 and log2 cannot be directly entered with a string
         "\xff", "\xff",
 
-        "qdRtA", "qdRtB", "round", "abs", "fact", "det",
+        "qdRtA", "qdRtB", "round", "abs", "fact", "det", "len",
     };
     Function* Function::fromString(const char *str) {
         for(uint8_t i = 0; i < sizeof(FUNCNAMES) / sizeof(FUNCNAMES[0]); i ++) {
@@ -722,6 +732,15 @@ convertToDoubleAndOperate:
             Matrix *mat = (Matrix*) args[0];
             
             return new Number(mat->det());
+        }
+        case Type::LEN:
+        {
+            // Syntax error: length of a scalar
+            if(args[0]->getType() != TokenType::MATRIX) {
+                return nullptr;
+            }
+            Matrix *vec = (Matrix*) args[0];
+            return new Number(vec->len());
         }
         default: return new Number(NAN);
         }
