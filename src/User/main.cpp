@@ -1245,14 +1245,14 @@ char* getFuncFullName(eval::UserDefinedFunction func) {
     return fullname;
 }
 
-#define BUILTIN_FUNC_COUNT 20
+#define BUILTIN_FUNC_COUNT 21
 uint16_t funcCount = BUILTIN_FUNC_COUNT;
 #define FUNC_SCROLLBAR_WIDTH 4
 const char * const allFuncDispNames[BUILTIN_FUNC_COUNT] = {
     "sin(angle)", "cos(angle)", "tan(angle)", "asin(x)", "acos(x)", "atan(x)", 
     "sinh(angle)", "cosh(angle)", "tanh(angle)", "asinh(x)", "acosh(x)", "atanh(x)",
     "ln(x)", "qdRtA(a,b,c)", "qdRtB(a,b,c)", "round(n,decimals)", "abs(x)", "fact(x)",
-    "det(A)", "len(v)",
+    "det(A)", "len(v)", "transpose(A)",
 };
 
 uint16_t scrollingIndex = 0;

@@ -264,6 +264,16 @@ namespace eval {
         (*result)[2] = a[0] * b[1] - a[1] * b[0];
         return result;
     }
+    Matrix* Matrix::transpose() const {
+        Matrix *result = new Matrix(n, m);
+        
+        for(uint8_t i = 0; i < m; i ++) {
+            for(uint8_t j = 0; j < n; j ++) {
+                result->setEntry(j, i, getEntry(i, j));
+            }
+        }
+        return result;
+    }
 
     /******************** Operator ********************/
     uint8_t Operator::getPrecedence() const {
@@ -599,7 +609,7 @@ convertToDoubleAndOperate:
         // log10 and log2 cannot be directly entered with a string
         "\xff", "\xff",
 
-        "qdRtA", "qdRtB", "round", "abs", "fact", "det", "len",
+        "qdRtA", "qdRtB", "round", "abs", "fact", "det", "len", "transpose",
     };
     Function* Function::fromString(const char *str) {
         for(uint8_t i = 0; i < sizeof(FUNCNAMES) / sizeof(FUNCNAMES[0]); i ++) {
@@ -741,6 +751,15 @@ convertToDoubleAndOperate:
             }
             Matrix *vec = (Matrix*) args[0];
             return new Number(vec->len());
+        }
+        case Type::TRANSPOSE:
+        {
+            // Syntax error: transpose of a scalar
+            if(args[0]->getType() != TokenType::MATRIX) {
+                return nullptr;
+            }
+            Matrix *mat = (Matrix*) args[0];
+            return mat->transpose();
         }
         default: return new Number(NAN);
         }
