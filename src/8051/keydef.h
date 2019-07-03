@@ -115,6 +115,7 @@
 #define KEY_CTRLOFF   0x006F
 #define KEY_RECALL    0x0070
 #define KEY_MATRIX    0x0071
+#define KEY_CROSS     0x0072
 
 #define KEY_DUMMY     0xFFFF
 

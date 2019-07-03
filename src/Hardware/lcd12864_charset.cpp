@@ -2,6 +2,7 @@
 
 namespace lcd {
     const Img * const CHAR_ASCII[] = {
+        &CHAR_CRS,
         &CHAR_AGV,
         &CHAR_AVGO,
         &CHAR_ECHG,

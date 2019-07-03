@@ -242,6 +242,18 @@ namespace eval {
         }
         return d;
     }
+    Matrix* Matrix::cross(const Matrix &a, const Matrix &b) {
+        // Only supported for 3d vectors
+        if(a.m != 3 || a.n != 1 || b.m != 3 || b.n != 1) {
+            return nullptr;
+        }
+        
+        Matrix *result = new Matrix(3, 1);
+        result->contents[0] = a.contents[1] * b.contents[2] - a.contents[2] * b.contents[1];
+        result->contents[1] = a.contents[2] * b.contents[0] - a.contents[0] * b.contents[2];
+        result->contents[2] = a.contents[0] * b.contents[1] - a.contents[1] * b.contents[0];
+        return result;
+    }
 
     /******************** Operator ********************/
     uint8_t Operator::getPrecedence() const {
@@ -253,6 +265,7 @@ namespace eval {
             return 1;
         case Type::MULTIPLY:
         case Type::DIVIDE:
+        case Type::CROSS:
             return 2;
         case Type::PLUS:
         case Type::MINUS:
@@ -278,11 +291,8 @@ namespace eval {
         case LCD_CHAR_DIV:
         case '/':
             return &OP_DIVIDE;
-
-        case '^':
-            return &OP_EXPONENT;
-
-        // Equality consists of two characters and thus cannot be determined from a single char
+        case LCD_CHAR_CRS:
+            return &OP_CROSS;
 
         default: return nullptr;
         }
@@ -294,7 +304,8 @@ namespace eval {
              Operator::OP_EXPONENT = { Operator::Type::EXPONENT },
              Operator::OP_SP_MULT = { Operator::Type::SP_MULT },
              Operator::OP_SP_DIV = { Operator::Type::SP_DIV },
-             Operator::OP_EQUALITY = { Operator::Type::EQUALITY };
+             Operator::OP_EQUALITY = { Operator::Type::EQUALITY },
+             Operator::OP_CROSS = { Operator::Type::CROSS };
     double Operator::operate(double lhs, double rhs) {
         switch(type) {
         case Type::PLUS:
@@ -307,6 +318,8 @@ namespace eval {
         }
         case Type::SP_MULT:
         case Type::MULTIPLY:
+        // In the case of two scalars, just use it as if it's a normal multiplication
+        case Type::CROSS:
         {
             return lhs * rhs;
         }
@@ -340,6 +353,7 @@ namespace eval {
         }
         case Type::SP_MULT:
         case Type::MULTIPLY:
+        case Type::CROSS:
         {
             *frac *= *rhs;
             break;
@@ -514,6 +528,12 @@ convertToDoubleAndOperate:
                     result = new Number(Matrix::dot(*lMat, *rMat));
                 }
             }
+            else if(type == Type::CROSS) {
+                result = Matrix::cross(*lMat, *rMat);
+                if(!result) {
+                    result = new Number(NAN);
+                }
+            }
             // Operation unsupported!
             else {
                 result = new Number(NAN);
@@ -527,7 +547,7 @@ convertToDoubleAndOperate:
             Matrix *lMat = (Matrix*) lhs;
             double rDouble = extractDouble(rhs);
 
-            if(type == Type::MULTIPLY) {
+            if(type == Type::MULTIPLY || type == Type::CROSS) {
                 result = Matrix::multiply(*lMat, rDouble);
             }
             else if(type == Type::DIVIDE) {
@@ -545,7 +565,7 @@ convertToDoubleAndOperate:
             double lDouble = extractDouble(lhs);
             Matrix *rMat = (Matrix*) rhs;
 
-            if(type == Type::MULTIPLY) {
+            if(type == Type::MULTIPLY || type == Type::CROSS) {
                 result = Matrix::multiply(*rMat, lDouble);
             }
             else {

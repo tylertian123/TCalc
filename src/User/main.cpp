@@ -646,6 +646,9 @@ void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
     case KEY_EE:
         addChar(cursor, LCD_CHAR_EE);
 		break;
+    case KEY_CROSS:
+        addChar(cursor, LCD_CHAR_CRS);
+        break;
 	/* EXPRESSIONS */
 	case KEY_LBRACKET:
 	{
