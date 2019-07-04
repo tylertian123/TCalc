@@ -274,6 +274,49 @@ namespace eval {
         }
         return result;
     }
+    bool Matrix::eliminate() {
+        // If there are more rows than columns, don't do anything
+        if(n < m) {
+            return false;
+        }
+        // Forward elimination
+        for(uint8_t i = 0; i < m; i ++) {
+            // If pivot is 0, try to swap it with another row below it
+            if(getEntry(i, i) == 0) {
+                // Find a row with a nonzero value at this column
+                uint8_t j;
+                for(j = i + 1; j < m; j ++) {
+                    if(getEntry(j, i) != 0) {
+                        // If found swap the rows
+                        rowSwap(i, j);
+                        break;
+                    }
+                }
+                // If nothing was found the matrix is singular
+                if(j == m) {
+                    return false;
+                }
+            }
+            double pivot = getEntry(i, i);
+            // Now the pivot should be nonzero
+            // Eliminate this column in all rows below
+            for(uint8_t j = i + 1; j < m; j ++) {
+                rowAdd(j, i, -(getEntry(j, i) / pivot));
+            }
+        }
+        // Back substitution
+        for(uint8_t i = m; i --> 0;) {
+            // Make the pivot 1
+            rowMult(i, 1 / getEntry(i, i));
+            // Eliminate this column in all rows above
+            if(i != 0) {
+                for(uint8_t j = i; j --> 0;) {
+                    rowAdd(j, i, -getEntry(j, i));
+                }
+            }
+        }
+        return true;
+    }
 
     /******************** Operator ********************/
     uint8_t Operator::getPrecedence() const {

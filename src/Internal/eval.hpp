@@ -157,7 +157,10 @@ namespace eval {
         inline void setEntry(uint8_t row, uint8_t col, double entry) {
             contents[index_0(col, row)] = entry;
         }
-        inline double getEntry(uint8_t row, uint8_t col) const {
+        inline double& getEntry(uint8_t row, uint8_t col) {
+            return contents[index_0(col, row)];
+        }
+        inline const double& getEntry(uint8_t row, uint8_t col) const {
             return contents[index_0(col, row)];
         }
         inline double& operator[](const int index) {
@@ -177,10 +180,29 @@ namespace eval {
         static Matrix* cross(const Matrix&, const Matrix&);
         Matrix* transpose() const;
 
+        bool eliminate();
+
         virtual TokenType getType() override {
             return TokenType::MATRIX;
         }
     
+    protected:
+        inline void rowSwap(uint8_t a, uint8_t b) {
+            for(uint8_t i = 0; i < n; i ++) {
+                swap(getEntry(a, i), getEntry(b, i));
+            }
+        }
+        inline void rowMult(uint8_t row, double scalar) {
+            for(uint8_t i = 0; i < n; i ++) {
+                getEntry(row, i) *= scalar;
+            }
+        }
+        inline void rowAdd(uint8_t a, uint8_t b, double scalar = 1) {
+            for(uint8_t i = 0; i < n; i ++) {
+                getEntry(a, i) += getEntry(b, i) * scalar;
+            }
+        }
+
     private:
         // This method does not check for size and only accepts matrices larger than 2*2
         static double det(const Matrix&);
