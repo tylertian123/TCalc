@@ -652,7 +652,7 @@ convertToDoubleAndOperate:
         // log10 and log2 cannot be directly entered with a string
         "\xff", "\xff",
 
-        "qdRtA", "qdRtB", "round", "abs", "fact", "det", "len", "transpose",
+        "qdRtA", "qdRtB", "round", "abs", "fact", "det", "len", "transpose", "linSolve",
     };
     Function* Function::fromString(const char *str) {
         for(uint8_t i = 0; i < sizeof(FUNCNAMES) / sizeof(FUNCNAMES[0]); i ++) {
@@ -803,6 +803,23 @@ convertToDoubleAndOperate:
             }
             Matrix *mat = (Matrix*) args[0];
             return mat->transpose();
+        }
+        case Type::LINSOLVE:
+        {
+            // Syntax error: can't solve a scalar or a matrix of the wrong dimensions
+            if(args[0]->getType() != TokenType::MATRIX || ((Matrix*) args[0])->n != ((Matrix*) args[0])->m + 1) {
+                return nullptr;
+            }
+            Matrix *mat = (Matrix*) args[0];
+            if(!mat->eliminate()) {
+                return new Number(NAN);
+            }
+            // Construct solution as vector
+            Matrix *solution = new Matrix(mat->m, 1);
+            for(uint8_t i = 0; i < mat->m; i ++) {
+                (*solution)[i] = mat->getEntry(i, mat->m);
+            }
+            return solution;
         }
         default: return new Number(NAN);
         }

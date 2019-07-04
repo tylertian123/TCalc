@@ -109,7 +109,7 @@ namespace eval {
     public:
         enum Type : uint8_t {
             SIN, COS, TAN, ASIN, ACOS, ATAN, SINH, COSH, TANH, ASINH, ACOSH, ATANH, LN, LOG10, LOG2, QUADROOT_A, QUADROOT_B,
-            ROUND, ABS, FACT, DET, LEN, TRANSPOSE,
+            ROUND, ABS, FACT, DET, LEN, TRANSPOSE, LINSOLVE,
         };
         // Must be in the same order as type
         static const char * const FUNCNAMES[];
