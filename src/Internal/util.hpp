@@ -10,6 +10,12 @@
 //Access field of obj if obj is not null, otherwise results in 0
 #define SAFE_ACCESS_0(obj, field) ((obj) ? ((obj)->field) : 0)
 
+#include "stm32f10x.h"
+#define __NO_INTERRUPT(x) \
+        uint32_t __no_interrupt_PRIMASK=__get_PRIMASK();__disable_irq();\
+        x \
+        if(!__no_interrupt_PRIMASK)__enable_irq()
+
 template <typename T>
 inline const T& max(const T &a, const T &b) {
 	return b > a ? b : a;
