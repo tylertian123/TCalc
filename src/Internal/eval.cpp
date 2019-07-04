@@ -682,7 +682,7 @@ convertToDoubleAndOperate:
         // log10 and log2 cannot be directly entered with a string
         "\xff", "\xff",
 
-        "qdRtA", "qdRtB", "round", "abs", "fact", "det", "len", "transpose", "inv", "linSolve",
+        "qdRtA", "qdRtB", "round", "abs", "fact", "det", "len", "transpose", "inv", "I", "linSolve",
     };
     Function* Function::fromString(const char *str) {
         for(uint8_t i = 0; i < sizeof(FUNCNAMES) / sizeof(FUNCNAMES[0]); i ++) {
@@ -861,6 +861,23 @@ convertToDoubleAndOperate:
             Matrix *result = mat->inv();
             
             return result ? (Token*) result : (Token*) new Number(NAN);
+        }
+        case Type::IDENTITY:
+        {
+            if(args[0]->getType() == TokenType::MATRIX) {
+                return nullptr;
+            }
+            double d = extractDouble(args[0]);
+            uint8_t n = d;
+            // If d cannot be properly casted to a uint8_t, then it cannot be valid for matrix dimensions
+            if(n != d || n == 0) {
+                return nullptr;
+            }
+            Matrix *result = new Matrix(n, n);
+            for(uint8_t i = 0; i < n; i ++) {
+                result->setEntry(i, i, 1);
+            }
+            return result;
         }
         default: return new Number(NAN);
         }
