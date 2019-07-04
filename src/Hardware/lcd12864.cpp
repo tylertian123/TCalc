@@ -283,20 +283,20 @@ namespace lcd {
 	}
 	
 	// Bresenham's Line Algorithm
-	void drawLineLow(LCD12864 &dest, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2) {
+	void drawLineLow(LCD12864 &dest, int16_t x1, int16_t y1, int16_t x2, int16_t y2) {
 		bool flip = y2 < y1;
 		if (flip) {
 			y2 = y1 + (y1 - y2);
 		}
 		dest.setPixel(x1, y1, true);
-		uint16_t dx = x2 - x1;
-		uint16_t dy = y2 - y1;
-		uint16_t dy2 = 2 * dy;
-		uint16_t dydx2 = dy2 - 2 * dx;
+		int16_t dx = x2 - x1;
+		int16_t dy = y2 - y1;
+		int16_t dy2 = 2 * dy;
+		int16_t dydx2 = dy2 - 2 * dx;
 
 		int16_t p = dy2 - dx;
-		uint16_t y = y1;
-		for (uint16_t x = x1 + 1; x <= x2; x++) {
+		int16_t y = y1;
+		for (int16_t x = x1 + 1; x <= x2; x++) {
 			if (p < 0) {
 				dest.setPixel(x, y, true);
 				p += dy2;
@@ -308,8 +308,8 @@ namespace lcd {
 
 		}
 	}
-	void drawLineHigh(LCD12864 &dest, uint16_t x1, uint16_t y1, uint16_t x2, uint16_t y2) {
-		uint16_t temp = x1;
+	void drawLineHigh(LCD12864 &dest, int16_t x1, int16_t y1, int16_t x2, int16_t y2) {
+		int16_t temp = x1;
 		x1 = y1;
 		y1 = temp;
 		temp = x2;
@@ -322,14 +322,14 @@ namespace lcd {
 		}
 
 		dest.setPixel(y1, x1, true);
-		uint16_t dx = x2 - x1;
-		uint16_t dy = y2 - y1;
-		uint16_t dy2 = 2 * dy;
-		uint16_t dydx2 = dy2 - 2 * dx;
+		int16_t dx = x2 - x1;
+		int16_t dy = y2 - y1;
+		int16_t dy2 = 2 * dy;
+		int16_t dydx2 = dy2 - 2 * dx;
 
 		int16_t p = dy2 - dx;
-		uint16_t y = y1;
-		for (uint16_t x = x1 + 1; x <= x2; x++) {
+		int16_t y = y1;
+		for (int16_t x = x1 + 1; x <= x2; x++) {
 			if (p < 0) {
 				dest.setPixel(y, x, true);
 				p += dy2;

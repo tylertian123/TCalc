@@ -151,7 +151,7 @@ namespace lcd {
 		__enable_irq();
 		return true;
 	}
-	// The busy flag cannnot be checked before initialization, thus delays are used instead of busy flag checking
+	// The busy flag cannot be checked before initialization, thus delays are used instead of busy flag checking
 	void LCDBase::writeCommandNoWait(uint8_t cmd) {
 		__disable_irq();
 		
