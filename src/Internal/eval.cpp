@@ -317,6 +317,36 @@ namespace eval {
         }
         return true;
     }
+    Matrix* Matrix::inv() const {
+        // Nonsquare matrices have no inverses
+        if(m != n) {
+            return nullptr;
+        }
+        // Create block matrix [A|I], where I is the identity matrix
+        Matrix block(m, n + m);
+        // Copy the original matrix
+        for(uint8_t i = 0; i < m; i ++) {
+            for(uint8_t j = 0; j < n; j ++) {
+                block.setEntry(i, j, getEntry(i, j));
+            }
+        }
+        // Copy the identity matrix
+        for(uint8_t i = 0; i < m; i ++) {
+            block.setEntry(i, i + m, 1);
+        }
+        // Eliminate
+        if(!block.eliminate()) {
+            return nullptr;
+        }
+        // Copy inverse
+        Matrix *result = new Matrix(m, n);
+        for(uint8_t i = 0; i < m; i ++) {
+            for(uint8_t j = 0; j < n; j ++) {
+                result->setEntry(i, j, block.getEntry(i, j + m));
+            }
+        }
+        return result;
+    }
 
     /******************** Operator ********************/
     uint8_t Operator::getPrecedence() const {
@@ -652,7 +682,7 @@ convertToDoubleAndOperate:
         // log10 and log2 cannot be directly entered with a string
         "\xff", "\xff",
 
-        "qdRtA", "qdRtB", "round", "abs", "fact", "det", "len", "transpose", "linSolve",
+        "qdRtA", "qdRtB", "round", "abs", "fact", "det", "len", "transpose", "inv", "linSolve",
     };
     Function* Function::fromString(const char *str) {
         for(uint8_t i = 0; i < sizeof(FUNCNAMES) / sizeof(FUNCNAMES[0]); i ++) {
@@ -820,6 +850,17 @@ convertToDoubleAndOperate:
                 (*solution)[i] = mat->getEntry(i, mat->m);
             }
             return solution;
+        }
+        case Type::INV:
+        {
+            // Syntax error: inverse of a scalar
+            if(args[0]->getType() != TokenType::MATRIX) {
+                return nullptr;
+            }
+            Matrix *mat = (Matrix*) args[0];
+            Matrix *result = mat->inv();
+            
+            return result ? (Token*) result : (Token*) new Number(NAN);
         }
         default: return new Number(NAN);
         }
