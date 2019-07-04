@@ -1362,6 +1362,14 @@ evaluateFunctionArguments:
                             // Regular function - cast and call to evaluate
                             if(func) {
                                 result = (*func)(args.asArray());
+                                // If result cannot be computed, syntax error
+                                if(!result) {
+                                    freeTokens(&arr);
+                                    freeTokens(&args);
+                                    delete[] str;
+                                    delete func;
+                                    return nullptr;
+                                }
                                 delete func;
                             }
                             // User-defined function
