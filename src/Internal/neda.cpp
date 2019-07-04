@@ -378,14 +378,14 @@ namespace neda {
             }
         }
 
-        if(ref->getType() == ObjType::CHAR_TYPE) {
         uint16_t maxTopSpacing = getTopSpacing();
+        if(ref->getType() == ObjType::CHAR_TYPE) {
             out.height = ((Character*) ref)->getHeight();
             out.y = y - ((Character*) ref)->getHeight() / 2 + maxTopSpacing;
         }
         else {
             out.height = ((Expr*) ref)->exprHeight;
-            out.y = ((Expr*) ref)->y;
+            out.y = y + maxTopSpacing - ((Expr*) ref)->getTopSpacing();
         }
     }
     void Container::drawCursor(lcd::LCD12864 &dest, const Cursor &cursor) {

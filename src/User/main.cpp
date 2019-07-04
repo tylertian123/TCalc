@@ -196,7 +196,7 @@ extern "C" void TIM3_IRQHandler() {
 
 #define CURSOR_HORIZ_SPACING 1
 #define CURSOR_VERT_SPACING 1
-//Moves ex so that the cursor is in the display
+// Moves ex so that the cursor is in the display
 void adjustExpr(neda::Expr *ex, neda::Cursor *cursorRef) {
 	neda::CursorInfo info;
 	cursorRef->getInfo(info);
