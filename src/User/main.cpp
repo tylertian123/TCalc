@@ -267,7 +267,7 @@ void drawResult(uint8_t id, bool asDecimal = false) {
         result = calcResults[id];
     }
     // Fill the area first
-    display.fill(128 - CURSOR_HORIZ_SPACING - 1 - result->exprWidth, 64 - CURSOR_VERT_SPACING - result->exprHeight, result->exprWidth, result->exprHeight, true);
+    display.fill(128 - CURSOR_HORIZ_SPACING - 1 - result->exprWidth - 1, 64 - CURSOR_VERT_SPACING - result->exprHeight - 1, result->exprWidth + 2, result->exprHeight + 2, true);
     result->draw(display, 128 - CURSOR_HORIZ_SPACING - 1 - result->exprWidth, 64 - CURSOR_VERT_SPACING - result->exprHeight);
     // Clean up
     if(result != calcResults[id]) {
