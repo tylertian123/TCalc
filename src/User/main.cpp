@@ -358,7 +358,7 @@ extern uint16_t selectorIndex;
 bool editExpr = true;
 uint8_t currentExpr = 0;
 uint8_t matRows = 0, matCols = 0;
-void expressionEntryKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
+void exprKeyHandler(neda::Cursor *cursor, uint16_t key) {
     if(!editExpr && key != KEY_UP && key != KEY_DOWN && key != KEY_APPROX) {
         // If the key is a left or right, make a copy of the expression on display
         // Otherwise just insert a new expression
@@ -1111,7 +1111,7 @@ const char * const trigFuncNames[] = {
     "sin", "cos", "tan", "asin", "acos", "atan",
     "sinh", "cosh", "tanh", "asinh", "acosh", "atanh",
 };
-void trigFunctionsMenuKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
+void trigKeyHandler(neda::Cursor *cursor, uint16_t key) {
 
     switch(key) {
     case KEY_CENTER:
@@ -1178,7 +1178,7 @@ void trigFunctionsMenuKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
 const char *constantNames[] = {
     LCD_STR_PI, LCD_STR_EULR, LCD_STR_AVGO, LCD_STR_ECHG, LCD_STR_VLIG, LCD_STR_AGV,
 };
-void constSelectionMenuKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
+void constKeyHandler(neda::Cursor *cursor, uint16_t key) {
     switch(key) {
     case KEY_CENTER:
     case KEY_ENTER:
@@ -1282,7 +1282,7 @@ void scrollDown(uint16_t len) {
         scrollingIndex = 0;
     }
 }
-void allAvailableFunctionsCatalogueSelectionMenuKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
+void funcKeyHandler(neda::Cursor *cursor, uint16_t key) {
     funcCount = BUILTIN_FUNC_COUNT + functions.length();
     switch(key) {
     case KEY_CENTER:
@@ -1335,7 +1335,7 @@ void allAvailableFunctionsCatalogueSelectionMenuKeyPressHandler(neda::Cursor *cu
     display.updateDrawing();
 }
 
-void recallUserDefinedFunctionsDefinitionsMenuKeyPressHandler(neda::Cursor *cursor, uint16_t key) {
+void recallKeyHandler(neda::Cursor *cursor, uint16_t key) {
     switch(key) {
     case KEY_CENTER:
     case KEY_ENTER:
@@ -1383,7 +1383,7 @@ void recallUserDefinedFunctionsDefinitionsMenuKeyPressHandler(neda::Cursor *curs
     display.updateDrawing();
 }
 
-void calculatorSettingsAndConfigurationMenuKeyPressHandler(uint16_t key) {
+void configKeyHandler(uint16_t key) {
 	switch(key) {
     case KEY_CENTER:
 	case KEY_ENTER:
@@ -1407,7 +1407,7 @@ void calculatorSettingsAndConfigurationMenuKeyPressHandler(uint16_t key) {
 	display.updateDrawing();
 }
 
-void matrixSizeSelectionMenuKeyPressHandler(uint16_t key) {
+void matrixKeyHandler(uint16_t key) {
     switch(key) {
     case KEY_CENTER:
     case KEY_ENTER:
@@ -1575,25 +1575,25 @@ int main() {
 		if((key = fetchKey()) != KEY_NULL) {
             switch(dispMode) {
             case DispMode::EXPR_ENTRY:
-			    expressionEntryKeyPressHandler(cursor, key);
+			    exprKeyHandler(cursor, key);
                 break;
             case DispMode::TRIG_MENU:
-                trigFunctionsMenuKeyPressHandler(cursor, key);
+                trigKeyHandler(cursor, key);
                 break;
             case DispMode::CONST_MENU:
-                constSelectionMenuKeyPressHandler(cursor, key);
+                constKeyHandler(cursor, key);
                 break;
 			case DispMode::CONFIG_MENU:
-				calculatorSettingsAndConfigurationMenuKeyPressHandler(key);
+				configKeyHandler(key);
 				break;
             case DispMode::FUNC_MENU:
-                allAvailableFunctionsCatalogueSelectionMenuKeyPressHandler(cursor, key);
+                funcKeyHandler(cursor, key);
                 break;
             case DispMode::RECALL_MENU:
-                recallUserDefinedFunctionsDefinitionsMenuKeyPressHandler(cursor, key);
+                recallKeyHandler(cursor, key);
                 break;
             case DispMode::MATRIX_MENU:
-                matrixSizeSelectionMenuKeyPressHandler(key);
+                matrixKeyHandler(key);
                 break;
             case DispMode::GAME:
                 gameKeyPressHandler(key);
