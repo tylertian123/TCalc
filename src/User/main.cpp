@@ -243,10 +243,14 @@ void addStr(neda::Cursor *cursor, const char *str) {
 }
 
 #define RESULT_STORE_COUNT 4
-//Previous expressions and their results
+// Previous expressions and their results
 neda::Container *calcResults[RESULT_STORE_COUNT] = { nullptr };
 neda::Container *expressions[RESULT_STORE_COUNT] = { nullptr };
-void drawResult(uint8_t id, bool asDecimal = false) {
+int16_t resultX, resultY;
+uint16_t resultWidth = 0, resultHeight = 0;
+extern bool scrollExpr;
+extern bool asDecimal;
+void drawResult(uint8_t id, bool resetLocation = true) {
     // Display the result
     display.clearDrawingBuffer();
     expressions[id]->Expr::draw(display);
@@ -266,9 +270,17 @@ void drawResult(uint8_t id, bool asDecimal = false) {
     else {
         result = calcResults[id];
     }
+    // Set the location of the result
+    if(resetLocation) {
+        resultX = 128 - CURSOR_HORIZ_SPACING - 1 - result->exprWidth;
+        resultY = 64 - CURSOR_VERT_SPACING - result->exprHeight;
+        scrollExpr = false;
+    }
     // Fill the area first
-    display.fill(128 - CURSOR_HORIZ_SPACING - 1 - result->exprWidth - 1, 64 - CURSOR_VERT_SPACING - result->exprHeight - 1, result->exprWidth + 2, result->exprHeight + 2, true);
-    result->draw(display, 128 - CURSOR_HORIZ_SPACING - 1 - result->exprWidth, 64 - CURSOR_VERT_SPACING - result->exprHeight);
+    display.fill(resultX - 1, resultY - 1, result->exprWidth + 2, result->exprHeight + 2, true);
+    result->draw(display, resultX, resultY);
+    resultWidth = result->exprWidth;
+    resultHeight = result->exprHeight;
     // Clean up
     if(result != calcResults[id]) {
         delete result;
@@ -353,13 +365,15 @@ void clearVarsAndFuncs() {
 }
 
 // Key press handlers
-// Probably gonna make this name shorter, but couldn't bother.
 extern uint16_t selectorIndex;
 bool editExpr = true;
+bool scrollExpr = false;
+bool asDecimal = false;
 uint8_t currentExpr = 0;
 uint8_t matRows = 0, matCols = 0;
+constexpr uint16_t EXPR_SCROLL_SPEED = 4;
 void exprKeyHandler(neda::Cursor *cursor, uint16_t key) {
-    if(!editExpr && key != KEY_UP && key != KEY_DOWN && key != KEY_APPROX) {
+    if(!editExpr && !scrollExpr && key != KEY_CENTER && key != KEY_UP && key != KEY_DOWN && key != KEY_APPROX) {
         // If the key is a left or right, make a copy of the expression on display
         // Otherwise just insert a new expression
         neda::Container *newExpr;
@@ -387,24 +401,59 @@ void exprKeyHandler(neda::Cursor *cursor, uint16_t key) {
         newExpr->x = CURSOR_HORIZ_SPACING + 1;
         newExpr->y = CURSOR_VERT_SPACING;
         editExpr = true;
+        scrollExpr = false;
         currentExpr = 0;
     }
 
 	switch(key) {
+    case KEY_CENTER:
+        if(!editExpr) {
+            scrollExpr = !scrollExpr;
+        }
+        return;
 	case KEY_LEFT:
-		cursor->left();
+        if(!scrollExpr) {
+		    cursor->left();
+        }
+        else {
+            // Verify that the expression is cut off
+            if(resultX < 1) {
+                resultX += EXPR_SCROLL_SPEED;
+                drawResult(currentExpr, false);
+            }
+            return;
+        }
 		break;
 	case KEY_RIGHT:
-		cursor->right();
+        if(!scrollExpr) {
+		    cursor->right();
+        }
+        else {
+            // Verify that the expression is cut off
+            if(resultX + resultWidth > 127) {
+                resultX -= EXPR_SCROLL_SPEED;
+            }
+            drawResult(currentExpr, false);
+            return;
+        }
 		break;
 	case KEY_UP:
     {   
         if(editExpr) {
 		    cursor->up();
         }
+        else if(scrollExpr) {
+            // Verify that the result is cut off
+            if(resultY < 1) {
+                resultY += EXPR_SCROLL_SPEED;
+                drawResult(currentExpr, false);
+            }
+            return;
+        }
         else {
             if(currentExpr < RESULT_STORE_COUNT - 1 && expressions[currentExpr + 1]) {
                 ++currentExpr;
+                asDecimal = false;
                 drawResult(currentExpr);
             }
             return;
@@ -416,9 +465,18 @@ void exprKeyHandler(neda::Cursor *cursor, uint16_t key) {
         if(editExpr) {
 		    cursor->down();
         }
+        else if(scrollExpr) {
+            // Verify that the expression is cut off
+            if(resultY + resultHeight > 63) {
+                resultY -= EXPR_SCROLL_SPEED;
+            }
+            drawResult(currentExpr, false);
+            return;
+        }
         else {
             if(currentExpr >= 1) {
                 --currentExpr;
+                asDecimal = false;
                 drawResult(currentExpr);
             }
             return;
@@ -1057,13 +1115,15 @@ evaluateExpression:
         expressions[0] = (neda::Container*) cursor->expr->getTopLevel();
 
         currentExpr = 0;
-        drawResult(0, key != KEY_ENTER);
+        asDecimal = key == KEY_APPROX;
+        drawResult(0, true);
         return;
 	}
     case KEY_APPROX:
     {
         if(!editExpr) {
-            drawResult(currentExpr, true);
+            asDecimal = true;
+            drawResult(currentExpr);
             return;
         }
         else {
