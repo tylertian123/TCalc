@@ -1538,12 +1538,13 @@ evaluateFunctionArguments:
 
                 // Find the type of operation by extracting the symbol
                 auto &type = ((neda::SigmaPi*) exprs[index])->symbol;
-                // Different starting values for summation and product
-                Token *val = new Number(type.data == lcd::CHAR_SUMMATION.data ? 0 : 1);
+                // The accumulated value
+                Token *val = nullptr;
                 // While the start is still less than or equal to the end
                 while(compareTokens(start, end) <= 0) {
                     // Evaluate the inside expression
                     Token *n = evaluate((neda::Container*) ((neda::SigmaPi*) exprs[index])->contents, varc + 1, vNames, vVals, funcc, funcs);
+
                     // If there is ever a syntax error then cleanup and exit
                     if(!n) {
                         delete end;
@@ -1555,9 +1556,15 @@ evaluateFunctionArguments:
                         freeTokens(&arr);
                         return nullptr;
                     }
-                    // Add or multiply the expressions
-                    // Operate takes care of deletion
-                    val = (type.data == lcd::CHAR_SUMMATION.data ? Operator::OP_PLUS : Operator::OP_MULTIPLY)(val, n);
+                    // Add or multiply the expressions if val exists
+                    // Operate takes care of deletion of operands
+                    if(val) {
+                        val = (type.data == lcd::CHAR_SUMMATION.data ? Operator::OP_PLUS : Operator::OP_MULTIPLY)(val, n);
+                    }
+                    // Set val if it doesn't exist
+                    else {
+                        val = n;
+                    }
                     // Add one to the counter variable
                     if(start->getType() == TokenType::NUMBER) {
                         ++((Number*) start)->value;
@@ -1567,6 +1574,13 @@ evaluateFunctionArguments:
                         ((Fraction*) start)->num += ((Fraction*) start)->denom;
                     }
                 }
+                // If val was not set, then there were no iterations
+                // Set it to a default value instead
+                // For summation this is 0, for product it is 1
+                if(!val) {
+                    val = new Number(type.data == lcd::CHAR_SUMMATION.data ? 0 : 1);
+                }
+
                 // Insert the value
                 arr.add(val);
                 // Cleanup

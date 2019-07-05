@@ -201,8 +201,8 @@ void adjustExpr(neda::Expr *ex, neda::Cursor *cursorRef) {
 	neda::CursorInfo info;
 	cursorRef->getInfo(info);
     // First try to directly position the expression in the top-left corner of the display
-    uint16_t xd = CURSOR_HORIZ_SPACING - ex->x;
-    uint16_t yd = CURSOR_VERT_SPACING - ex->y;
+    int16_t xd = CURSOR_HORIZ_SPACING - ex->x;
+    int16_t yd = CURSOR_VERT_SPACING - ex->y;
     // Make sure it fits
     if(info.x + xd >= CURSOR_HORIZ_SPACING && info.y + yd >= CURSOR_VERT_SPACING
             && info.x + info.width + xd + CURSOR_HORIZ_SPACING < 128 && info.y + info.height + yd + CURSOR_VERT_SPACING < 64) {
