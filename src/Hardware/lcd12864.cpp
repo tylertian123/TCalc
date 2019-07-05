@@ -112,54 +112,54 @@ namespace lcd {
 	}
 	
 	bool LCD12864::clearDrawing() {
-        __NO_INTERRUPT(
+		__NO_INTERRUPT(
 
-            if(!isDrawing()) {
-                return false;
-            }
-            
-            for(uint8_t row = 0; row < 32; row ++) {
-                for(uint8_t col = 0; col < 16; col ++) {
-                    // The row gets written first
-                    // There are 32 rows (bottom 32 are just extensions of the top 32)
-                    // And then the column gets written (16 pixels)
-                    W_CMD(0x80 | row);
-                    W_CMD(0x80 | col);
-                    W_CHR(0x00);
-                    W_CHR(0x00);
-                    
-                    // Clear our buffers
-                    drawBuf[row][col] = 0x0000;
-                    dispBuf[row][col] = 0x0000;
-                }
-            }
+			if(!isDrawing()) {
+				return false;
+			}
+			
+			for(uint8_t row = 0; row < 32; row ++) {
+				for(uint8_t col = 0; col < 16; col ++) {
+					// The row gets written first
+					// There are 32 rows (bottom 32 are just extensions of the top 32)
+					// And then the column gets written (16 pixels)
+					W_CMD(0x80 | row);
+					W_CMD(0x80 | col);
+					W_CHR(0x00);
+					W_CHR(0x00);
+					
+					// Clear our buffers
+					drawBuf[row][col] = 0x0000;
+					dispBuf[row][col] = 0x0000;
+				}
+			}
 
-        );
+		);
 		return true;
 	}
 	// This function takes the drawing buffer, compares it with the display buffer and writes any necessary bytes.
 	bool LCD12864::updateDrawing() {
-        __NO_INTERRUPT(
+		__NO_INTERRUPT(
 
-            if(!isDrawing()) {
-                return false;
-            }
-            for(uint8_t row = 0; row < 32; row ++) {
-                for(uint8_t col = 0; col < 16; col ++) {
-                    // Compare drawBuf with dispBuf
-                    if(dispBuf[row][col] != drawBuf[row][col]) {
-                        // Update the display buffer
-                        dispBuf[row][col] = drawBuf[row][col];
-                        W_CMD(0x80 | row);
-                        W_CMD(0x80 | col);
-                        // Write higher order byte first
-                        W_CHR(dispBuf[row][col] >> 8);
-                        W_CHR(dispBuf[row][col] & 0x00FF);
-                    }
-                }
-            }
-            
-        );
+			if(!isDrawing()) {
+				return false;
+			}
+			for(uint8_t row = 0; row < 32; row ++) {
+				for(uint8_t col = 0; col < 16; col ++) {
+					// Compare drawBuf with dispBuf
+					if(dispBuf[row][col] != drawBuf[row][col]) {
+						// Update the display buffer
+						dispBuf[row][col] = drawBuf[row][col];
+						W_CMD(0x80 | row);
+						W_CMD(0x80 | col);
+						// Write higher order byte first
+						W_CHR(dispBuf[row][col] >> 8);
+						W_CHR(dispBuf[row][col] & 0x00FF);
+					}
+				}
+			}
+			
+		);
 		return true;
 	}
 	
@@ -207,49 +207,49 @@ namespace lcd {
 		drawBuf[row][col] |= x % 2 == 0 ? data << 8 : data;
 	}
 
-    void LCD12864::ANDDrawBufferByte(uint16_t x, uint16_t y, uint8_t data) {
-        if(x >= 16 || y >= 64) {
-            return;
-        }
-        // Calculate row and column
-        // The row is just the Y if y < 32, otherwise it's y - 32
-        uint8_t row = y < 32 ? y : y - 32;
-        // The column is just x / 2 if y < 32, otherwise it's x / 2 + 8
-        uint8_t col = x / 2 + (y < 32 ? 0 : 8);
-        // If x is even, then the byte is on the left of the uint16, so left shift by 8.
-        // We also don't want to affect the other byte, so make sure the other byte is all 1s.
-        drawBuf[row][col] &= x % 2 == 0 ? data << 8 | 0x00FF : data | 0xFF00;
-    }
+	void LCD12864::ANDDrawBufferByte(uint16_t x, uint16_t y, uint8_t data) {
+		if(x >= 16 || y >= 64) {
+			return;
+		}
+		// Calculate row and column
+		// The row is just the Y if y < 32, otherwise it's y - 32
+		uint8_t row = y < 32 ? y : y - 32;
+		// The column is just x / 2 if y < 32, otherwise it's x / 2 + 8
+		uint8_t col = x / 2 + (y < 32 ? 0 : 8);
+		// If x is even, then the byte is on the left of the uint16, so left shift by 8.
+		// We also don't want to affect the other byte, so make sure the other byte is all 1s.
+		drawBuf[row][col] &= x % 2 == 0 ? data << 8 | 0x00FF : data | 0xFF00;
+	}
 	
 	void LCD12864::drawImage(int16_t x, int16_t y, const LCD12864Image &img, bool invert) {
-        // Check for out of bounds
-        if(x >= 128 || y >= 64) {
-            return;
-        }
-        if(x + img.width < 0 || y + img.height < 0) {
-            return;
-        }
+		// Check for out of bounds
+		if(x >= 128 || y >= 64) {
+			return;
+		}
+		if(x + img.width < 0 || y + img.height < 0) {
+			return;
+		}
 
 		int16_t baseByte = floorDiv(x, static_cast<int16_t>(8));
-        int8_t offset = positiveMod(x, static_cast<int16_t>(8));
+		int8_t offset = positiveMod(x, static_cast<int16_t>(8));
 		for(int16_t row = 0; row < img.height; row ++) {
 			// If the byte we're drawing into is out of bounds vertically then break this outer loop
 			if(row + y >= 64) {
 				break;
 			}
-            // If the byte is too high up, skip this row
-            if(row + y < 0) {
-                continue;
-            }
+			// If the byte is too high up, skip this row
+			if(row + y < 0) {
+				continue;
+			}
 			for(int16_t byte = 0; byte < img.bytesWide; byte ++) {
 				// If the byte we're drawing into is out of bounds horizontally then break this inner loop
 				if(baseByte + byte >= 16) {
 					break;
 				}
-                // If the byte we're drawing into is too far left, skip it
-                if(baseByte + byte < 0) {
-                    continue;
-                }
+				// If the byte we're drawing into is too far left, skip it
+				if(baseByte + byte < 0) {
+					continue;
+				}
 				
 				// The bytes have to be shifted
 				uint8_t currentByte = img.data[row * img.bytesWide + byte] >> offset;
@@ -269,23 +269,23 @@ namespace lcd {
 					currentByte |= img.data[row * img.bytesWide + byte - 1] << (8 - offset);
 				}
 				
-                if(!invert) {
-				    ORDrawBufferByte(baseByte + byte, row + y, currentByte);
-                }
-                else {
-                    ANDDrawBufferByte(baseByte + byte, row + y, ~currentByte);
-                }
+				if(!invert) {
+					ORDrawBufferByte(baseByte + byte, row + y, currentByte);
+				}
+				else {
+					ANDDrawBufferByte(baseByte + byte, row + y, ~currentByte);
+				}
 			}
 			// Finally, if we shifted by more than one bit, then there must be some bits clipped in the end
 			// Here we recover those lost bits and write them to the buffer
 			if(offset != 0) {
 				uint8_t finalByte = img.data[row * img.bytesWide + img.bytesWide - 1] << (8 - offset);
-                if(!invert) {
-				    ORDrawBufferByte(baseByte + img.bytesWide, row + y, finalByte);
-                }
-                else {
-                    ANDDrawBufferByte(baseByte + img.bytesWide, row + y, ~finalByte);
-                }
+				if(!invert) {
+					ORDrawBufferByte(baseByte + img.bytesWide, row + y, finalByte);
+				}
+				else {
+					ANDDrawBufferByte(baseByte + img.bytesWide, row + y, ~finalByte);
+				}
 			}
 		}
 	}
@@ -368,107 +368,107 @@ namespace lcd {
 		}
 	}
 
-    void LCD12864::drawString(int16_t x, int16_t y, const char *str, bool invert) {
-        // Empty string
-        if(*str == '\0') {
-            return;
-        }
-        uint16_t width = 0;
-        uint16_t height = 0;
-        for(uint16_t index = 0; str[index] != '\0'; ++index) {
-            const lcd::Img &img = lcd::getChar(*str);
-            width += img.width + 1;
-            height = max(height, img.height);
-        }
-        // Subtract away one extra spacing
-        --width;
+	void LCD12864::drawString(int16_t x, int16_t y, const char *str, bool invert) {
+		// Empty string
+		if(*str == '\0') {
+			return;
+		}
+		uint16_t width = 0;
+		uint16_t height = 0;
+		for(uint16_t index = 0; str[index] != '\0'; ++index) {
+			const lcd::Img &img = lcd::getChar(*str);
+			width += img.width + 1;
+			height = max(height, img.height);
+		}
+		// Subtract away one extra spacing
+		--width;
 
-        if(invert) {
-            // Fill the zone
-            fill(x - 1, y - 1, width + 2, height + 2);
-        }
+		if(invert) {
+			// Fill the zone
+			fill(x - 1, y - 1, width + 2, height + 2);
+		}
 
-        for(; *str != '\0'; ++str) {
-            // Out of bounds check #1
-            if(x >= 128 || y >= 64) {
-                continue;
-            }
-            const lcd::Img &img = lcd::getChar(*str);
-            // Out of bounds check #2
-            if(x + img.width < 0 || y + img.height < 0) {
-                continue;
-            }
-            // Make sure everything is bottom-aligned
-            drawImage(x, y + (height - img.height), img, invert);
-            x += img.width + 1;
-        }
-    }
+		for(; *str != '\0'; ++str) {
+			// Out of bounds check #1
+			if(x >= 128 || y >= 64) {
+				continue;
+			}
+			const lcd::Img &img = lcd::getChar(*str);
+			// Out of bounds check #2
+			if(x + img.width < 0 || y + img.height < 0) {
+				continue;
+			}
+			// Make sure everything is bottom-aligned
+			drawImage(x, y + (height - img.height), img, invert);
+			x += img.width + 1;
+		}
+	}
 
-    void LCD12864::fill(int16_t x, int16_t y, uint16_t width, uint16_t height, bool invert) {
-        // Check for out of bounds
-        if(x >= 128 || y >= 64) {
-            return;
-        }
-        if(x + width < 0 || y + height < 0) {
-            return;
-        }
+	void LCD12864::fill(int16_t x, int16_t y, uint16_t width, uint16_t height, bool invert) {
+		// Check for out of bounds
+		if(x >= 128 || y >= 64) {
+			return;
+		}
+		if(x + width < 0 || y + height < 0) {
+			return;
+		}
 
-        int16_t baseByte = floorDiv(x, static_cast<int16_t>(8));
-        int8_t offset = positiveMod(x, static_cast<int16_t>(8));
-        // Special handling if the area to fill is all in one byte
-        if(offset + width < 8) {
-            // Check for out of bounds
-            if(baseByte < 0) {
-                return;
-            }
-            // Find out what the byte looks like
-            uint8_t data = 0xFF >> offset;
-            data &= 0xFF << (8 - offset - width);
-            for(uint16_t row = 0; row < height; row ++) {
-                if(y + row < 0) {
-                    continue;
-                }
-                if(invert) {
-                    ANDDrawBufferByte(baseByte, y + row, ~data);
-                }
-                else {
-                    ORDrawBufferByte(baseByte, y + row, data);
-                }
-            }
-            return;
-        }
-        // Otherwise split into 3 parts
-        uint8_t start = 0xFF >> offset;
-        // (offset + width) % 8 calculates how many bits are in the last byte
-        // Then we shift 0xFF left by 8 minus those bits to get the last byte
-        uint8_t end = 0xFF << (8 - (width + offset) % 8);
-        uint8_t bytesWide = (offset + width) / 8 - 1;
-        for(uint16_t row = 0; row < height; row ++) {
-            if(y + row < 0) {
-                continue;
-            }
-            if(invert) {
-                ANDDrawBufferByte(baseByte, y + row, ~start);
-            }
-            else {
-                ORDrawBufferByte(baseByte, y + row, start);
-            }
-            for(uint16_t col = 0; col < bytesWide; col ++) {
-                if(invert) {
-                    ANDDrawBufferByte(baseByte + 1 + col, y + row, 0x00);
-                }
-                else {
-                    ORDrawBufferByte(baseByte + 1 + col, y + row, 0xFF);
-                }
-            }
-            if(invert) {
-                ANDDrawBufferByte(baseByte + 1 + bytesWide, y + row, ~end);
-            }
-            else {
-                ORDrawBufferByte(baseByte + 1 + bytesWide, y + row, end);
-            }
-        }
-    }
+		int16_t baseByte = floorDiv(x, static_cast<int16_t>(8));
+		int8_t offset = positiveMod(x, static_cast<int16_t>(8));
+		// Special handling if the area to fill is all in one byte
+		if(offset + width < 8) {
+			// Check for out of bounds
+			if(baseByte < 0) {
+				return;
+			}
+			// Find out what the byte looks like
+			uint8_t data = 0xFF >> offset;
+			data &= 0xFF << (8 - offset - width);
+			for(uint16_t row = 0; row < height; row ++) {
+				if(y + row < 0) {
+					continue;
+				}
+				if(invert) {
+					ANDDrawBufferByte(baseByte, y + row, ~data);
+				}
+				else {
+					ORDrawBufferByte(baseByte, y + row, data);
+				}
+			}
+			return;
+		}
+		// Otherwise split into 3 parts
+		uint8_t start = 0xFF >> offset;
+		// (offset + width) % 8 calculates how many bits are in the last byte
+		// Then we shift 0xFF left by 8 minus those bits to get the last byte
+		uint8_t end = 0xFF << (8 - (width + offset) % 8);
+		uint8_t bytesWide = (offset + width) / 8 - 1;
+		for(uint16_t row = 0; row < height; row ++) {
+			if(y + row < 0) {
+				continue;
+			}
+			if(invert) {
+				ANDDrawBufferByte(baseByte, y + row, ~start);
+			}
+			else {
+				ORDrawBufferByte(baseByte, y + row, start);
+			}
+			for(uint16_t col = 0; col < bytesWide; col ++) {
+				if(invert) {
+					ANDDrawBufferByte(baseByte + 1 + col, y + row, 0x00);
+				}
+				else {
+					ORDrawBufferByte(baseByte + 1 + col, y + row, 0xFF);
+				}
+			}
+			if(invert) {
+				ANDDrawBufferByte(baseByte + 1 + bytesWide, y + row, ~end);
+			}
+			else {
+				ORDrawBufferByte(baseByte + 1 + bytesWide, y + row, end);
+			}
+		}
+	}
 	
 	#undef W_CMD
 	#undef W_CHR

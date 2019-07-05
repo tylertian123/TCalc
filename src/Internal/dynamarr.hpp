@@ -51,15 +51,15 @@ public:
 		free(contents);
 	}
 
-    // Retrieves the length of this DynamicArray
+	// Retrieves the length of this DynamicArray
 	uint16_t length() const {
 		return len;
 	}
-    // Retrieves the maximum length of this DynamicArray (the length it can be before having to reallocate)
+	// Retrieves the maximum length of this DynamicArray (the length it can be before having to reallocate)
 	uint16_t maxLength() const {
 		return maxLen;
 	}
-    // Resizes the maximum length
+	// Resizes the maximum length
 	bool resize(uint16_t newSize) {
 		uint16_t oldSize = maxLen;
 		// Ignore if the new size is less than the length
@@ -79,11 +79,11 @@ public:
 		contents = (T*)tmp;
 		return true;
 	}
-    // Reallocates the contents so that all extra space is freed
+	// Reallocates the contents so that all extra space is freed
 	void minimize() {
 		resize(len);
 	}
-    
+	
 	bool add(const T &elem) {
 		len++;
 		// If the new length is more than what we can store then reallocate
@@ -124,10 +124,10 @@ public:
 	}
 	T pop() {
 		// Simply decrement the length, no need to waste time clearing out the memory
-        if(len > 0) {
-		    len--;
-        }
-        return contents[len];
+		if(len > 0) {
+			len--;
+		}
+		return contents[len];
 	}
 	void empty() {
 		len = 0;
@@ -155,12 +155,12 @@ public:
 		return true;
 	}
 
-    T* asArray() {
-        return contents;
-    }
-    const T* asArray() const {
-        return contents;
-    }
+	T* asArray() {
+		return contents;
+	}
+	const T* asArray() const {
+		return contents;
+	}
 
 	// WARNING: Does not check for out of bounds!
 	const T& operator[](uint16_t i) const {

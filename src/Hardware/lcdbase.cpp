@@ -86,42 +86,42 @@ namespace lcd {
 	 * E enables the LCD by generating a pulse
 	 */
 	bool LCDBase::waitForBusyFlag() {
-        __NO_INTERRUPT(
-            D7 = true;
-            RS = false;
-            RW = true;
-            E = true;
-            LCD_EDELAY;
-            uint32_t timeoutCounter = 0;
-            // Initialize to read the busy flag
-            INIT_I(D7);
-            // Wait until the pin is cleared
-            while(D7) {
-                timeoutCounter++;
-                delay::us(1);
-                // Handle timeout
-                if(timeoutCounter > timeout) {
-                    // Make sure to reset enable pin after
-                    E = false;
-                    INIT_O(D7);
-                    return false;
-                }
-                
-                E = false;
-                LCD_EDELAY;
-                E = true;
-                
-                if(FOUR_WIRE_INTERFACE) {
-                    LCD_EDELAY;
-                    E = false;
-                    LCD_EDELAY;
-                    E = true;
-                }
-                    
-            }
-            E = false;
-            INIT_O(D7);
-        );
+		__NO_INTERRUPT(
+			D7 = true;
+			RS = false;
+			RW = true;
+			E = true;
+			LCD_EDELAY;
+			uint32_t timeoutCounter = 0;
+			// Initialize to read the busy flag
+			INIT_I(D7);
+			// Wait until the pin is cleared
+			while(D7) {
+				timeoutCounter++;
+				delay::us(1);
+				// Handle timeout
+				if(timeoutCounter > timeout) {
+					// Make sure to reset enable pin after
+					E = false;
+					INIT_O(D7);
+					return false;
+				}
+				
+				E = false;
+				LCD_EDELAY;
+				E = true;
+				
+				if(FOUR_WIRE_INTERFACE) {
+					LCD_EDELAY;
+					E = false;
+					LCD_EDELAY;
+					E = true;
+				}
+					
+			}
+			E = false;
+			INIT_O(D7);
+		);
 		return true;
 	}
 	
@@ -129,28 +129,28 @@ namespace lcd {
 	bool LCDBase::writeCommand(uint8_t cmd) {
 		__NO_INTERRUPT(
 
-            LCD_WAITBUSY;
-            RS = false;
-            RW = false;
-            
-            if(FOUR_WIRE_INTERFACE) {
-                setDataPort(cmd >> 4);
-                E = true;
-                LCD_EDELAY;
-                E = false;
-                setDataPort(cmd & 0x0F);
-                LCD_EDELAY;
-                E = true;
-                LCD_EDELAY;
-                E = false;
-            }
-            else {
-                setDataPort(cmd);
-                E = true;
-                LCD_EDELAY;
-                E = false;
-            }
-            
+			LCD_WAITBUSY;
+			RS = false;
+			RW = false;
+			
+			if(FOUR_WIRE_INTERFACE) {
+				setDataPort(cmd >> 4);
+				E = true;
+				LCD_EDELAY;
+				E = false;
+				setDataPort(cmd & 0x0F);
+				LCD_EDELAY;
+				E = true;
+				LCD_EDELAY;
+				E = false;
+			}
+			else {
+				setDataPort(cmd);
+				E = true;
+				LCD_EDELAY;
+				E = false;
+			}
+			
 		);
 
 		return true;
@@ -159,83 +159,83 @@ namespace lcd {
 	void LCDBase::writeCommandNoWait(uint8_t cmd) {
 		__NO_INTERRUPT(
 		
-            RS = false;
-            RW = false;
-            
-            if(FOUR_WIRE_INTERFACE) {
-                setDataPort(cmd >> 4);
-                E = true;
-                LCD_EDELAY;
-                E = false;
-                setDataPort(cmd & 0x0F);
-                LCD_EDELAY;
-                E = true;
-                LCD_EDELAY;
-                E = false;
-            }
-            else {
-                setDataPort(cmd);
-                E = true;
-                LCD_EDELAY;
-                E = false;
-            }
+			RS = false;
+			RW = false;
+			
+			if(FOUR_WIRE_INTERFACE) {
+				setDataPort(cmd >> 4);
+				E = true;
+				LCD_EDELAY;
+				E = false;
+				setDataPort(cmd & 0x0F);
+				LCD_EDELAY;
+				E = true;
+				LCD_EDELAY;
+				E = false;
+			}
+			else {
+				setDataPort(cmd);
+				E = true;
+				LCD_EDELAY;
+				E = false;
+			}
 		
 		);
 	}
 	bool LCDBase::writeData(uint8_t data) {
 		__NO_INTERRUPT(
 		
-            LCD_WAITBUSY;
-            RS = true;
-            RW = false;
-            
-            if(FOUR_WIRE_INTERFACE) {
-                setDataPort(data >> 4);
-                E = true;
-                LCD_EDELAY;
-                E = false;
-                setDataPort(data & 0x0F);
-                LCD_EDELAY;
-                E = true;
-                LCD_EDELAY;
-                E = false;
-            }
-            else {
-                setDataPort(data);
-                E = true;
-                LCD_EDELAY;
-                E = false;
-            }
-            
-        );
+			LCD_WAITBUSY;
+			RS = true;
+			RW = false;
+			
+			if(FOUR_WIRE_INTERFACE) {
+				setDataPort(data >> 4);
+				E = true;
+				LCD_EDELAY;
+				E = false;
+				setDataPort(data & 0x0F);
+				LCD_EDELAY;
+				E = true;
+				LCD_EDELAY;
+				E = false;
+			}
+			else {
+				setDataPort(data);
+				E = true;
+				LCD_EDELAY;
+				E = false;
+			}
+			
+		);
 		return true;
 	}
 	bool LCDBase::readData(uint8_t &out) {
 		__NO_INTERRUPT(
 		
-            LCD_WAITBUSY;
-            RS = true;
-            RW = true;
-            
-            if(FOUR_WIRE_INTERFACE) {
-                E = true;
-                LCD_EDELAY;
-                out = readDataPort() << 4;
-                E = false;
-                LCD_EDELAY;
-                E = true;
-                LCD_EDELAY;
-                out |= readDataPort() & 0x0F;
-                E = false;
-            }
-            else {
-                E = true;
-                LCD_EDELAY;
-                out = readDataPort();
-                E = false;
-            }
+			LCD_WAITBUSY;
+			RS = true;
+			RW = true;
+			
+			if(FOUR_WIRE_INTERFACE) {
+				E = true;
+				LCD_EDELAY;
+				out = readDataPort() << 4;
+				E = false;
+				LCD_EDELAY;
+				E = true;
+				LCD_EDELAY;
+				out |= readDataPort() & 0x0F;
+				E = false;
+			}
+			else {
+				E = true;
+				LCD_EDELAY;
+				out = readDataPort();
+				E = false;
+			}
 		
-        );
+		);
 		return true;
 	}
 	bool LCDBase::writeString(const char *str) {

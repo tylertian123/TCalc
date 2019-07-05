@@ -85,11 +85,11 @@ namespace lcd {
 		void clearDrawingBuffer();
 		void setPixel(int16_t, int16_t, bool);
 		void ORDrawBufferByte(uint16_t, uint16_t, uint8_t);
-        void ANDDrawBufferByte(uint16_t, uint16_t, uint8_t);
+		void ANDDrawBufferByte(uint16_t, uint16_t, uint8_t);
 		void drawImage(int16_t, int16_t, const LCD12864Image&, bool invert = false);
 		void drawLine(int16_t, int16_t, int16_t, int16_t);
-        void drawString(int16_t, int16_t, const char*, bool invert = false);
-        void fill(int16_t, int16_t, uint16_t, uint16_t, bool invert = false);
+		void drawString(int16_t, int16_t, const char*, bool invert = false);
+		void fill(int16_t, int16_t, uint16_t, uint16_t, bool invert = false);
 	
 	protected:
 		bool extendedCmd = false;

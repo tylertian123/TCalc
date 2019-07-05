@@ -35,7 +35,7 @@ namespace lcd {
 
 	typedef LCD12864Image Img;
 
-    extern const Img CHAR_SPC;
+	extern const Img CHAR_SPC;
 	extern const Img CHAR_EXMK;
 	// extern const Img CHAR_DBLQ;
 	// extern const Img CHAR_NSGN;
@@ -131,15 +131,15 @@ namespace lcd {
 	extern const Img CHAR_RCVB;
 	extern const Img CHAR_TLDE;
 	extern const Img CHAR_UNKNOWN;
-    
-    extern const Img CHAR_CRS;
-    extern const Img CHAR_AGV;
-    extern const Img CHAR_AVGO;
-    extern const Img CHAR_ECHG;
-    extern const Img CHAR_VLIG;
-    extern const Img CHAR_EE;
-    extern const Img CHAR_EULR;
-    extern const Img CHAR_THETA;
+	
+	extern const Img CHAR_CRS;
+	extern const Img CHAR_AGV;
+	extern const Img CHAR_AVGO;
+	extern const Img CHAR_ECHG;
+	extern const Img CHAR_VLIG;
+	extern const Img CHAR_EE;
+	extern const Img CHAR_EULR;
+	extern const Img CHAR_THETA;
 	extern const Img CHAR_SERR;
 	extern const Img CHAR_PI;
 	extern const Img CHAR_MUL;
@@ -148,7 +148,7 @@ namespace lcd {
 	extern const Img CHAR_SUMMATION;
 	extern const Img CHAR_PRODUCT;
 	
-    extern const Img * const CHAR_ASCII[];
+	extern const Img * const CHAR_ASCII[];
 	
 	uint8_t asciiToIndex(char);
 	const Img& getChar(char);

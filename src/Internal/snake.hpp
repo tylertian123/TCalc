@@ -12,27 +12,27 @@
 
 namespace game {
 
-    enum SnakeDirection : uint8_t  {
-        UP, DOWN, LEFT, RIGHT,
-    };
+	enum SnakeDirection : uint8_t  {
+		UP, DOWN, LEFT, RIGHT,
+	};
 
-    struct SnakeBody {
-        uint8_t x;
-        uint8_t y;
-        
-        SnakeBody *prev;
-        SnakeBody *next;
-    };
+	struct SnakeBody {
+		uint8_t x;
+		uint8_t y;
+		
+		SnakeBody *prev;
+		SnakeBody *next;
+	};
 
-    struct Coords {
-        uint8_t x;
-        uint8_t y;
-    };
+	struct Coords {
+		uint8_t x;
+		uint8_t y;
+	};
 
-    Coords getNextLocation(SnakeBody*, SnakeDirection);
-    void moveSnake(SnakeBody*, SnakeBody*, SnakeDirection, bool eatsFood = false);
-    bool inSnake(Coords, SnakeBody*);
-    void drawSnake(lcd::LCD12864&, SnakeBody*);
+	Coords getNextLocation(SnakeBody*, SnakeDirection);
+	void moveSnake(SnakeBody*, SnakeBody*, SnakeDirection, bool eatsFood = false);
+	bool inSnake(Coords, SnakeBody*);
+	void drawSnake(lcd::LCD12864&, SnakeBody*);
 }
 
 #endif
