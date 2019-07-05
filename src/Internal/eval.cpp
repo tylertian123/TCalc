@@ -427,7 +427,7 @@ namespace eval {
 		}
 		case Type::EQUALITY:
 		{
-			return lhs == rhs ? 1 : 0;
+			return floatEq(lhs, rhs);
 		}
 		default: return NAN;
 		}
@@ -628,6 +628,22 @@ convertToDoubleAndOperate:
 					result = new Number(NAN);
 				}
 				break;
+            case Type::EQUALITY:
+            {
+                if(lMat->m != rMat->m || lMat->n != rMat->n) {
+                    result = new Number(0);
+                    break;
+                }
+                bool equal = true;
+                for(uint16_t i = 0; i < lMat->m * lMat->n; i ++) {
+                    if(!floatEq((*lMat)[i], (*rMat)[i])) {
+                        equal = false;
+                        break;
+                    }
+                }
+                result = new Number(equal);
+                break;
+            }
 			default:
 				result = new Number(NAN);
 				break;
@@ -649,6 +665,9 @@ convertToDoubleAndOperate:
 			case Type::DIVIDE:
 				result = Matrix::multiply(*lMat, 1.0 / rDouble);
 				break;
+            case Type::EQUALITY:
+                result = new Number(0);
+                break;
 			default:
 				result = new Number(NAN);
 				break;
@@ -666,6 +685,9 @@ convertToDoubleAndOperate:
 			case Type::CROSS:
 				result = Matrix::multiply(*rMat, lDouble);
 				break;
+            case Type::EQUALITY:
+                result = new Number(0);
+                break;
 			default:
 				result = new Number(NAN);
 				break;

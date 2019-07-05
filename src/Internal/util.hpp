@@ -52,4 +52,12 @@ inline double round(double d, int16_t decimals) {
 	return ::round(d * p) / p;
 }
 
+/**
+ * Compares two doubles to see if they're equal mathematically.
+ * This function is designed for the implementation of the == 
+ * (equality) operator. If a or b is infinite or NaN, it will 
+ * return false.
+ */
+bool floatEq(double a, double b, double epsilon = 1e-10);
+
 #endif
