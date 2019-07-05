@@ -451,6 +451,11 @@
               <FileType>8</FileType>
               <FilePath>.\src\Internal\snake.cpp</FilePath>
             </File>
+            <File>
+              <FileName>util.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\src\Internal\util.cpp</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

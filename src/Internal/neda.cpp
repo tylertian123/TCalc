@@ -1192,7 +1192,9 @@ namespace neda {
 			
 			for(uint8_t col = 0; col < n; col ++) {
 				uint16_t index = index_0(col, row);
-				contents[index]->draw(dest, exprX, exprY + (topSpacing - contents[index]->getTopSpacing()));
+                // Centre the expression
+                uint16_t offset = (colWidths[col] - contents[index]->exprWidth) / 2;
+				contents[index]->draw(dest, exprX + offset, exprY + (topSpacing - contents[index]->getTopSpacing()));
 				exprX += colWidths[col] + ENTRY_SPACING;
 			}
 			
