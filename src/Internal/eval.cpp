@@ -598,39 +598,40 @@ convertToDoubleAndOperate:
         else if(lType == TokenType::MATRIX && rType == TokenType::MATRIX) {
             Matrix *lMat = (Matrix*) lhs;
             Matrix *rMat = (Matrix*) rhs;
-
-            if(type == Type::PLUS) {
-                result = Matrix::add(*lMat, *rMat);
+			
+			switch(type) {
+			case Type::PLUS:
+				result = Matrix::add(*lMat, *rMat);
                 // If not possible return NAN
                 if(!result) {
                     result = new Number(NAN);
                 }
-            }
-            else if(type == Type::MINUS) {
-                result = Matrix::subtract(*lMat, *rMat);
+				break;
+			case Type::MINUS:
+				result = Matrix::subtract(*lMat, *rMat);
                 // If not possible return NAN
                 if(!result) {
                     result = new Number(NAN);
                 }
-            }
-            else if(type == Type::MULTIPLY) {
-                result = Matrix::multiply(*lMat, *rMat);
+				break;
+			case Type::MULTIPLY:
+				result = Matrix::multiply(*lMat, *rMat);
                 if(!result) {
                     // If regular multiplication is not possible, see if the dot product can be computed
                     // Since if the dot product isn't possible, dot will return NAN, we can directly return the result of the call
                     result = new Number(Matrix::dot(*lMat, *rMat));
                 }
-            }
-            else if(type == Type::CROSS) {
-                result = Matrix::cross(*lMat, *rMat);
+				break;
+			case Type::CROSS:
+				result = Matrix::cross(*lMat, *rMat);
                 if(!result) {
                     result = new Number(NAN);
                 }
-            }
-            // Operation unsupported!
-            else {
-                result = new Number(NAN);
-            }
+				break;
+			default:
+				result = new Number(NAN);
+				break;
+			}
 
             delete lhs;
             delete rhs;
@@ -639,17 +640,19 @@ convertToDoubleAndOperate:
         else if(lType == TokenType::MATRIX && rType == TokenType::NUMBER || rType == TokenType::FRACTION) {
             Matrix *lMat = (Matrix*) lhs;
             double rDouble = extractDouble(rhs);
-
-            if(type == Type::MULTIPLY || type == Type::CROSS) {
-                result = Matrix::multiply(*lMat, rDouble);
-            }
-            else if(type == Type::DIVIDE) {
-                result = Matrix::multiply(*lMat, 1.0 / rDouble);
-            }
-            // Operation unsuppored!
-            else {
-                result = new Number(NAN);
-            }
+			
+			switch(type) {
+			case Type::MULTIPLY:
+			case Type::CROSS:
+				result = Matrix::multiply(*lMat, rDouble);
+				break;
+			case Type::DIVIDE:
+				result = Matrix::multiply(*lMat, 1.0 / rDouble);
+				break;
+			default:
+				result = new Number(NAN);
+				break;
+			}
 
             delete lhs;
             delete rhs;
@@ -657,13 +660,16 @@ convertToDoubleAndOperate:
         else if((lType == TokenType::NUMBER || lType == TokenType::FRACTION) && TokenType::MATRIX) {
             double lDouble = extractDouble(lhs);
             Matrix *rMat = (Matrix*) rhs;
-
-            if(type == Type::MULTIPLY || type == Type::CROSS) {
-                result = Matrix::multiply(*rMat, lDouble);
-            }
-            else {
-                result = new Number(NAN);
-            }
+			
+			switch(type) {
+			case Type::MULTIPLY:
+			case Type::CROSS:
+				result = Matrix::multiply(*rMat, lDouble);
+				break;
+			default:
+				result = new Number(NAN);
+				break;
+			}
 
             delete lhs;
             delete rhs;
