@@ -133,7 +133,6 @@ namespace lcd {
     // 9 (9)
 	extern const Img CHAR_9;
     // Colon (:)
-    // Unused
 	extern const Img CHAR_CLN;
     // Semicolon (;)
     // Unused

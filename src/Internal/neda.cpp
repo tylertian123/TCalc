@@ -976,9 +976,12 @@ namespace neda {
 		// When the contents are tall enough, the result is simply the top spacing of the contents (b)
 		// Otherwise, it is the distance from the top to the middle of the base of the contents.
 		// Therefore, we add up the heights of the expr at the top, the spacing, and the overlap between the symbol and the contents,
-		// then subtract half of the base height of the contents (height - top spacing)
+		// then subtract half of the base height of the contents.
+        // However, since there might be subscripts involved, taking height - top spacing doesn't always equal half of the base
+        // height. But as all characters currently have uniform height, we can use the makeshift solution of just using half of the
+        // empty container height (which is equal to the uniform character height).
 		uint16_t a = SAFE_ACCESS_0(finish, exprHeight) + 2 + CONTENT_SYMBOL_OVERLAP 
-				- (SAFE_ACCESS_0(contents, exprHeight) - SAFE_EXEC_0(contents, getTopSpacing));
+				- (Container::EMPTY_EXPR_HEIGHT / 2);
 		uint16_t b = SAFE_EXEC_0(contents, getTopSpacing);
 		return max(a, b);
 	}
@@ -991,7 +994,7 @@ namespace neda {
 	void SigmaPi::computeHeight() {
 		// Top spacings - Taken from neda::SigmaPi::getTopSpacing()
 		uint16_t a = SAFE_ACCESS_0(finish, exprHeight) + 2 + CONTENT_SYMBOL_OVERLAP 
-				- (SAFE_ACCESS_0(contents, exprHeight) - SAFE_EXEC_0(contents, getTopSpacing));
+				- (Container::EMPTY_EXPR_HEIGHT / 2);
 		uint16_t b = SAFE_EXEC_0(contents, getTopSpacing);
 		uint16_t maxTopSpacing = max(a, b);
 		// Logic same as neda::Container::exprHeight
@@ -1012,11 +1015,13 @@ namespace neda {
 		
 		// Top spacings - Taken from neda::SigmaPi::getTopSpacing()
 		uint16_t a = SAFE_ACCESS_0(finish, exprHeight) + 2 + CONTENT_SYMBOL_OVERLAP 
-				- (SAFE_ACCESS_0(contents, exprHeight) - SAFE_EXEC_0(contents, getTopSpacing));
+				- (Container::EMPTY_EXPR_HEIGHT / 2);
 		uint16_t b = SAFE_EXEC_0(contents, getTopSpacing);
-		uint16_t maxTopSpacing = max(a, b);
+		uint16_t maxTopSpacing = getTopSpacing();
 		// Logic same as neda::Container::draw()
+
 		uint16_t symbolYOffset = maxTopSpacing - a;
+
 		uint16_t contentsYOffset = maxTopSpacing - b;
 
 		// Center the top, the bottom and the symbol
