@@ -250,6 +250,7 @@ int16_t resultX, resultY;
 uint16_t resultWidth = 0, resultHeight = 0;
 extern bool scrollExpr;
 extern bool asDecimal;
+uint8_t resultSignificantDigits = 16;
 void drawResult(uint8_t id, bool resetLocation = true) {
 	// Display the result
 	display.clearDrawingBuffer();
@@ -264,7 +265,7 @@ void drawResult(uint8_t id, bool resetLocation = true) {
 		double decimalResult = ((eval::Fraction*) evalResult)->doubleVal();
 		delete evalResult;
 		char buf[64];
-		ftoa(decimalResult, buf, 16, LCD_CHAR_EE);
+		ftoa(decimalResult, buf, resultSignificantDigits, LCD_CHAR_EE);
 		result->addString(buf);
 	}
 	else {
@@ -1071,7 +1072,7 @@ evaluateExpression:
 				else {
 					char buf[64];
 					// Convert the result and store it
-					ftoa(((eval::Number*) result)->value, buf, 16, LCD_CHAR_EE);
+					ftoa(((eval::Number*) result)->value, buf, resultSignificantDigits, LCD_CHAR_EE);
 					calcResults[0]->addString(buf);
 				}
 			}
@@ -1104,7 +1105,7 @@ evaluateExpression:
 					neda::Container *cont = new neda::Container();
 					nMat->contents[i] = cont;
 					// Convert the number
-					ftoa(mat->contents[i], buf, 16, LCD_CHAR_EE);
+					ftoa(mat->contents[i], buf, resultSignificantDigits, LCD_CHAR_EE);
 					cont->addString(buf);
 				}
 				nMat->computeWidth();
@@ -1468,15 +1469,36 @@ void configKeyHandler(uint16_t key) {
 		putKey(KEY_DUMMY);
 		return;
 	case KEY_LEFT:
-	case KEY_RIGHT:
-		eval::useRadians = !eval::useRadians;
+        if(selectorIndex == 0) {
+            eval::useRadians = !eval::useRadians;
+        }
+        else if(selectorIndex == 1 && resultSignificantDigits > 1) {
+            resultSignificantDigits --;
+        }
 		break;
+	case KEY_RIGHT:
+        if(selectorIndex == 0) {
+		    eval::useRadians = !eval::useRadians;
+        }
+        else if(selectorIndex == 1 && resultSignificantDigits < 20) {
+            resultSignificantDigits ++;
+        }
+		break;
+    // Currently there are only two options, so this is good enough
+    case KEY_UP:
+    case KEY_DOWN:
+        selectorIndex = !selectorIndex;
+        break;
 	default: break;
 	}
 
 	display.clearDrawingBuffer();
 	display.drawString(1, 1, "Angles:");
-	display.drawString(64, 1, eval::useRadians ? "Radians" : "Degrees", true);
+	display.drawString(80, 1, eval::useRadians ? "Radians" : "Degrees", selectorIndex == 0);
+    display.drawString(1, 11, "Result S.D.:");
+    char buf[3];
+    ltoa(resultSignificantDigits, buf);
+    display.drawString(80, 11, buf, selectorIndex == 1);
 	display.updateDrawing();
 }
 
