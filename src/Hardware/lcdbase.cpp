@@ -13,8 +13,8 @@ namespace lcd {
 		if(!waitForBusyFlag()) \
 			return false
 	#define LCD_EDELAY delay::cycles(LCD_ENABLE_DELAY)
-	#define INIT_I(x) x.init(GPIO_Mode_IPU, GPIO_Speed_2MHz)
-	#define INIT_O(x) x.init(GPIO_Mode_Out_PP, GPIO_Speed_2MHz)
+	#define INIT_I(x) x.init(GPIO_Mode_IPU, GPIO_Speed_10MHz)
+	#define INIT_O(x) x.init(GPIO_Mode_Out_PP, GPIO_Speed_10MHz)
 	
 	void LCDBase::initGPIO() {
 		// Initialize the pins for output first
@@ -92,36 +92,38 @@ namespace lcd {
 			RW = true;
 			E = true;
 			LCD_EDELAY;
-			uint32_t timeoutCounter = 0;
-			// Initialize to read the busy flag
-			INIT_I(D7);
-			// Wait until the pin is cleared
-			while(D7) {
-				timeoutCounter++;
-				delay::us(1);
-				// Handle timeout
-				if(timeoutCounter > timeout) {
-					// Make sure to reset enable pin after
-					E = false;
-					INIT_O(D7);
-					return false;
-				}
-				
-				E = false;
-				LCD_EDELAY;
-				E = true;
-				
-				if(FOUR_WIRE_INTERFACE) {
-					LCD_EDELAY;
-					E = false;
-					LCD_EDELAY;
-					E = true;
-				}
-					
-			}
-			E = false;
-			INIT_O(D7);
-		);
+        );
+        uint32_t timeoutCounter = 0;
+        // Initialize to read the busy flag
+        INIT_I(D7);
+        // Wait until the pin is cleared
+        while(D7) {
+            timeoutCounter++;
+            delay::us(1);
+            __NO_INTERRUPT(
+                // Handle timeout
+                if(timeoutCounter > timeout) {
+                    // Make sure to reset enable pin after
+                    E = false;
+                    INIT_O(D7);
+                    return false;
+                }
+                
+                E = false;
+                LCD_EDELAY;
+                E = true;
+                
+                if(FOUR_WIRE_INTERFACE) {
+                    LCD_EDELAY;
+                    E = false;
+                    LCD_EDELAY;
+                    E = true;
+                }
+            );  
+        }
+        E = false;
+        INIT_O(D7);
+
 		return true;
 	}
 	

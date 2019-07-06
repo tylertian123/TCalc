@@ -10,18 +10,22 @@ namespace delay {
 	}
 	
 	void us(uint16_t microSeconds) {
-		__NO_INTERRUPT(
-			// Set SysTick reload value
-			SysTick->LOAD = microSeconds * SYSCLK_FREQUENCY;
-			// Clear current value
-			SysTick->VAL = 0x00000000;
-			// Set SysTick to use system clock, no interrupts and start timer
-			SysTick->CTRL = 0x00000005; // 0000 0000 0000 0000 0000 0000 0000 0101
-			// Constantly check for timer overflow
-			while(!(SysTick->CTRL & 0x00010000)); // 0000 0000 0000 0001 0000 0000 0000 0000
-			// Stop SysTick
-			SysTick->CTRL = 0x00000004; // 0000 0000 0000 0000 0000 0000 0000 0100
-		);
+        uint32_t __no_interrupt_PRIMASK = __get_PRIMASK();
+        __disable_irq();
+
+        // Set SysTick reload value
+        SysTick->LOAD = microSeconds * SYSCLK_FREQUENCY;
+        // Clear current value
+        SysTick->VAL = 0x00000000;
+        // Set SysTick to use system clock, no interrupts and start timer
+        SysTick->CTRL = 0x00000005; // 0000 0000 0000 0000 0000 0000 0000 0101
+        // Constantly check for timer overflow
+        while(!(SysTick->CTRL & 0x00010000)); // 0000 0000 0000 0001 0000 0000 0000 0000
+        // Stop SysTick
+        SysTick->CTRL = 0x00000004; // 0000 0000 0000 0000 0000 0000 0000 0100
+        
+		if(!__no_interrupt_PRIMASK)
+            __enable_irq();
 	}
 	void ms(uint16_t ms) {
 		while(ms --) us((uint16_t) 1000);

@@ -112,54 +112,50 @@ namespace lcd {
 	}
 	
 	bool LCD12864::clearDrawing() {
-		__NO_INTERRUPT(
-
-			if(!isDrawing()) {
-				return false;
-			}
-			
-			for(uint8_t row = 0; row < 32; row ++) {
-				for(uint8_t col = 0; col < 16; col ++) {
-					// The row gets written first
-					// There are 32 rows (bottom 32 are just extensions of the top 32)
-					// And then the column gets written (16 pixels)
-					W_CMD(0x80 | row);
-					W_CMD(0x80 | col);
-					W_CHR(0x00);
-					W_CHR(0x00);
-					
-					// Clear our buffers
-					drawBuf[row][col] = 0x0000;
-					dispBuf[row][col] = 0x0000;
-				}
-			}
-
-		);
+        if(!isDrawing()) {
+            return false;
+        }
+        
+        for(uint8_t row = 0; row < 32; row ++) {
+            for(uint8_t col = 0; col < 16; col ++) {
+                // The row gets written first
+                // There are 32 rows (bottom 32 are just extensions of the top 32)
+                // And then the column gets written (16 pixels)
+                __NO_INTERRUPT(
+                    W_CMD(0x80 | row);
+                    W_CMD(0x80 | col);
+                    W_CHR(0x00);
+                    W_CHR(0x00);
+                );
+                
+                // Clear our buffers
+                drawBuf[row][col] = 0x0000;
+                dispBuf[row][col] = 0x0000;
+            }
+        }
 		return true;
 	}
 	// This function takes the drawing buffer, compares it with the display buffer and writes any necessary bytes.
 	bool LCD12864::updateDrawing() {
-		__NO_INTERRUPT(
-
-			if(!isDrawing()) {
-				return false;
-			}
-			for(uint8_t row = 0; row < 32; row ++) {
-				for(uint8_t col = 0; col < 16; col ++) {
-					// Compare drawBuf with dispBuf
-					if(dispBuf[row][col] != drawBuf[row][col]) {
-						// Update the display buffer
-						dispBuf[row][col] = drawBuf[row][col];
-						W_CMD(0x80 | row);
-						W_CMD(0x80 | col);
-						// Write higher order byte first
-						W_CHR(dispBuf[row][col] >> 8);
-						W_CHR(dispBuf[row][col] & 0x00FF);
-					}
-				}
-			}
-			
-		);
+        if(!isDrawing()) {
+            return false;
+        }
+        for(uint8_t row = 0; row < 32; row ++) {
+            for(uint8_t col = 0; col < 16; col ++) {
+                // Compare drawBuf with dispBuf
+                if(dispBuf[row][col] != drawBuf[row][col]) {
+                    // Update the display buffer
+                    dispBuf[row][col] = drawBuf[row][col];
+                    __NO_INTERRUPT(
+                        W_CMD(0x80 | row);
+                        W_CMD(0x80 | col);
+                        // Write higher order byte first
+                        W_CHR(dispBuf[row][col] >> 8);
+                        W_CHR(dispBuf[row][col] & 0x00FF);
+                    );
+                }
+            }
+        }
 		return true;
 	}
 	

@@ -1571,6 +1571,7 @@ int main() {
 	receiver.init();
 	
 	receiver.onReceive([](uint32_t data) {
+        usart::printf("%#010X\n", data);
 		// Store keystroke into buffer
 		// If there is already data in the buffer then shift that data left to make room
 		if(data == KEY_SHIFTON) {

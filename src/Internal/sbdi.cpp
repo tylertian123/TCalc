@@ -10,9 +10,9 @@ namespace sbdi {
 	void Receiver_CLK_Callback();
 	void Receiver_EN_Callback();
 	void Receiver::init() {
-		EN.init(GPIO_Speed_10MHz, EXTI_Trigger_Rising_Falling, 0x02, 0x03);
+		EN.init(GPIO_Speed_10MHz, EXTI_Trigger_Rising_Falling, 0x00, 0x01);
 		DATA.init(GPIO_Mode_IN_FLOATING, GPIO_Speed_10MHz);
-		CLK.init(GPIO_Speed_10MHz, EXTI_Trigger_Falling, 0x03, 0x03);
+		CLK.init(GPIO_Speed_10MHz, EXTI_Trigger_Falling, 0x00, 0x02);
 		receiverInstance = this;
 		
 		CLK.setCallback(Receiver_CLK_Callback);

@@ -12,9 +12,10 @@
 
 #include "stm32f10x.h"
 #define __NO_INTERRUPT(x) \
-		uint32_t __no_interrupt_PRIMASK=__get_PRIMASK();__disable_irq();\
+		{uint32_t __no_interrupt_PRIMASK=__get_PRIMASK();__disable_irq();\
 		x \
-		if(!__no_interrupt_PRIMASK)__enable_irq()
+		if(!__no_interrupt_PRIMASK)__enable_irq();}
+// #define __NO_INTERRUPT(x) x
 
 template <typename T>
 inline const T& max(const T &a, const T &b) {
