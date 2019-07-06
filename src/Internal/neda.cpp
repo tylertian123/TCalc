@@ -841,8 +841,8 @@ namespace neda {
 			return SAFE_ACCESS_0(contents, exprHeight) + Container::EMPTY_EXPR_HEIGHT / 2 - OVERLAP;
 		}
 		NEDAObj *prevObj = parentContents[index - 1];
-		uint16_t prevHeight = prevObj->getType() == ObjType::CHAR_TYPE ? ((Character*) prevObj)->getHeight() : ((Expr*) prevObj)->exprHeight;
-		return SAFE_ACCESS_0(contents, exprHeight) + prevHeight / 2 - OVERLAP;
+        uint16_t prevTopSpacing = prevObj->getType() == ObjType::CHAR_TYPE ? ((Character*) prevObj)->getHeight() / 2 : ((Expr*) prevObj)->getTopSpacing();
+        return SAFE_ACCESS_0(contents, exprHeight) + prevTopSpacing - OVERLAP;
 	}
 	void Superscript::computeWidth() {
 		exprWidth = SAFE_ACCESS_0(contents, exprWidth);
