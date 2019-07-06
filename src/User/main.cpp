@@ -201,7 +201,7 @@ void adjustExpr(neda::Expr *ex, neda::Cursor *cursorRef) {
 	neda::CursorInfo info;
 	cursorRef->getInfo(info);
 	// First try to directly position the expression in the top-left corner of the display
-	int16_t xd = CURSOR_HORIZ_SPACING - ex->x;
+	int16_t xd = CURSOR_HORIZ_SPACING + 1 - ex->x;
 	int16_t yd = CURSOR_VERT_SPACING - ex->y;
 	// Make sure it fits
 	if(info.x + xd >= CURSOR_HORIZ_SPACING && info.y + yd >= CURSOR_VERT_SPACING
@@ -403,6 +403,13 @@ void exprKeyHandler(neda::Cursor *cursor, uint16_t key) {
 		editExpr = true;
 		scrollExpr = false;
 		currentExpr = 0;
+        
+        display.clearDrawingBuffer();
+        adjustExpr(cursor->expr->getTopLevel(), cursor);
+        cursor->expr->drawConnected(display);
+        cursor->draw(display);
+        display.updateDrawing();
+        return;
 	}
 
 	switch(key) {
@@ -1182,6 +1189,7 @@ void trigKeyHandler(neda::Cursor *cursor, uint16_t key) {
 		cursor->expr->Expr::draw(display);
 		// Intentional fall-through
 	case KEY_TRIG:
+    case KEY_DELETE:
 		dispMode = DispMode::EXPR_ENTRY;
 		selectorIndex = 0;
 		// We need to call the function once to get the interface drawn
@@ -1247,6 +1255,7 @@ void constKeyHandler(neda::Cursor *cursor, uint16_t key) {
 		cursor->expr->Expr::draw(display);
 		// Intentional fall-through
 	case KEY_CONST:
+    case KEY_DELETE:
 		dispMode = DispMode::EXPR_ENTRY;
 		selectorIndex = 0;
 		// We need to call the function once to get the interface drawn
@@ -1360,8 +1369,9 @@ void funcKeyHandler(neda::Cursor *cursor, uint16_t key) {
 		}
 		cursor->add(new neda::LeftBracket);
 	}
-		// Intentional fall-through
+	// Intentional fall-through
 	case KEY_CAT:
+    case KEY_DELETE:
 		dispMode = DispMode::EXPR_ENTRY;
 		selectorIndex = 0;
 		scrollingIndex = 0;
@@ -1408,6 +1418,8 @@ void recallKeyHandler(neda::Cursor *cursor, uint16_t key) {
 	}
 	// Intentional fall-through
 	case KEY_RECALL:
+    case KEY_CAT:
+    case KEY_DELETE:
 		dispMode = DispMode::EXPR_ENTRY;
 		selectorIndex = 0;
 		scrollingIndex = 0;
@@ -1448,6 +1460,7 @@ void configKeyHandler(uint16_t key) {
 	case KEY_CENTER:
 	case KEY_ENTER:
 	case KEY_CONFIG:
+    case KEY_DELETE:
 		dispMode = DispMode::EXPR_ENTRY;
 		selectorIndex = 0;
 		// We need to call the function once to get the interface drawn
