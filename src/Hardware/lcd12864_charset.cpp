@@ -40,7 +40,7 @@ namespace lcd {
 		&CHAR_7,
 		&CHAR_8,
 		&CHAR_9,
-		&CHAR_CLN,
+		&CHAR_UNKNOWN,//&CHAR_CLN,
 		&CHAR_UNKNOWN,//&CHAR_SMCN,
 		&CHAR_LSTN,
 		&CHAR_EQL,
