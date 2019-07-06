@@ -11,11 +11,16 @@
 #define SAFE_ACCESS_0(obj, field) ((obj) ? ((obj)->field) : 0)
 
 #include "stm32f10x.h"
+// VS Code does not recognize these two functions
+// Define them here so IntelliSense is happy
+#ifdef __VSCODE
+    #define __enable_irq(x)
+    #define __disable_irq(x)
+#endif
 #define __NO_INTERRUPT(x) \
 		{uint32_t __no_interrupt_PRIMASK=__get_PRIMASK();__disable_irq();\
 		x \
 		if(!__no_interrupt_PRIMASK)__enable_irq();}
-// #define __NO_INTERRUPT(x) x
 
 template <typename T>
 inline const T& max(const T &a, const T &b) {

@@ -4,21 +4,14 @@
 
 namespace lcd {
 	
-	#define W_CMD(x) \
-		if(!writeCommand(x)) \
-			return false
-	#define W_CHR(x) \
-		if(!writeData(x)) \
-			return false
-	
-	bool LCD12864::clear() {
-		return writeCommand(Command::CLEAR);
+	void LCD12864::clear() {
+		writeCommand(Command::CLEAR);
 	}
-	bool LCD12864::home() {
-		return writeCommand(Command::HOME);
+	void LCD12864::home() {
+		writeCommand(Command::HOME);
 	}
 			
-	bool LCD12864::init() {
+	void LCD12864::init() {
 		if(!FOUR_WIRE_INTERFACE) {
 			delay::ms(15);
 			writeCommandNoWait(Command::NORMAL_CMD_8BIT);
@@ -34,17 +27,15 @@ namespace lcd {
 			delay::ms(5);
 		}
 		
-		W_CMD(Command::ENTRY_CURSOR_SHIFT_RIGHT);
-		W_CMD(Command::CLEAR);
-		W_CMD(Command::DISPLAY_ON_CURSOR_OFF);
-		return true;
+		writeCommand(Command::ENTRY_CURSOR_SHIFT_RIGHT);
+		writeCommand(Command::CLEAR);
+		writeCommand(Command::DISPLAY_ON_CURSOR_OFF);
 	}
 	
-	bool LCD12864::setCursor(uint8_t row, uint8_t col) {
+	void LCD12864::setCursor(uint8_t row, uint8_t col) {
 		// If using extended command set, first set to use basic, write the address and change back
 		if(isUsingExtended()) {
-			if(!useBasic()) 
-				return false;
+            useBasic();
 			switch(row){
 			case 0: col += 0x80; break;
 			case 1: col += 0x90; break;
@@ -55,8 +46,8 @@ namespace lcd {
 			// Make the first bit 1 and second bit 0 to match the command requirements
 			col |= 0x80; // 1000 0000
 			col &= 0xBF; // 1011 1111
-			W_CMD(col);
-			return useExtended();
+			writeCommand(col);
+			useExtended();
 		}
 		else {
 			switch(row){
@@ -69,51 +60,44 @@ namespace lcd {
 			// Make the first bit 1 and second bit 0 to match the command requirements
 			col |= 0x80; // 1000 0000
 			col &= 0xBF; // 1011 1111
-			W_CMD(col);
-			return true;
+			writeCommand(col);
 		}
 	}
 	
 	bool LCD12864::isUsingExtended() {
 		return extendedCmd;
 	}
-	bool LCD12864::useExtended() {
+	void LCD12864::useExtended() {
 		if(extendedCmd) 
-			return true;
-		W_CMD(FOUR_WIRE_INTERFACE ? Command::EXT_CMD_4BIT : Command::EXT_CMD_8BIT);
+			return;
+		writeCommand(FOUR_WIRE_INTERFACE ? Command::EXT_CMD_4BIT : Command::EXT_CMD_8BIT);
 		extendedCmd = true;
-		return true;
 	}
-	bool LCD12864::useBasic() {
+	void LCD12864::useBasic() {
 		if(!extendedCmd)
-			return true;
-		W_CMD(FOUR_WIRE_INTERFACE ? Command::NORMAL_CMD_4BIT : Command::NORMAL_CMD_8BIT);
+			return;
+		writeCommand(FOUR_WIRE_INTERFACE ? Command::NORMAL_CMD_4BIT : Command::NORMAL_CMD_8BIT);
 		extendedCmd = false;
-		return true;
 	}
 	
 	bool LCD12864::isDrawing() {
 		return drawing;
 	}
-	bool LCD12864::startDraw() {
+	void LCD12864::startDraw() {
 		if(!isUsingExtended()) {
-			if(!useExtended()) {
-				return false;
-			}
+            useExtended();
 		}
-		W_CMD(FOUR_WIRE_INTERFACE ? Command::EXT_GRAPHICS_ON_4BIT : Command::EXT_GRAPHICS_ON_8BIT);
+		writeCommand(FOUR_WIRE_INTERFACE ? Command::EXT_GRAPHICS_ON_4BIT : Command::EXT_GRAPHICS_ON_8BIT);
 		drawing = true;
-		return true;
 	}
-	bool LCD12864::endDraw() {
-		W_CMD(FOUR_WIRE_INTERFACE ? Command::EXT_GRAPHICS_OFF_4BIT : Command::EXT_GRAPHICS_OFF_8BIT);
+	void LCD12864::endDraw() {
+		writeCommand(FOUR_WIRE_INTERFACE ? Command::EXT_GRAPHICS_OFF_4BIT : Command::EXT_GRAPHICS_OFF_8BIT);
 		drawing = false;
-		return true;
 	}
 	
-	bool LCD12864::clearDrawing() {
+	void LCD12864::clearDrawing() {
         if(!isDrawing()) {
-            return false;
+            return;
         }
         
         for(uint8_t row = 0; row < 32; row ++) {
@@ -122,10 +106,10 @@ namespace lcd {
                 // There are 32 rows (bottom 32 are just extensions of the top 32)
                 // And then the column gets written (16 pixels)
                 __NO_INTERRUPT(
-                    W_CMD(0x80 | row);
-                    W_CMD(0x80 | col);
-                    W_CHR(0x00);
-                    W_CHR(0x00);
+                    writeCommand(0x80 | row);
+                    writeCommand(0x80 | col);
+                    writeData(0x00);
+                    writeData(0x00);
                 );
                 
                 // Clear our buffers
@@ -133,12 +117,11 @@ namespace lcd {
                 dispBuf[row][col] = 0x0000;
             }
         }
-		return true;
 	}
 	// This function takes the drawing buffer, compares it with the display buffer and writes any necessary bytes.
-	bool LCD12864::updateDrawing() {
+	void LCD12864::updateDrawing() {
         if(!isDrawing()) {
-            return false;
+            return;
         }
         for(uint8_t row = 0; row < 32; row ++) {
             for(uint8_t col = 0; col < 16; col ++) {
@@ -147,16 +130,15 @@ namespace lcd {
                     // Update the display buffer
                     dispBuf[row][col] = drawBuf[row][col];
                     __NO_INTERRUPT(
-                        W_CMD(0x80 | row);
-                        W_CMD(0x80 | col);
+                        writeCommand(0x80 | row);
+                        writeCommand(0x80 | col);
                         // Write higher order byte first
-                        W_CHR(dispBuf[row][col] >> 8);
-                        W_CHR(dispBuf[row][col] & 0x00FF);
+                        writeData(dispBuf[row][col] >> 8);
+                        writeData(dispBuf[row][col] & 0x00FF);
                     );
                 }
             }
         }
-		return true;
 	}
 	
 	void LCD12864::clearDrawingBuffer() {
@@ -466,6 +448,6 @@ namespace lcd {
 		}
 	}
 	
-	#undef W_CMD
-	#undef W_CHR
+	#undef writeCommand
+	#undef writeData
 }

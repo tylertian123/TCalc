@@ -21,26 +21,26 @@ namespace lcd {
 			initGPIO();
 		}
 	
-		virtual bool init() = 0;
-		virtual bool setCursor(uint8_t, uint8_t) = 0;
-		virtual bool clear() = 0;
-		virtual bool home() = 0;
+		virtual void init() = 0;
+		virtual void setCursor(uint8_t, uint8_t) = 0;
+		virtual void clear() = 0;
+		virtual void home() = 0;
 		
 		virtual uint32_t getTimeout();
 		virtual void setTimeout(uint32_t);
 	
-		virtual bool writeCommand(uint8_t);
-		virtual bool writeData(uint8_t);
-		virtual bool readData(uint8_t&);
-		virtual bool writeString(const char *);
-		virtual bool printf(const char *, ...);
+		virtual void writeCommand(uint8_t);
+		virtual void writeData(uint8_t);
+		virtual void readData(uint8_t&);
+		virtual void writeString(const char *);
+		virtual void printf(const char *, ...);
 	
 	protected:
 		GPIOPin RS, RW, E;
 		GPIOPin D0, D1, D2, D3, D4, D5, D6, D7;
 		uint32_t timeout;
 	
-		virtual bool waitForBusyFlag();
+		virtual void waitForBusyFlag();
 		
 		virtual void writeCommandNoWait(uint8_t);
 	
