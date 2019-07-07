@@ -374,43 +374,58 @@ uint8_t currentExpr = 0;
 uint8_t matRows = 0, matCols = 0;
 constexpr uint16_t EXPR_SCROLL_SPEED = 4;
 void exprKeyHandler(neda::Cursor *cursor, uint16_t key) {
-	if(!editExpr && !scrollExpr && key != KEY_CENTER && key != KEY_UP && key != KEY_DOWN && key != KEY_APPROX) {
-		// If the key is a left or right, make a copy of the expression on display
-		// Otherwise just insert a new expression
-		neda::Container *newExpr;
-		if(key == KEY_LEFT || key == KEY_RIGHT) {
-			newExpr = expressions[currentExpr]->copy();
-		}
-		else {
-			newExpr = new neda::Container();
-		}
-
-		// Shift everything back
-		if(calcResults[RESULT_STORE_COUNT - 1]) {
-			delete calcResults[RESULT_STORE_COUNT - 1];
-			delete expressions[RESULT_STORE_COUNT - 1];
-			// Set to null pointers
-			calcResults[RESULT_STORE_COUNT - 1] = expressions[RESULT_STORE_COUNT - 1] = nullptr;
-		}
-		for(uint8_t i = RESULT_STORE_COUNT - 1; i > 0; --i) {
-			calcResults[i] = calcResults[i - 1];
-			expressions[i] = expressions[i - 1];
-		}
-		calcResults[0] = expressions[0] = nullptr;
-
-		newExpr->getCursor(*cursor, neda::CURSORLOCATION_END);
-		newExpr->x = CURSOR_HORIZ_SPACING + 1;
-		newExpr->y = CURSOR_VERT_SPACING;
-		editExpr = true;
-		scrollExpr = false;
-		currentExpr = 0;
+    // If not editing or scrolling, ie normal result view
+	if(!editExpr && !scrollExpr) {
+        // Make sure the key pressed isn't one of these
+        switch(key) {
+        case KEY_CENTER:
+        case KEY_UP:
+        case KEY_DOWN:
+        case KEY_APPROX:
+        case KEY_CONFIG:
+        case KEY_DUMMY:
+            break;
         
-        display.clearDrawingBuffer();
-        adjustExpr(cursor->expr->getTopLevel(), cursor);
-        cursor->expr->drawConnected(display);
-        cursor->draw(display);
-        display.updateDrawing();
-        return;
+        default:
+        {
+            neda::Container *newExpr;
+            // If the key is a left or right, make a copy of the expression on display
+            // Otherwise just insert a new expression
+            if(key == KEY_LEFT || key == KEY_RIGHT) {
+                newExpr = expressions[currentExpr]->copy();
+            }
+            else {
+                newExpr = new neda::Container();
+            }
+
+            // Shift everything back
+            if(calcResults[RESULT_STORE_COUNT - 1]) {
+                delete calcResults[RESULT_STORE_COUNT - 1];
+                delete expressions[RESULT_STORE_COUNT - 1];
+                // Set to null pointers
+                calcResults[RESULT_STORE_COUNT - 1] = expressions[RESULT_STORE_COUNT - 1] = nullptr;
+            }
+            for(uint8_t i = RESULT_STORE_COUNT - 1; i > 0; --i) {
+                calcResults[i] = calcResults[i - 1];
+                expressions[i] = expressions[i - 1];
+            }
+            calcResults[0] = expressions[0] = nullptr;
+
+            newExpr->getCursor(*cursor, neda::CURSORLOCATION_END);
+            newExpr->x = CURSOR_HORIZ_SPACING + 1;
+            newExpr->y = CURSOR_VERT_SPACING;
+            editExpr = true;
+            scrollExpr = false;
+            currentExpr = 0;
+            
+            display.clearDrawingBuffer();
+            adjustExpr(cursor->expr->getTopLevel(), cursor);
+            cursor->expr->drawConnected(display);
+            cursor->draw(display);
+            display.updateDrawing();
+            return;
+        }
+        }
 	}
 
 	switch(key) {
