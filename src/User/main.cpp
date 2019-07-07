@@ -304,7 +304,7 @@ void updateVar(const char *name, eval::Token *value) {
 			varVals[i] = value;
 			
 			// Delete the name since there's no use for it anymore
-			delete name;
+			delete[] name;
 
 			break;
 		}
@@ -324,10 +324,10 @@ void updateFunc(const char *name, neda::Container *expr, uint8_t argc, const cha
 		if(strcmp(functions[i].name, name) == 0) {
 			delete functions[i].expr;
 			for(uint8_t j = 0; j < functions[i].argc; j ++) {
-				delete functions[i].argn[j];
+				delete[] functions[i].argn[j];
 			}
-			delete functions[i].argn;
-			delete functions[i].fullname;
+			delete[] functions[i].argn;
+			delete[] functions[i].fullname;
 			
 			functions[i].expr = expr;
 			functions[i].argc = argc;
@@ -335,7 +335,7 @@ void updateFunc(const char *name, neda::Container *expr, uint8_t argc, const cha
 			functions[i].fullname = getFuncFullName(functions[i]);
 			
 			// delete the name since it's not updated
-			delete name;
+			delete[] name;
 
 			break;
 		}
@@ -348,19 +348,19 @@ void updateFunc(const char *name, neda::Container *expr, uint8_t argc, const cha
 }
 void clearVarsAndFuncs() {
 	for(uint8_t i = 0; i < varNames.length(); i ++) {
-		delete varNames[i];
+		delete[] varNames[i];
 		delete varVals[i];
 	}
 	varNames.empty();
 	varVals.empty();
 	for(auto func : functions) {
-		delete func.name;
+		delete[] func.name;
 		delete func.expr;
 		for(uint8_t i = 0; i < func.argc; ++i) {
-			delete func.argn[i];
+			delete[] func.argn[i];
 		}
-		delete func.argn;
-		delete func.fullname;
+		delete[] func.argn;
+		delete[] func.fullname;
 	}
 	functions.empty();
 }
@@ -975,7 +975,7 @@ evaluateExpression:
 			vName[i] = '\0';
 			// If not valid or if the length is zero, cleanup and exit
 			if(!isValid || i == 0) {
-				delete vName;
+				delete[] vName;
 			}
 			else {
 				if(isFunc) {
@@ -990,7 +990,7 @@ evaluateExpression:
 					for(; end < equalsIndex && expr->contents[end]->getType() != neda::ObjType::R_BRACKET; ++end);
 					// Missing right bracket
 					if(end == equalsIndex) {
-						delete vName;
+						delete[] vName;
 					}
 					else {
 						while(argStart < end) {
@@ -1063,7 +1063,7 @@ evaluateExpression:
 					}
 					else {
 						// Delete the variable name to avoid a memory leak
-						delete vName;
+						delete[] vName;
 					}
 				}
 			}

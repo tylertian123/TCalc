@@ -15,6 +15,9 @@ namespace lcd {
 		
 		LCD12864Image(const uint8_t *data, uint8_t bytesWide, uint8_t width, uint8_t height) : data(data), bytesWide(bytesWide), width(width), height(height) {}
 	};
+
+    constexpr uint16_t SIZE_WIDTH = 128;
+    constexpr uint16_t SIZE_HEIGHT = 64;
 	
 	class LCD12864 : public LCDBase {
 	public:
