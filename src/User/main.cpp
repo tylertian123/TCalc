@@ -13,6 +13,7 @@
 #include "util.hpp"
 #include "ntoa.hpp"
 #include "snake.hpp"
+#include "exprentry.hpp"
 #include <stdlib.h>
 
 #define VERSION_STR "V1.0"
@@ -287,82 +288,6 @@ void drawResult(uint8_t id, bool resetLocation = true) {
 		delete result;
 	}
 	display.updateDrawing();
-}
-
-//Variables
-DynamicArray<const char*> varNames;
-DynamicArray<eval::Token*> varVals;
-//Functions
-DynamicArray<eval::UserDefinedFunction> functions;
-//Returns whether a new variable was created
-void updateVar(const char *name, eval::Token *value) {
-	uint8_t i;
-	for(i = 0; i < varNames.length(); ++i) {
-		// Update it if found
-		if(strcmp(varNames[i], name) == 0) {
-			delete varVals[i];
-			varVals[i] = value;
-			
-			// Delete the name since there's no use for it anymore
-			delete[] name;
-
-			break;
-		}
-	}
-	// If i is equal to varNames.length() it was not found
-	if(i == varNames.length()) {
-		// Add the var if not found
-		varNames.add(name);
-		varVals.add(value);
-	}
-}
-//name and argn should be allocated on the heap
-char* getFuncFullName(eval::UserDefinedFunction);
-void updateFunc(const char *name, neda::Container *expr, uint8_t argc, const char **argn) {
-	uint8_t i;
-	for(i = 0; i < functions.length(); ++i) {
-		if(strcmp(functions[i].name, name) == 0) {
-			delete functions[i].expr;
-			for(uint8_t j = 0; j < functions[i].argc; j ++) {
-				delete[] functions[i].argn[j];
-			}
-			delete[] functions[i].argn;
-			delete[] functions[i].fullname;
-			
-			functions[i].expr = expr;
-			functions[i].argc = argc;
-			functions[i].argn = argn;
-			functions[i].fullname = getFuncFullName(functions[i]);
-			
-			// delete the name since it's not updated
-			delete[] name;
-
-			break;
-		}
-	}
-	if(i == functions.length()) {
-		eval::UserDefinedFunction func(expr, name, argc, argn);
-		func.fullname = getFuncFullName(func);
-		functions.add(func);
-	}
-}
-void clearVarsAndFuncs() {
-	for(uint8_t i = 0; i < varNames.length(); i ++) {
-		delete[] varNames[i];
-		delete varVals[i];
-	}
-	varNames.empty();
-	varVals.empty();
-	for(auto func : functions) {
-		delete[] func.name;
-		delete func.expr;
-		for(uint8_t i = 0; i < func.argc; ++i) {
-			delete[] func.argn[i];
-		}
-		delete[] func.argn;
-		delete[] func.fullname;
-	}
-	functions.empty();
 }
 
 // Key press handlers
@@ -914,7 +839,7 @@ void exprKeyHandler(neda::Cursor *cursor, uint16_t key) {
 	}
 	case KEY_CLEARVAR:
 	{
-		clearVarsAndFuncs();
+		expr::clearAll();
 		break;
 	}
 	// AC does the same as regular clear except it deletes the stored expressions and variables as well
@@ -928,7 +853,7 @@ void exprKeyHandler(neda::Cursor *cursor, uint16_t key) {
 				expressions[i] = calcResults[i] = nullptr;
 			}
 		}
-		clearVarsAndFuncs();
+		expr::clearAll();
 		// Intentional fall-through
 	}
 	case KEY_CLEAR:
@@ -1034,7 +959,7 @@ evaluateExpression:
 						}
 
 						// Finally add the damn thing
-						updateFunc(vName, funcExpr, argc, const_cast<const char**>(argn));
+						expr::updateFunc(vName, funcExpr, argc, const_cast<const char**>(argn));
 						// Update the result to 1 to signify the operation succeeded
 						result = new eval::Number(1);
 					}
@@ -1042,8 +967,8 @@ evaluateExpression:
 				else {
 					// Evaluate
 					DynamicArray<neda::NEDAObj*> val(expr->contents.begin() + equalsIndex + 1, expr->contents.end());
-					result = eval::evaluate(&val, static_cast<uint8_t>(varNames.length()), const_cast<const char**>(varNames.asArray()), varVals.asArray(),
-							static_cast<uint8_t>(functions.length()), functions.asArray());
+					result = eval::evaluate(&val, static_cast<uint8_t>(expr::varNames.length()), const_cast<const char**>(expr::varNames.asArray()), 
+                            expr::varVals.asArray(), static_cast<uint8_t>(expr::functions.length()), expr::functions.asArray());
 
 					// If result is valid, add the variable
 					if(result) {
@@ -1059,7 +984,7 @@ evaluateExpression:
 							value = new eval::Matrix(*((eval::Matrix*) result));
 						}
 						// Add it
-						updateVar(vName, value);
+						expr::updateVar(vName, value);
 					}
 					else {
 						// Delete the variable name to avoid a memory leak
@@ -1069,8 +994,8 @@ evaluateExpression:
 			}
 		}
 		else {
-			result = eval::evaluate(expr, static_cast<uint8_t>(varNames.length()), const_cast<const char**>(varNames.asArray()), varVals.asArray(),
-					static_cast<uint8_t>(functions.length()), functions.asArray());
+			result = eval::evaluate(expr, static_cast<uint8_t>(expr::varNames.length()), const_cast<const char**>(expr::varNames.asArray()), 
+                    expr::varVals.asArray(), static_cast<uint8_t>(expr::functions.length()), expr::functions.asArray());
 		}
 		// Create the container that will hold the result
 		calcResults[0] = new neda::Container();
@@ -1133,7 +1058,7 @@ evaluateExpression:
 			// Var names must be allocated on the heap
 			char *name = new char[4];
 			strcpy(name, "Ans");
-			updateVar(name, result);
+			expr::updateVar(name, result);
 		}
 		expressions[0] = (neda::Container*) cursor->expr->getTopLevel();
 
@@ -1305,31 +1230,6 @@ void constKeyHandler(neda::Cursor *cursor, uint16_t key) {
 	display.updateDrawing();
 }
 
-char* getFuncFullName(eval::UserDefinedFunction func) {
-	uint16_t len = strlen(func.name);
-	// 2 for brackets, one for each comma except the last one
-	uint16_t totalLen = len + 2 + func.argc - 1;
-	for(uint8_t j = 0; j < func.argc; ++j) {
-		totalLen += strlen(func.argn[j]);
-	}
-	char *fullname = new char[totalLen + 1];
-	// Copy the name
-	strcpy(fullname, func.name);
-	fullname[len++] = '(';
-	// Copy each one of the arguments
-	for(uint8_t j = 0; j < func.argc; ++j) {
-		strcpy(fullname + len, func.argn[j]);
-		len += strlen(func.argn[j]);
-		// If not the last, then add a comma
-		if(j + 1 != func.argc) {
-			fullname[len++] = ',';
-		}
-	}
-	fullname[len++] = ')';
-	fullname[len] = '\0';
-	return fullname;
-}
-
 #define BUILTIN_FUNC_COUNT 24
 uint16_t funcCount = BUILTIN_FUNC_COUNT;
 #define FUNC_SCROLLBAR_WIDTH 4
@@ -1368,7 +1268,7 @@ void scrollDown(uint16_t len) {
 	}
 }
 void funcKeyHandler(neda::Cursor *cursor, uint16_t key) {
-	funcCount = BUILTIN_FUNC_COUNT + functions.length();
+	funcCount = BUILTIN_FUNC_COUNT + expr::functions.length();
 	switch(key) {
 	case KEY_CENTER:
 	case KEY_ENTER:
@@ -1381,7 +1281,7 @@ void funcKeyHandler(neda::Cursor *cursor, uint16_t key) {
 			}
 		}
 		else {
-			addStr(cursor, functions[selectorIndex - BUILTIN_FUNC_COUNT].name);
+			addStr(cursor, expr::functions[selectorIndex - BUILTIN_FUNC_COUNT].name);
 		}
 		cursor->add(new neda::LeftBracket);
 	}
@@ -1411,7 +1311,7 @@ void funcKeyHandler(neda::Cursor *cursor, uint16_t key) {
 			display.drawString(1, y, allFuncDispNames[i], selectorIndex == i);
 		}
 		else {
-			display.drawString(1, y, functions[i - BUILTIN_FUNC_COUNT].fullname, selectorIndex == i);
+			display.drawString(1, y, expr::functions[i - BUILTIN_FUNC_COUNT].fullname, selectorIndex == i);
 		}
 		y += 10;
 	}
@@ -1426,8 +1326,8 @@ void recallKeyHandler(neda::Cursor *cursor, uint16_t key) {
 	case KEY_CENTER:
 	case KEY_ENTER:
 	{
-		if(functions.length() > 0) {
-			for(auto ex : functions[selectorIndex].expr->contents) {
+		if(expr::functions.length() > 0) {
+			for(auto ex : expr::functions[selectorIndex].expr->contents) {
 				cursor->add(ex->copy());
 			}
 		}
@@ -1444,28 +1344,28 @@ void recallKeyHandler(neda::Cursor *cursor, uint16_t key) {
 		putKey(KEY_DUMMY);
 		return;
 	case KEY_UP:
-		scrollUp(functions.length());
+		scrollUp(expr::functions.length());
 		break;
 	case KEY_DOWN:
-		scrollDown(functions.length());
+		scrollDown(expr::functions.length());
 		break;
 	default: break;
 	}
 
 	display.clearDrawingBuffer();
-	if(functions.length() == 0) {
+	if(expr::functions.length() == 0) {
 		display.drawString(1, 1, "No Functions to");
 		display.drawString(1, 11, "Recall");
 	}
 	else {
 		int16_t y = 1;
-		for(uint8_t i = scrollingIndex; i < scrollingIndex + 6 && i < functions.length(); i ++) {
-			display.drawString(1, y, functions[i].fullname, selectorIndex == i);
+		for(uint8_t i = scrollingIndex; i < scrollingIndex + 6 && i < expr::functions.length(); i ++) {
+			display.drawString(1, y, expr::functions[i].fullname, selectorIndex == i);
 			y += 10;
 		}
 
-		uint16_t scrollbarLocation = static_cast<uint16_t>(scrollingIndex * 64 / functions.length());
-		uint16_t scrollbarHeight = 6 * 64 / functions.length();
+		uint16_t scrollbarLocation = static_cast<uint16_t>(scrollingIndex * 64 / expr::functions.length());
+		uint16_t scrollbarHeight = 6 * 64 / expr::functions.length();
 		display.fill(128 - FUNC_SCROLLBAR_WIDTH, scrollbarLocation, FUNC_SCROLLBAR_WIDTH, scrollbarHeight);
 	}
 	display.updateDrawing();
