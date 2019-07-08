@@ -610,13 +610,97 @@ namespace expr {
             return;
         default: break;
         }
+
+        // Draw the interface
+        drawInterfaceNormal();
+    }
+
+    const char * const trigFuncs[] = {
+	"sin", "cos", "tan", "arcsin", "arccos", "arctan",
+	"sinh", "cosh", "tanh", "arcsinh", "arccosh", "arctanh",
+    };
+    const char * const trigFuncNames[] = {
+        "sin", "cos", "tan", "asin", "acos", "atan",
+        "sinh", "cosh", "tanh", "asinh", "acosh", "atanh",
+    };
+    void ExprEntry::trigKeyPressHandler(uint16_t key) {
+        switch(key) {
+        // Center or enter is confirm
+        case KEY_CENTER:
+        case KEY_ENTER:
+            // Insert the chars
+            cursor->addStr(trigFuncNames[selectorIndex]);
+            cursor->add(new neda::LeftBracket());
+            // Intentional fall-through
+        // Trig key or delete is to go back
+        case KEY_TRIG:
+        case KEY_DELETE:
+            mode = DisplayMode::MAIN;
+            drawInterfaceNormal();
+            return;
+        case KEY_UP:
+            if(selectorIndex > 0) {
+                --selectorIndex;
+            }
+            else {
+                selectorIndex = 11;
+            }
+            break;
+        case KEY_DOWN:
+            ++selectorIndex;
+            if(selectorIndex >= 12) {
+                selectorIndex = 0;
+            }
+            break;
+        case KEY_LEFT:
+            if(selectorIndex >= 6) {
+                selectorIndex -= 6;
+            }
+            break;
+        case KEY_RIGHT:
+            if(selectorIndex < 6) {
+                selectorIndex += 6;
+            }
+            break;
+        default: break;
+        }
+
+        drawInterfaceTrig();
+
     }
 
     void ExprEntry::drawInterfaceNormal() {
+        // First make sure the cursor is visible
         adjustExpr();
+        // Clear the screen
         display.clearDrawingBuffer();
+        // Draw everything
         cursor->expr->drawConnected(display);
         cursor->draw(display);
+        display.updateDrawing();
+    }
+    
+    void ExprEntry::drawInterfaceTrig() {
+
+        display.clearDrawingBuffer();
+        // The y coordinate is incremented with every function
+        int16_t y = 1;
+        for(uint8_t i = 0; i < 12; i ++) {
+            // Reset y if we are in the second column
+            if(i == 6) {
+                y = 1;
+            }
+
+            if(i < 6) {
+                display.drawString(1, y, trigFuncs[i], selectorIndex == i);
+            }
+            else {
+                display.drawString(64, y, trigFuncs[i], selectorIndex == i);
+            }
+            // Increment y
+            y += 10;
+        }
+
         display.updateDrawing();
     }
 }
