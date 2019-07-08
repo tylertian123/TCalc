@@ -456,6 +456,11 @@
               <FileType>8</FileType>
               <FilePath>.\src\Internal\util.cpp</FilePath>
             </File>
+            <File>
+              <FileName>exprentry.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\src\Internal\exprentry.cpp</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

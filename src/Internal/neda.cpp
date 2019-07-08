@@ -1332,6 +1332,11 @@ loopEnd:
 	void Cursor::add(NEDAObj *obj) {
 		expr->addAtCursor(obj, *this);
 	}
+    void Cursor::addStr(const char *str) {
+        while(*str != '\0') {
+            add(new neda::Character(*str++));
+        }
+    }
 
 	// *************************** Misc ***************************************
 	Container* makeString(const char *str) {

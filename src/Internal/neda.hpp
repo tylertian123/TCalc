@@ -523,6 +523,7 @@ namespace neda {
 		void down();
 		void getInfo(CursorInfo &info);
 		void add(NEDAObj*);
+        void addStr(const char*);
 
 		virtual ObjType getType() override {
 			return ObjType::CURSOR_TYPE;
