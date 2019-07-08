@@ -1,4 +1,5 @@
 #include "exprentry.hpp"
+#include "ntoa.hpp"
 
 namespace expr {
     DynamicArray<const char*> varNames;
@@ -734,8 +735,7 @@ namespace expr {
         // Intentional fall-through
         case KEY_CAT:
         case KEY_DELETE:
-            mode == DisplayMode::NORMAL;
-            selectorIndex = 0;
+            mode = DisplayMode::NORMAL;
             scrollingIndex = 0;
             drawInterfaceNormal();
             return;
@@ -751,6 +751,128 @@ namespace expr {
         drawInterfaceFunc();
     }
 
+    void ExprEntry::recallKeyPressHandler(uint16_t key) {
+        switch(key) {
+        case KEY_CENTER:
+        case KEY_ENTER:
+        {
+            // Insert the definition of the recalled function
+            if(expr::functions.length() > 0) {
+                for(auto ex : expr::functions[selectorIndex].expr->contents) {
+                    cursor->add(ex->copy());
+                }
+            }
+        }
+        // Intentional fall-through
+        case KEY_RECALL:
+        case KEY_CAT:
+        case KEY_DELETE:
+            mode = DisplayMode::NORMAL;
+            scrollingIndex = 0;
+            drawInterfaceNormal();
+            return;
+        case KEY_UP:
+            scrollUp(expr::functions.length());
+            break;
+        case KEY_DOWN:
+            scrollDown(expr::functions.length());
+            break;
+        default: break;
+        }
+
+        drawInterfaceRecall();
+    }
+
+    void ExprEntry::configKeyPressHandler(uint16_t key) {
+        switch(key) {
+        case KEY_CENTER:
+        case KEY_ENTER:
+        case KEY_CONFIG:
+        case KEY_DELETE:
+            mode = DisplayMode::NORMAL;
+            drawInterfaceNormal();
+            return;
+        case KEY_LEFT:
+            if(selectorIndex == 0) {
+                eval::useRadians = !eval::useRadians;
+            }
+            else if(selectorIndex == 1 && resultSignificantDigits > 1) {
+                resultSignificantDigits --;
+            }
+            break;
+        case KEY_RIGHT:
+            if(selectorIndex == 0) {
+                eval::useRadians = !eval::useRadians;
+            }
+            else if(selectorIndex == 1 && resultSignificantDigits < 20) {
+                resultSignificantDigits ++;
+            }
+            break;
+        // Currently there are only two options, so this is good enough
+        case KEY_UP:
+        case KEY_DOWN:
+            selectorIndex = !selectorIndex;
+            break;
+        default: break;
+        }
+
+        drawInterfaceConfig();
+    }
+
+    void ExprEntry::matrixKeyPressHandler(uint16_t key) {
+        switch(key) {
+        case KEY_CENTER:
+        case KEY_ENTER:
+            // Insert matrix
+            neda::Matrix *mat = new neda::Matrix(matRows, matCols);
+			for(uint8_t i = 0; i < matRows; i ++) {
+				for(uint8_t j = 0; j < matCols; j ++) {
+					mat->setEntry(i, j, new neda::Container());
+				}
+			}
+			// These have to be called manually since setting the entries do not trigger size recalculations
+			mat->computeWidth();
+			mat->computeHeight();
+
+			cursor->add(mat);
+			mat->getCursor(*cursor, neda::CURSORLOCATION_START);
+
+            mode = DisplayMode::NORMAL;
+            selectorIndex = 0;
+            drawInterfaceNormal();
+            return;
+        case KEY_LEFT:
+        case KEY_RIGHT:
+            selectorIndex = !selectorIndex;
+            break;
+        case KEY_UP:
+            if(selectorIndex == 0) {
+                if(matRows < 255) {
+                    matRows ++;
+                }
+            }
+            else {
+                if(matCols < 255) {
+                    matCols ++;
+                }
+            }
+            break;
+        case KEY_DOWN:
+            if(selectorIndex == 0) {
+                if(matRows > 1) {
+                    matRows --;
+                }
+            }
+            else {
+                if(matCols > 1) {
+                    matCols --;
+                }
+            }
+            break;
+        }
+
+        drawInterfaceMatrix();
+    }
 
 
     void ExprEntry::drawInterfaceNormal() {
@@ -820,7 +942,50 @@ namespace expr {
         display.updateDrawing();
     }
 
+    void ExprEntry::drawInterfaceRecall() {
+        display.clearDrawingBuffer();
+        if(expr::functions.length() == 0) {
+            display.drawString(1, 1, "No Functions to");
+            display.drawString(1, 11, "Recall");
+        }
+        else {
+            int16_t y = 1;
+            for(uint8_t i = scrollingIndex; i < scrollingIndex + 6 && i < expr::functions.length(); i ++) {
+                display.drawString(1, y, expr::functions[i].fullname, selectorIndex == i);
+                y += 10;
+            }
 
+            uint16_t scrollbarLocation = static_cast<uint16_t>(scrollingIndex * 64 / expr::functions.length());
+            uint16_t scrollbarHeight = 6 * 64 / expr::functions.length();
+            display.fill(128 - FUNC_SCROLLBAR_WIDTH, scrollbarLocation, FUNC_SCROLLBAR_WIDTH, scrollbarHeight);
+        }
+        display.updateDrawing();
+    }
+
+    void ExprEntry::drawInterfaceConfig() {
+        display.clearDrawingBuffer();
+        display.drawString(1, 1, "Angles:");
+        display.drawString(80, 1, eval::useRadians ? "Radians" : "Degrees", selectorIndex == 0);
+        display.drawString(1, 11, "Result S.D.:");
+        char buf[3];
+        ltoa(resultSignificantDigits, buf);
+        display.drawString(80, 11, buf, selectorIndex == 1);
+        display.updateDrawing();
+    }
+
+    void ExprEntry::drawInterfaceMatrix() {
+        display.clearDrawingBuffer();
+        display.drawString(1, 1, "Matrix Size:");
+
+        char sizeBuf[8];
+        uint8_t len = ltoa(matRows, sizeBuf);
+        display.drawString(48, 13, sizeBuf, selectorIndex == 0);
+        display.drawString(48 + len * 6, 13, "x");
+        ltoa(matCols, sizeBuf);
+        display.drawString(54 + len * 6, 13, sizeBuf, selectorIndex == 1);
+
+        display.updateDrawing();
+    }
 
     void ExprEntry::scrollUp(uint16_t len) {
         if(selectorIndex > 0) {

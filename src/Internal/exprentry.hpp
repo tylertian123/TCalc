@@ -50,6 +50,8 @@ namespace expr {
         lcd::LCD12864 &display;
         DisplayMode mode;
 
+        uint8_t resultSignificantDigits;
+
         const uint16_t HORIZ_MARGIN, VERT_MARGIN;
 
         // Adjusts the position of the expression so that the cursor fits in the display area.
