@@ -48,7 +48,7 @@ namespace expr {
 
         neda::Cursor *cursor;
         lcd::LCD12864 &display;
-        DisplayMode mode;
+        DisplayMode mode = DisplayMode::NORMAL;
 
         uint8_t resultSignificantDigits;
 

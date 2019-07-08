@@ -174,6 +174,24 @@ namespace expr {
         case DisplayMode::NORMAL:
             normalKeyPressHandler(key);
             break;
+        case DisplayMode::TRIG_MENU:
+            trigKeyPressHandler(key);
+            break;
+        case DisplayMode::CONST_MENU:
+            constKeyPressHandler(key);
+            break;
+        case DisplayMode::CONFIG_MENU:
+            configKeyPressHandler(key);
+            break;
+        case DisplayMode::FUNC_MENU:
+            funcKeyPressHandler(key);
+            break;
+        case DisplayMode::RECALL_MENU:
+            recallKeyPressHandler(key);
+            break;
+        case DisplayMode::MATRIX_MENU:
+            matrixKeyPressHandler(key);
+            break;
         default: 
             break;
         }
@@ -519,16 +537,6 @@ namespace expr {
             cursor->addStr("Ans");
             break;
         }
-        case KEY_MATRIX:
-        {   
-            matRows = matCols = 1;
-            // Set the mode to matrix menu
-            mode = DisplayMode::MATRIX_MENU;
-            // Draw the interface
-            drawInterfaceMatrix();
-            // Return here to skip drawing the normal interface
-            return;
-        }
         /* OTHER */
         case KEY_DELETE:
         {
@@ -608,6 +616,14 @@ namespace expr {
             mode = DisplayMode::RECALL_MENU;
             selectorIndex = 0;
             drawInterfaceRecall();
+            return;
+        case KEY_MATRIX:
+            matRows = matCols = 1;
+            // Set the mode to matrix menu
+            mode = DisplayMode::MATRIX_MENU;
+            // Draw the interface
+            drawInterfaceMatrix();
+            // Return here to skip drawing the normal interface
             return;
         default: break;
         }
@@ -823,6 +839,7 @@ namespace expr {
         switch(key) {
         case KEY_CENTER:
         case KEY_ENTER:
+        {
             // Insert matrix
             neda::Matrix *mat = new neda::Matrix(matRows, matCols);
 			for(uint8_t i = 0; i < matRows; i ++) {
@@ -841,6 +858,7 @@ namespace expr {
             selectorIndex = 0;
             drawInterfaceNormal();
             return;
+        }
         case KEY_LEFT:
         case KEY_RIGHT:
             selectorIndex = !selectorIndex;
