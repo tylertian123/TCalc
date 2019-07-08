@@ -7,17 +7,6 @@
 #include "keydef.h"
 
 namespace expr {
-    
-    // Display mode
-    enum class DisplayMode : uint8_t {
-        MAIN,
-        TRIG_MENU,
-        CONST_MENU,
-        CONFIG_MENU,
-        FUNC_MENU,
-        RECALL_MENU,
-        MATRIX_MENU,
-    };
 
     // Names of all user-defined variables
     extern DynamicArray<const char*> varNames;
@@ -45,6 +34,17 @@ namespace expr {
         ExprEntry(lcd::LCD12864&, uint16_t horizMargin = 1, uint16_t vertMargin = 1);
 
         ~ExprEntry();
+
+        // Display mode
+        enum class DisplayMode : uint8_t {
+            NORMAL,
+            TRIG_MENU,
+            CONST_MENU,
+            CONFIG_MENU,
+            FUNC_MENU,
+            RECALL_MENU,
+            MATRIX_MENU,
+        };
 
         neda::Cursor *cursor;
         lcd::LCD12864 &display;

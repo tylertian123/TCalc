@@ -170,7 +170,7 @@ namespace expr {
 
     void ExprEntry::handleKeyPress(uint16_t key) {
         switch(mode) {
-        case DisplayMode::MAIN:
+        case DisplayMode::NORMAL:
             normalKeyPressHandler(key);
             break;
         default: 
@@ -635,7 +635,7 @@ namespace expr {
         // Trig key or delete is to go back
         case KEY_TRIG:
         case KEY_DELETE:
-            mode = DisplayMode::MAIN;
+            mode = DisplayMode::NORMAL;
             drawInterfaceNormal();
             return;
         case KEY_UP:
@@ -681,7 +681,7 @@ namespace expr {
             // Intentional fall-through
         case KEY_CONST:
         case KEY_DELETE:
-            mode = DisplayMode::MAIN;
+            mode = DisplayMode::NORMAL;
             drawInterfaceNormal();
             return;
         case KEY_UP:
@@ -734,7 +734,7 @@ namespace expr {
         // Intentional fall-through
         case KEY_CAT:
         case KEY_DELETE:
-            mode == DisplayMode::MAIN;
+            mode == DisplayMode::NORMAL;
             selectorIndex = 0;
             scrollingIndex = 0;
             drawInterfaceNormal();
