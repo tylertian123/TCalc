@@ -1310,6 +1310,206 @@ loopEnd:
 		return mat;
 	}
 
+    // *************************** Piecewise ***************************************
+    ObjType Piecewise::getType() {
+        return ObjType::PIECEWISE;
+    }
+    Piecewise::~Piecewise() {
+        for(uint8_t i = 0; i < pieces; i ++) {
+            DESTROY_IF_NONNULL(values[i]);
+            DESTROY_IF_NONNULL(conditions[i]);
+        }
+        delete[] values;
+        delete[] conditions;
+    }
+    uint16_t Piecewise::getTopSpacing() {
+        // Go through every row in the top half
+		uint16_t total = 0;
+		for(uint8_t i = 0; i < pieces / 2; i ++) {
+			total += max(SAFE_ACCESS_0(values[i], exprHeight), SAFE_ACCESS_0(conditions[i], exprHeight));
+		}
+		// Add edge spacing (top)
+		total += TOP_SPACING;
+		
+		// The top spacing is divided into two scenarios
+		// Scenario 1: even number of rows
+		if(pieces % 2 == 0) {
+			// Add spacing between rows
+			total += (pieces / 2 - 1) * ROW_SPACING;
+			// Add spacing between middle two rows
+			total += ROW_SPACING / 2;
+		}
+		// Scenario 2: odd number of rows
+		else {
+			// Add spacing between rows
+			total += pieces / 2 * ROW_SPACING;
+			// Add the top spacing of the middle row
+			total += max(SAFE_EXEC_0(values[pieces / 2], getTopSpacing), SAFE_EXEC_0(conditions[pieces / 2], getTopSpacing));
+		}
+		return total;
+    }
+    void Piecewise::computeWidth() {
+        uint16_t widestValue = 0;
+        uint16_t widestCondition = 0;
+        for(uint8_t i = 0; i < pieces; i ++) {
+            widestValue = max(widestValue, static_cast<uint16_t>(SAFE_ACCESS_0(values[i], exprWidth)));
+            widestCondition = max(widestCondition, static_cast<uint16_t>(SAFE_ACCESS_0(conditions[i], exprWidth)));
+        }
+        exprWidth = widestValue + widestCondition + LEFT_SPACING + VALUE_CONDITION_SPACING;
+        SAFE_EXEC(parent, computeWidth);
+    }
+    void Piecewise::computeHeight() {
+        uint16_t total = TOP_SPACING + TOP_SPACING + (pieces - 1) * ROW_SPACING;
+        for(uint8_t i = 0; i < pieces; i ++) {
+            total += max(SAFE_ACCESS_0(values[i], exprHeight), SAFE_ACCESS_0(conditions[i], exprHeight));
+        }
+        exprHeight = total;
+        SAFE_EXEC(parent, computeHeight);
+    }
+    void Piecewise::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
+        this->x = x;
+		this->y = y;
+		VERIFY_INBOUNDS(x, y);
+
+		// Draw contents first
+		uint16_t maxValueWidth = 0;
+        for(uint8_t i = 0; i < pieces; i ++) {
+            maxValueWidth = max(maxValueWidth, static_cast<uint16_t>(SAFE_ACCESS_0(values[i], exprWidth)));
+        }
+
+		// Go row-by-row
+		uint16_t exprY = y + TOP_SPACING;
+		for(uint16_t i = 0; i < pieces; i ++) {
+            uint16_t valueTopSpacing = values[i]->getTopSpacing();
+            uint16_t conditionTopSpacing = conditions[i]->getTopSpacing();
+            uint16_t maxTopSpacing = max(valueTopSpacing, conditionTopSpacing);
+
+            values[i]->draw(dest, x + LEFT_SPACING, exprY + (maxTopSpacing - valueTopSpacing));
+            conditions[i]->draw(dest, x + LEFT_SPACING + maxValueWidth + VALUE_CONDITION_SPACING, exprY + (maxTopSpacing - conditionTopSpacing));
+
+			exprY += max(values[i]->exprHeight, conditions[i]->exprHeight) + ROW_SPACING;
+		}
+
+        // Draw curly bracket
+        // Top curl
+        dest.setPixel(x + 2, y, true);
+        // Bottom curl
+        dest.setPixel(x + 2, y + exprHeight - 1, true);
+        // Middle
+        dest.setPixel(x, y + (exprHeight / 2) - 1, true);
+        // Main body
+        for(int16_t py = y + 1; py < y + exprHeight - 1; py ++) {
+            if(py != y + (exprHeight / 2) - 1) {
+                dest.setPixel(x + 1, py, true);
+            }
+        }
+    }
+    void Piecewise::getCursor(Cursor &cursor, CursorLocation location) {
+        if(location == CURSORLOCATION_START) {
+            SAFE_EXEC(values[0], getCursor, cursor, location);
+        }
+        else {
+            SAFE_EXEC(conditions[0], getCursor, cursor, location);
+        }
+    }
+    void Piecewise::left(Expr *expr, Cursor &cursor) {
+        // Find the expression the cursor is in
+        bool isCondition = false;
+        uint8_t i = 0;
+        for(; i < pieces; i ++) {
+            if(expr == values[i]) {
+                break;
+            }
+            else if(expr == conditions[i]) {
+                isCondition = true;
+                break;
+            }
+        }
+
+        // If cursor is in the condition, move it to the value
+        if(isCondition) {
+            SAFE_EXEC(values[i], getCursor, cursor, CURSORLOCATION_END);
+        }
+        else {
+            SAFE_EXEC(parent, left, this, cursor);
+        }
+    }
+    void Piecewise::right(Expr *expr, Cursor &cursor) {
+        // Find the expression the cursor is in
+        bool isCondition = false;
+        uint8_t i = 0;
+        for(; i < pieces; i ++) {
+            if(expr == values[i]) {
+                break;
+            }
+            else if(expr == conditions[i]) {
+                isCondition = true;
+                break;
+            }
+        }
+        
+        if(!isCondition) {
+            SAFE_EXEC(conditions[i], getCursor, cursor, CURSORLOCATION_START);
+        }
+        else {
+            SAFE_EXEC(parent, right, this, cursor);
+        }
+    }
+    void Piecewise::up(Expr *expr, Cursor &cursor) {
+        // Find the expression the cursor is in
+        bool isCondition = false;
+        uint8_t i = 0;
+        for(; i < pieces; i ++) {
+            if(expr == values[i]) {
+                break;
+            }
+            else if(expr == conditions[i]) {
+                isCondition = true;
+                break;
+            }
+        }
+
+        if(i == 0) {
+            SAFE_EXEC(parent, up, this, cursor);
+        }
+        else {
+            SAFE_EXEC(isCondition ? conditions[i - 1] : values[i - 1], getCursor, cursor, CURSORLOCATION_END);
+        }
+    }
+    void Piecewise::down(Expr *expr, Cursor &cursor) {
+        // Find the expression the cursor is in
+        bool isCondition = false;
+        uint8_t i = 0;
+        for(; i < pieces; i ++) {
+            if(expr == values[i]) {
+                break;
+            }
+            else if(expr == conditions[i]) {
+                isCondition = true;
+                break;
+            }
+        }
+
+        if(i == pieces - 1) {
+            SAFE_EXEC(parent, down, this, cursor);
+        }
+        else {
+            SAFE_EXEC(isCondition ? conditions[i + 1] : values[i + 1], getCursor, cursor, CURSORLOCATION_START);
+        }
+    }
+    Piecewise* Piecewise::copy() {
+        Piecewise *other = new Piecewise(pieces);
+        for(uint8_t i = 0; i < pieces; i ++) {
+            other->values[i] = static_cast<neda::Expr*>(values[i]->copy());
+            other->conditions[i] = static_cast<neda::Expr*>(conditions[i]->copy());
+            other->values[i]->parent = other;
+            other->conditions[i]->parent = other;
+        }
+        other->exprWidth = exprWidth;
+        other->exprHeight = exprHeight;
+        return other;
+    }
+
 	// *************************** Cursor ***************************************
 	void Cursor::draw(lcd::LCD12864 &dest) {
 		expr->drawCursor(dest, *this);

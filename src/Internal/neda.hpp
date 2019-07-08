@@ -40,6 +40,7 @@ namespace neda {
 		SUBSCRIPT,
 		SIGMA_PI,
 		MATRIX,
+        PIECEWISE,
 	};
 	
 	/*
@@ -498,6 +499,56 @@ namespace neda {
 
 		virtual ObjType getType() override;
 	};
+
+    // Piecewise function
+    class Piecewise : public Expr {
+    public:
+        Piecewise(uint8_t pieces) : pieces(pieces) {
+            values = new Expr*[pieces];
+            conditions = new Expr*[pieces];
+            memset(values, NULL, pieces * sizeof(Expr*));
+            memset(values, NULL, pieces * sizeof(Expr*));
+        }
+        
+        virtual ~Piecewise();
+
+        const uint8_t pieces;
+        Expr **values;
+        Expr **conditions;
+
+        // Sets a value
+        // DOES NOT RECOMPUTE THE SIZE!
+        inline void setValue(uint8_t index, Expr *value) {
+            values[index] = value;
+            value->parent = this;
+        }
+        // Sets a condition
+        // DOES NOT RECOMPUTE THE SIZE!
+        inline void setCondition(uint8_t index, Expr *condition) {
+            conditions[index] = condition;
+            condition->parent = this;
+        }
+
+        static constexpr uint16_t VALUE_CONDITION_SPACING = 4;
+        static constexpr uint16_t ROW_SPACING = 4;
+		static constexpr uint16_t LEFT_SPACING = 4;
+		static constexpr uint16_t TOP_SPACING = 2;
+
+        virtual uint16_t getTopSpacing() override;
+		virtual void computeWidth() override;
+		virtual void computeHeight() override;
+		virtual void draw(lcd::LCD12864&, int16_t, int16_t) override;
+
+		virtual void left(Expr*, Cursor&) override;
+		virtual void right(Expr*, Cursor&) override;
+		virtual void up(Expr*, Cursor&) override;
+		virtual void down(Expr*, Cursor&) override;
+		virtual void getCursor(Cursor&, CursorLocation) override;
+
+		virtual Piecewise* copy() override;
+
+		virtual ObjType getType() override;
+    };
 	
 	/*
 	 * This struct contains info about the cursor's position and size.
