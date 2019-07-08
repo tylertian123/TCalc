@@ -105,6 +105,11 @@ namespace expr {
         uint8_t matCols = 0;
         // The index of the selector (cursor) in some modes.
         uint16_t selectorIndex = 0;
+        // The index of scrolling.
+        uint16_t scrollingIndex = 0;
+
+        void scrollUp(uint16_t);
+        void scrollDown(uint16_t);
     };
 }
 
