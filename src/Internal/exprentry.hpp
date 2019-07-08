@@ -50,7 +50,7 @@ namespace expr {
         lcd::LCD12864 &display;
         DisplayMode mode = DisplayMode::NORMAL;
 
-        uint8_t resultSignificantDigits;
+        uint8_t resultSignificantDigits = 16;
 
         const uint16_t HORIZ_MARGIN, VERT_MARGIN;
 

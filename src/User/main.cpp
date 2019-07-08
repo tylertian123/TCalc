@@ -129,19 +129,34 @@ void respawn() {
 
 /********** Cursor flashing and game processing **********/
 
+#define CURSOR_HORIZ_SPACING 1
+#define CURSOR_VERT_SPACING 1
+expr::ExprEntry mainExprEntry(display, CURSOR_HORIZ_SPACING, CURSOR_VERT_SPACING);
+
+enum class ExprEditMode : uint8_t {
+    NORMAL,
+    RESULT,
+    RESULT_SCROLL,
+};
+ExprEditMode exprEditMode = ExprEditMode::NORMAL;
+
 bool cursorOn = false;
+
+// Marked for removal
 neda::Cursor *cursor;
 extern bool editExpr;
+
 extern "C" void TIM3_IRQHandler() {
 	if(TIM_GetITStatus(TIM3, TIM_IT_Update)) {
 		TIM_ClearITPendingBit(TIM3, TIM_IT_Update);
-		if(dispMode == DispMode::EXPR_ENTRY && editExpr) {
+        // Flash cursor
+		if(dispMode == DispMode::EXPR_ENTRY && exprEditMode == ExprEditMode::NORMAL && mainExprEntry.mode == expr::ExprEntry::DisplayMode::NORMAL) {
 			cursorOn = !cursorOn;
 			display.clearDrawingBuffer();
 			// Redraw the entire expr
-			cursor->expr->Expr::drawConnected(display);
+            mainExprEntry.cursor->expr->drawConnected(display);
 			if(cursorOn) {
-				cursor->draw(display);
+				mainExprEntry.cursor->draw(display);
 			}
 			display.updateDrawing();
 		}
@@ -195,8 +210,7 @@ extern "C" void TIM3_IRQHandler() {
 	}
 }
 
-#define CURSOR_HORIZ_SPACING 1
-#define CURSOR_VERT_SPACING 1
+
 // Moves ex so that the cursor is in the display
 void adjustExpr(neda::Expr *ex, neda::Cursor *cursorRef) {
 	neda::CursorInfo info;
@@ -251,7 +265,6 @@ int16_t resultX, resultY;
 uint16_t resultWidth = 0, resultHeight = 0;
 extern bool scrollExpr;
 extern bool asDecimal;
-uint8_t resultSignificantDigits = 16;
 void drawResult(uint8_t id, bool resetLocation = true) {
 	// Display the result
 	display.clearDrawingBuffer();
@@ -266,7 +279,7 @@ void drawResult(uint8_t id, bool resetLocation = true) {
 		double decimalResult = ((eval::Fraction*) evalResult)->doubleVal();
 		delete evalResult;
 		char buf[64];
-		ftoa(decimalResult, buf, resultSignificantDigits, LCD_CHAR_EE);
+		ftoa(decimalResult, buf, mainExprEntry.resultSignificantDigits, LCD_CHAR_EE);
 		result->addString(buf);
 	}
 	else {
@@ -352,7 +365,7 @@ void exprKeyHandler(neda::Cursor *cursor, uint16_t key) {
         }
         }
 	}
-
+/////////////////////////////////////////
 	switch(key) {
 	case KEY_CENTER:
 		if(!editExpr) {
@@ -1012,7 +1025,7 @@ evaluateExpression:
 				else {
 					char buf[64];
 					// Convert the result and store it
-					ftoa(((eval::Number*) result)->value, buf, resultSignificantDigits, LCD_CHAR_EE);
+					ftoa(((eval::Number*) result)->value, buf, mainExprEntry.resultSignificantDigits, LCD_CHAR_EE);
 					calcResults[0]->addString(buf);
 				}
 			}
@@ -1045,7 +1058,7 @@ evaluateExpression:
 					neda::Container *cont = new neda::Container();
 					nMat->contents[i] = cont;
 					// Convert the number
-					ftoa(mat->contents[i], buf, resultSignificantDigits, LCD_CHAR_EE);
+					ftoa(mat->contents[i], buf, mainExprEntry.resultSignificantDigits, LCD_CHAR_EE);
 					cont->addString(buf);
 				}
 				nMat->computeWidth();
@@ -1387,16 +1400,16 @@ void configKeyHandler(uint16_t key) {
         if(selectorIndex == 0) {
             eval::useRadians = !eval::useRadians;
         }
-        else if(selectorIndex == 1 && resultSignificantDigits > 1) {
-            resultSignificantDigits --;
+        else if(selectorIndex == 1 && mainExprEntry.resultSignificantDigits > 1) {
+            mainExprEntry.resultSignificantDigits --;
         }
 		break;
 	case KEY_RIGHT:
         if(selectorIndex == 0) {
 		    eval::useRadians = !eval::useRadians;
         }
-        else if(selectorIndex == 1 && resultSignificantDigits < 20) {
-            resultSignificantDigits ++;
+        else if(selectorIndex == 1 && mainExprEntry.resultSignificantDigits < 20) {
+            mainExprEntry.resultSignificantDigits ++;
         }
 		break;
     // Currently there are only two options, so this is good enough
@@ -1412,7 +1425,7 @@ void configKeyHandler(uint16_t key) {
 	display.drawString(80, 1, eval::useRadians ? "Radians" : "Degrees", selectorIndex == 0);
     display.drawString(1, 11, "Result S.D.:");
     char buf[3];
-    ltoa(resultSignificantDigits, buf);
+    ltoa(mainExprEntry.resultSignificantDigits, buf);
     display.drawString(80, 11, buf, selectorIndex == 1);
 	display.updateDrawing();
 }
@@ -1499,6 +1512,339 @@ void gameKeyPressHandler(uint16_t key) {
 	}
 }
 
+void evaluateExpr(neda::Container*);
+void normalKeyPressHandler(uint16_t key) {
+	if(exprEditMode == ExprEditMode::RESULT) {
+        // Special processing for these keys
+        switch(key) {
+        // Go into result scroll mode
+        case KEY_CENTER:
+            exprEditMode = ExprEditMode::RESULT_SCROLL;
+            break;
+        // Show the previous result
+        case KEY_UP:
+            if(currentExpr < RESULT_STORE_COUNT - 1 && expressions[currentExpr + 1]) {
+				++currentExpr;
+				asDecimal = false;
+				drawResult(currentExpr);
+			}
+            break;
+        // Show the next result
+        case KEY_DOWN:
+            if(currentExpr >= 1) {
+				--currentExpr;
+				asDecimal = false;
+				drawResult(currentExpr);
+			}
+            break;
+        // Display the current result with a different method
+        case KEY_APPROX:
+            asDecimal = !asDecimal;
+            drawResult(currentExpr);
+            break;
+        case KEY_DUMMY:
+            break;
+        // All other keys create a new expression
+        default:
+        {
+            neda::Container *newExpr;
+            // If the key is a left or right, make a copy of the expression on display
+            // Otherwise just insert a new expression
+            if(key == KEY_LEFT || key == KEY_RIGHT) {
+                newExpr = expressions[currentExpr]->copy();
+            }
+            else {
+                newExpr = new neda::Container();
+            }
+
+            // Shift everything back
+            if(calcResults[RESULT_STORE_COUNT - 1]) {
+                delete calcResults[RESULT_STORE_COUNT - 1];
+                delete expressions[RESULT_STORE_COUNT - 1];
+                // Set to null pointers
+                calcResults[RESULT_STORE_COUNT - 1] = expressions[RESULT_STORE_COUNT - 1] = nullptr;
+            }
+            for(uint8_t i = RESULT_STORE_COUNT - 1; i > 0; --i) {
+                calcResults[i] = calcResults[i - 1];
+                expressions[i] = expressions[i - 1];
+            }
+            calcResults[0] = expressions[0] = nullptr;
+
+            newExpr->getCursor(*mainExprEntry.cursor, neda::CURSORLOCATION_END);
+            newExpr->x = CURSOR_HORIZ_SPACING + 1;
+            newExpr->y = CURSOR_VERT_SPACING + 1;
+            exprEditMode = ExprEditMode::NORMAL;
+            currentExpr = 0;
+            
+            display.clearDrawingBuffer();
+            mainExprEntry.adjustExpr();
+            mainExprEntry.cursor->expr->drawConnected(display);
+            mainExprEntry.cursor->draw(display);
+            display.updateDrawing();
+        }
+        }
+	}
+    // Otherwise if in scrolling mode
+    else if(exprEditMode == ExprEditMode::RESULT_SCROLL) {
+        switch(key) {
+        case KEY_CENTER:
+            exprEditMode = ExprEditMode::RESULT;
+            break;
+        case KEY_LEFT:
+            // Verify that the expression is cut off
+            if(resultX < 1) {
+                resultX += EXPR_SCROLL_SPEED;
+                drawResult(currentExpr, false);
+            }
+            break;
+        case KEY_RIGHT:
+            // Verify that the expression is cut off
+            if(resultX + resultWidth > 127) {
+                resultX -= EXPR_SCROLL_SPEED;
+            }
+            drawResult(currentExpr, false);
+            break;
+        case KEY_UP:
+            // Verify that the result is cut off
+            if(resultY < 1) {
+                resultY += EXPR_SCROLL_SPEED;
+                drawResult(currentExpr, false);
+            }
+            break;
+        case KEY_DOWN:
+            // Verify that the expression is cut off
+            if(resultY + resultHeight > 63) {
+                resultY -= EXPR_SCROLL_SPEED;
+            }
+            drawResult(currentExpr, false);
+            break;
+        // Ignore all other keys
+        default: 
+            break;
+        }
+    }
+    // Normal mode
+    else {
+        // Special processing for some keys when in normal mode
+        if(mainExprEntry.mode == expr::ExprEntry::DisplayMode::NORMAL) {
+            switch(key) {
+            case KEY_ENTER:
+                evaluateExpr(static_cast<neda::Container*>(mainExprEntry.cursor->expr->getTopLevel()));
+                asDecimal = false;
+                drawResult(0, true);
+                break;
+            case KEY_APPROX:
+                evaluateExpr(static_cast<neda::Container*>(mainExprEntry.cursor->expr->getTopLevel()));
+                asDecimal = true;
+                drawResult(0, true);
+                break;
+            // Forward others to handleKeyPress()
+            default:
+                mainExprEntry.handleKeyPress(key);
+                break;
+            }
+        }
+        // For other keys, forward to handleKeyPress()
+        else {
+            mainExprEntry.handleKeyPress(key);
+        }
+    }
+}
+
+// Evaluates the expression
+// Handles evaluation and things like variable definitions
+void evaluateExpr(neda::Container *expr) {
+    exprEditMode = ExprEditMode::RESULT;
+    eval::Token *result = nullptr;
+
+    // First see if this is an assignment operation
+    uint16_t equalsIndex = eval::findEquals(&expr->contents, false);
+    if(equalsIndex != 0xFFFF) {
+        // Isolate the variable name
+        char *vName = new char[equalsIndex + 1];
+        bool isFunc = false;
+        bool isValid = true;
+        uint16_t i = 0;
+        for(; i < equalsIndex; i ++) {
+            // Break when there's a left bracket since we found a function definition
+            if(expr->contents[i]->getType() == neda::ObjType::L_BRACKET) {
+                isFunc = true;
+                break;
+            }
+            vName[i] = eval::extractChar(expr->contents[i]);
+            if(!eval::isNameChar(vName[i])) {
+                isValid = false;
+                break;
+            }
+        }
+        vName[i] = '\0';
+        // If not valid or if the length is zero, cleanup and exit
+        if(!isValid || i == 0) {
+            delete[] vName;
+        }
+        else {
+            if(isFunc) {
+                // Now that the name has been isolated, do the same with each of the arguments
+                uint16_t argStart = i + 1;
+                uint16_t argEnd = i + 1;
+                uint8_t argc = 0;
+                DynamicArray<char*> argNames;
+
+                // Find the closing bracket
+                uint16_t end = argStart;
+                for(; end < equalsIndex && expr->contents[end]->getType() != neda::ObjType::R_BRACKET; ++end);
+                // Missing right bracket
+                if(end == equalsIndex) {
+                    delete[] vName;
+                }
+                else {
+                    while(argStart < end) {
+                        // Find the end of each argument
+                        for(; argEnd < end; ++argEnd) {
+                            if(eval::extractChar(expr->contents[argEnd]) == ',') {
+                                break;
+                            }
+                        }
+                        // Extract argument name
+                        char *argName = new char[argEnd - argStart + 1];
+                        for(uint16_t i = 0; i < argEnd - argStart; ++i) {
+                            argName[i] = eval::extractChar(expr->contents[argStart + i]);
+                        }
+                        // Null termination
+                        argName[argEnd - argStart] = '\0';
+                        argNames.add(argName);
+                        ++argc;
+
+                        ++argEnd;
+                        // If there's a space after the comma, skip that too
+                        if(eval::extractChar(expr->contents[argEnd]) == ' ') {
+                            ++argEnd;
+                        }
+                        argStart = argEnd;
+                    }
+
+                    // Now we should have all the arguments
+                    // Make a new array with the argument names since the DynamicArray's contents will be automatically freed
+                    char **argn = new char*[argc];
+                    // memcpy it in
+                    // Make sure the size is multiplied by the sizeof a char*
+                    memcpy(argn, argNames.asArray(), argc * sizeof(char*));
+
+                    // Make a new container that will hold the expression
+                    neda::Container *funcExpr = new neda::Container();
+                    for(uint16_t i = equalsIndex + 1; i < expr->contents.length(); ++i) {
+                        // Add each expression in
+                        // Make sure they're copied; otherwise segfaults will occur when this expr is deleted
+                        funcExpr->add(expr->contents[i]->copy());
+                    }
+
+                    // Finally add the damn thing
+                    expr::updateFunc(vName, funcExpr, argc, const_cast<const char**>(argn));
+                    // Update the result to 1 to signify the operation succeeded
+                    result = new eval::Number(1);
+                }
+            }
+            else {
+                // Evaluate
+                DynamicArray<neda::NEDAObj*> val(expr->contents.begin() + equalsIndex + 1, expr->contents.end());
+                result = eval::evaluate(&val, static_cast<uint8_t>(expr::varNames.length()), const_cast<const char**>(expr::varNames.asArray()), 
+                        expr::varVals.asArray(), static_cast<uint8_t>(expr::functions.length()), expr::functions.asArray());
+
+                // If result is valid, add the variable
+                if(result) {
+                    // Create a copy since the result is shared between the history and the variable values
+                    eval::Token *value;
+                    if(result->getType() == eval::TokenType::NUMBER) {
+                        value = new eval::Number(((eval::Number*) result)->value);
+                    }
+                    else if(result->getType() == eval::TokenType::FRACTION) {
+                        value = new eval::Fraction(((eval::Fraction*) result)->num, ((eval::Fraction*) result)->denom);
+                    }
+                    else {
+                        value = new eval::Matrix(*((eval::Matrix*) result));
+                    }
+                    // Add it
+                    expr::updateVar(vName, value);
+                }
+                else {
+                    // Delete the variable name to avoid a memory leak
+                    delete[] vName;
+                }
+            }
+        }
+    }
+    else {
+        result = eval::evaluate(expr, static_cast<uint8_t>(expr::varNames.length()), const_cast<const char**>(expr::varNames.asArray()), 
+                expr::varVals.asArray(), static_cast<uint8_t>(expr::functions.length()), expr::functions.asArray());
+    }
+    // Create the container that will hold the result
+    calcResults[0] = new neda::Container();
+    if(!result) {
+        calcResults[0]->add(new neda::Character(LCD_CHAR_SERR));
+    }
+    else {
+        // Note: result is not deleted since updateVar needs it
+        if(result->getType() == eval::TokenType::NUMBER) {
+            if(isnan(((eval::Number*) result)->value)) {
+                // No complex numbers allowed!!
+                calcResults[0]->add(new neda::Character('\xff'));
+            }
+            else {
+                char buf[64];
+                // Convert the result and store it
+                ftoa(((eval::Number*) result)->value, buf, mainExprEntry.resultSignificantDigits, LCD_CHAR_EE);
+                calcResults[0]->addString(buf);
+            }
+        }
+        else if(result->getType() == eval::TokenType::FRACTION) {
+            char buf[64];
+            neda::Container *num = new neda::Container();
+            neda::Container *denom = new neda::Container();
+
+            // Display negative fractions with the minus sign in front
+            if(((eval::Fraction*) result)->num < 0) {
+                calcResults[0]->add(new neda::Character('-'));
+            }
+
+            ltoa(labs(((eval::Fraction*) result)->num), buf);
+            num->addString(buf);
+            ltoa(((eval::Fraction*) result)->denom, buf);
+            denom->addString(buf);
+
+            calcResults[0]->add(new neda::Fraction(num, denom));
+        }
+        // Matrix
+        else {
+            char buf[64];
+            eval::Matrix *mat = (eval::Matrix*) result;
+            // Create NEDA matrix
+            neda::Matrix *nMat = new neda::Matrix(mat->m, mat->n);
+            // Go through every entry
+            for(uint16_t i = 0; i < mat->m * mat->n; i ++) {
+                // Create a container for the entry
+                neda::Container *cont = new neda::Container();
+                nMat->contents[i] = cont;
+                // Convert the number
+                ftoa(mat->contents[i], buf, mainExprEntry.resultSignificantDigits, LCD_CHAR_EE);
+                cont->addString(buf);
+            }
+            nMat->computeWidth();
+            nMat->computeHeight();
+
+            calcResults[0]->add(nMat);
+        }
+
+        // Now update the value of the Ans variable
+        // Var names must be allocated on the heap
+        char *name = new char[4];
+        strcpy(name, "Ans");
+        expr::updateVar(name, result);
+    }
+    expressions[0] = expr;
+
+    currentExpr = 0;
+}
+
 int main() {
 	// Init system
 	sys::initRCC();
@@ -1564,20 +1910,17 @@ int main() {
 		respawn();
 	}
 
-	// Create cursor
-	cursor = new neda::Cursor;
-
-	// Set up basic expression
-	display.clearDrawingBuffer();
-	neda::Container *master = new neda::Container();
-	master->getCursor(*cursor, neda::CURSORLOCATION_START);
-	adjustExpr(master, cursor);
-	master->Expr::draw(display);
-	cursor->draw(display);
-	display.updateDrawing();
-
 	// Start blink
 	initCursorTimer(dispMode == DispMode::GAME ? 1000 : 2000);
+
+    display.clearDrawing();
+    if(dispMode == DispMode::EXPR_ENTRY) {
+        mainExprEntry.adjustExpr();
+        mainExprEntry.cursor->expr->drawConnected(display);
+        mainExprEntry.cursor->draw(display);
+        display.updateDrawing();
+    }
+
 
 	uint16_t key = KEY_NULL;
 	
@@ -1585,32 +1928,13 @@ int main() {
 	while(true) {
 		if((key = fetchKey()) != KEY_NULL) {
 			switch(dispMode) {
-			case DispMode::EXPR_ENTRY:
-				exprKeyHandler(cursor, key);
-				break;
-			case DispMode::TRIG_MENU:
-				trigKeyHandler(cursor, key);
-				break;
-			case DispMode::CONST_MENU:
-				constKeyHandler(cursor, key);
-				break;
-			case DispMode::CONFIG_MENU:
-				configKeyHandler(key);
-				break;
-			case DispMode::FUNC_MENU:
-				funcKeyHandler(cursor, key);
-				break;
-			case DispMode::RECALL_MENU:
-				recallKeyHandler(cursor, key);
-				break;
-			case DispMode::MATRIX_MENU:
-				matrixKeyHandler(key);
-				break;
-			case DispMode::GAME:
-				gameKeyPressHandler(key);
-				break;
-			default: break;
-			}
+            case DispMode::EXPR_ENTRY:
+                normalKeyPressHandler(key);
+                break;
+            case DispMode::GAME:
+                gameKeyPressHandler(key);
+                break;
+            }
 		}
 	}
 }
