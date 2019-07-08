@@ -120,6 +120,7 @@
 #define KEY_GT        0x0074
 #define KEY_LTEQ      0x0075
 #define KEY_GTEQ      0x0076
+#define KEY_PIECEWISE 0x0077
 
 #define KEY_DUMMY     0xFFFF
 

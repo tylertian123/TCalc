@@ -192,6 +192,9 @@ namespace expr {
         case DisplayMode::MATRIX_MENU:
             matrixKeyPressHandler(key);
             break;
+        case DisplayMode::PIECEWISE_MENU:
+            piecewiseKeyPressHandler(key);
+            break;
         default: 
             break;
         }
@@ -630,12 +633,18 @@ namespace expr {
             drawInterfaceRecall();
             return;
         case KEY_MATRIX:
-            matRows = matCols = 1;
             // Set the mode to matrix menu
             mode = DisplayMode::MATRIX_MENU;
+            matRows = matCols = 1;
+            selectorIndex = 0;
             // Draw the interface
             drawInterfaceMatrix();
             // Return here to skip drawing the normal interface
+            return;
+        case KEY_PIECEWISE:
+            mode = DisplayMode::PIECEWISE_MENU;
+            piecewisePieces = 2;
+            drawInterfacePiecewise();
             return;
         default: break;
         }
@@ -865,12 +874,14 @@ namespace expr {
 
 			cursor->add(mat);
 			mat->getCursor(*cursor, neda::CURSORLOCATION_START);
-
+        
+        }
+        // Intentional fall-through
+        case KEY_MATRIX:
+        case KEY_DELETE:
             mode = DisplayMode::NORMAL;
-            selectorIndex = 0;
             drawInterfaceNormal();
             return;
-        }
         case KEY_LEFT:
         case KEY_RIGHT:
             selectorIndex = !selectorIndex;
@@ -902,6 +913,42 @@ namespace expr {
         }
 
         drawInterfaceMatrix();
+    }
+
+    void ExprEntry::piecewiseKeyPressHandler(uint16_t key) {
+        switch(key) {
+        case KEY_CENTER:
+        case KEY_ENTER:
+        {
+            neda::Piecewise *p = new neda::Piecewise(piecewisePieces);
+            for(uint8_t i = 0; i < piecewisePieces; i ++) {
+                p->setCondition(i, new neda::Container());
+                p->setValue(i, new neda::Container());
+            }
+            p->computeWidth();
+            p->computeHeight();
+
+            cursor->add(p);
+            p->getCursor(*cursor, neda::CURSORLOCATION_START);
+        }
+        case KEY_PIECEWISE:
+        case KEY_DELETE:
+            mode = DisplayMode::NORMAL;
+            drawInterfaceNormal();
+            return;
+        case KEY_UP:
+            if(piecewisePieces < 255) {
+                piecewisePieces ++;
+            }
+            break;
+        case KEY_DOWN:
+            if(piecewisePieces > 2) {
+                piecewisePieces --;
+            }
+            break;
+        }
+
+        drawInterfacePiecewise();
     }
 
 
@@ -1014,6 +1061,18 @@ namespace expr {
         ltoa(matCols, sizeBuf);
         display.drawString(54 + len * 6, 13, sizeBuf, selectorIndex == 1);
 
+        display.updateDrawing();
+    }
+
+    void ExprEntry::drawInterfacePiecewise() {
+        display.clearDrawingBuffer();
+        display.drawString(1, 1, "Number of Function");
+        display.drawString(1, 11, "Pieces:");
+
+        char sizeBuf[4];
+        ltoa(piecewisePieces , sizeBuf);
+
+        display.drawString(60, 21, sizeBuf, true);
         display.updateDrawing();
     }
 

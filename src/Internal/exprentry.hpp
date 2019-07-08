@@ -44,6 +44,7 @@ namespace expr {
             FUNC_MENU,
             RECALL_MENU,
             MATRIX_MENU,
+            PIECEWISE_MENU,
         };
 
         neda::Cursor *cursor;
@@ -78,6 +79,8 @@ namespace expr {
         void recallKeyPressHandler(uint16_t key);
         // Handles key presses in the matrix size selection menu.
         void matrixKeyPressHandler(uint16_t key);
+        // Handles key presses in the piecewise function menu.
+        void piecewiseKeyPressHandler(uint16_t key);
 
         /* 
          * These functions draw the interface for a given mode. 
@@ -97,6 +100,8 @@ namespace expr {
         void drawInterfaceRecall();
         // Draws the interface for the matrix size selection menu.
         void drawInterfaceMatrix();
+        // Draws the interface for the piecewise function menu.
+        void drawInterfacePiecewise();
 
         /*
          * These variables are kept between two key presses and thus have to be global.
@@ -105,6 +110,8 @@ namespace expr {
         uint8_t matRows = 0;
         // The number of columns in the matrix to insert.
         uint8_t matCols = 0;
+        // The number of function pieces in the piecewise function to insert.
+        uint8_t piecewisePieces = 2;
         // The index of the selector (cursor) in some modes.
         uint16_t selectorIndex = 0;
         // The index of scrolling.

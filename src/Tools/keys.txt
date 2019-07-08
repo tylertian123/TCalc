@@ -119,6 +119,7 @@ lt
 gt
 lteq
 gteq
+piecewise
 
 EK_RESTART_NUM 0xFFFF
 dummy

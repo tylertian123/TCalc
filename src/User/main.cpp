@@ -692,7 +692,6 @@ int main() {
 
 	uint16_t key = KEY_NULL;
 	
-	SBDI_EN.init(GPIO_Mode_IN_FLOATING, GPIO_Speed_10MHz);
 	while(true) {
 		if((key = fetchKey()) != KEY_NULL) {
 			switch(dispMode) {
