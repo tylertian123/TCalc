@@ -115,6 +115,10 @@ ctrloff
 recall
 matrix
 cross
+lt
+gt
+lteq
+gteq
 
 EK_RESTART_NUM 0xFFFF
 dummy

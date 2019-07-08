@@ -435,6 +435,18 @@ namespace expr {
         case KEY_CROSS:
             cursor->add(new neda::Character(LCD_CHAR_CRS));
             break;
+        case KEY_GT:
+            cursor->add(new neda::Character('>'));
+            break;
+        case KEY_LT:
+            cursor->add(new neda::Character('<'));
+            break;
+        case KEY_GTEQ:
+            cursor->add(new neda::Character(LCD_CHAR_GEQ));
+            break;
+        case KEY_LTEQ:
+            cursor->add(new neda::Character(LCD_CHAR_LEQ));
+            break;
         /* EXPRESSIONS */
         case KEY_LBRACKET:
             cursor->add(new neda::LeftBracket());

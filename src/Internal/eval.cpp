@@ -364,6 +364,10 @@ namespace eval {
 		case Type::MINUS:
 			return 3;
 		case Type::EQUALITY:
+        case Type::LT:
+        case Type::GT:
+        case Type::LTEQ:
+        case Type::GTEQ:
 			return 4;
 		
 		default: return 0xFF;
@@ -384,8 +388,21 @@ namespace eval {
 		case LCD_CHAR_DIV:
 		case '/':
 			return &OP_DIVIDE;
+        
 		case LCD_CHAR_CRS:
 			return &OP_CROSS;
+        
+        case '>':
+            return &OP_GT;
+        
+        case '<':
+            return &OP_LT;
+
+        case LCD_CHAR_GEQ:
+            return &OP_GTEQ;
+        
+        case LCD_CHAR_LEQ:
+            return &OP_LTEQ;
 
 		default: return nullptr;
 		}
@@ -398,7 +415,11 @@ namespace eval {
 			 Operator::OP_SP_MULT = { Operator::Type::SP_MULT },
 			 Operator::OP_SP_DIV = { Operator::Type::SP_DIV },
 			 Operator::OP_EQUALITY = { Operator::Type::EQUALITY },
-			 Operator::OP_CROSS = { Operator::Type::CROSS };
+			 Operator::OP_CROSS = { Operator::Type::CROSS },
+             Operator::OP_GT = { Operator::Type::GT },
+             Operator::OP_LT = { Operator::Type::LT },
+             Operator::OP_GTEQ = { Operator::Type::GTEQ },
+             Operator::OP_LTEQ = { Operator::Type::LTEQ };
 	double Operator::operate(double lhs, double rhs) {
 		switch(type) {
 		case Type::PLUS:
@@ -429,6 +450,22 @@ namespace eval {
 		{
 			return floatEq(lhs, rhs);
 		}
+        case Type::GT:
+        {
+            return lhs > rhs;
+        }
+        case Type::LT:
+        {
+            return lhs < rhs;
+        }
+        case Type::GTEQ:
+        {
+            return lhs > rhs || floatEq(lhs, rhs);
+        }
+        case Type::LTEQ:
+        {
+            return lhs < rhs || floatEq(lhs, rhs);
+        }
 		default: return NAN;
 		}
 	}
@@ -460,16 +497,6 @@ namespace eval {
 		case Type::EXPONENT:
 		{
 			return frac->pow(*rhs);
-		}
-		case Type::EQUALITY:
-		{
-			if(frac->num == rhs->num && frac->denom == rhs->denom) {
-				frac->num = 1;
-			}
-			else {
-				frac->num = 0;
-			}
-			frac->denom = 1;
 		}
 		default: return false;
 		}

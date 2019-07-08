@@ -116,6 +116,10 @@
 #define KEY_RECALL    0x0070
 #define KEY_MATRIX    0x0071
 #define KEY_CROSS     0x0072
+#define KEY_LT        0x0073
+#define KEY_GT        0x0074
+#define KEY_LTEQ      0x0075
+#define KEY_GTEQ      0x0076
 
 #define KEY_DUMMY     0xFFFF
 
