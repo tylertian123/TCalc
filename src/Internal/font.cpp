@@ -341,15 +341,15 @@ namespace lcd {
 	// };
 	// const Img CHAR_SMCN(CHAR_SMCN_DATA, 1, 5, 9);
 	const uint8_t CHAR_LSTN_DATA[] = {
-		0x08,
-		0x10,
-		0x20,
-		0x40,
-		0x80,
-		0x40,
-		0x20,
-		0x10,
-		0x08,
+		0x00,
+        0x10,
+        0x20,
+        0x40,
+        0x80,
+        0x40,
+        0x20,
+        0x10,
+        0x00,
 	};
 	const Img CHAR_LSTN(CHAR_LSTN_DATA, 1, 5, 9);
 	const uint8_t CHAR_EQL_DATA[] = {
@@ -365,15 +365,15 @@ namespace lcd {
 	};
 	const Img CHAR_EQL(CHAR_EQL_DATA, 1, 5, 9);
 	const uint8_t CHAR_GTTN_DATA[] = {
-		0x80,
-		0x40,
-		0x20,
-		0x10,
-		0x08,
-		0x10,
-		0x20,
-		0x40,
-		0x80,
+		0x00,
+        0x80,
+        0x40,
+        0x20,
+        0x10,
+        0x20,
+        0x40,
+        0x80,
+        0x00,
 	};
 	const Img CHAR_GTTN(CHAR_GTTN_DATA, 1, 5, 9);
 	// const uint8_t CHAR_QNMK_DATA[] = {
@@ -1158,6 +1158,30 @@ namespace lcd {
 	const Img CHAR_UNKNOWN(CHAR_UNKNOWN_DATA, 4, 30, 9);
 	
 	// Special characters
+    const uint8_t CHAR_LEQ_DATA[] = {
+        0x10,
+        0x20,
+        0x40,
+        0x80,
+        0x40,
+        0x20,
+        0x10,
+        0x00,
+        0xf0,
+    };
+    const Img CHAR_LEQ(CHAR_LEQ_DATA, 1, 5, 9);
+    const uint8_t CHAR_GEQ_DATA[] = {
+        0x80,
+        0x40,
+        0x20,
+        0x10,
+        0x20,
+        0x40,
+        0x80,
+        0x00,
+        0xf0,
+    };
+    const Img CHAR_GEQ(CHAR_GEQ_DATA, 1, 5, 9);
 	const uint8_t CHAR_CRS_DATA[] = {
 		0x00,
 		0x00,

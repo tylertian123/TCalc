@@ -15,10 +15,14 @@
 #include "lcd12864.hpp"
 
 // The lower bound of the "special" (non-ASCII) charset (inclusive).
-#define LCD_CHARSET_LOWBOUND 0x14
+#define LCD_CHARSET_LOWBOUND 0x12
 // The upper bound of the "special" (non-ASCII) charset (inclusive).
 #define LCD_CHARSET_HIGHBOUND 0x1F
 
+// The less than or equal character in a string.
+#define LCD_STR_LEQ "\x12"
+// The greater than or equal to character in a string.
+#define LCD_STR_GEQ "\x13"
 // The cross product character (x) in a string.
 #define LCD_STR_CRS "\x14"
 // The character for standard gravity (g0) in a string.
@@ -44,6 +48,10 @@
 // The character for the division sign in a string.
 #define LCD_STR_DIV "\x1f"
 
+// The less than or equal character.
+#define LCD_CHAR_LEQ '\x12'
+// The greater than or equal to character.
+#define LCD_CHAR_GEQ '\x13'
 // The cross product character (x).
 #define LCD_CHAR_CRS '\x14'
 // The character for standard gravity (g0).
@@ -286,6 +294,10 @@ namespace lcd {
     // Unknown character (?)
 	extern const Img CHAR_UNKNOWN;
 	
+    // Less than or equal sign
+    extern const Img CHAR_LEQ;
+    // Greater than or equal sign
+    extern const Img CHAR_GEQ;
     // Cross product (x)
 	extern const Img CHAR_CRS;
     // Standard gravity (g0)
