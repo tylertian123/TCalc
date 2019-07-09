@@ -350,6 +350,12 @@ void normalKeyPressHandler(uint16_t key) {
             mainExprEntry.cursor->expr->drawConnected(display);
             mainExprEntry.cursor->draw(display);
             display.updateDrawing();
+
+            // Call the key handler again so the key gets processed
+            // Unless the key is enter, in which case only the new expression is created
+            if(key != KEY_ENTER) {
+                normalKeyPressHandler(key);
+            }
         }
         }
 	}
