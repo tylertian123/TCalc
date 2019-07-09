@@ -672,7 +672,7 @@ int main() {
 	display.startDraw();
 	display.clearDrawing();
 
-	display.drawString(32, 25, "TCalc " VERSION_STR, true);
+	display.drawString(36, 25, "TCalc " VERSION_STR, true);
 	display.updateDrawing();
 
 	// Title screen delay

@@ -36,15 +36,15 @@ namespace expr {
         ~ExprEntry();
 
         // Display mode
-        enum class DisplayMode : uint8_t {
-            NORMAL,
-            TRIG_MENU,
-            CONST_MENU,
-            CONFIG_MENU,
-            FUNC_MENU,
-            RECALL_MENU,
-            MATRIX_MENU,
-            PIECEWISE_MENU,
+        enum DisplayMode : uint8_t {
+            NORMAL = 0,
+            TRIG_MENU = 1,
+            CONST_MENU = 2,
+            CONFIG_MENU = 3,
+            FUNC_MENU = 4,
+            RECALL_MENU = 5,
+            MATRIX_MENU = 6,
+            PIECEWISE_MENU = 7,
         };
 
         neda::Cursor *cursor;
@@ -81,6 +81,10 @@ namespace expr {
         void matrixKeyPressHandler(uint16_t key);
         // Handles key presses in the piecewise function menu.
         void piecewiseKeyPressHandler(uint16_t key);
+
+        // A key press handler handles key press events.
+        typedef void (ExprEntry::*KeyPressHandler)(uint16_t);
+        static const KeyPressHandler KEY_PRESS_HANDLERS[];
 
         /* 
          * These functions draw the interface for a given mode. 

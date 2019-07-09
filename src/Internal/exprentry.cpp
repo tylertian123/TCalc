@@ -169,35 +169,20 @@ namespace expr {
         }
     }
 
+    const ExprEntry::KeyPressHandler ExprEntry::KEY_PRESS_HANDLERS[] = {
+        &ExprEntry::normalKeyPressHandler,
+        &ExprEntry::trigKeyPressHandler,
+        &ExprEntry::constKeyPressHandler,
+        &ExprEntry::configKeyPressHandler,
+        &ExprEntry::funcKeyPressHandler,
+        &ExprEntry::recallKeyPressHandler,
+        &ExprEntry::matrixKeyPressHandler,
+        &ExprEntry::piecewiseKeyPressHandler,
+    };
+
     void ExprEntry::handleKeyPress(uint16_t key) {
-        switch(mode) {
-        case DisplayMode::NORMAL:
-            normalKeyPressHandler(key);
-            break;
-        case DisplayMode::TRIG_MENU:
-            trigKeyPressHandler(key);
-            break;
-        case DisplayMode::CONST_MENU:
-            constKeyPressHandler(key);
-            break;
-        case DisplayMode::CONFIG_MENU:
-            configKeyPressHandler(key);
-            break;
-        case DisplayMode::FUNC_MENU:
-            funcKeyPressHandler(key);
-            break;
-        case DisplayMode::RECALL_MENU:
-            recallKeyPressHandler(key);
-            break;
-        case DisplayMode::MATRIX_MENU:
-            matrixKeyPressHandler(key);
-            break;
-        case DisplayMode::PIECEWISE_MENU:
-            piecewiseKeyPressHandler(key);
-            break;
-        default: 
-            break;
-        }
+        // tf is this syntax
+        (this->*KEY_PRESS_HANDLERS[static_cast<uint8_t>(mode)])(key);
     }
 
     void ExprEntry::normalKeyPressHandler(uint16_t key) {
