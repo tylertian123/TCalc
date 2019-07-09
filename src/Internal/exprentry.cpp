@@ -938,12 +938,15 @@ namespace expr {
 
 
     void ExprEntry::drawInterfaceNormal() {
+        // Call draw once before everything so that the locations are all updated
+        neda::Expr *top = cursor->expr->getTopLevel();
+        top->draw(display);
         // First make sure the cursor is visible
         adjustExpr();
         // Clear the screen
         display.clearDrawingBuffer();
         // Draw everything
-        cursor->expr->drawConnected(display);
+        top->draw(display);
         cursor->draw(display);
         display.updateDrawing();
     }
