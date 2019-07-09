@@ -998,6 +998,27 @@ convertToDoubleAndOperate:
 		}
 		return equalsIndex;
 	}
+    /*
+     * Tests to see if a value is "truthy".
+     * 
+     * "Truthy" values are nonzero numbers or fractions, or any matrix/vector.
+     * NaNs and infinities are undefined.
+     * 
+     * Returns 1 if truthy, 0 if not, -1 if undefined.
+     */
+    int8_t isTruthy(Token *token) {
+        if(token->getType() == TokenType::MATRIX) {
+            return 1;
+        }
+        double v = token->getType() == TokenType::NUMBER ? static_cast<Number*>(token)->value : static_cast<Fraction*>(token)->doubleVal();
+        
+        // Infinite or NaN
+        if(!isfinite(v)) {
+            return -1;
+        }
+        
+        return v == 0 ? 0 : 1;
+    }
 
 	// Overloaded instance of the other evaluate() for convenience. Works directly on neda::Containers.
 	Token* evaluate(neda::Container *expr, uint8_t varc, const char **varn, Token **varv, uint8_t funcc, UserDefinedFunction *funcs) {
@@ -1687,6 +1708,58 @@ evaluateFunctionArguments:
 				allowUnary = false;
 				break;
 			} // neda::ObjType::MATRIX
+
+            case neda::ObjType::PIECEWISE:
+            {
+                // If the last token was not an operator, then it must be an implied multiplication
+				if(!allowUnary) {
+					arr.add(&Operator::OP_MULTIPLY);
+				}
+                neda::Piecewise *p = static_cast<neda::Piecewise*>(exprs[index]);
+                
+                Token *val = nullptr;
+                for(uint8_t i = 0; i < p->pieces; i ++) {
+                    // Evaluate the condition
+                    Token *n = evaluate(static_cast<neda::Container*>(p->conditions[i]), varc, varn, varv, funcc, funcs);
+                    // Syntax error
+                    if(!n) {
+                        freeTokens(&arr);
+                        return nullptr;
+                    }
+
+                    int8_t condition = isTruthy(n);
+                    delete n;
+                    // Condition undefined
+                    // Then the entire expression is undefined
+                    if(condition == -1) {
+                        freeTokens(&arr);
+                        return new Number(NAN);
+                    }
+                    // Condition is true
+                    else if(condition == 1) {
+                        // Evaluate value
+                        val = evaluate(static_cast<neda::Container*>(p->values[i]), varc, varn, varv, funcc, funcs);
+
+                        // Syntax error
+                        if(!val) {
+                            freeTokens(&arr);
+                            return nullptr;
+                        }
+                        break;
+                    }
+                    // If condition is false, move on
+                }
+                // No condition was true - value is undefined
+                if(!val) {
+                    freeTokens(&arr);
+                    return new Number(NAN);
+                }
+
+                arr.add(val);
+                ++index;
+                allowUnary = false;
+                break;
+            } // neda::ObjType::PIECEWISE
 
 			default: ++index; break;
 			}

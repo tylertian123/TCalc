@@ -245,8 +245,9 @@ namespace eval {
 	bool isNameChar(char);
 	char extractChar(neda::NEDAObj*);
 	double extractDouble(Token*);
-	int8_t compareNumericals(const Token*, const Token*);
+	int8_t compareTokens(Token*, Token*);
 	uint16_t findEquals(DynamicArray<neda::NEDAObj*>*, bool forceVarName = true);
+    int8_t isTruthy(Token*);
 
 	template <uint16_t Increase>
 	uint16_t findTokenEnd(DynamicArray<neda::NEDAObj*, Increase> *arr, uint16_t start, int8_t direction, bool &isNum) {
