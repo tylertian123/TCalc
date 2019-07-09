@@ -1475,22 +1475,23 @@ evaluateFunctionArguments:
 								// Evaluate a user-defined function by creating a new environment in which the variables list
 								// also contain the function arguments. The other variables and functions are also kept so that
 								// functions can call other functions. 
-								// However this does not handle recursion! Since there exists no way in TCalc to define an exit
-								// condition for a recursive function, recursion will result in an infinite loop and eventual
-								// stack overflow!!
+                                // The function arguments are first in the list so that they have precedence over other 
+                                // variables.
+								// However, this doesn't handle recursion! Recursive functions without an exit condition will
+                                // cause a stack overflow.
 
 								// Construct a new variables list containing the arguments and normal variables
 								const char **vNames = new const char*[varc + uFunc->argc];
 								Token **vVals = new Token*[varc + uFunc->argc];
+                                // Copy in the names and values of function arguments
+                                for(uint8_t i = 0; i < uFunc->argc; i ++) {
+                                    vNames[i] = uFunc->argn[i];
+                                    vVals[i] = args[i];
+                                }
 								// Copy in the names and values of variables
 								for(uint8_t i = 0; i < varc; i ++) {
-									vNames[i] = varn[i];
-									vVals[i] = varv[i];
-								}
-								// Copy in the names and values of function arguments
-								for(uint8_t i = 0; i < uFunc->argc; i ++) {
-									vNames[varc + i] = uFunc->argn[i];
-									vVals[varc + i] = args[i];
+									vNames[i + uFunc->argc] = varn[i];
+									vVals[i + uFunc->argc] = varv[i];
 								}
 
 								// Evaluate
@@ -1622,17 +1623,19 @@ evaluateFunctionArguments:
 				// Null termination
 				vName[equalsIndex] = '\0';
 
+                // Just like in the case of a user-defined function, we create a new environment with the counter
+                // variable. The counter variable is copied in first and gets precedence over other variables.
 				// Construct new variable arrays
 				const char **vNames = new const char*[varc + 1];
 				Token **vVals = new Token*[varc + 1];
+				// Copy in the counter variable
+				vNames[0] = vName;
+				vVals[0] = start;
 				// Copy existing variables
 				for(uint8_t i = 0; i < varc; i ++) {
-					vNames[i] = varn[i];
-					vVals[i] = varv[i];
+					vNames[i + 1] = varn[i];
+					vVals[i + 1] = varv[i];
 				}
-				// Copy in the counter variable
-				vNames[varc] = vName;
-				vVals[varc] = start;
 
 				// Find the type of operation by extracting the symbol
 				auto &type = ((neda::SigmaPi*) exprs[index])->symbol;
