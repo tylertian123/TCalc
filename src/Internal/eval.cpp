@@ -942,9 +942,31 @@ convertToDoubleAndOperate:
 	bool isDigit(char ch) {
 		return (ch >= '0' && ch <= '9') || ch == '.' || ch == LCD_CHAR_EE;
 	}
+    // Checks if a character is a valid character for a variable/constant name.
 	bool isNameChar(char ch) {
-		return (ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z') || (ch >= LCD_CHARSET_LOWBOUND && ch <= LCD_CHARSET_HIGHBOUND)
-			&& ch != LCD_CHAR_EE && ch != LCD_CHAR_MUL && ch != LCD_CHAR_DIV;
+        // First check if it's a letter
+        if((ch >= 'A' && ch <= 'Z') || (ch >= 'a' && ch <= 'z')) {
+            return true;
+        }
+        // Check if it's a special character
+        else if(ch >= LCD_CHARSET_LOWBOUND && ch <= LCD_CHARSET_HIGHBOUND) {
+            // These special characters cannot be used in names
+            switch(ch) {
+            case LCD_CHAR_EE:
+            case LCD_CHAR_MUL:
+            case LCD_CHAR_DIV:
+            case LCD_CHAR_CRS:
+            case LCD_CHAR_LEQ:
+            case LCD_CHAR_GEQ:
+            case LCD_CHAR_SERR:
+                return false;
+            default: return true;
+            }
+        }
+        // If neither, return false
+        else {
+            return false;
+        }
 	}
 	char extractChar(neda::NEDAObj *obj) {
 		if(obj->getType() != neda::ObjType::CHAR_TYPE) {
