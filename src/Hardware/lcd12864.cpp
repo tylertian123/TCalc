@@ -354,7 +354,7 @@ namespace lcd {
 		uint16_t width = 0;
 		uint16_t height = 0;
 		for(uint16_t index = 0; str[index] != '\0'; ++index) {
-			const lcd::Img &img = lcd::getChar(*str);
+			const lcd::Img &img = lcd::getChar(str[index]);
 			width += img.width + 1;
 			height = max(height, img.height);
 		}
