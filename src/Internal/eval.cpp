@@ -1741,15 +1741,27 @@ evaluateFunctionArguments:
                 
                 Token *val = nullptr;
                 for(uint8_t i = 0; i < p->pieces; i ++) {
+
                     // Evaluate the condition
                     Token *n = evaluate(static_cast<neda::Container*>(p->conditions[i]), varc, varn, varv, funcc, funcs);
+                    bool isElse = false;
                     // Syntax error
                     if(!n) {
-                        freeTokens(&arr);
-                        return nullptr;
+                        // See if the condition is just "else"
+                        // Of course, this doesn't work if this is the first piece
+                        neda::Container *condition = static_cast<neda::Container*>(p->conditions[i]);
+                        if(i != 0 && condition->contents.length() == 4 
+                                && extractChar(condition->contents[0]) == 'e' && extractChar(condition->contents[1]) == 'l'
+                                && extractChar(condition->contents[2]) == 's' && extractChar(condition->contents[3]) == 'e') {
+                            isElse = true;
+                        }
+                        else {
+                            freeTokens(&arr);
+                            return nullptr;
+                        }
                     }
-
-                    int8_t condition = isTruthy(n);
+                    // If it's an else clause condition is directly set to true
+                    int8_t condition = isElse ? 1 : isTruthy(n);
                     delete n;
                     // Condition undefined
                     // Then the entire expression is undefined
