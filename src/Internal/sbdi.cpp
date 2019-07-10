@@ -6,6 +6,10 @@ namespace sbdi {
 	// Because of how callbacks work, unfortunately Receiver has to be a singleton
 	Receiver *receiverInstance;
 	bool transmissionStarted = false;
+    bool transmissionFailed = false;
+
+    uint8_t bitCounter = 0;
+    bool parity = 0;
 	
 	void Receiver_CLK_Callback();
 	void Receiver_EN_Callback();
@@ -22,20 +26,46 @@ namespace sbdi {
 		// Rising Edge - Transmission over
 		if(receiverInstance->EN) {
 			transmissionStarted = false;
-			// Call callback if set
-			if(receiverInstance->callback) {
+            // Clear buffer on failure
+            if(transmissionFailed) {
+                receiverInstance->buffer = 0;
+            }
+			// Call callback if exists and transmission didn't fail
+			if(!transmissionFailed && receiverInstance->callback) {
 				receiverInstance->callback(receiverInstance->buffer);
 			}
 		}
 		// Falling Edge - Transmission started
 		else {
 			transmissionStarted = true;
+
+            transmissionFailed = false;
+            bitCounter = 0;
+            parity = 0;
+
 			receiverInstance->buffer = 0;
 		}
 	}
 	void Receiver_CLK_Callback() {
-		receiverInstance->buffer <<= 1;
-		receiverInstance->buffer += receiverInstance->DATA;
+        bool data = receiverInstance->DATA;
+
+        parity ^= data;
+        ++bitCounter;
+
+        // Every 9th bit is a parity bit
+        if(bitCounter == 9) {
+            // Even parity
+            if(parity) {
+                transmissionFailed = true;
+            }
+
+            parity = 0;
+            bitCounter = 0;
+        }
+        else {
+            receiverInstance->buffer <<= 1;
+            receiverInstance->buffer |= data;
+        }
 	}
 	
 	uint32_t Receiver::getLast() {

@@ -1,7 +1,7 @@
 #include "SBDI.h"
 #include <stc/STC12C5630AD.h>
 
-#define SBDI_CLK_DELAY 3000
+#define SBDI_CLK_DELAY 600
 
 sbit EN = P1 ^ 6;
 sbit CLK = P1 ^ 5;
@@ -33,7 +33,13 @@ void SBDI_SendSingleBit(bit b) {
 
 void SBDI_SendByte(unsigned char b) {
 	unsigned char mask = 0x80;
+    // Use even parity
+	bit parity = 0;
+	bit dat;
 	do {
-		SBDI_SendSingleBit(b & mask);
+		dat = b & mask;
+		SBDI_SendSingleBit(dat);
+		parity ^= dat;
 	} while(mask >>= 1);
+	SBDI_SendSingleBit(parity);
 }
