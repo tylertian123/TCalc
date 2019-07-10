@@ -1,5 +1,6 @@
 #include "sbdi.hpp"
 #include "delay.hpp"
+#include "usart.hpp"
 
 namespace sbdi {
 	
@@ -30,6 +31,8 @@ namespace sbdi {
             if(transmissionFailed) {
                 receiverInstance->buffer = 0;
             }
+            bitCounter = 0;
+            parity = 0;
 			// Call callback if exists and transmission didn't fail
 			if(!transmissionFailed && receiverInstance->callback) {
 				receiverInstance->callback(receiverInstance->buffer);
@@ -57,6 +60,9 @@ namespace sbdi {
             // Even parity
             if(parity) {
                 transmissionFailed = true;
+            }
+            else {
+                usart::println("Parity OK");
             }
 
             parity = 0;

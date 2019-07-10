@@ -76,13 +76,13 @@ void send(unsigned char row, unsigned char col) {
 	if(shift) {
 		// Send the key, delay and deactivate shift and ctrl
 		sendKey(KEYMAP_SHIFT[row][col]);
-		delay(10);
+		delay(50);
 		sendKey(KEY_SHIFTOFF);
 		shift = 0;
 	}
 	else if(ctrl) {
 		sendKey(KEYMAP_CTRL[row][col]);
-		delay(10);
+		delay(50);
 		sendKey(KEY_CTRLOFF);
 		ctrl = 0;
 	}
