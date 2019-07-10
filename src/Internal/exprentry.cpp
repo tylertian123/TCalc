@@ -854,8 +854,7 @@ namespace expr {
 				}
 			}
 			// These have to be called manually since setting the entries do not trigger size recalculations
-			mat->computeWidth();
-			mat->computeHeight();
+			mat->computeDimensions();
 
 			cursor->add(mat);
 			mat->getCursor(*cursor, neda::CURSORLOCATION_START);
@@ -910,8 +909,7 @@ namespace expr {
                 p->setCondition(i, new neda::Container());
                 p->setValue(i, new neda::Container());
             }
-            p->computeWidth();
-            p->computeHeight();
+            p->computeDimensions();
 
             cursor->add(p);
             p->getCursor(*cursor, neda::CURSORLOCATION_START);

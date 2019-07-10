@@ -19,8 +19,8 @@ namespace neda {
 
 	class Cursor;
 	// Note: CursorInfo is the specific position of the cursor on the display, with x and y coordinates
-	// CursorLocation can either be START or END and is used to get a cursor at the start or end of the expr.
 	struct CursorInfo;
+	// CursorLocation can either be START or END and is used to get a cursor at the start or end of the expr.
 	typedef bool CursorLocation;
 	constexpr CursorLocation CURSORLOCATION_START = 0;
 	constexpr CursorLocation CURSORLOCATION_END = 1;
@@ -68,8 +68,12 @@ namespace neda {
 
 		const char ch;
 		void draw(lcd::LCD12864 &lcd, int16_t, int16_t);
-		uint16_t getWidth();
-		uint16_t getHeight();
+        // Gets the display width of this character.
+		uint16_t getWidth() const;
+        // Gets the display height of this character.
+		uint16_t getHeight() const;
+        // Gets the character bitmap data.
+        const lcd::LCD12864Image& getCharData() const;
 
 		virtual Character* copy() override;
 	};
@@ -88,13 +92,10 @@ namespace neda {
 	 */
 	class Expr : public NEDAObj {
 	public:
-		// The width, height, x and y coordinates are all cached
-		virtual void computeWidth() = 0;
-		virtual void computeHeight() = 0;
+		// The width, height, top spacing, x and y coordinates are all cached
+		virtual void computeDimensions() = 0;
 
 		virtual void updatePosition(int16_t, int16_t);
-	
-		virtual uint16_t getTopSpacing() = 0;
 	
 		// Draws the expr at the specified coords, updating the cached x and y as it goes
 		virtual void draw(lcd::LCD12864&, int16_t, int16_t) = 0;
@@ -118,6 +119,7 @@ namespace neda {
 	
 		uint16_t exprWidth;
 		uint16_t exprHeight;
+        uint16_t topSpacing;
 		int16_t x;
 		int16_t y;
 	};
@@ -135,8 +137,7 @@ namespace neda {
 					((Expr*)ex)->parent = this;
 				}
 			}
-			computeWidth();
-			computeHeight();
+			computeDimensions();
 		}
 		Container(const Container &other) : contents(other.contents) {
 			for(NEDAObj* ex : contents) {
@@ -144,12 +145,10 @@ namespace neda {
 					((Expr*)ex)->parent = this;
 				}
 			}
-			computeWidth();
-			computeHeight();
+			computeDimensions();
 		}
 		Container() : contents() {
-			computeWidth();
-			computeHeight();
+			computeDimensions();
 		}
 
 		static constexpr uint16_t EMPTY_EXPR_WIDTH = 5;
@@ -161,9 +160,7 @@ namespace neda {
 		void addAt(uint16_t, NEDAObj*);
 		uint16_t indexOf(NEDAObj*);
 			
-		virtual uint16_t getTopSpacing() override;
-		virtual void computeWidth() override;
-		virtual void computeHeight() override;
+		virtual void computeDimensions() override;
 		virtual void draw(lcd::LCD12864&, int16_t, int16_t) override;
 		
 		virtual ~Container();
@@ -187,6 +184,7 @@ namespace neda {
 	
 		DynamicArray<NEDAObj*> contents;
 		// Recomputes the heights of all expressions that have heights dependent on others
+        // E.g. Brackets
 		void recomputeHeights();
 
 		virtual Container* copy() override;
@@ -200,17 +198,13 @@ namespace neda {
 		Fraction(Expr *numerator, Expr *denominator) : numerator(numerator), denominator(denominator) {
 			numerator->parent = this;
 			denominator->parent = this;
-			computeWidth();
-			computeHeight();
+			computeDimensions();
 		}
 		Fraction() : numerator(nullptr), denominator(nullptr) {
-			computeWidth();
-			computeHeight();
+			computeDimensions();
 		}
 		
-		virtual uint16_t getTopSpacing() override;
-		virtual void computeWidth() override;
-		virtual void computeHeight() override;
+		virtual void computeDimensions() override;
 		virtual void draw(lcd::LCD12864&, int16_t, int16_t) override;
 			
 		Expr* getNumerator();
@@ -236,17 +230,14 @@ namespace neda {
 		virtual Fraction* copy() override;
 	};
 	
-	//
+	// Left bracket
 	class LeftBracket : public Expr {
 	public:
 		LeftBracket() {
-			computeWidth();
-			computeHeight();
+			computeDimensions();
 		}
 
-		virtual uint16_t getTopSpacing() override;
-		virtual void computeWidth() override;
-		virtual void computeHeight() override;
+		virtual void computeDimensions() override;
 		virtual void draw(lcd::LCD12864&, int16_t, int16_t) override;
 		// Do nothing
 		// Realistically this method is never going to be called on LeftBracket anyways
@@ -257,16 +248,15 @@ namespace neda {
 
 		virtual LeftBracket* copy() override;
 	};
+
+    // Right bracket
 	class RightBracket : public Expr {
 	public:
 		RightBracket() {
-			computeWidth();
-			computeHeight();
+			computeDimensions();
 		}
 
-		virtual uint16_t getTopSpacing() override;
-		virtual void computeWidth() override;
-		virtual void computeHeight() override;
+		virtual void computeDimensions() override;
 		virtual void draw(lcd::LCD12864&, int16_t, int16_t) override;
 		// Do nothing
 		// Realistically this method is never going to be called on RightBracket anyways
@@ -289,20 +279,16 @@ namespace neda {
 			if(n) {
 				n->parent = this;
 			}
-			computeWidth();
-			computeHeight();
+			computeDimensions();
 		}
 		Radical() : contents(nullptr), n(nullptr) {
-			computeWidth();
-			computeHeight();
+			computeDimensions();
 		}
 		
 		static constexpr uint16_t CONTENTS_N_OVERLAP = 7;
 		static constexpr uint16_t SIGN_N_OVERLAP = 1;
 		
-		virtual uint16_t getTopSpacing() override;
-		virtual void computeWidth() override;
-		virtual void computeHeight() override;
+		virtual void computeDimensions() override;
 		virtual void draw(lcd::LCD12864&, int16_t, int16_t) override;
 		
 		void setContents(Expr*);
@@ -325,24 +311,20 @@ namespace neda {
 		virtual Radical* copy() override;
 	};
 
-	//
+	// Superscript
 	class Superscript : public Expr {
 	public:
 		Superscript(Expr *contents) : contents(contents) {
 			contents->parent = this;
-			computeWidth();
-			computeHeight();
+			computeDimensions();
 		}
 		Superscript() : contents(nullptr) {
-			computeWidth();
-			computeHeight();
+			computeDimensions();
 		}
 
 		static constexpr uint16_t OVERLAP = 4;
 
-		virtual uint16_t getTopSpacing() override;
-		virtual void computeWidth() override;
-		virtual void computeHeight() override;
+		virtual void computeDimensions() override;
 		virtual void draw(lcd::LCD12864&, int16_t, int16_t) override;
 
 		void setContents(Expr*);
@@ -367,19 +349,15 @@ namespace neda {
 	public:
 		Subscript(Expr *contents) : contents(contents) {
 			contents->parent = this;
-			computeWidth();
-			computeHeight();
+			computeDimensions();
 		}
 		Subscript() : contents(nullptr) {
-			computeWidth();
-			computeHeight();
+			computeDimensions();
 		}
 		
 		static constexpr uint16_t OVERLAP = 4;
 		
-		virtual uint16_t getTopSpacing() override;
-		virtual void computeWidth() override;
-		virtual void computeHeight() override;
+		virtual void computeDimensions() override;
 		virtual void draw(lcd::LCD12864&, int16_t, int16_t) override;
 		
 		void setContents(Expr*);
@@ -406,19 +384,16 @@ namespace neda {
 			start->parent = this;
 			finish->parent = this;
 			contents->parent = this;
-			computeWidth();
-			computeHeight();
+
+            computeDimensions();
 		}
 		SigmaPi(const lcd::LCD12864Image &symbol) : symbol(symbol), start(nullptr), finish(nullptr), contents(nullptr) {
-			computeWidth();
-			computeHeight();
+            computeDimensions();
 		}
 
 		static constexpr uint16_t CONTENT_SYMBOL_OVERLAP = 12;
 		
-		virtual uint16_t getTopSpacing() override;
-		virtual void computeWidth() override;
-		virtual void computeHeight() override;
+		virtual void computeDimensions() override;
 		virtual void draw(lcd::LCD12864&, int16_t, int16_t) override;
 		
 		void setStart(Expr *start);
@@ -484,9 +459,7 @@ namespace neda {
 		uint16_t rowHeight_0(uint8_t row);
 		uint16_t colWidth_0(uint8_t col);
 
-		virtual uint16_t getTopSpacing() override;
-		virtual void computeWidth() override;
-		virtual void computeHeight() override;
+		virtual void computeDimensions() override;
 		virtual void draw(lcd::LCD12864&, int16_t, int16_t) override;
 
 		virtual void left(Expr*, Cursor&) override;
@@ -534,9 +507,7 @@ namespace neda {
 		static constexpr uint16_t LEFT_SPACING = 4;
 		static constexpr uint16_t TOP_SPACING = 2;
 
-        virtual uint16_t getTopSpacing() override;
-		virtual void computeWidth() override;
-		virtual void computeHeight() override;
+        virtual void computeDimensions() override;
 		virtual void draw(lcd::LCD12864&, int16_t, int16_t) override;
 
 		virtual void left(Expr*, Cursor&) override;

@@ -603,8 +603,7 @@ void evaluateExpr(neda::Container *expr) {
                 ftoa(mat->contents[i], buf, mainExprEntry.resultSignificantDigits, LCD_CHAR_EE);
                 cont->addString(buf);
             }
-            nMat->computeWidth();
-            nMat->computeHeight();
+            nMat->computeDimensions();
 
             calcResults[0]->add(nMat);
         }
