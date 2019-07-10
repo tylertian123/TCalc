@@ -60,6 +60,10 @@ namespace expr {
         // Handles a key press.
         void handleKeyPress(uint16_t key);
         
+        bool cursorOn = true;
+        // Toggles the cursor and displays it.
+        void blinkCursor();
+        
     protected:
         /*
          * These functions handle key presses for a given mode.

@@ -169,6 +169,19 @@ namespace expr {
         }
     }
 
+    void ExprEntry::blinkCursor() {
+        if(mode == DisplayMode::NORMAL) {
+            cursorOn = !cursorOn;
+			display.clearDrawingBuffer();
+			// Redraw the entire expr
+            cursor->expr->drawConnected(display);
+			if(cursorOn) {
+				cursor->draw(display);
+			}
+			display.updateDrawing();
+        }
+    }
+
     const ExprEntry::KeyPressHandler ExprEntry::KEY_PRESS_HANDLERS[] = {
         &ExprEntry::normalKeyPressHandler,
         &ExprEntry::trigKeyPressHandler,

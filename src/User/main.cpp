@@ -134,25 +134,12 @@ enum class ExprEditMode : uint8_t {
 };
 ExprEditMode exprEditMode = ExprEditMode::NORMAL;
 
-bool cursorOn = false;
-
-// Marked for removal
-neda::Cursor *cursor;
-extern bool editExpr;
-
 extern "C" void TIM3_IRQHandler() {
 	if(TIM_GetITStatus(TIM3, TIM_IT_Update)) {
 		TIM_ClearITPendingBit(TIM3, TIM_IT_Update);
         // Flash cursor
-		if(dispMode == DispMode::NORMAL && exprEditMode == ExprEditMode::NORMAL && mainExprEntry.mode == expr::ExprEntry::DisplayMode::NORMAL) {
-			cursorOn = !cursorOn;
-			display.clearDrawingBuffer();
-			// Redraw the entire expr
-            mainExprEntry.cursor->expr->drawConnected(display);
-			if(cursorOn) {
-				mainExprEntry.cursor->draw(display);
-			}
-			display.updateDrawing();
+		if(dispMode == DispMode::NORMAL && exprEditMode == ExprEditMode::NORMAL) {
+			mainExprEntry.blinkCursor();
 		}
 		else if(dispMode == DispMode::GAME) {
 			if(!gamePaused) {
