@@ -93,6 +93,8 @@ namespace lcd {
 		void drawLine(int16_t, int16_t, int16_t, int16_t);
 		void drawString(int16_t, int16_t, const char*, bool invert = false);
 		void fill(int16_t, int16_t, uint16_t, uint16_t, bool invert = false);
+
+        static uint16_t getDrawnStringWidth(const char*);
 	
 	protected:
 		bool extendedCmd = false;

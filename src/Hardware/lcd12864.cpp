@@ -447,6 +447,21 @@ namespace lcd {
 			}
 		}
 	}
+
+    uint16_t LCD12864::getDrawnStringWidth(const char *str) {
+        // Empty string
+		if(*str == '\0') {
+			return 0;
+		}
+		uint16_t width = 0;
+		for(uint16_t index = 0; str[index] != '\0'; ++index) {
+			const lcd::Img &img = lcd::getChar(str[index]);
+			width += img.width + 1;
+		}
+		// Subtract away one extra spacing
+		--width;
+        return width;
+    }
 	
 	#undef writeCommand
 	#undef writeData

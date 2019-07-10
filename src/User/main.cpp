@@ -16,7 +16,7 @@
 #include "exprentry.hpp"
 #include <stdlib.h>
 
-#define VERSION_STR "V1.0"
+#define VERSION_STR "V1.1.0-dev"
 
 /********** GPIO Pins and other pin defs **********/
 GPIOPin RS(GPIOC, GPIO_Pin_10), RW(GPIOC, GPIO_Pin_11), E(GPIOC, GPIO_Pin_12),
@@ -670,8 +670,9 @@ int main() {
 	display.useExtended();
 	display.startDraw();
 	display.clearDrawing();
-
-	display.drawString(36, 25, "TCalc " VERSION_STR, true);
+    
+    uint16_t offset = (lcd::SIZE_WIDTH - lcd::LCD12864::getDrawnStringWidth("TCalc " VERSION_STR)) / 2;
+	display.drawString(offset, 25, "TCalc " VERSION_STR, true);
 	display.updateDrawing();
 
 	// Title screen delay
