@@ -613,6 +613,10 @@ namespace neda {
 		dest.setPixel(x + 1, y + exprHeight - 1 - 1, true);
 		dest.setPixel(x + 2, y + exprHeight - 1, true);
 	}
+    void LeftBracket::updatePosition(int16_t dx, int16_t dy) {
+        this->x += dx;
+        this->y += dy;
+    }
 	LeftBracket* LeftBracket::copy() {
 		return new LeftBracket();
 	}
@@ -722,6 +726,10 @@ namespace neda {
 		dest.setPixel(x + 1, y + exprHeight - 1 - 1, true);
 		dest.setPixel(x, y + exprHeight - 1, true);
 	}
+    void RightBracket::updatePosition(int16_t dx, int16_t dy) {
+        this->x += dx;
+        this->y += dy;
+    }
 	RightBracket* RightBracket::copy() {
 		return new RightBracket();
 	}
@@ -1280,6 +1288,14 @@ loopEnd:
 			SAFE_EXEC(parent, down, this, cursor);
 		}
 	}
+    void Matrix::updatePosition(int16_t dx, int16_t dy) {
+        this->x += dx;
+        this->y += dy;
+
+        for(uint16_t i = 0; i < m * n; i ++) {
+            SAFE_EXEC(contents[i], updatePosition, dx, dy);
+        }
+    }
 	Matrix* Matrix::copy() {
 		Matrix *mat = new Matrix(m, n);
 		
@@ -1475,6 +1491,15 @@ loopEnd:
         }
         else {
             SAFE_EXEC(isCondition ? conditions[i + 1] : values[i + 1], getCursor, cursor, CURSORLOCATION_START);
+        }
+    }
+    void Piecewise::updatePosition(int16_t dx, int16_t dy) {
+        this->x += dx;
+        this->y += dy;
+
+        for(uint8_t i = 0; i < pieces; i ++) {
+            SAFE_EXEC(values[i], updatePosition, dx, dy);
+            SAFE_EXEC(conditions[i], updatePosition, dx, dy);
         }
     }
     Piecewise* Piecewise::copy() {

@@ -95,7 +95,7 @@ namespace neda {
 		// The width, height, top spacing, x and y coordinates are all cached
 		virtual void computeDimensions() = 0;
 
-		virtual void updatePosition(int16_t, int16_t);
+		virtual void updatePosition(int16_t, int16_t) = 0;
 	
 		// Draws the expr at the specified coords, updating the cached x and y as it goes
 		virtual void draw(lcd::LCD12864&, int16_t, int16_t) = 0;
@@ -242,9 +242,12 @@ namespace neda {
 		// Do nothing
 		// Realistically this method is never going to be called on LeftBracket anyways
 		virtual void getCursor(Cursor &cursor, CursorLocation location) override {}
+
 		virtual ObjType getType() override {
 			return ObjType::L_BRACKET;
 		}
+
+        virtual void updatePosition(int16_t, int16_t) override;
 
 		virtual LeftBracket* copy() override;
 	};
@@ -264,6 +267,8 @@ namespace neda {
 		virtual ObjType getType() override {
 			return ObjType::R_BRACKET;
 		}
+
+        virtual void updatePosition(int16_t, int16_t) override;
 
 		virtual RightBracket* copy() override;
 	};
@@ -468,6 +473,8 @@ namespace neda {
 		virtual void down(Expr*, Cursor&) override;
 		virtual void getCursor(Cursor&, CursorLocation) override;
 
+        virtual void updatePosition(int16_t, int16_t) override;
+
 		virtual Matrix* copy() override;
 
 		virtual ObjType getType() override;
@@ -515,6 +522,8 @@ namespace neda {
 		virtual void up(Expr*, Cursor&) override;
 		virtual void down(Expr*, Cursor&) override;
 		virtual void getCursor(Cursor&, CursorLocation) override;
+
+        virtual void updatePosition(int16_t, int16_t) override;
 
 		virtual Piecewise* copy() override;
 
