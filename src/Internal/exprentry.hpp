@@ -60,6 +60,10 @@ namespace expr {
         void adjustExpr();
         // Handles a key press.
         void handleKeyPress(uint16_t key);
+        
+        bool cursorOn = true;
+        // Toggles the cursor and displays it.
+        void blinkCursor();
 
         // Updates the list of functions that are "graphable".
         void updateGraphableFunctions();
