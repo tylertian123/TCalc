@@ -15,10 +15,14 @@
 #include "lcd12864.hpp"
 
 // The lower bound of the "special" (non-ASCII) charset (inclusive).
-#define LCD_CHARSET_LOWBOUND 0x12
+#define LCD_CHARSET_LOWBOUND 0x10
 // The upper bound of the "special" (non-ASCII) charset (inclusive).
 #define LCD_CHARSET_HIGHBOUND 0x1F
 
+// The empty checkbox character in a string.
+#define LCD_STR_ECB "\x10"
+// The checked checkbox character in a string.
+#define LCD_STR_CCB "\x11"
 // The less than or equal character in a string.
 #define LCD_STR_LEQ "\x12"
 // The greater than or equal to character in a string.
@@ -48,6 +52,10 @@
 // The character for the division sign in a string.
 #define LCD_STR_DIV "\x1f"
 
+// The empty checkbox character.
+#define LCD_CHAR_ECB '\x10'
+// The checked checkbox character.
+#define LCD_CHAR_CCB '\x11'
 // The less than or equal character.
 #define LCD_CHAR_LEQ '\x12'
 // The greater than or equal to character.
@@ -294,6 +302,10 @@ namespace lcd {
     // Unknown character (?)
 	extern const Img CHAR_UNKNOWN;
 	
+    // Empty checkbox
+    extern const Img CHAR_ECB;
+    // Checked checkbox
+    extern const Img CHAR_CCB;
     // Less than or equal sign
     extern const Img CHAR_LEQ;
     // Greater than or equal sign
