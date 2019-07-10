@@ -28,7 +28,7 @@ namespace expr {
             varVals.add(varVal);
         }
     }
-    char* getFuncFullName(eval::UserDefinedFunction func) {
+    char* getFuncFullName(const eval::UserDefinedFunction &func) {
         // Find the length of the name
         uint16_t len = strlen(func.name);
         // 2 for brackets, one for each comma except the last one
@@ -178,6 +178,7 @@ namespace expr {
         &ExprEntry::recallKeyPressHandler,
         &ExprEntry::matrixKeyPressHandler,
         &ExprEntry::piecewiseKeyPressHandler,
+        &ExprEntry::graphSelectKeyPressHandler,
     };
 
     void ExprEntry::handleKeyPress(uint16_t key) {
@@ -631,6 +632,12 @@ namespace expr {
             piecewisePieces = 2;
             drawInterfacePiecewise();
             return;
+        case KEY_GFUNCS:
+            mode = DisplayMode::GRAPH_SELECT_MENU;
+            selectorIndex = 0;
+            updateGraphableFunctions();
+            drawInterfaceGraphSelect();
+            return;
         default: break;
         }
 
@@ -934,6 +941,58 @@ namespace expr {
         drawInterfacePiecewise();
     }
 
+    void ExprEntry::updateGraphableFunctions() {
+        DynamicArray<GraphableFunction> newGraphableFunctions;
+
+        for(const auto &func : functions) {
+            // A function is only graphable if it only takes a single parameter x.
+            if(func.argc == 1 && strcmp(func.argn[0], "x") == 0) {
+                GraphableFunction f = { &func, false };
+                // Look in the old array and see if it existed previously
+                for(const auto &gfunc : graphableFunctions) {
+                    // If the two functions match, copy its status
+                    if(gfunc.func == f.func) {
+                        f.graph = gfunc.graph;
+                    }
+                }
+                newGraphableFunctions.add(f);
+            }
+        }
+
+        // Copy the new to the old
+        graphableFunctions.empty();
+        for(const auto &func : newGraphableFunctions) {
+            graphableFunctions.add(func);
+        }
+    }
+
+    void ExprEntry::graphSelectKeyPressHandler(uint16_t key) {
+        switch(key) {
+        case KEY_CENTER:
+            if(graphableFunctions.length() != 0) {
+                // Toggle status
+                graphableFunctions[selectorIndex].graph = !graphableFunctions[selectorIndex].graph;
+            }
+            break;
+        case KEY_ENTER:
+        case KEY_GFUNCS:
+        case KEY_DELETE:
+            mode = DisplayMode::NORMAL;
+            scrollingIndex = 0;
+            drawInterfaceNormal();
+            return;
+        case KEY_UP:
+            scrollUp(graphableFunctions.length());
+            break;
+        case KEY_DOWN:
+            scrollDown(graphableFunctions.length());
+            break;
+        default: break;
+        }
+
+        drawInterfaceGraphSelect();
+    }
+
 
     void ExprEntry::drawInterfaceNormal() {
         // Call draw once before everything so that the locations are all updated
@@ -1059,6 +1118,27 @@ namespace expr {
         ltoa(piecewisePieces , sizeBuf);
 
         display.drawString(60, 21, sizeBuf, true);
+        display.updateDrawing();
+    }
+
+    void ExprEntry::drawInterfaceGraphSelect() {
+        display.clearDrawingBuffer();
+        if(graphableFunctions.length() == 0) {
+            display.drawString(1, 1, "No Graphable Functions");
+        }
+        else {
+            int16_t y = 1;
+            for(uint8_t i = scrollingIndex; i < scrollingIndex + 6 && i < graphableFunctions.length(); i ++) {
+                // Draw checkbox
+                display.drawString(1, y, graphableFunctions[i].graph ? LCD_STR_CCB : LCD_STR_ECB, selectorIndex == i);
+                display.drawString(9, y, graphableFunctions[i].func->fullname, selectorIndex == i);
+                y += 10;
+            }
+
+            uint16_t scrollbarLocation = static_cast<uint16_t>(scrollingIndex * 64 / graphableFunctions.length());
+            uint16_t scrollbarHeight = 6 * 64 / graphableFunctions.length();
+            display.fill(128 - FUNC_SCROLLBAR_WIDTH, scrollbarLocation, FUNC_SCROLLBAR_WIDTH, scrollbarHeight);
+        }
         display.updateDrawing();
     }
 

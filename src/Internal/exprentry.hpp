@@ -21,7 +21,7 @@ namespace expr {
     // Retrieves the "full name" of a user-defined function.
     // This is in the form of "name(arg1, arg2, ...)"
     // Note that the result was allocated on the heap with new.
-    char* getFuncFullName(eval::UserDefinedFunction);
+    char* getFuncFullName(const eval::UserDefinedFunction&);
     // Updates the definition of a user-defined function with the specified name.
     // If the function was not previously defined, a new function will be created.
     // Note that the name, argument names and expression definition must be allocated on the heap with new for cleanup.
@@ -45,6 +45,7 @@ namespace expr {
             RECALL_MENU = 5,
             MATRIX_MENU = 6,
             PIECEWISE_MENU = 7,
+            GRAPH_SELECT_MENU = 8,
         };
 
         neda::Cursor *cursor;
@@ -59,6 +60,9 @@ namespace expr {
         void adjustExpr();
         // Handles a key press.
         void handleKeyPress(uint16_t key);
+
+        // Updates the list of functions that are "graphable".
+        void updateGraphableFunctions();
         
     protected:
         /*
@@ -81,10 +85,21 @@ namespace expr {
         void matrixKeyPressHandler(uint16_t key);
         // Handles key presses in the piecewise function menu.
         void piecewiseKeyPressHandler(uint16_t key);
+        // Handles key presses in the graphing functions selection menu.
+        void graphSelectKeyPressHandler(uint16_t key);
 
         // A key press handler handles key press events.
         typedef void (ExprEntry::*KeyPressHandler)(uint16_t);
         static const KeyPressHandler KEY_PRESS_HANDLERS[];
+
+        struct GraphableFunction {
+            GraphableFunction(const eval::UserDefinedFunction *func, bool graph) : func(func), graph(graph) {}
+
+            const eval::UserDefinedFunction *func;
+            bool graph = false;
+        };
+        // A list of graphable functions.
+        DynamicArray<GraphableFunction> graphableFunctions;
 
         /* 
          * These functions draw the interface for a given mode. 
@@ -106,6 +121,8 @@ namespace expr {
         void drawInterfaceMatrix();
         // Draws the interface for the piecewise function menu.
         void drawInterfacePiecewise();
+        // Draws the interface for the graphing functions selection menu.
+        void drawInterfaceGraphSelect();
 
         /*
          * These variables are kept between two key presses and thus have to be global.
