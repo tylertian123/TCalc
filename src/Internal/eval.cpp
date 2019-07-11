@@ -1043,7 +1043,7 @@ convertToDoubleAndOperate:
     }
 
 	// Overloaded instance of the other evaluate() for convenience. Works directly on neda::Containers.
-	Token* evaluate(neda::Container *expr, uint8_t varc, const char **varn, Token **varv, uint8_t funcc, UserDefinedFunction *funcs) {
+	Token* evaluate(neda::Container *expr, uint16_t varc, const char **varn, Token **varv, uint16_t funcc, UserDefinedFunction *funcs) {
 		return evaluate(&expr->contents, varc, varn, varv, funcc, funcs);
 	}
 	/*
@@ -1058,7 +1058,7 @@ convertToDoubleAndOperate:
 	 * funcc - User-defined function count
 	 * funcs - An array of user-defined functions (stored in structs of UserDefinedFunctions)
 	 */
-	Token* evaluate(DynamicArray<neda::NEDAObj*> *expr, uint8_t varc, const char **varn, Token **varv, uint8_t funcc, UserDefinedFunction *funcs) {
+	Token* evaluate(DynamicArray<neda::NEDAObj*> *expr, uint16_t varc, const char **varn, Token **varv, uint16_t funcc, UserDefinedFunction *funcs) {
 		// This function first parses the NEDA expression to convert it into eval tokens
 		// It then converts the infix notation to postfix with shunting-yard
 		// And finally evaluates it and returns the result
@@ -1343,7 +1343,7 @@ convertToDoubleAndOperate:
 						// If it's not a normal function then try to find a user function that matches
 						if(!func) {
 							// Loop through all functions
-							for(uint8_t i = 0; i < funcc; ++i) {
+							for(uint16_t i = 0; i < funcc; ++i) {
 								// Compare with all the names of user-defined functions
 								if(strcmp(funcs[i].name, str) == 0) {
 									// If found, set uFunc to point to it
@@ -1489,7 +1489,7 @@ evaluateFunctionArguments:
                                     vVals[i] = args[i];
                                 }
 								// Copy in the names and values of variables
-								for(uint8_t i = 0; i < varc; i ++) {
+								for(uint16_t i = 0; i < varc; i ++) {
 									vNames[i + uFunc->argc] = varn[i];
 									vVals[i + uFunc->argc] = varv[i];
 								}
@@ -1537,7 +1537,7 @@ evaluateFunctionArguments:
 							// Otherwise check if it's a valid variable
 							else {
 								// Loop through all variables
-								uint8_t i;
+								uint16_t i;
 								for(i = 0; i < varc; i ++) {
 									// Compare with each variable name
 									if(strcmp(str, varn[i]) == 0) {
@@ -1632,7 +1632,7 @@ evaluateFunctionArguments:
 				vNames[0] = vName;
 				vVals[0] = start;
 				// Copy existing variables
-				for(uint8_t i = 0; i < varc; i ++) {
+				for(uint16_t i = 0; i < varc; i ++) {
 					vNames[i + 1] = varn[i];
 					vVals[i + 1] = varv[i];
 				}

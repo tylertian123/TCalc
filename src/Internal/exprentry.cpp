@@ -8,7 +8,7 @@ namespace expr {
     DynamicArray<eval::UserDefinedFunction> functions;
 
     void updateVar(const char *varName, eval::Token *varVal) {
-        uint8_t i;
+        uint16_t i;
         // See if the variable has already been defined
         for(i = 0; i < varNames.length(); ++i) {
             // Update it if found
@@ -92,7 +92,7 @@ namespace expr {
     }
     void clearAll() {
         // Delete all variables
-        for(uint8_t i = 0; i < varNames.length(); i ++) {
+        for(uint16_t i = 0; i < varNames.length(); i ++) {
             delete[] varNames[i];
             delete varVals[i];
         }
