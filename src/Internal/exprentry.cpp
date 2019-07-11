@@ -1307,8 +1307,9 @@ namespace expr {
 
     int16_t ExprEntry::mapY(double y) {
         // Same logic as mapX
-        y -= yMin;
-        y *= lcd::SIZE_HEIGHT / (yMax - yMin);
+        // However, since the LCD's coordinate system has an inverted y axis, swap yMin and yMax
+        y -= yMax;
+        y *= lcd::SIZE_HEIGHT / (yMin - yMax);
         y = round(y);
 
         if(y > INT16_MAX) {
@@ -1329,8 +1330,8 @@ namespace expr {
     }
 
     double ExprEntry::unmapY(int16_t y) {
-        double realY = y * (yMax - yMin) / lcd::SIZE_HEIGHT;
-        realY += yMin;
+        double realY = y * (yMin - yMax) / lcd::SIZE_HEIGHT;
+        realY += yMax;
         return realY;
     }
 
@@ -1394,7 +1395,7 @@ namespace expr {
                         // Otherwise map the Y value
                         int16_t y = mapY(result);
                         // Set the pixel
-                        graphBuf.setPixel(x, y);
+                        graphBuf.setPixel(dispX, y);
                     }
                     delete t;
                 }
