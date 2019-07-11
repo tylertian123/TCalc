@@ -1321,6 +1321,19 @@ namespace expr {
         return static_cast<int16_t>(y);
     }
 
+    double ExprEntry::unmapX(int16_t x) {
+        // Undo the steps of mapX
+        double realX = x * (xMax - xMin) / lcd::SIZE_WIDTH;
+        realX += xMin;
+        return realX;
+    }
+
+    double ExprEntry::unmapY(int16_t y) {
+        double realY = y * (yMax - yMin) / lcd::SIZE_HEIGHT;
+        realY += yMin;
+        return realY;
+    }
+
     void ExprEntry::redrawGraph() {
         graphBuf.clear();
 
@@ -1347,6 +1360,48 @@ namespace expr {
                 graphBuf.setPixel(yAxis + 1, mapY(y));
             }
         }
+
+        // Graph each function
+        // Construct a environment that can be reused later since all graphable functions only have 1 argument x
+        const char **vNames  = new const char*[varNames.length() + 1];
+        eval::Token **vVals = new eval::Token*[varVals.length() + 1];
+        for(uint16_t i = 0; i < varNames.length(); i ++) {
+            vNames[i + 1] = varNames[i];
+            vVals[i + 1] = varVals[i];
+        }
+
+        vNames[0] = "x";
+
+        eval::Number arg(0);
+        vVals[0] = &arg;
+
+        for(GraphableFunction gfunc : graphableFunctions) {
+            if(gfunc.graph) {
+                const eval::UserDefinedFunction &func = *gfunc.func;
+
+                // Evaluate for each x coordinate
+                for(int16_t dispX = 0; dispX < lcd::SIZE_WIDTH; dispX ++) {
+                    // Get the x value in real coordinate space
+                    double x = unmapX(dispX);
+                    // Set the value of the argument
+                    arg.value = x;
+                    // Attempt to evaluate
+                    eval::Token *t = eval::evaluate(func.expr, varNames.length() + 1, vNames, vVals, functions.length(), functions.asArray());
+                    // Watch out for syntax error
+                    double result = t ? eval::extractDouble(t) : NAN;
+                    // If result is NaN, skip this pixel
+                    if(!isnan(result)) {
+                        // Otherwise map the Y value
+                        int16_t y = mapY(result);
+                        // Set the pixel
+                        graphBuf.setPixel(x, y);
+                    }
+                    delete t;
+                }
+            }
+        }
+        delete[] vNames;
+        delete[] vVals;
     }
 
     void ExprEntry::drawInterfaceGraphViewer() {

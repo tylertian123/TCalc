@@ -243,19 +243,19 @@ namespace lcd {
 			return;
 		}
 
-		int16_t baseByte = floorDiv(x, static_cast<int16_t>(8));
+		int8_t baseByte = floorDiv(x, static_cast<int16_t>(8));
 		int8_t offset = positiveMod(x, static_cast<int16_t>(8));
 		// Special handling if the area to fill is all in one byte
 		if(offset + width < 8) {
 			// Check for out of bounds
-			if(baseByte < 0) {
+			if(baseByte < 0 || baseByte >= 16) {
 				return;
 			}
 			// Find out what the byte looks like
 			uint8_t data = 0xFF >> offset;
 			data &= 0xFF << (8 - offset - width);
 			for(uint16_t row = 0; row < height; row ++) {
-				if(y + row < 0) {
+				if(y + row < 0 || y + row >= 64) {
 					continue;
 				}
 				if(invert) {
@@ -275,7 +275,7 @@ namespace lcd {
             // Calculate how many whole bytes there are
             uint8_t bytesWide = (offset + width) / 8 - 1;
             for(uint16_t row = 0; row < height; row ++) {
-                if(y + row < 0) {
+                if(y + row < 0 || y + row >= 64) {
                     continue;
                 }
                 // First part

@@ -70,8 +70,16 @@ namespace expr {
         // Updates the list of functions that are "graphable".
         void updateGraphableFunctions();
 
+        // Maps an x value in real coordinate space to an x value on the display.
         int16_t mapX(double);
+        // Maps a y value in real coordinate space to a y value on the display.
         int16_t mapY(double);
+        // Maps an x value on the display to an x value in real coordinate space.
+        // Note that due to rounding and integer bounds, this does not always undo mapX exactly.
+        double unmapX(int16_t);
+        // Maps a y value on the display to a y value in real coordinate space.
+        // Note that due to rounding and integer bounds, this does not always undo mapY exactly.
+        double unmapY(int16_t);
 
         // Redraws the graph of all functions marked to graph.
         void redrawGraph();
@@ -114,6 +122,7 @@ namespace expr {
 
         struct GraphableFunction {
             GraphableFunction(const eval::UserDefinedFunction *func, bool graph) : func(func), graph(graph) {}
+            GraphableFunction(const GraphableFunction &other) : func(other.func), graph(other.graph) {}
 
             const eval::UserDefinedFunction *func;
             bool graph = false;
