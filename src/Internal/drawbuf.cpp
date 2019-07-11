@@ -304,4 +304,26 @@ namespace lcd {
             }
         }
     }
+
+    uint16_t DrawBuf::getLCDWord(uint8_t row, uint8_t col) {
+        // Since the LCD uses 16-bit words as opposed to 8-bit words, each LCD column is twice as wide as a DrawBuf column
+        // Therefore multiply the column by 2
+        col *= 2;
+		// The LCD has a weird coordinate system; the bottom 32 rows are just extensions of the top 32 rows.
+		// Therefore if the column is greater than  or equal to16 after the column translation, subtract 16 and increase row instead
+        if(col >= 16) {
+            col -= 16;
+            row += 32;
+        }
+        // Now the translation is complete, construct the end result
+        return buf[row][col] << 8 | buf[row][col + 1];
+    }
+
+    void DrawBuf::copy(const DrawBuf &other) {
+        for(uint8_t i = 0; i < 64; i ++) {
+            for(uint8_t j = 0; j < 16; j ++) {
+                buf[i][j] = other.buf[i][j];
+            }
+        }
+    }
 }

@@ -35,6 +35,10 @@ namespace lcd {
 		void fill(int16_t, int16_t, uint16_t, uint16_t, bool invert = false);
         // Gets the width of a string when drawn
         static uint16_t getDrawnStringWidth(const char*);
+        // Used internally by the LCD classes
+        uint16_t getLCDWord(uint8_t row, uint8_t col);
+        // Copies the content of another DrawBuf
+        void copy(const DrawBuf&);
     
     protected:
         void drawLineHigh(int16_t, int16_t, int16_t, int16_t, bool invert = false);
