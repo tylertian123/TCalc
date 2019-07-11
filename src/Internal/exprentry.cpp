@@ -961,17 +961,19 @@ namespace expr {
         drawInterfaceGraphSelect();
     }
 
+    // Use a different number of significant digits here since we want a shorter string
+    constexpr uint8_t GRAPH_SETTINGS_SIGNIFICANT_DIGITS = 10;
     void ExprEntry::graphSettingsKeyPressHandler(uint16_t key) {
         switch(key) {
         case KEY_CENTER:
-        case KEY_ENTER:
+toggleEditOption:
             editOption = !editOption;
             
             if(editOption) {
                 // Fill the editor with the previous number
                 editorContents.empty();
                 char buf[64];
-                ftoa(graphSettings[selectorIndex], buf, 16, LCD_CHAR_EE);
+                ftoa(graphSettings[selectorIndex], buf, GRAPH_SETTINGS_SIGNIFICANT_DIGITS, LCD_CHAR_EE);
                 
                 for(uint8_t i = 0; buf[i] != '\0'; i ++) {
                     editorContents.add(buf[i]);
@@ -983,19 +985,53 @@ namespace expr {
                 cursorIndex = editorContents.length() - 1;
             }
             else {
-                // Before calling atof, replace LCD_CHAR_EE with the e character so that scientific notation is valid
-                for(char &ch : editorContents) {
-                    if(ch == LCD_CHAR_EE) {
-                        ch = 'e';
+                // Convert to double by calling eval::evaluate
+                // This way the user can input simple expressions
+                // First translate into an array of NEDAObjs
+                DynamicArray<neda::NEDAObj*> objs;
+                for(char ch : editorContents) {
+                    if(ch == '\0') {
+                        break;
+                    }
+                    // Left and right brackets are special
+                    if(ch == '(') {
+                        objs.add(new neda::LeftBracket);
+                    }
+                    else if(ch == ')') {
+                        objs.add(new neda::RightBracket);
+                    }
+                    // All other ones are normal characters
+                    else {
+                        objs.add(new neda::Character(ch));
                     }
                 }
-                // Convert to double
-                // There is no check for whether the input is valid (I'm lazy)
-                // If the input is invalid, atof will just return 0
-                // The user will see that the input was wrong and change it (hopefully)
-                graphSettings[selectorIndex] = atof(editorContents.asArray());
+                
+                eval::Token *t = eval::evaluate(&objs, varNames.length(), varNames.asArray(), varVals.asArray(),
+                        functions.length(), functions.asArray());
+                
+                // Free the array of NEDAObjs here
+                for(neda::NEDAObj *ptr : objs) {
+                    delete ptr;
+                }
+
+                // Extract the value
+                double value = t ? eval::extractDouble(t) : NAN;
+                // Verify that the value is finite and not NAN or syntax error
+                if(isfinite(value)) {
+                    graphSettings[selectorIndex] = value;
+                }
+                else {
+                    graphSettings[selectorIndex] = 0;
+                }
+                delete t;
             }
             break;
+        case KEY_ENTER:
+            // When editing, the enter key finishes the edit
+            if(editOption) {
+                goto toggleEditOption;
+            }
+            // Otherwise this falls through and should exit
         case KEY_DELETE:
             // If editing, this deletes a character
             if(editOption) {
@@ -1050,7 +1086,15 @@ namespace expr {
                 }
             }
             break;
-        
+        // These are not handled by keyCodeToChar()
+        case KEY_LBRACKET:
+            editorContents.insert('(', cursorIndex);
+            cursorIndex ++;
+            break;
+        case KEY_RBRACKET:
+            editorContents.insert(')', cursorIndex);
+            cursorIndex ++;
+            break;
         default: 
         {   
             // Try to translate the key to a character
@@ -1244,7 +1288,7 @@ namespace expr {
             if(!editOption) {
                 // If not editing an option, draw the value normally
                 char buf[64];
-                ftoa(graphSettings[i], buf, 16, LCD_CHAR_EE);
+                ftoa(graphSettings[i], buf, GRAPH_SETTINGS_SIGNIFICANT_DIGITS, LCD_CHAR_EE);
 
                 display.drawString(HORIZ_MARGIN + 50, y, buf, selectorIndex == i);
             }
@@ -1252,7 +1296,7 @@ namespace expr {
                 // If this value is not being edited, draw it normally
                 if(i != selectorIndex) {
                     char buf[64];
-                    ftoa(graphSettings[i], buf, 16, LCD_CHAR_EE);
+                    ftoa(graphSettings[i], buf, GRAPH_SETTINGS_SIGNIFICANT_DIGITS, LCD_CHAR_EE);
 
                     display.drawString(HORIZ_MARGIN + 50, y, buf);
                 }
