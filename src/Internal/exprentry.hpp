@@ -47,6 +47,7 @@ namespace expr {
             PIECEWISE_MENU = 7,
             GRAPH_SELECT_MENU = 8,
             GRAPH_SETTINGS_MENU = 9,
+            GRAPH_VIEWER = 10,
         };
 
         neda::Cursor *cursor;
@@ -68,6 +69,12 @@ namespace expr {
 
         // Updates the list of functions that are "graphable".
         void updateGraphableFunctions();
+
+        int16_t mapX(double);
+        int16_t mapY(double);
+
+        // Redraws the graph of all functions marked to graph.
+        void redrawGraph();
         
     protected:
         // Converts a key code to a character.
@@ -98,6 +105,8 @@ namespace expr {
         void graphSelectKeyPressHandler(uint16_t key);
         // Handles key presses in the graph settings menu.
         void graphSettingsKeyPressHandler(uint16_t key);
+        // Handles key presses in the graph viewer menu.
+        void graphViewerKeyPressHandler(uint16_t key);
 
         // A key press handler handles key press events.
         typedef void (ExprEntry::*KeyPressHandler)(uint16_t);
@@ -136,6 +145,8 @@ namespace expr {
         void drawInterfaceGraphSelect();
         // Draws the interface for the graph settings menu.
         void drawInterfaceGraphSettings(bool drawCursor = true);
+        // Draws the interface for the graph viewer.
+        void drawInterfaceGraphViewer();
 
         /*
          * These variables are kept between two key presses and thus have to be global.
@@ -177,6 +188,8 @@ namespace expr {
         DynamicArray<char> editorContents;
         // Index of the cursor in the option editor
         uint16_t cursorIndex;
+
+        lcd::DrawBuf graphBuf;
 
         void scrollUp(uint16_t);
         void scrollDown(uint16_t);

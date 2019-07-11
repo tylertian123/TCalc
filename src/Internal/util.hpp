@@ -22,6 +22,13 @@
 		x \
 		if(!__no_interrupt_PRIMASK)__enable_irq();}
 
+#ifndef INT16_MAX
+    #define INT16_MAX ((int16_t) 32767)
+#endif
+#ifndef INT16_MIN
+    #define INT16_MIN ((int16_t) (-32767 - 1))
+#endif
+
 template <typename T>
 inline const T& max(const T &a, const T &b) {
 	return b > a ? b : a;

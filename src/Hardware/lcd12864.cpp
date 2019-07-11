@@ -163,6 +163,10 @@ namespace lcd {
 		drawBuf.fill(x, y, width, height, invert);
 	}
 
+    void LCD12864::copyBuffer(const DrawBuf &buf) {
+        drawBuf.copy(buf);
+    }
+
     uint16_t LCD12864::getDrawnStringWidth(const char *str) {
         return DrawBuf::getDrawnStringWidth(str);
     }

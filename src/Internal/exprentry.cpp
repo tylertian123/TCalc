@@ -1,5 +1,6 @@
 #include "exprentry.hpp"
 #include "ntoa.hpp"
+#include <limits.h>
 
 namespace expr {
     DynamicArray<const char*> varNames;
@@ -358,6 +359,7 @@ namespace expr {
         &ExprEntry::piecewiseKeyPressHandler,
         &ExprEntry::graphSelectKeyPressHandler,
         &ExprEntry::graphSettingsKeyPressHandler,
+        &ExprEntry::graphViewerKeyPressHandler,
     };
 
     void ExprEntry::handleKeyPress(uint16_t key) {
@@ -597,6 +599,14 @@ namespace expr {
                 selectorIndex = 0;
                 editOption = false;
                 drawInterfaceGraphSettings();
+                return;
+            case KEY_GRAPH:
+                mode = DisplayMode::GRAPH_VIEWER;
+                // Before we draw the graph, first update the list of graphable functions
+                // This is so that if any of the graphable functions get deleted, they would not be graphed
+                updateGraphableFunctions();
+                redrawGraph();
+                drawInterfaceGraphViewer();
                 return;
             default: break;
             }
@@ -1055,6 +1065,19 @@ namespace expr {
         drawInterfaceGraphSettings();
     }
 
+    void ExprEntry::graphViewerKeyPressHandler(uint16_t key) {
+        switch(key) {
+        
+        case KEY_DELETE:
+        case KEY_GRAPH:
+            mode = DisplayMode::NORMAL;
+            drawInterfaceNormal();
+        default:
+            break;
+        }
+
+        drawInterfaceGraphViewer();
+    }
 
     void ExprEntry::drawInterfaceNormal(bool drawCursor) {
         // Call draw once before everything so that the locations are all updated
@@ -1258,6 +1281,78 @@ namespace expr {
 
             y += 10;
         }
+
+        display.updateDrawing();
+    }
+
+    int16_t ExprEntry::mapX(double x) {
+        // First translate
+        // We want the result x to be 0 when x is equal to xMin
+        x -= xMin;
+        // Now scale
+        // A region xMax - xMin units wide is mapped to the screen width
+        x *= lcd::SIZE_WIDTH / (xMax - xMin);
+        // Round x
+        x = round(x);
+        // Verify that x is in bounds
+        if(x > INT16_MAX) {
+            x = INT16_MAX;
+        }
+        else if(x < INT16_MIN) {
+            x = INT16_MIN;
+        }
+
+        return static_cast<int16_t>(x);
+    }
+
+    int16_t ExprEntry::mapY(double y) {
+        // Same logic as mapX
+        y -= yMin;
+        y *= lcd::SIZE_HEIGHT / (yMax - yMin);
+        y = round(y);
+
+        if(y > INT16_MAX) {
+            y = INT16_MAX;
+        }
+        else if(y < INT16_MIN) {
+            y = INT16_MIN;
+        }
+
+        return static_cast<int16_t>(y);
+    }
+
+    void ExprEntry::redrawGraph() {
+        graphBuf.clear();
+
+        // First graph the axes if they're in range
+        // Y coordinate of the X axis
+        int16_t xAxis = mapY(0);
+        if(xAxis >= 0 && xAxis < lcd::SIZE_HEIGHT) {
+            graphBuf.drawLine(0, xAxis, lcd::SIZE_WIDTH - 1, xAxis);
+        }
+        // Draw the "ticks" on the y axis if they're visible
+        if(xAxis >= 1) {
+            for(double x = xMin; x <= xMax; x += xScale) {
+                graphBuf.setPixel(mapX(x), xAxis - 1);
+            }
+        }
+        // X coordinate of the Y axis
+        int16_t yAxis = mapX(0);
+        if(yAxis >= 0 && yAxis < lcd::SIZE_WIDTH) {
+            graphBuf.drawLine(yAxis, 0, yAxis, lcd::SIZE_HEIGHT - 1);
+        }
+        // Draw the ticks
+        if(yAxis <= lcd::SIZE_WIDTH - 2) {
+            for(double y = yMin; y <= yMax; y += yScale) {
+                graphBuf.setPixel(yAxis + 1, mapY(y));
+            }
+        }
+    }
+
+    void ExprEntry::drawInterfaceGraphViewer() {
+        // First copy the base graph
+        // No need to clear the buffer since it will be overwritten anyways
+        display.copyBuffer(graphBuf);
 
         display.updateDrawing();
     }
