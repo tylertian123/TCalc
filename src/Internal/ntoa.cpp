@@ -38,9 +38,9 @@ uint8_t ltoa(int64_t val, char *str) {
 	return len;
 }
 
-//Converts double to ASCII string
-//ndigits is the number of significant digits
-//echar is the character to use to represent 10^x in the case of scientific notation, e.g. 2.34e10
+// Converts double to ASCII string
+// ndigits is the number of significant digits
+// echar is the character to use to represent 10^x in the case of scientific notation, e.g. 2.34e10
 uint8_t ftoa(double val, char *str, uint8_t ndigits, char echar) {
 	// Special cases
 	if(isnan(val)) {

@@ -46,6 +46,7 @@ namespace expr {
             MATRIX_MENU = 6,
             PIECEWISE_MENU = 7,
             GRAPH_SELECT_MENU = 8,
+            GRAPH_SETTINGS_MENU = 9,
         };
 
         neda::Cursor *cursor;
@@ -69,6 +70,10 @@ namespace expr {
         void updateGraphableFunctions();
         
     protected:
+        // Converts a key code to a character.
+        // If there is no corresponding character, 0xFF is returned.
+        static char keyCodeToChar(uint16_t key);
+
         /*
          * These functions handle key presses for a given mode.
          * They're called by handleKeyPress() depending on the current mode.
@@ -91,6 +96,8 @@ namespace expr {
         void piecewiseKeyPressHandler(uint16_t key);
         // Handles key presses in the graphing functions selection menu.
         void graphSelectKeyPressHandler(uint16_t key);
+        // Handles key presses in the graph settings menu.
+        void graphSettingsKeyPressHandler(uint16_t key);
 
         // A key press handler handles key press events.
         typedef void (ExprEntry::*KeyPressHandler)(uint16_t);
@@ -110,7 +117,7 @@ namespace expr {
          * They're called automatically by the correct key handler. 
          */
         // Draws the interface for normal mode.
-        void drawInterfaceNormal();
+        void drawInterfaceNormal(bool drawCursor = true);
         // Draws the interface for the trig functions menu.
         void drawInterfaceTrig();
         // Draws the interface for the constants menu.
@@ -127,6 +134,8 @@ namespace expr {
         void drawInterfacePiecewise();
         // Draws the interface for the graphing functions selection menu.
         void drawInterfaceGraphSelect();
+        // Draws the interface for the graph settings menu.
+        void drawInterfaceGraphSettings(bool drawCursor = true);
 
         /*
          * These variables are kept between two key presses and thus have to be global.
@@ -141,6 +150,33 @@ namespace expr {
         uint16_t selectorIndex = 0;
         // The index of scrolling.
         uint16_t scrollingIndex = 0;
+        
+        double graphSettings[6] = {
+            -10, // xMin
+            10,  // xMax
+            1,   // xScale
+            -5,  // yMin
+            5,   // yMax
+            1,   // yScale
+        };
+        // Min x for graphing.
+        double &xMin = graphSettings[0];
+        // Max x for graphing.
+        double &xMax = graphSettings[1];
+        // Spacing between ticks on the x axis for graphing.
+        double &xScale = graphSettings[2];
+        // Min y for graphing.
+        double &yMin = graphSettings[3];
+        // Max y for graphing.
+        double &yMax = graphSettings[4];
+        // Spacing between ticks on the y axis for graphing.
+        double &yScale = graphSettings[5];
+        // Whether the user is editing a number.
+        bool editOption = false;
+        // Contents of the option editor
+        DynamicArray<char> editorContents;
+        // Index of the cursor in the option editor
+        uint16_t cursorIndex;
 
         void scrollUp(uint16_t);
         void scrollDown(uint16_t);

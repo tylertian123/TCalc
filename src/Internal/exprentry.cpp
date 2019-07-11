@@ -172,13 +172,178 @@ namespace expr {
     void ExprEntry::blinkCursor() {
         if(mode == DisplayMode::NORMAL) {
             cursorOn = !cursorOn;
-			display.clearDrawingBuffer();
-			// Redraw the entire expr
-            cursor->expr->drawConnected(display);
-			if(cursorOn) {
-				cursor->draw(display);
-			}
-			display.updateDrawing();
+            // Redraw the interface
+            drawInterfaceNormal(cursorOn);
+        }
+        else if(mode == DisplayMode::GRAPH_SETTINGS_MENU) {
+            cursorOn = !cursorOn;
+            // Redraw the interface
+            drawInterfaceGraphSettings(cursorOn);
+        }
+    }
+
+    char ExprEntry::keyCodeToChar(uint16_t key) {
+        switch(key) {
+        /* LETTER KEYS */
+        case KEY_A:
+            return 'A';
+        case KEY_B:
+            return 'B';
+        case KEY_C:
+            return 'C';
+        case KEY_D:
+            return 'D';
+        case KEY_E:
+            return 'E';
+        case KEY_F:
+            return 'F';
+        case KEY_G:
+            return 'G';
+        case KEY_H:
+            return 'H';
+        case KEY_I:
+            return 'I';
+        case KEY_J:
+            return 'J';
+        case KEY_K:
+            return 'K';
+        case KEY_L:
+            return 'L';
+        case KEY_M:
+            return 'M';
+        case KEY_N:
+            return 'N';
+        case KEY_O:
+            return 'O';
+        case KEY_P:
+            return 'P';
+        case KEY_Q:
+            return 'Q';
+        case KEY_R:
+            return 'R';
+        case KEY_S:
+            return 'S';
+        case KEY_T:
+            return 'T';
+        case KEY_U:
+            return 'U';
+        case KEY_V:
+            return 'V';
+        case KEY_W:
+            return 'W';
+        case KEY_X:
+            return 'X';
+        case KEY_Y:
+            return 'Y';
+        case KEY_Z:
+            return 'Z';
+        case KEY_LCA:
+            return 'a';
+        case KEY_LCB:
+            return 'b';
+        case KEY_LCC:
+            return 'c';
+        case KEY_LCD:
+            return 'd';
+        case KEY_LCE:
+            return 'e';
+        case KEY_LCF:
+            return 'f';
+        case KEY_LCG:
+            return 'g';
+        case KEY_LCH:
+            return 'h';
+        case KEY_LCI:
+            return 'i';
+        case KEY_LCJ:
+            return 'j';
+        case KEY_LCK:
+            return 'k';
+        case KEY_LCL:
+            return 'l';
+        case KEY_LCM:
+            return 'm';
+        case KEY_LCN:
+            return 'n';
+        case KEY_LCO:
+            return 'o';
+        case KEY_LCP:
+            return 'p';
+        case KEY_LCQ:
+            return 'q';
+        case KEY_LCR:
+            return 'r';
+        case KEY_LCS:
+            return 's';
+        case KEY_LCT:
+            return 't';
+        case KEY_LCU:
+            return 'u';
+        case KEY_LCV:
+            return 'v';
+        case KEY_LCW:
+            return 'w';
+        case KEY_LCX:
+            return 'x';
+        case KEY_LCY:
+            return 'y';
+        case KEY_LCZ:
+            return 'z';
+        /* OTHER KEYS WITH NO SPECIAL HANDLING */
+        case KEY_0:
+            return '0';
+        case KEY_1:
+            return '1';
+        case KEY_2:
+            return '2';
+        case KEY_3:
+            return '3';
+        case KEY_4:
+            return '4';
+        case KEY_5:
+            return '5';
+        case KEY_6:
+            return '6';
+        case KEY_7:
+            return '7';
+        case KEY_8:
+            return '8';
+        case KEY_9:
+            return '9';
+        case KEY_SPACE:
+            return ' ';
+        case KEY_COMMA:
+            return ',';
+        case KEY_DOT:
+            return '.';
+        case KEY_PLUS:
+            return '+';
+        case KEY_MINUS:
+            return '-';
+        case KEY_MUL:
+            return LCD_CHAR_MUL;
+        case KEY_DIV:
+            return LCD_CHAR_DIV;
+        case KEY_PI:
+            return LCD_CHAR_PI;
+        case KEY_EULER:
+            return LCD_CHAR_EULR;
+        case KEY_EQUAL:
+            return '=';
+        case KEY_EE:
+            return LCD_CHAR_EE;
+        case KEY_CROSS:
+            return LCD_CHAR_CRS;
+        case KEY_GT:
+            return '>';
+        case KEY_LT:
+            return '<';
+        case KEY_GTEQ:
+            return LCD_CHAR_GEQ;
+        case KEY_LTEQ:
+            return LCD_CHAR_LEQ;
+        default: 
+            return 0xFF;
         }
     }
 
@@ -192,6 +357,7 @@ namespace expr {
         &ExprEntry::matrixKeyPressHandler,
         &ExprEntry::piecewiseKeyPressHandler,
         &ExprEntry::graphSelectKeyPressHandler,
+        &ExprEntry::graphSettingsKeyPressHandler,
     };
 
     void ExprEntry::handleKeyPress(uint16_t key) {
@@ -200,458 +366,240 @@ namespace expr {
     }
 
     void ExprEntry::normalKeyPressHandler(uint16_t key) {
-        switch(key) {
-        case KEY_LEFT:
-            cursor->left();
-            break;
-        case KEY_RIGHT:
-            cursor->right();
-            break;
-        case KEY_UP:
-            cursor->up();
-            break;
-        case KEY_DOWN:
-            cursor->down();
-            break;
-        /* LETTER KEYS */
-        case KEY_A:
-            cursor->add(new neda::Character('A'));
-            break;
-        case KEY_B:
-            cursor->add(new neda::Character('B'));
-            break;
-        case KEY_C:
-            cursor->add(new neda::Character('C'));
-            break;
-        case KEY_D:
-            cursor->add(new neda::Character('D'));
-            break;
-        case KEY_E:
-            cursor->add(new neda::Character('E'));
-            break;
-        case KEY_F:
-            cursor->add(new neda::Character('F'));
-            break;
-        case KEY_G:
-            cursor->add(new neda::Character('G'));
-            break;
-        case KEY_H:
-            cursor->add(new neda::Character('H'));
-            break;
-        case KEY_I:
-            cursor->add(new neda::Character('I'));
-            break;
-        case KEY_J:
-            cursor->add(new neda::Character('J'));
-            break;
-        case KEY_K:
-            cursor->add(new neda::Character('K'));
-            break;
-        case KEY_L:
-            cursor->add(new neda::Character('L'));
-            break;
-        case KEY_M:
-            cursor->add(new neda::Character('M'));
-            break;
-        case KEY_N:
-            cursor->add(new neda::Character('N'));
-            break;
-        case KEY_O:
-            cursor->add(new neda::Character('O'));
-            break;
-        case KEY_P:
-            cursor->add(new neda::Character('P'));
-            break;
-        case KEY_Q:
-            cursor->add(new neda::Character('Q'));
-            break;
-        case KEY_R:
-            cursor->add(new neda::Character('R'));
-            break;
-        case KEY_S:
-            cursor->add(new neda::Character('S'));
-            break;
-        case KEY_T:
-            cursor->add(new neda::Character('T'));
-            break;
-        case KEY_U:
-            cursor->add(new neda::Character('U'));
-            break;
-        case KEY_V:
-            cursor->add(new neda::Character('V'));
-            break;
-        case KEY_W:
-            cursor->add(new neda::Character('W'));
-            break;
-        case KEY_X:
-            cursor->add(new neda::Character('X'));
-            break;
-        case KEY_Y:
-            cursor->add(new neda::Character('Y'));
-            break;
-        case KEY_Z:
-            cursor->add(new neda::Character('Z'));
-            break;
-        case KEY_LCA:
-            cursor->add(new neda::Character('a'));
-            break;
-        case KEY_LCB:
-            cursor->add(new neda::Character('b'));
-            break;
-        case KEY_LCC:
-            cursor->add(new neda::Character('c'));
-            break;
-        case KEY_LCD:
-            cursor->add(new neda::Character('d'));
-            break;
-        case KEY_LCE:
-            cursor->add(new neda::Character('e'));
-            break;
-        case KEY_LCF:
-            cursor->add(new neda::Character('f'));
-            break;
-        case KEY_LCG:
-            cursor->add(new neda::Character('g'));
-            break;
-        case KEY_LCH:
-            cursor->add(new neda::Character('h'));
-            break;
-        case KEY_LCI:
-            cursor->add(new neda::Character('i'));
-            break;
-        case KEY_LCJ:
-            cursor->add(new neda::Character('j'));
-            break;
-        case KEY_LCK:
-            cursor->add(new neda::Character('k'));
-            break;
-        case KEY_LCL:
-            cursor->add(new neda::Character('l'));
-            break;
-        case KEY_LCM:
-            cursor->add(new neda::Character('m'));
-            break;
-        case KEY_LCN:
-            cursor->add(new neda::Character('n'));
-            break;
-        case KEY_LCO:
-            cursor->add(new neda::Character('o'));
-            break;
-        case KEY_LCP:
-            cursor->add(new neda::Character('p'));
-            break;
-        case KEY_LCQ:
-            cursor->add(new neda::Character('q'));
-            break;
-        case KEY_LCR:
-            cursor->add(new neda::Character('r'));
-            break;
-        case KEY_LCS:
-            cursor->add(new neda::Character('s'));
-            break;
-        case KEY_LCT:
-            cursor->add(new neda::Character('t'));
-            break;
-        case KEY_LCU:
-            cursor->add(new neda::Character('u'));
-            break;
-        case KEY_LCV:
-            cursor->add(new neda::Character('v'));
-            break;
-        case KEY_LCW:
-            cursor->add(new neda::Character('w'));
-            break;
-        case KEY_LCX:
-            cursor->add(new neda::Character('x'));
-            break;
-        case KEY_LCY:
-            cursor->add(new neda::Character('y'));
-            break;
-        case KEY_LCZ:
-            cursor->add(new neda::Character('z'));
-            break;
-        /* OTHER KEYS WITH NO SPECIAL HANDLING */
-        case KEY_0:
-            cursor->add(new neda::Character('0'));
-            break;
-        case KEY_1:
-            cursor->add(new neda::Character('1'));
-            break;
-        case KEY_2:
-            cursor->add(new neda::Character('2'));
-            break;
-        case KEY_3:
-            cursor->add(new neda::Character('3'));
-            break;
-        case KEY_4:
-            cursor->add(new neda::Character('4'));
-            break;
-        case KEY_5:
-            cursor->add(new neda::Character('5'));
-            break;
-        case KEY_6:
-            cursor->add(new neda::Character('6'));
-            break;
-        case KEY_7:
-            cursor->add(new neda::Character('7'));
-            break;
-        case KEY_8:
-            cursor->add(new neda::Character('8'));
-            break;
-        case KEY_9:
-            cursor->add(new neda::Character('9'));
-            break;
-        case KEY_SPACE:
-            cursor->add(new neda::Character(' '));
-            break;
-        case KEY_COMMA:
-            cursor->add(new neda::Character(','));
-            break;
-        case KEY_DOT:
-            cursor->add(new neda::Character('.'));
-            break;
-        case KEY_PLUS:
-            cursor->add(new neda::Character('+'));
-            break;
-        case KEY_MINUS:
-            cursor->add(new neda::Character('-'));
-            break;
-        case KEY_MUL:
-            cursor->add(new neda::Character(LCD_CHAR_MUL));
-            break;
-        case KEY_DIV:
-            cursor->add(new neda::Character(LCD_CHAR_DIV));
-            break;
-        case KEY_PI:
-            cursor->add(new neda::Character(LCD_CHAR_PI));
-            break;
-        case KEY_EULER:
-            cursor->add(new neda::Character(LCD_CHAR_EULR));
-            break;
-        case KEY_EQUAL:
-            cursor->add(new neda::Character('='));
-            break;
-        case KEY_EE:
-            cursor->add(new neda::Character(LCD_CHAR_EE));
-            break;
-        case KEY_CROSS:
-            cursor->add(new neda::Character(LCD_CHAR_CRS));
-            break;
-        case KEY_GT:
-            cursor->add(new neda::Character('>'));
-            break;
-        case KEY_LT:
-            cursor->add(new neda::Character('<'));
-            break;
-        case KEY_GTEQ:
-            cursor->add(new neda::Character(LCD_CHAR_GEQ));
-            break;
-        case KEY_LTEQ:
-            cursor->add(new neda::Character(LCD_CHAR_LEQ));
-            break;
-        /* EXPRESSIONS */
-        case KEY_LBRACKET:
-            cursor->add(new neda::LeftBracket());
-            break;
-        case KEY_RBRACKET:
-            cursor->add(new neda::RightBracket());
-            break;
-        case KEY_ROOT:
-        {
-            neda::Radical *radical = new neda::Radical(new neda::Container, nullptr);
-            cursor->add(radical);
-            radical->getCursor(*cursor, neda::CURSORLOCATION_START);
-            break;
+        // First see if this is a simple key with no processing
+        char ch = keyCodeToChar(key);
+        if(ch != 0xFF) {
+            // Add the character
+            cursor->add(new neda::Character(ch));
         }
-        case KEY_NTHROOT:
-        {
-            neda::Radical *radical = new neda::Radical(new neda::Container, new neda::Container);
-            cursor->add(radical);
-            radical->getCursor(*cursor, neda::CURSORLOCATION_START);
-            break;
-        }
-        case KEY_SUM:
-        case KEY_PRODUCT:
-        {
-            neda::SigmaPi *sp = new neda::SigmaPi(key == KEY_SUM ? lcd::CHAR_SUMMATION : lcd::CHAR_PRODUCT, new neda::Container(), new neda::Container(), new neda::Container());
-            cursor->add(sp);
-            sp->getCursor(*cursor, neda::CURSORLOCATION_START);
-            break;
-        }
-        case KEY_FRAC:
-        {
-            neda::Fraction *frac;
-            // If there's a token in front of the cursor, enclose that in the fraction
-            char ch;
-            if(cursor->index != 0 && (cursor->expr->contents[cursor->index - 1]->getType() == neda::ObjType::MATRIX 
-                    || (ch = eval::extractChar(cursor->expr->contents[cursor->index - 1]), eval::isDigit(ch) || eval::isNameChar(ch)))) {
-                bool isNum;
-                uint16_t end = eval::findTokenEnd(&cursor->expr->contents, cursor->index - 1, -1, isNum) + 1;
-                uint16_t len = cursor->index - end;
-                
-                // Create a new array with the objects
-                DynamicArray<neda::NEDAObj*> arr(cursor->expr->contents.begin() + end, cursor->expr->contents.begin() + cursor->index);
-                cursor->index = end;
-                // Remove the objects from the original array
-                cursor->expr->contents.removeAt(end, len);
-                frac = new neda::Fraction(new neda::Container(arr), new neda::Container());
-                cursor->add(frac);
-                frac->getCursor(*cursor, neda::CURSORLOCATION_END);
-            }
-            else {
-                frac = new neda::Fraction(new neda::Container(), new neda::Container());
-                cursor->add(frac);
-                frac->getCursor(*cursor, neda::CURSORLOCATION_START);
-            }
-            break;
-        }
-        case KEY_SQUARE:
-        case KEY_CUBE:
-        case KEY_EXPONENT:
-        {
-            neda::Superscript *super = new neda::Superscript(neda::makeString(key == KEY_SQUARE ? "2" : (key == KEY_CUBE ? "3" : "")));
-            cursor->add(super);
-            // Only move the cursor if the exponent box is empty
-            if(key == KEY_EXPONENT) {
-                super->getCursor(*cursor, neda::CURSORLOCATION_START);
-            }
-            break;
-        }
-        case KEY_EXP:
-        {
-            cursor->add(new neda::Character(LCD_CHAR_EULR));
-            neda::Superscript *super = new neda::Superscript(new neda::Container());
-            cursor->add(super);
-            super->getCursor(*cursor, neda::CURSORLOCATION_START);
-            break;
-        }
-        case KEY_LN:
-        {
-            cursor->addStr("ln");
-            cursor->add(new neda::LeftBracket());
-            break;
-        }
-        case KEY_LOG10:
-        {
-            cursor->addStr("log");
-            cursor->add(new neda::LeftBracket());
-            break;
-        }
-        case KEY_LOGN:
-        {
-            cursor->addStr("log");
-            neda::Subscript *sub = new neda::Subscript(new neda::Container());
-            cursor->add(sub);
-            cursor->add(new neda::LeftBracket());
-            sub->getCursor(*cursor, neda::CURSORLOCATION_START);
-            break;
-        }
-        case KEY_ANS:
-        {
-            cursor->addStr("Ans");
-            break;
-        }
-        /* OTHER */
-        case KEY_DELETE:
-        {
-            // Simple case: There is still stuff left before the cursor
-            if(cursor->index != 0) {
-                // Remove the object
-                neda::NEDAObj *obj = cursor->expr->removeAtCursor(*cursor);
-                // Delete the object and break
-                delete obj;
+        else {
+            switch(key) {
+            /* ARROW KEYS */
+            case KEY_LEFT:
+                cursor->left();
+                break;
+            case KEY_RIGHT:
+                cursor->right();
+                break;
+            case KEY_UP:
+                cursor->up();
+                break;
+            case KEY_DOWN:
+                cursor->down();
+                break;
+            /* EXPRESSIONS */
+            case KEY_LBRACKET:
+                cursor->add(new neda::LeftBracket());
+                break;
+            case KEY_RBRACKET:
+                cursor->add(new neda::RightBracket());
+                break;
+            case KEY_ROOT:
+            {
+                neda::Radical *radical = new neda::Radical(new neda::Container, nullptr);
+                cursor->add(radical);
+                radical->getCursor(*cursor, neda::CURSORLOCATION_START);
                 break;
             }
-            // If there are no more characters to delete:
-            // Confirm that the cursor is not in the top-level expression
-            if(cursor->expr != cursor->expr->getTopLevel()) {
-                // First put the cursor in the position before
-                // The container the cursor is in must be inside some other expression, and then inside another container
-                neda::Container *cont = (neda::Container*) cursor->expr->parent->parent;
-                uint16_t index = cont->indexOf(cursor->expr->parent);
-                // Manually change the position of the cursor
-                cursor->expr = cont;
-                cursor->index = index;
-                // Remove and delete the elem
-                neda::NEDAObj *obj = cont->remove(index);
-                delete obj;
+            case KEY_NTHROOT:
+            {
+                neda::Radical *radical = new neda::Radical(new neda::Container, new neda::Container);
+                cursor->add(radical);
+                radical->getCursor(*cursor, neda::CURSORLOCATION_START);
+                break;
             }
-            break;
-        }
-        case KEY_CLEARVAR:
-        {
-            expr::clearAll();
-            break;
-        }
-        // AC clears the expression and all variables
-        // It should also clear all stored results, but that's not handled here.
-        case KEY_ALLCLEAR:
-            expr::clearAll();
-        case KEY_CLEAR:
-        {
-            display.clearDrawing();
-            // Keep pointer of original
-            neda::Expr *original = cursor->expr->getTopLevel();
-            // Create new expression and change cursor location
-            neda::Container *container = new neda::Container;
-            container->getCursor(*cursor, neda::CURSORLOCATION_START);
-            // Make sure the cursor's location is updated
-            container->draw(display, 0, 0);
-            // Delete old
-            delete original;
-            break;
-        }
-        // These two keys compute the result, which is not handled here.
-        case KEY_ENTER:
-        case KEY_APPROX:
-            return;
+            case KEY_SUM:
+            case KEY_PRODUCT:
+            {
+                neda::SigmaPi *sp = new neda::SigmaPi(key == KEY_SUM ? lcd::CHAR_SUMMATION : lcd::CHAR_PRODUCT, new neda::Container(), new neda::Container(), new neda::Container());
+                cursor->add(sp);
+                sp->getCursor(*cursor, neda::CURSORLOCATION_START);
+                break;
+            }
+            case KEY_FRAC:
+            {
+                neda::Fraction *frac;
+                // If there's a token in front of the cursor, enclose that in the fraction
+                char ch;
+                if(cursor->index != 0 && (cursor->expr->contents[cursor->index - 1]->getType() == neda::ObjType::MATRIX 
+                        || (ch = eval::extractChar(cursor->expr->contents[cursor->index - 1]), eval::isDigit(ch) || eval::isNameChar(ch)))) {
+                    bool isNum;
+                    uint16_t end = eval::findTokenEnd(&cursor->expr->contents, cursor->index - 1, -1, isNum) + 1;
+                    uint16_t len = cursor->index - end;
+                    
+                    // Create a new array with the objects
+                    DynamicArray<neda::NEDAObj*> arr(cursor->expr->contents.begin() + end, cursor->expr->contents.begin() + cursor->index);
+                    cursor->index = end;
+                    // Remove the objects from the original array
+                    cursor->expr->contents.removeAt(end, len);
+                    frac = new neda::Fraction(new neda::Container(arr), new neda::Container());
+                    cursor->add(frac);
+                    frac->getCursor(*cursor, neda::CURSORLOCATION_END);
+                }
+                else {
+                    frac = new neda::Fraction(new neda::Container(), new neda::Container());
+                    cursor->add(frac);
+                    frac->getCursor(*cursor, neda::CURSORLOCATION_START);
+                }
+                break;
+            }
+            case KEY_SQUARE:
+            case KEY_CUBE:
+            case KEY_EXPONENT:
+            {
+                neda::Superscript *super = new neda::Superscript(neda::makeString(key == KEY_SQUARE ? "2" : (key == KEY_CUBE ? "3" : "")));
+                cursor->add(super);
+                // Only move the cursor if the exponent box is empty
+                if(key == KEY_EXPONENT) {
+                    super->getCursor(*cursor, neda::CURSORLOCATION_START);
+                }
+                break;
+            }
+            case KEY_EXP:
+            {
+                cursor->add(new neda::Character(LCD_CHAR_EULR));
+                neda::Superscript *super = new neda::Superscript(new neda::Container());
+                cursor->add(super);
+                super->getCursor(*cursor, neda::CURSORLOCATION_START);
+                break;
+            }
+            case KEY_LN:
+            {
+                cursor->addStr("ln");
+                cursor->add(new neda::LeftBracket());
+                break;
+            }
+            case KEY_LOG10:
+            {
+                cursor->addStr("log");
+                cursor->add(new neda::LeftBracket());
+                break;
+            }
+            case KEY_LOGN:
+            {
+                cursor->addStr("log");
+                neda::Subscript *sub = new neda::Subscript(new neda::Container());
+                cursor->add(sub);
+                cursor->add(new neda::LeftBracket());
+                sub->getCursor(*cursor, neda::CURSORLOCATION_START);
+                break;
+            }
+            case KEY_ANS:
+            {
+                cursor->addStr("Ans");
+                break;
+            }
+            /* OTHER */
+            case KEY_DELETE:
+            {
+                // Simple case: There is still stuff left before the cursor
+                if(cursor->index != 0) {
+                    // Remove the object
+                    neda::NEDAObj *obj = cursor->expr->removeAtCursor(*cursor);
+                    // Delete the object and break
+                    delete obj;
+                    break;
+                }
+                // If there are no more characters to delete:
+                // Confirm that the cursor is not in the top-level expression
+                if(cursor->expr != cursor->expr->getTopLevel()) {
+                    // First put the cursor in the position before
+                    // The container the cursor is in must be inside some other expression, and then inside another container
+                    neda::Container *cont = (neda::Container*) cursor->expr->parent->parent;
+                    uint16_t index = cont->indexOf(cursor->expr->parent);
+                    // Manually change the position of the cursor
+                    cursor->expr = cont;
+                    cursor->index = index;
+                    // Remove and delete the elem
+                    neda::NEDAObj *obj = cont->remove(index);
+                    delete obj;
+                }
+                break;
+            }
+            case KEY_CLEARVAR:
+            {
+                expr::clearAll();
+                break;
+            }
+            // AC clears the expression and all variables
+            // It should also clear all stored results, but that's not handled here.
+            case KEY_ALLCLEAR:
+                expr::clearAll();
+            case KEY_CLEAR:
+            {
+                display.clearDrawing();
+                // Keep pointer of original
+                neda::Expr *original = cursor->expr->getTopLevel();
+                // Create new expression and change cursor location
+                neda::Container *container = new neda::Container;
+                container->getCursor(*cursor, neda::CURSORLOCATION_START);
+                // Make sure the cursor's location is updated
+                container->draw(display, 0, 0);
+                // Delete old
+                delete original;
+                break;
+            }
+            // These two keys compute the result, which is not handled here.
+            case KEY_ENTER:
+            case KEY_APPROX:
+                return;
 
-        case KEY_CONST:
-            mode = DisplayMode::CONST_MENU;
-            selectorIndex = 0;
-            drawInterfaceConst();
-            return;
-        case KEY_TRIG:
-            mode = DisplayMode::TRIG_MENU;
-            selectorIndex = 0;
-            drawInterfaceTrig();
-            return;
-        case KEY_CONFIG:
-            mode = DisplayMode::CONFIG_MENU;
-            selectorIndex = 0;
-            drawInterfaceConfig();
-            return;
-        case KEY_CAT:
-            mode = DisplayMode::FUNC_MENU;
-            selectorIndex = 0;
-            drawInterfaceFunc();
-            return;
-        case KEY_RECALL:
-            mode = DisplayMode::RECALL_MENU;
-            selectorIndex = 0;
-            drawInterfaceRecall();
-            return;
-        case KEY_MATRIX:
-            // Set the mode to matrix menu
-            mode = DisplayMode::MATRIX_MENU;
-            matRows = matCols = 1;
-            selectorIndex = 0;
-            // Draw the interface
-            drawInterfaceMatrix();
-            // Return here to skip drawing the normal interface
-            return;
-        case KEY_PIECEWISE:
-            mode = DisplayMode::PIECEWISE_MENU;
-            piecewisePieces = 2;
-            drawInterfacePiecewise();
-            return;
-        case KEY_GFUNCS:
-            mode = DisplayMode::GRAPH_SELECT_MENU;
-            selectorIndex = 0;
-            updateGraphableFunctions();
-            drawInterfaceGraphSelect();
-            return;
-        default: break;
+            case KEY_CONST:
+                mode = DisplayMode::CONST_MENU;
+                selectorIndex = 0;
+                drawInterfaceConst();
+                return;
+            case KEY_TRIG:
+                mode = DisplayMode::TRIG_MENU;
+                selectorIndex = 0;
+                drawInterfaceTrig();
+                return;
+            case KEY_CONFIG:
+                mode = DisplayMode::CONFIG_MENU;
+                selectorIndex = 0;
+                drawInterfaceConfig();
+                return;
+            case KEY_CAT:
+                mode = DisplayMode::FUNC_MENU;
+                selectorIndex = 0;
+                scrollingIndex = 0;
+                drawInterfaceFunc();
+                return;
+            case KEY_RECALL:
+                mode = DisplayMode::RECALL_MENU;
+                selectorIndex = 0;
+                scrollingIndex = 0;
+                drawInterfaceRecall();
+                return;
+            case KEY_MATRIX:
+                // Set the mode to matrix menu
+                mode = DisplayMode::MATRIX_MENU;
+                matRows = matCols = 1;
+                selectorIndex = 0;
+                // Draw the interface
+                drawInterfaceMatrix();
+                // Return here to skip drawing the normal interface
+                return;
+            case KEY_PIECEWISE:
+                mode = DisplayMode::PIECEWISE_MENU;
+                piecewisePieces = 2;
+                drawInterfacePiecewise();
+                return;
+            case KEY_GFUNCS:
+                mode = DisplayMode::GRAPH_SELECT_MENU;
+                selectorIndex = 0;
+                scrollingIndex = 0;
+                updateGraphableFunctions();
+                drawInterfaceGraphSelect();
+                return;
+            case KEY_GSETTINGS:
+                mode = DisplayMode::GRAPH_SETTINGS_MENU;
+                selectorIndex = 0;
+                editOption = false;
+                drawInterfaceGraphSettings();
+                return;
+            default: break;
+            }
         }
 
         // Draw the interface
@@ -778,7 +726,6 @@ namespace expr {
         case KEY_CAT:
         case KEY_DELETE:
             mode = DisplayMode::NORMAL;
-            scrollingIndex = 0;
             drawInterfaceNormal();
             return;
         case KEY_UP:
@@ -810,7 +757,6 @@ namespace expr {
         case KEY_CAT:
         case KEY_DELETE:
             mode = DisplayMode::NORMAL;
-            scrollingIndex = 0;
             drawInterfaceNormal();
             return;
         case KEY_UP:
@@ -991,7 +937,6 @@ namespace expr {
         case KEY_GFUNCS:
         case KEY_DELETE:
             mode = DisplayMode::NORMAL;
-            scrollingIndex = 0;
             drawInterfaceNormal();
             return;
         case KEY_UP:
@@ -1006,8 +951,112 @@ namespace expr {
         drawInterfaceGraphSelect();
     }
 
+    void ExprEntry::graphSettingsKeyPressHandler(uint16_t key) {
+        switch(key) {
+        case KEY_CENTER:
+        case KEY_ENTER:
+            editOption = !editOption;
+            
+            if(editOption) {
+                // Fill the editor with the previous number
+                editorContents.empty();
+                char buf[64];
+                ftoa(graphSettings[selectorIndex], buf, 16, LCD_CHAR_EE);
+                
+                for(uint8_t i = 0; buf[i] != '\0'; i ++) {
+                    editorContents.add(buf[i]);
+                }
+                // Null termination
+                editorContents.add('\0');
+                // Put cursor at the end
+                // -1 for null terminator
+                cursorIndex = editorContents.length() - 1;
+            }
+            else {
+                // Before calling atof, replace LCD_CHAR_EE with the e character so that scientific notation is valid
+                for(char &ch : editorContents) {
+                    if(ch == LCD_CHAR_EE) {
+                        ch = 'e';
+                    }
+                }
+                // Convert to double
+                // There is no check for whether the input is valid (I'm lazy)
+                // If the input is invalid, atof will just return 0
+                // The user will see that the input was wrong and change it (hopefully)
+                graphSettings[selectorIndex] = atof(editorContents.asArray());
+            }
+            break;
+        case KEY_DELETE:
+            // If editing, this deletes a character
+            if(editOption) {
+                if(cursorIndex != 0) {
+                    // Remove the character in front of the cursor
+                    editorContents.removeAt(cursorIndex - 1);
+                    --cursorIndex;
+                }
+                break;
+            }
+            // Otherwise, intentionally fall-through to the next case which exits
+        case KEY_GSETTINGS:
+            // No exiting when editing an expression
+            if(!editOption) {
+                mode = DisplayMode::NORMAL;
+                drawInterfaceNormal();
+                return;
+            }
+            break;
+        case KEY_UP:
+            if(!editOption) {
+                if(selectorIndex > 0) {
+                    --selectorIndex;
+                }
+                else {
+                    selectorIndex = 5;
+                }
+            }
+            break;
+        case KEY_DOWN:
+            if(!editOption) {
+                if(selectorIndex < 5) {
+                    ++selectorIndex;
+                }
+                else {
+                    selectorIndex = 0;
+                }
+            }
+            break;
+        case KEY_LEFT:
+            if(editOption) {
+                if(cursorIndex) {
+                    --cursorIndex;
+                }
+            }
+            break;
+        case KEY_RIGHT:
+            if(editOption) {
+                // -1 for null terminator
+                if(cursorIndex < editorContents.length() - 1) {
+                    ++cursorIndex;
+                }
+            }
+            break;
+        
+        default: 
+        {   
+            // Try to translate the key to a character
+            char ch = keyCodeToChar(key);
+            if(ch != 0xFF) {
+                editorContents.insert(ch, cursorIndex);
+                cursorIndex ++;
+            }
+        }
+            break;
+        }
+        drawInterfaceGraphSettings();
+    }
 
-    void ExprEntry::drawInterfaceNormal() {
+
+    void ExprEntry::drawInterfaceNormal(bool drawCursor) {
         // Call draw once before everything so that the locations are all updated
         neda::Expr *top = cursor->expr->getTopLevel();
         top->draw(display);
@@ -1017,7 +1066,9 @@ namespace expr {
         display.clearDrawingBuffer();
         // Draw everything
         top->draw(display);
-        cursor->draw(display);
+        if(drawCursor) {
+            cursor->draw(display);
+        }
         display.updateDrawing();
     }
     
@@ -1152,6 +1203,62 @@ namespace expr {
             uint16_t scrollbarHeight = 6 * 64 / graphableFunctions.length();
             display.fill(128 - FUNC_SCROLLBAR_WIDTH, scrollbarLocation, FUNC_SCROLLBAR_WIDTH, scrollbarHeight);
         }
+        display.updateDrawing();
+    }
+
+    // Names of graph settings
+    const char * const graphSettingNames[] = {
+        "Min X:", "Max X:", "X Scale:", "Min Y:", "Max Y:", "Y Scale:"
+    };
+    void ExprEntry::drawInterfaceGraphSettings(bool drawCursor) {
+        display.clearDrawingBuffer();
+
+        uint16_t y = VERT_MARGIN;
+        for(uint8_t i = 0; i < 6; i ++) {
+            // Draw the name of the option
+            display.drawString(HORIZ_MARGIN, y, graphSettingNames[i]);
+
+            if(!editOption) {
+                // If not editing an option, draw the value normally
+                char buf[64];
+                ftoa(graphSettings[i], buf, 16, LCD_CHAR_EE);
+
+                display.drawString(HORIZ_MARGIN + 50, y, buf, selectorIndex == i);
+            }
+            else {
+                // If this value is not being edited, draw it normally
+                if(i != selectorIndex) {
+                    char buf[64];
+                    ftoa(graphSettings[i], buf, 16, LCD_CHAR_EE);
+
+                    display.drawString(HORIZ_MARGIN + 50, y, buf);
+                }
+                // Otherwise draw the editing stuff
+                else {
+                    // Draw the contents
+                    display.drawString(HORIZ_MARGIN + 50, y, editorContents.asArray());
+                    // Draw the cursor if told to
+                    if(drawCursor) {
+                        // To figure out the position, replace the character at the cursor with a null terminator
+                        // and then call getDrawnStringWidth
+                        char temp = editorContents[cursorIndex];
+                        editorContents[cursorIndex] = '\0';
+                        uint16_t strWidth = lcd::LCD12864::getDrawnStringWidth(editorContents.asArray());
+                        editorContents[cursorIndex] = temp;
+
+                        uint16_t cursorX = HORIZ_MARGIN + 50 + strWidth;
+                        // Take the empty expression height as the height for the cursor
+                        for(uint16_t i = 0; i < neda::Container::EMPTY_EXPR_HEIGHT; i ++) {
+                            display.setPixel(cursorX, y + i, true);
+                            display.setPixel(cursorX + 1, y + i, true);
+                        }
+                    }
+                }
+            }
+
+            y += 10;
+        }
+
         display.updateDrawing();
     }
 
