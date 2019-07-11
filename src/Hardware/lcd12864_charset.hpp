@@ -85,6 +85,41 @@
 // The character for the division sign.
 #define LCD_CHAR_DIV '\x1f'
 
+// Verify that plain char is unsigned
+// This must be true for the small charset to work
+#include <limits.h>
+#if CHAR_MIN < 0
+    #error "Plain char must be unsigned!"
+#endif
+
+// The lower bound of the small charset (inclusive)
+#define LCD_SMALL_CHARSET_LOWBOUND 0x80
+// The upper bound of the small charset (inclusive)
+#define LCD_SMALL_CHARSET_HIGHBOUND 0x8d
+
+// The lower bound of the small charset's numbers (inclusive)
+#define LCD_SMALL_CHARSET_NUMBER_LOWBOUND 0x80
+// The upper bound of the small charset's numbers (inclusive)
+#define LCD_SMALL_CHARSET_NUMBER_HIGHBOUND 0x89
+
+// The dot (.) character in the small charset, in a string.
+#define LCD_SMALL_STR_DOT "\x8a"
+// The x character in the small charset, in a string.
+#define LCD_SMALL_STR_X "\x8b"
+// The y character in the small charset, in a string.
+#define LCD_SMALL_STR_Y "\x8c"
+// The equals character (=) in the small charset, in a string.
+#define LCD_SMALL_STR_EQL "\x8d"
+
+// The dot (.) character in the small charset.
+#define LCD_SMALL_CHAR_DOT '\x8a'
+// The x character in the small charset.
+#define LCD_SMALL_CHAR_X '\x8b'
+// The y character in the small charset.
+#define LCD_SMALL_CHAR_Y '\x8c'
+// The equals character (=) in the small charset.
+#define LCD_SMALL_CHAR_EQL '\x8d'
+
 namespace lcd {
 
     // Space ( )
@@ -341,6 +376,40 @@ namespace lcd {
 	
 	uint8_t asciiToIndex(char);
 	const Image& getChar(char);
+
+    /* SMALL CHARSET */
+    // 0
+    extern const Image CHAR_SMALL_0;
+    // 1
+    extern const Image CHAR_SMALL_1;
+    // 2
+    extern const Image CHAR_SMALL_2;
+    // 3
+    extern const Image CHAR_SMALL_3;
+    // 4
+    extern const Image CHAR_SMALL_4;
+    // 5
+    extern const Image CHAR_SMALL_5;
+    // 6
+    extern const Image CHAR_SMALL_6;
+    // 7
+    extern const Image CHAR_SMALL_7;
+    // 8
+    extern const Image CHAR_SMALL_8;
+    // 9
+    extern const Image CHAR_SMALL_9;
+    // Dot (.)
+    extern const Image CHAR_SMALL_DOT;
+    // X
+    extern const Image CHAR_SMALL_X;
+    // Y
+    extern const Image CHAR_SMALL_Y;
+    // Equals sign (=)
+    extern const Image CHAR_SMALL_EQL;
+
+    extern const Image * const CHAR_SMALL[];
+
+    const Image& getSmallNumber(uint8_t);
 }
 
 #endif

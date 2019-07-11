@@ -1387,5 +1387,119 @@ namespace lcd {
 		0xf3, 0xc0,
 	};
 	const Image CHAR_PRODUCT(CHAR_PRODUCT_DATA, 2, 10, 15);
-	
+
+    /* Small Charset */
+    const uint8_t CHAR_SMALL_0_DATA[] = {
+        0x40, // 01000000
+        0xa0, // 10100000
+        0xa0, // 10100000
+        0xa0, // 10100000
+        0x40, // 01000000
+    };
+    const Image CHAR_SMALL_0(CHAR_SMALL_0_DATA, 1, 3, 5);
+        const uint8_t CHAR_SMALL_1_DATA[] = {
+        0x40, // 01000000
+        0xc0, // 11000000
+        0x40, // 01000000
+        0x40, // 01000000
+        0xe0, // 11100000
+    };
+    const Image CHAR_SMALL_1(CHAR_SMALL_1_DATA, 1, 3, 5);
+    const uint8_t CHAR_SMALL_2_DATA[] = {
+        0xc0, // 11000000
+        0x20, // 00100000
+        0x40, // 01000000
+        0x80, // 10000000
+        0xe0, // 11100000
+    };
+    const Image CHAR_SMALL_2(CHAR_SMALL_2_DATA, 1, 3, 5);
+    const uint8_t CHAR_SMALL_3_DATA[] = {
+        0xc0, // 11000000
+        0x20, // 00100000
+        0x40, // 01000000
+        0x20, // 00100000
+        0xc0, // 11000000
+    };
+    const Image CHAR_SMALL_3(CHAR_SMALL_3_DATA, 1, 3, 5);
+        const uint8_t CHAR_SMALL_4_DATA[] = {
+        0xa0, // 10100000
+        0xa0, // 10100000
+        0xe0, // 11100000
+        0x20, // 00100000
+        0x20, // 00100000
+    };
+    const Image CHAR_SMALL_4(CHAR_SMALL_4_DATA, 1, 3, 5);
+        const uint8_t CHAR_SMALL_5_DATA[] = {
+        0xe0, // 11100000
+        0x80, // 10000000
+        0xc0, // 11000000
+        0x20, // 00100000
+        0xc0, // 11000000
+    };
+    const Image CHAR_SMALL_5(CHAR_SMALL_5_DATA, 1, 3, 5);
+    const uint8_t CHAR_SMALL_6_DATA[] = {
+		0x60, // 01100000
+		0x80, // 10000000
+		0xe0, // 11100000
+		0xa0, // 10100000
+		0xe0, // 11100000
+	};
+	const Image CHAR_SMALL_6(CHAR_SMALL_6_DATA, 1, 3, 5);
+    const uint8_t CHAR_SMALL_7_DATA[] = {
+		0xe0, // 11100000
+		0x20, // 00100000
+		0x40, // 01000000
+		0x40, // 01000000
+		0x40, // 01000000
+	};
+	const Image CHAR_SMALL_7(CHAR_SMALL_7_DATA, 1, 3, 5);
+    const uint8_t CHAR_SMALL_8_DATA[] = {
+		0xe0, // 11100000
+		0xa0, // 10100000
+		0xe0, // 11100000
+		0xa0, // 10100000
+		0xe0, // 11100000
+	};
+	const Image CHAR_SMALL_8(CHAR_SMALL_8_DATA, 1, 3, 5);
+    const uint8_t CHAR_SMALL_9_DATA[] = {
+		0xe0, // 11100000
+		0xa0, // 10100000
+		0xe0, // 11100000
+		0x20, // 00100000
+		0xc0, // 11000000
+	};
+	const Image CHAR_SMALL_9(CHAR_SMALL_9_DATA, 1, 3, 5);
+    const uint8_t CHAR_SMALL_DOT_DATA[] = {
+		0x00, // 00000000
+		0x00, // 00000000
+		0x00, // 00000000
+		0x00, // 00000000
+		0x80, // 10000000
+	};
+	const Image CHAR_SMALL_DOT(CHAR_SMALL_DOT_DATA, 1, 1, 5);
+    const uint8_t CHAR_SMALL_X_DATA[] = {
+		0xa0, // 10100000
+		0xa0, // 10100000
+		0x40, // 01000000
+		0xa0, // 10100000
+		0xa0, // 10100000
+	};
+	const Image CHAR_SMALL_X(CHAR_SMALL_X_DATA, 1, 3, 5);
+    const uint8_t CHAR_SMALL_Y_DATA[] = {
+		0xa0, // 10100000
+		0xa0, // 10100000
+		0x40, // 01000000
+		0x40, // 01000000
+		0x40, // 01000000
+	};
+	const Image CHAR_SMALL_Y(CHAR_SMALL_Y_DATA, 1, 3, 5);
+    const uint8_t CHAR_SMALL_EQL_DATA[] = {
+		0x00, // 00000000
+		0xe0, // 11100000
+		0x00, // 00000000
+		0xe0, // 11100000
+		0x00, // 00000000
+	};
+	const Image CHAR_SMALL_EQL(CHAR_SMALL_EQL_DATA, 1, 3, 5);
+
 } // namespace lcd
