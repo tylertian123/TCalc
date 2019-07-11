@@ -28,7 +28,7 @@ namespace lcd {
         // Draws an image
         void drawImage(int16_t, int16_t, const Image&, bool invert = false);
         // Draws a line
-		void drawLine(int16_t, int16_t, int16_t, int16_t);
+		void drawLine(int16_t, int16_t, int16_t, int16_t, bool invert = false);
         // Draws a string
 		void drawString(int16_t, int16_t, const char*, bool invert = false);
         // Fills an area
@@ -37,6 +37,8 @@ namespace lcd {
         static uint16_t getDrawnStringWidth(const char*);
     
     protected:
+        void drawLineHigh(int16_t, int16_t, int16_t, int16_t, bool invert = false);
+        void drawLineLow(int16_t, int16_t, int16_t, int16_t, bool invert = false);
 
         uint8_t buf[64][16] = { 0 };
     };

@@ -1,4 +1,5 @@
 #include "drawbuf.hpp"
+#include "lcd12864_charset.hpp"
 #include "util.hpp"
 #include <string.h>
 
@@ -101,5 +102,206 @@ namespace lcd {
 		}
     }
 
-    
+    // Bresenham's Line Algorithm
+    // Split into two cases: when the slope is 1 or less, and when the slope is greater than 1
+	void DrawBuf::drawLineLow(int16_t x1, int16_t y1, int16_t x2, int16_t y2, bool invert) {
+		bool flip = y2 < y1;
+		if (flip) {
+			y2 = y1 + (y1 - y2);
+		}
+		setPixel(x1, y1, !invert);
+		int16_t dx = x2 - x1;
+		int16_t dy = y2 - y1;
+		int16_t dy2 = 2 * dy;
+		int16_t dydx2 = dy2 - 2 * dx;
+
+		int16_t p = dy2 - dx;
+		int16_t y = y1;
+		for (int16_t x = x1 + 1; x <= x2; x++) {
+			if (p < 0) {
+				setPixel(x, y, !invert);
+				p += dy2;
+			}
+			else {
+				setPixel(x, flip ? --y : ++y, !invert);
+				p += dydx2;
+			}
+
+		}
+	}
+
+	void DrawBuf::drawLineHigh(int16_t x1, int16_t y1, int16_t x2, int16_t y2, bool invert) {
+		int16_t temp = x1;
+		x1 = y1;
+		y1 = temp;
+		temp = x2;
+		x2 = y2;
+		y2 = temp;
+
+		bool flip = y2 < y1;
+		if (flip) {
+			y2 = y1 + (y1 - y2);
+		}
+
+		setPixel(y1, x1, !invert);
+		int16_t dx = x2 - x1;
+		int16_t dy = y2 - y1;
+		int16_t dy2 = 2 * dy;
+		int16_t dydx2 = dy2 - 2 * dx;
+
+		int16_t p = dy2 - dx;
+		int16_t y = y1;
+		for (int16_t x = x1 + 1; x <= x2; x++) {
+			if (p < 0) {
+				setPixel(y, x, !invert);
+				p += dy2;
+			}
+			else {
+				setPixel(flip ? y -- : y++, x, !invert);
+				p += dydx2;
+			}
+
+		}
+	}
+
+    void DrawBuf::drawLine(int16_t x1, int16_t y1, int16_t x2, int16_t y2, bool invert) {
+		if (abs(y2 - y1) <= abs(x2 - x1)) {
+			if (x2 > x1) {
+				drawLineLow(x1, y1, x2, y2, invert);
+			}
+			else {
+				drawLineLow(x2, y2, x1, y1, invert);
+			}
+		}
+		else {
+			if (y2 > y1) {
+				drawLineHigh(x1, y1, x2, y2, invert);
+			}
+			else {
+				drawLineHigh(x2, y2, x1, y1, invert);
+			}
+		}
+	}
+
+    void DrawBuf::drawString(int16_t x, int16_t y, const char *str, bool invert) {
+        // Empty string
+		if(*str == '\0') {
+			return;
+		}
+		uint16_t width = 0;
+		uint16_t height = 0;
+		for(uint16_t index = 0; str[index] != '\0'; ++index) {
+			const Image &img = getChar(str[index]);
+			width += img.width + 1;
+			height = max(height, img.height);
+		}
+		// Subtract away one extra spacing
+		--width;
+
+		if(invert) {
+			// Fill the zone
+			fill(x - 1, y - 1, width + 2, height + 2);
+		}
+
+		for(; *str != '\0'; ++str) {
+			// Out of bounds check #1
+			if(x >= 128 || y >= 64) {
+				continue;
+			}
+			const Image &img = getChar(*str);
+			// Out of bounds check #2
+			if(x + img.width < 0 || y + img.height < 0) {
+				continue;
+			}
+			// Make sure everything is bottom-aligned
+			drawImage(x, y + (height - img.height), img, invert);
+			x += img.width + 1;
+		}
+    }
+
+    uint16_t DrawBuf::getDrawnStringWidth(const char *str) {
+        // Empty string
+		if(*str == '\0') {
+			return 0;
+		}
+		uint16_t width = 0;
+		for(uint16_t index = 0; str[index] != '\0'; ++index) {
+			const Image &img = getChar(str[index]);
+			width += img.width + 1;
+		}
+		// Subtract away one extra spacing
+		--width;
+        return width;
+    }
+
+    void DrawBuf::fill(int16_t x, int16_t y, uint16_t width, uint16_t height, bool invert) {
+        // Check for out of bounds
+		if(x >= 128 || y >= 64) {
+			return;
+		}
+		if(x + width < 0 || y + height < 0) {
+			return;
+		}
+
+		int16_t baseByte = floorDiv(x, static_cast<int16_t>(8));
+		int8_t offset = positiveMod(x, static_cast<int16_t>(8));
+		// Special handling if the area to fill is all in one byte
+		if(offset + width < 8) {
+			// Check for out of bounds
+			if(baseByte < 0) {
+				return;
+			}
+			// Find out what the byte looks like
+			uint8_t data = 0xFF >> offset;
+			data &= 0xFF << (8 - offset - width);
+			for(uint16_t row = 0; row < height; row ++) {
+				if(y + row < 0) {
+					continue;
+				}
+				if(invert) {
+                    buf[y + row][baseByte] &= ~data;
+				}
+				else {
+					buf[y + row][baseByte] |= data;
+				}
+			}
+		}
+        else {
+            // Otherwise split into 3 parts, the first byte, the last byte and everything in between
+            uint8_t start = 0xFF >> offset;
+            // (offset + width) % 8 calculates how many bits are in the last byte
+            // Then we shift 0xFF left by 8 minus those bits to get the last byte
+            uint8_t end = 0xFF << (8 - (width + offset) % 8);
+            // Calculate how many whole bytes there are
+            uint8_t bytesWide = (offset + width) / 8 - 1;
+            for(uint16_t row = 0; row < height; row ++) {
+                if(y + row < 0) {
+                    continue;
+                }
+                // First part
+                if(invert) {
+                    buf[y + row][baseByte] &= ~start;
+                }
+                else {
+                    buf[y + row][baseByte] |= start;
+                }
+                // Middle bytes
+                for(uint16_t col = 0; col < bytesWide; col ++) {
+                    if(invert) {
+                        buf[y + row][baseByte + 1 + col] = 0x00;
+                    }
+                    else {
+                        buf[y + row][baseByte + 1 + col] = 0xFF;
+                    }
+                }
+                // Last part
+                if(invert) {
+                    buf[y + row][baseByte + 1 + bytesWide] = ~end;
+                }
+                else {
+                    buf[y + row][baseByte + 1 + bytesWide] = end;
+                }
+            }
+        }
+    }
 }
