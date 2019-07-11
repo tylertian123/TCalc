@@ -85,6 +85,8 @@ namespace expr {
         void redrawGraph();
         
     protected:
+        DisplayMode prevMode = DisplayMode::NORMAL;
+
         // Converts a key code to a character.
         // If there is no corresponding character, 0xFF is returned.
         static char keyCodeToChar(uint16_t key);

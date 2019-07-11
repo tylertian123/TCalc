@@ -548,27 +548,32 @@ namespace expr {
 
             case KEY_CONST:
                 mode = DisplayMode::CONST_MENU;
+                prevMode = DisplayMode::NORMAL;
                 selectorIndex = 0;
                 drawInterfaceConst();
                 return;
             case KEY_TRIG:
                 mode = DisplayMode::TRIG_MENU;
+                prevMode = DisplayMode::NORMAL;
                 selectorIndex = 0;
                 drawInterfaceTrig();
                 return;
             case KEY_CONFIG:
                 mode = DisplayMode::CONFIG_MENU;
+                prevMode = DisplayMode::NORMAL;
                 selectorIndex = 0;
                 drawInterfaceConfig();
                 return;
             case KEY_CAT:
                 mode = DisplayMode::FUNC_MENU;
+                prevMode = DisplayMode::NORMAL;
                 selectorIndex = 0;
                 scrollingIndex = 0;
                 drawInterfaceFunc();
                 return;
             case KEY_RECALL:
                 mode = DisplayMode::RECALL_MENU;
+                prevMode = DisplayMode::NORMAL;
                 selectorIndex = 0;
                 scrollingIndex = 0;
                 drawInterfaceRecall();
@@ -576,6 +581,7 @@ namespace expr {
             case KEY_MATRIX:
                 // Set the mode to matrix menu
                 mode = DisplayMode::MATRIX_MENU;
+                prevMode = DisplayMode::NORMAL;
                 matRows = matCols = 1;
                 selectorIndex = 0;
                 // Draw the interface
@@ -584,11 +590,13 @@ namespace expr {
                 return;
             case KEY_PIECEWISE:
                 mode = DisplayMode::PIECEWISE_MENU;
+                prevMode = DisplayMode::NORMAL;
                 piecewisePieces = 2;
                 drawInterfacePiecewise();
                 return;
             case KEY_GFUNCS:
                 mode = DisplayMode::GRAPH_SELECT_MENU;
+                prevMode = DisplayMode::NORMAL;
                 selectorIndex = 0;
                 scrollingIndex = 0;
                 updateGraphableFunctions();
@@ -596,12 +604,14 @@ namespace expr {
                 return;
             case KEY_GSETTINGS:
                 mode = DisplayMode::GRAPH_SETTINGS_MENU;
+                prevMode = DisplayMode::NORMAL;
                 selectorIndex = 0;
                 editOption = false;
                 drawInterfaceGraphSettings();
                 return;
             case KEY_GRAPH:
                 mode = DisplayMode::GRAPH_VIEWER;
+                prevMode = DisplayMode::NORMAL;
                 // Before we draw the graph, first update the list of graphable functions
                 // This is so that if any of the graphable functions get deleted, they would not be graphed
                 updateGraphableFunctions();
@@ -636,7 +646,7 @@ namespace expr {
         // Trig key or delete is to go back
         case KEY_TRIG:
         case KEY_DELETE:
-            mode = DisplayMode::NORMAL;
+            mode = prevMode;
             drawInterfaceNormal();
             return;
         case KEY_UP:
@@ -682,7 +692,7 @@ namespace expr {
             // Intentional fall-through
         case KEY_CONST:
         case KEY_DELETE:
-            mode = DisplayMode::NORMAL;
+            mode = prevMode;
             drawInterfaceNormal();
             return;
         case KEY_UP:
@@ -735,7 +745,7 @@ namespace expr {
         // Intentional fall-through
         case KEY_CAT:
         case KEY_DELETE:
-            mode = DisplayMode::NORMAL;
+            mode = prevMode;
             drawInterfaceNormal();
             return;
         case KEY_UP:
@@ -766,7 +776,7 @@ namespace expr {
         case KEY_RECALL:
         case KEY_CAT:
         case KEY_DELETE:
-            mode = DisplayMode::NORMAL;
+            mode = prevMode;
             drawInterfaceNormal();
             return;
         case KEY_UP:
@@ -787,7 +797,7 @@ namespace expr {
         case KEY_ENTER:
         case KEY_CONFIG:
         case KEY_DELETE:
-            mode = DisplayMode::NORMAL;
+            mode = prevMode;
             drawInterfaceNormal();
             return;
         case KEY_LEFT:
@@ -839,7 +849,7 @@ namespace expr {
         // Intentional fall-through
         case KEY_MATRIX:
         case KEY_DELETE:
-            mode = DisplayMode::NORMAL;
+            mode = prevMode;
             drawInterfaceNormal();
             return;
         case KEY_LEFT:
@@ -892,7 +902,7 @@ namespace expr {
         }
         case KEY_PIECEWISE:
         case KEY_DELETE:
-            mode = DisplayMode::NORMAL;
+            mode = prevMode;
             drawInterfaceNormal();
             return;
         case KEY_UP:
@@ -946,8 +956,15 @@ namespace expr {
         case KEY_ENTER:
         case KEY_GFUNCS:
         case KEY_DELETE:
-            mode = DisplayMode::NORMAL;
-            drawInterfaceNormal();
+            mode = prevMode;
+            if(prevMode == DisplayMode::GRAPH_VIEWER) {
+                prevMode = DisplayMode::NORMAL;
+                redrawGraph();
+                drawInterfaceGraphViewer();
+            }
+            else {
+                drawInterfaceNormal();
+            }
             return;
         case KEY_UP:
             scrollUp(graphableFunctions.length());
@@ -1046,8 +1063,15 @@ toggleEditOption:
         case KEY_GSETTINGS:
             // No exiting when editing an expression
             if(!editOption) {
-                mode = DisplayMode::NORMAL;
-                drawInterfaceNormal();
+                mode = prevMode;
+                if(prevMode == DisplayMode::GRAPH_VIEWER) {
+                    prevMode = DisplayMode::NORMAL;
+                    redrawGraph();
+                    drawInterfaceGraphViewer();
+                }
+                else {
+                    drawInterfaceNormal();
+                }
                 return;
             }
             break;
@@ -1114,8 +1138,23 @@ toggleEditOption:
         
         case KEY_DELETE:
         case KEY_GRAPH:
-            mode = DisplayMode::NORMAL;
+            mode = prevMode;
             drawInterfaceNormal();
+            return;
+        case KEY_GSETTINGS:
+            selectorIndex = 0;
+            editOption = false;
+            mode = DisplayMode::GRAPH_SETTINGS_MENU;
+            prevMode = DisplayMode::GRAPH_VIEWER;
+            drawInterfaceGraphSettings();
+            return;
+        case KEY_GFUNCS:
+            selectorIndex = 0;
+            scrollingIndex = 0;
+            mode = DisplayMode::GRAPH_SELECT_MENU;
+            prevMode = DisplayMode::GRAPH_VIEWER;
+            drawInterfaceGraphSelect();
+            return;
         default:
             break;
         }
