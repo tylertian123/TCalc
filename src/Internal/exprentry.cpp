@@ -1291,7 +1291,7 @@ namespace expr {
         x -= xMin;
         // Now scale
         // A region xMax - xMin units wide is mapped to the screen width
-        x *= lcd::SIZE_WIDTH / (xMax - xMin);
+        x *= (lcd::SIZE_WIDTH - 1) / (xMax - xMin);
         // Round x
         x = round(x);
         // Verify that x is in bounds
@@ -1309,7 +1309,7 @@ namespace expr {
         // Same logic as mapX
         // However, since the LCD's coordinate system has an inverted y axis, swap yMin and yMax
         y -= yMax;
-        y *= lcd::SIZE_HEIGHT / (yMin - yMax);
+        y *= (lcd::SIZE_HEIGHT - 1) / (yMin - yMax);
         y = round(y);
 
         if(y > INT16_MAX) {
@@ -1324,13 +1324,13 @@ namespace expr {
 
     double ExprEntry::unmapX(int16_t x) {
         // Undo the steps of mapX
-        double realX = x * (xMax - xMin) / lcd::SIZE_WIDTH;
+        double realX = x * (xMax - xMin) / (lcd::SIZE_WIDTH - 1);
         realX += xMin;
         return realX;
     }
 
     double ExprEntry::unmapY(int16_t y) {
-        double realY = y * (yMin - yMax) / lcd::SIZE_HEIGHT;
+        double realY = y * (yMin - yMax) / (lcd::SIZE_HEIGHT - 1);
         realY += yMax;
         return realY;
     }
@@ -1376,12 +1376,20 @@ namespace expr {
         eval::Number arg(0);
         vVals[0] = &arg;
 
+        // The y value of the previous pixel (in the LCD's coordinate system)
+        int16_t prevY = 0;
+        // Whether or not the previous pixel was valid
+        // If this is true the two pixels will be connected
+        bool prevValid = false;
+
         for(GraphableFunction gfunc : graphableFunctions) {
             if(gfunc.graph) {
                 const eval::UserDefinedFunction &func = *gfunc.func;
 
                 // Evaluate for each x coordinate
-                for(int16_t dispX = 0; dispX < lcd::SIZE_WIDTH; dispX ++) {
+                // We intentially also include the pixel at x = 128, which is out of bounds
+                // This is so that if it needs to be connected to the previous pixel, the connection is drawn
+                for(int16_t dispX = 0; dispX <= lcd::SIZE_WIDTH; dispX ++) {
                     // Get the x value in real coordinate space
                     double x = unmapX(dispX);
                     // Set the value of the argument
@@ -1396,6 +1404,26 @@ namespace expr {
                         int16_t y = mapY(result);
                         // Set the pixel
                         graphBuf.setPixel(dispX, y);
+
+                        // Connect the two pixels only if needed
+                        if(prevValid && abs(prevY - y) > 1) {
+                            if(y - prevY > 0) {
+                                for(int16_t py = prevY + 1; py < y; py ++) {
+                                    graphBuf.setPixel(dispX - 1, py);
+                                }
+                            }
+                            else {
+                                for(int16_t py = prevY - 1; py > y; py --) {
+                                    graphBuf.setPixel(dispX - 1, py);
+                                }
+                            }
+                        }
+
+                        prevY = y;
+                        prevValid = true;
+                    }
+                    else {
+                        prevValid = false;
                     }
                     delete t;
                 }
