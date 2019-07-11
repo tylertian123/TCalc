@@ -28,7 +28,7 @@ namespace neda {
 	uint16_t Character::getHeight() const {
 		return lcd::getChar(ch).height;
 	}
-    const lcd::LCD12864Image& Character::getCharData() const {
+    const lcd::Image& Character::getCharData() const {
         return lcd::getChar(ch);
     }
 	Character* Character::copy() {

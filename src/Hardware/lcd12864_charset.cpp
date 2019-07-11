@@ -1,7 +1,7 @@
 #include "lcd12864_charset.hpp"
 
 namespace lcd {
-	const Img * const CHAR_ASCII[] = {
+	const Image * const CHAR_ASCII[] = {
         &CHAR_ECB,
         &CHAR_CCB,
         &CHAR_LEQ,
@@ -125,7 +125,7 @@ namespace lcd {
 		// Otherwise subtract the offset
 		return c - LCD_CHARSET_LOWBOUND;
 	}
-	const Img& getChar(char c) {
+	const Image& getChar(char c) {
 		return *CHAR_ASCII[asciiToIndex(c)];
 	}
 }

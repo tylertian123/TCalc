@@ -199,18 +199,18 @@ namespace lcd {
 		drawBuf[row][col] &= x % 2 == 0 ? data << 8 | 0x00FF : data | 0xFF00;
 	}
 	
-	void LCD12864::drawImage(int16_t x, int16_t y, const LCD12864Image &img, bool invert) {
+	void LCD12864::drawImage(int16_t x, int16_t y, const Image &Image, bool invert) {
 		// Check for out of bounds
 		if(x >= 128 || y >= 64) {
 			return;
 		}
-		if(x + img.width < 0 || y + img.height < 0) {
+		if(x + Image.width < 0 || y + Image.height < 0) {
 			return;
 		}
 
 		int16_t baseByte = floorDiv(x, static_cast<int16_t>(8));
 		int8_t offset = positiveMod(x, static_cast<int16_t>(8));
-		for(int16_t row = 0; row < img.height; row ++) {
+		for(int16_t row = 0; row < Image.height; row ++) {
 			// If the byte we're drawing into is out of bounds vertically then break this outer loop
 			if(row + y >= 64) {
 				break;
@@ -219,7 +219,7 @@ namespace lcd {
 			if(row + y < 0) {
 				continue;
 			}
-			for(int16_t byte = 0; byte < img.bytesWide; byte ++) {
+			for(int16_t byte = 0; byte < Image.bytesWide; byte ++) {
 				// If the byte we're drawing into is out of bounds horizontally then break this inner loop
 				if(baseByte + byte >= 16) {
 					break;
@@ -230,7 +230,7 @@ namespace lcd {
 				}
 				
 				// The bytes have to be shifted
-				uint8_t currentByte = img.data[row * img.bytesWide + byte] >> offset;
+				uint8_t currentByte = Image.data[row * Image.bytesWide + byte] >> offset;
 				/*
 				 * If this byte isn't the first byte, then add the truncated parts of the previous byte to it
 				 * Ex. 1111 1010, 1100 0000 right shifted 2:
@@ -244,7 +244,7 @@ namespace lcd {
 				 */
 				
 				if(byte != 0) {
-					currentByte |= img.data[row * img.bytesWide + byte - 1] << (8 - offset);
+					currentByte |= Image.data[row * Image.bytesWide + byte - 1] << (8 - offset);
 				}
 				
 				if(!invert) {
@@ -257,12 +257,12 @@ namespace lcd {
 			// Finally, if we shifted by more than one bit, then there must be some bits clipped in the end
 			// Here we recover those lost bits and write them to the buffer
 			if(offset != 0) {
-				uint8_t finalByte = img.data[row * img.bytesWide + img.bytesWide - 1] << (8 - offset);
+				uint8_t finalByte = Image.data[row * Image.bytesWide + Image.bytesWide - 1] << (8 - offset);
 				if(!invert) {
-					ORDrawBufferByte(baseByte + img.bytesWide, row + y, finalByte);
+					ORDrawBufferByte(baseByte + Image.bytesWide, row + y, finalByte);
 				}
 				else {
-					ANDDrawBufferByte(baseByte + img.bytesWide, row + y, ~finalByte);
+					ANDDrawBufferByte(baseByte + Image.bytesWide, row + y, ~finalByte);
 				}
 			}
 		}
@@ -354,9 +354,9 @@ namespace lcd {
 		uint16_t width = 0;
 		uint16_t height = 0;
 		for(uint16_t index = 0; str[index] != '\0'; ++index) {
-			const lcd::Img &img = lcd::getChar(str[index]);
-			width += img.width + 1;
-			height = max(height, img.height);
+			const lcd::Image &Image = lcd::getChar(str[index]);
+			width += Image.width + 1;
+			height = max(height, Image.height);
 		}
 		// Subtract away one extra spacing
 		--width;
@@ -371,14 +371,14 @@ namespace lcd {
 			if(x >= 128 || y >= 64) {
 				continue;
 			}
-			const lcd::Img &img = lcd::getChar(*str);
+			const lcd::Image &Image = lcd::getChar(*str);
 			// Out of bounds check #2
-			if(x + img.width < 0 || y + img.height < 0) {
+			if(x + Image.width < 0 || y + Image.height < 0) {
 				continue;
 			}
 			// Make sure everything is bottom-aligned
-			drawImage(x, y + (height - img.height), img, invert);
-			x += img.width + 1;
+			drawImage(x, y + (height - Image.height), Image, invert);
+			x += Image.width + 1;
 		}
 	}
 
@@ -455,8 +455,8 @@ namespace lcd {
 		}
 		uint16_t width = 0;
 		for(uint16_t index = 0; str[index] != '\0'; ++index) {
-			const lcd::Img &img = lcd::getChar(str[index]);
-			width += img.width + 1;
+			const lcd::Image &Image = lcd::getChar(str[index]);
+			width += Image.width + 1;
 		}
 		// Subtract away one extra spacing
 		--width;

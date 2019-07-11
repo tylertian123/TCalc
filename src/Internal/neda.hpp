@@ -73,7 +73,7 @@ namespace neda {
         // Gets the display height of this character.
 		uint16_t getHeight() const;
         // Gets the character bitmap data.
-        const lcd::LCD12864Image& getCharData() const;
+        const lcd::Image& getCharData() const;
 
 		virtual Character* copy() override;
 	};
@@ -385,14 +385,14 @@ namespace neda {
 	// Summation (Sigma) or Product (Pi)
 	class SigmaPi : public Expr {
 	public:
-		SigmaPi(const lcd::LCD12864Image &symbol, Expr *start, Expr *finish, Expr *contents) : symbol(symbol), start(start), finish(finish), contents(contents) {
+		SigmaPi(const lcd::Image &symbol, Expr *start, Expr *finish, Expr *contents) : symbol(symbol), start(start), finish(finish), contents(contents) {
 			start->parent = this;
 			finish->parent = this;
 			contents->parent = this;
 
             computeDimensions();
 		}
-		SigmaPi(const lcd::LCD12864Image &symbol) : symbol(symbol), start(nullptr), finish(nullptr), contents(nullptr) {
+		SigmaPi(const lcd::Image &symbol) : symbol(symbol), start(nullptr), finish(nullptr), contents(nullptr) {
             computeDimensions();
 		}
 
@@ -418,7 +418,7 @@ namespace neda {
 
 		virtual void updatePosition(int16_t, int16_t) override;
 		
-		const lcd::LCD12864Image &symbol;
+		const lcd::Image &symbol;
 		Expr *start, *finish, *contents;
 
 		virtual SigmaPi* copy() override;

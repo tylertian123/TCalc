@@ -2,19 +2,10 @@
 #define __LCD12864_H__
 #include "stm32f10x.h"
 #include "lcdbase.hpp"
+#include "drawbuf.hpp"
 #include <cstring>
 
 namespace lcd {
-	
-	class LCD12864Image {
-	public:
-		const uint8_t *data;
-		uint16_t bytesWide;
-		uint16_t width;
-		uint16_t height;
-		
-		LCD12864Image(const uint8_t *data, uint8_t bytesWide, uint8_t width, uint8_t height) : data(data), bytesWide(bytesWide), width(width), height(height) {}
-	};
 
     constexpr uint16_t SIZE_WIDTH = 128;
     constexpr uint16_t SIZE_HEIGHT = 64;
@@ -89,7 +80,7 @@ namespace lcd {
 		void setPixel(int16_t, int16_t, bool);
 		void ORDrawBufferByte(uint16_t, uint16_t, uint8_t);
 		void ANDDrawBufferByte(uint16_t, uint16_t, uint8_t);
-		void drawImage(int16_t, int16_t, const LCD12864Image&, bool invert = false);
+		void drawImage(int16_t, int16_t, const Image&, bool invert = false);
 		void drawLine(int16_t, int16_t, int16_t, int16_t);
 		void drawString(int16_t, int16_t, const char*, bool invert = false);
 		void fill(int16_t, int16_t, uint16_t, uint16_t, bool invert = false);
