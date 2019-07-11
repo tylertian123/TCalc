@@ -920,7 +920,7 @@ namespace expr {
                 // Look in the old array and see if it existed previously
                 for(const auto &gfunc : graphableFunctions) {
                     // If the two functions match, copy its status
-                    if(gfunc.func == f.func) {
+                    if(strcmp(gfunc.func->name, f.func->name) == 0) {
                         f.graph = gfunc.graph;
                     }
                 }
