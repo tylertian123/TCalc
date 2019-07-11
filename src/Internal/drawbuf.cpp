@@ -296,10 +296,10 @@ namespace lcd {
                 }
                 // Last part
                 if(invert) {
-                    buf[y + row][baseByte + 1 + bytesWide] = ~end;
+                    buf[y + row][baseByte + 1 + bytesWide] &= ~end;
                 }
                 else {
-                    buf[y + row][baseByte + 1 + bytesWide] = end;
+                    buf[y + row][baseByte + 1 + bytesWide] |= end;
                 }
             }
         }
