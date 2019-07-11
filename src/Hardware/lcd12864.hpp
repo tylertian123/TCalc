@@ -78,10 +78,8 @@ namespace lcd {
 		void updateDrawing();
 		void clearDrawingBuffer();
 		void setPixel(int16_t, int16_t, bool);
-		void ORDrawBufferByte(uint16_t, uint16_t, uint8_t);
-		void ANDDrawBufferByte(uint16_t, uint16_t, uint8_t);
 		void drawImage(int16_t, int16_t, const Image&, bool invert = false);
-		void drawLine(int16_t, int16_t, int16_t, int16_t);
+		void drawLine(int16_t, int16_t, int16_t, int16_t, bool invert = false);
 		void drawString(int16_t, int16_t, const char*, bool invert = false);
 		void fill(int16_t, int16_t, uint16_t, uint16_t, bool invert = false);
 
@@ -95,7 +93,7 @@ namespace lcd {
 		// drawBuf is what we're working on
 		// Total: 2KB of RAM
 		// First index is row and second is column
-		uint16_t drawBuf[32][16] = { 0 };
+		DrawBuf drawBuf;
 		uint16_t dispBuf[32][16] = { 0 };
 	};
 }

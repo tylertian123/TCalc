@@ -19,7 +19,7 @@ namespace lcd {
         uint8_t row = y;
         
         // The offset of the specific bit in the byte
-        uint8_t offset = x % 16;
+        uint8_t offset = x % 8;
         // Mask for bit twiddling
         uint8_t mask;
 
@@ -85,7 +85,7 @@ namespace lcd {
                     buf[row + y][baseByte + byte] |= currentByte;
 				}
 				else {
-                    buf[row + y][baseByte + byte] &= currentByte;
+                    buf[row + y][baseByte + byte] &= ~currentByte;
 				}
 			}
 			// Finally, if we shifted by more than one bit, then there must be some bits clipped in the end
