@@ -1501,5 +1501,21 @@ namespace lcd {
 		0x00, // 00000000
 	};
 	const Image CHAR_SMALL_EQL(CHAR_SMALL_EQL_DATA, 1, 3, 5);
+    const uint8_t CHAR_SMALL_EE_DATA[] = {
+		0x00, 0x00, // 00000000 00000000
+		0x09, 0x10, // 00001001 00010000
+		0xaa, 0xa8, // 10101010 10101000
+		0x4a, 0x80, // 01001010 10000000
+		0xa9, 0x00, // 10101001 00000000
+	};
+	const Image CHAR_SMALL_EE(CHAR_SMALL_EE_DATA, 2, 13, 5);
+    const uint8_t CHAR_SMALL_MINUS_DATA[] = {
+		0x00, // 00000000
+		0x00, // 00000000
+		0xe0, // 11100000
+		0x00, // 00000000
+		0x00, // 00000000
+	};
+	const Image CHAR_SMALL_MINUS(CHAR_SMALL_MINUS_DATA, 1, 3, 5);
 
 } // namespace lcd

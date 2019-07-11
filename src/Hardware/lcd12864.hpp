@@ -77,7 +77,7 @@ namespace lcd {
 		void clearDrawing();
 		void updateDrawing();
 		void clearDrawingBuffer();
-		void setPixel(int16_t, int16_t, bool);
+		void setPixel(int16_t, int16_t, bool state = true);
 		void drawImage(int16_t, int16_t, const Image&, bool invert = false);
 		void drawLine(int16_t, int16_t, int16_t, int16_t, bool invert = false);
 		void drawString(int16_t, int16_t, const char*, bool invert = false);

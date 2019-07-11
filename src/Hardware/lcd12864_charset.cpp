@@ -131,6 +131,8 @@ namespace lcd {
         &CHAR_SMALL_X,
         &CHAR_SMALL_Y,
         &CHAR_SMALL_EQL,
+        &CHAR_SMALL_EE,
+        &CHAR_SMALL_MINUS,
     };
 	
 	uint8_t asciiToIndex(char c) {

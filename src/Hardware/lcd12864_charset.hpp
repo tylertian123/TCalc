@@ -95,7 +95,7 @@
 // The lower bound of the small charset (inclusive)
 #define LCD_SMALL_CHARSET_LOWBOUND 0x80
 // The upper bound of the small charset (inclusive)
-#define LCD_SMALL_CHARSET_HIGHBOUND 0x8d
+#define LCD_SMALL_CHARSET_HIGHBOUND 0x8f
 
 // The lower bound of the small charset's numbers (inclusive)
 #define LCD_SMALL_CHARSET_NUMBER_LOWBOUND 0x80
@@ -110,6 +110,10 @@
 #define LCD_SMALL_STR_Y "\x8c"
 // The equals character (=) in the small charset, in a string.
 #define LCD_SMALL_STR_EQL "\x8d"
+// The "10 to the power of" character in the small charset, in a string.
+#define LCD_SMALL_STR_EE "\x8e"
+// The minus (-) character in the small charset, in a string.
+#define LCD_SMALL_STR_MINUS "\x8f"
 
 // The dot (.) character in the small charset.
 #define LCD_SMALL_CHAR_DOT '\x8a'
@@ -119,6 +123,10 @@
 #define LCD_SMALL_CHAR_Y '\x8c'
 // The equals character (=) in the small charset.
 #define LCD_SMALL_CHAR_EQL '\x8d'
+// The "10 to the power of" character in the small charset.
+#define LCD_SMALL_CHAR_EE '\x8e'
+// The minus (-) character in the small charset.
+#define LCD_SMALL_CHAR_MINUS '\x8f'
 
 namespace lcd {
 
@@ -406,6 +414,10 @@ namespace lcd {
     extern const Image CHAR_SMALL_Y;
     // Equals sign (=)
     extern const Image CHAR_SMALL_EQL;
+    // "10 to the power of" symbol
+    extern const Image CHAR_SMALL_EE;
+    // Minus sign (-)
+    extern const Image CHAR_SMALL_MINUS;
 
     extern const Image * const CHAR_SMALL[];
 

@@ -199,8 +199,14 @@ namespace expr {
         DynamicArray<char> editorContents;
         // Index of the cursor in the option editor
         uint16_t cursorIndex;
-
+        // Buffer storing the graph.
         lcd::DrawBuf graphBuf;
+        // The x coordinate of the graph cursor.
+        int16_t graphCursorX;
+        // The y coordinate of the graph cursor.
+        int16_t graphCursorY;
+        // Whether the graph cursor is on.
+        bool graphCursorOn;
 
         void scrollUp(uint16_t);
         void scrollDown(uint16_t);

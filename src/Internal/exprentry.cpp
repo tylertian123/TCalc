@@ -612,6 +612,7 @@ namespace expr {
             case KEY_GRAPH:
                 mode = DisplayMode::GRAPH_VIEWER;
                 prevMode = DisplayMode::NORMAL;
+                graphCursorX = graphCursorY = graphCursorOn = 0;
                 // Before we draw the graph, first update the list of graphable functions
                 // This is so that if any of the graphable functions get deleted, they would not be graphed
                 updateGraphableFunctions();
@@ -959,6 +960,7 @@ namespace expr {
             mode = prevMode;
             if(prevMode == DisplayMode::GRAPH_VIEWER) {
                 prevMode = DisplayMode::NORMAL;
+                graphCursorX = graphCursorY = graphCursorOn = 0;
                 redrawGraph();
                 drawInterfaceGraphViewer();
             }
@@ -1066,6 +1068,7 @@ toggleEditOption:
                 mode = prevMode;
                 if(prevMode == DisplayMode::GRAPH_VIEWER) {
                     prevMode = DisplayMode::NORMAL;
+                    graphCursorX = graphCursorY = graphCursorOn = 0;
                     redrawGraph();
                     drawInterfaceGraphViewer();
                 }
@@ -1135,26 +1138,87 @@ toggleEditOption:
 
     void ExprEntry::graphViewerKeyPressHandler(uint16_t key) {
         switch(key) {
-        
+        // Center should turn on the graph cursor if off
+        // And toggle function if on
+        case KEY_CENTER:
+            if(graphCursorOn) {
+                // TODO: Function determination
+            }
+            else {
+                graphCursorOn = true;
+                graphCursorX = lcd::SIZE_WIDTH / 2 - 1;
+                graphCursorY = lcd::SIZE_HEIGHT / 2 - 1;
+            }
+            break;
+        // Enter and delete turn off the graph cursor if on
+        // Otherwise they will fall through and exit this mode
+        case KEY_ENTER:
         case KEY_DELETE:
+            if(graphCursorOn) {
+                graphCursorOn = false;
+                break;
+            }
         case KEY_GRAPH:
-            mode = prevMode;
-            drawInterfaceNormal();
-            return;
+            if(!graphCursorOn) {
+                mode = prevMode;
+                drawInterfaceNormal();
+                return;
+            }
+            break;
+
+        case KEY_LEFT:
+            if(graphCursorX > 0) {
+                graphCursorX --;
+            }
+            else {
+                graphCursorX = lcd::SIZE_WIDTH - 1;
+            }
+            break;
+        case KEY_RIGHT:
+            if(graphCursorX < lcd::SIZE_WIDTH - 1) {
+                graphCursorX ++;
+            }
+            else {
+                graphCursorX = 0;
+            }
+            break;
+        case KEY_UP:
+            if(graphCursorY > 0) {
+                graphCursorY --;
+            }
+            else {
+                graphCursorY = lcd::SIZE_HEIGHT - 1;
+            }
+            break;
+        case KEY_DOWN:
+            if(graphCursorY < lcd::SIZE_HEIGHT - 1) {
+                graphCursorY ++;
+            }
+            else {
+                graphCursorY = 0;
+            }
+            break;
+
         case KEY_GSETTINGS:
-            selectorIndex = 0;
-            editOption = false;
-            mode = DisplayMode::GRAPH_SETTINGS_MENU;
-            prevMode = DisplayMode::GRAPH_VIEWER;
-            drawInterfaceGraphSettings();
-            return;
+            if(!graphCursorOn) {
+                selectorIndex = 0;
+                editOption = false;
+                mode = DisplayMode::GRAPH_SETTINGS_MENU;
+                prevMode = DisplayMode::GRAPH_VIEWER;
+                drawInterfaceGraphSettings();
+                return;
+            }
+            break;
         case KEY_GFUNCS:
-            selectorIndex = 0;
-            scrollingIndex = 0;
-            mode = DisplayMode::GRAPH_SELECT_MENU;
-            prevMode = DisplayMode::GRAPH_VIEWER;
-            drawInterfaceGraphSelect();
-            return;
+            if(!graphCursorOn) {
+                selectorIndex = 0;
+                scrollingIndex = 0;
+                mode = DisplayMode::GRAPH_SELECT_MENU;
+                prevMode = DisplayMode::GRAPH_VIEWER;
+                drawInterfaceGraphSelect();
+                return;
+            }
+            break;
         default:
             break;
         }
@@ -1520,6 +1584,69 @@ toggleEditOption:
         // First copy the base graph
         // No need to clear the buffer since it will be overwritten anyways
         display.copyBuffer(graphBuf);
+
+        // Draw the graph cursor if on
+        if(graphCursorOn) {
+
+            // Display the location of the cursor
+            double x = unmapX(graphCursorX);
+            double y = unmapY(graphCursorY);
+
+            char buf[64];
+            // "X="
+            buf[0] = LCD_SMALL_CHAR_X;
+            buf[1] = LCD_SMALL_CHAR_EQL;
+            // Convert the number
+            ftoa(x, buf + 2, GRAPH_SETTINGS_SIGNIFICANT_DIGITS, LCD_SMALL_CHAR_EE);
+            // Now convert normal characters to the small charset's characters
+            for(uint8_t i = 2; buf[i] != '\0'; i ++) {
+                // Numbers
+                if(buf[i] >= '0' && buf[i] <= '9') {
+                    buf[i] -= '0';
+                    buf[i] += LCD_SMALL_CHARSET_NUMBER_LOWBOUND;
+                }
+                else if(buf[i] == '.') {
+                    buf[i] = LCD_SMALL_CHAR_DOT;
+                }
+                else if(buf[i] == '-') {
+                    buf[i] = LCD_SMALL_CHAR_MINUS;
+                }
+            }
+            // Find the string's width so we can clear the background
+            uint16_t width = lcd::DrawBuf::getDrawnStringWidth(buf);
+            display.fill(HORIZ_MARGIN - 1, lcd::SIZE_HEIGHT - VERT_MARGIN - 5 - 5 - 1 - 1, width + 2, 7, true);
+            display.drawString(HORIZ_MARGIN, lcd::SIZE_HEIGHT - VERT_MARGIN - 5 - 5 - 1, buf);
+
+            // Do the same with the y coordinate
+            buf[0] = LCD_SMALL_CHAR_Y;
+            ftoa(y, buf + 2, GRAPH_SETTINGS_SIGNIFICANT_DIGITS, LCD_SMALL_CHAR_EE);
+            for(uint8_t i = 2; buf[i] != '\0'; i ++) {
+                // Numbers
+                if(buf[i] >= '0' && buf[i] <= '9') {
+                    buf[i] -= '0';
+                    buf[i] += LCD_SMALL_CHARSET_NUMBER_LOWBOUND;
+                }
+                else if(buf[i] == '.') {
+                    buf[i] = LCD_SMALL_CHAR_DOT;
+                }
+                else if(buf[i] == '-') {
+                    buf[i] = LCD_SMALL_CHAR_MINUS;
+                }
+            }
+            width = lcd::DrawBuf::getDrawnStringWidth(buf);
+            display.fill(HORIZ_MARGIN - 1, lcd::SIZE_HEIGHT - VERT_MARGIN - 5 - 1, width + 2, 7, true);
+            display.drawString(HORIZ_MARGIN, lcd::SIZE_HEIGHT - VERT_MARGIN - 5, buf);
+
+            display.setPixel(graphCursorX, graphCursorY - 2);
+            display.setPixel(graphCursorX, graphCursorY - 1);
+            display.setPixel(graphCursorX, graphCursorY);
+            display.setPixel(graphCursorX, graphCursorY + 1);
+            display.setPixel(graphCursorX, graphCursorY + 2);
+            display.setPixel(graphCursorX - 1, graphCursorY);
+            display.setPixel(graphCursorX + 1, graphCursorY);
+            display.setPixel(graphCursorX - 2, graphCursorY);
+            display.setPixel(graphCursorX + 2, graphCursorY);
+        }
 
         display.updateDrawing();
     }
