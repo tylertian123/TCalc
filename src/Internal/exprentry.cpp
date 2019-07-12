@@ -808,6 +808,9 @@ namespace expr {
             else if(selectorIndex == 1 && resultSignificantDigits > 1) {
                 resultSignificantDigits --;
             }
+            else if(selectorIndex == 2 && graphingSignificantDigits > 1) {
+                graphingSignificantDigits --;
+            }
             break;
         case KEY_RIGHT:
             if(selectorIndex == 0) {
@@ -816,11 +819,26 @@ namespace expr {
             else if(selectorIndex == 1 && resultSignificantDigits < 20) {
                 resultSignificantDigits ++;
             }
+            else if(selectorIndex == 2 && graphingSignificantDigits < 20) {
+                graphingSignificantDigits ++;
+            }
             break;
         // Currently there are only two options, so this is good enough
         case KEY_UP:
+            if(selectorIndex > 0) {
+                selectorIndex --;
+            }
+            else {
+                selectorIndex = 2;
+            }
+            break;
         case KEY_DOWN:
-            selectorIndex = !selectorIndex;
+            if(selectorIndex < 2) {
+                selectorIndex ++;
+            }
+            else {
+                selectorIndex = 0;
+            }
             break;
         default: break;
         }
@@ -980,8 +998,6 @@ namespace expr {
         drawInterfaceGraphSelect();
     }
 
-    // Use a different number of significant digits here since we want a shorter string
-    constexpr uint8_t GRAPH_SETTINGS_SIGNIFICANT_DIGITS = 10;
     void ExprEntry::graphSettingsKeyPressHandler(uint16_t key) {
         switch(key) {
         case KEY_CENTER:
@@ -992,7 +1008,7 @@ toggleEditOption:
                 // Fill the editor with the previous number
                 editorContents.empty();
                 char buf[64];
-                ftoa(graphSettings[selectorIndex], buf, GRAPH_SETTINGS_SIGNIFICANT_DIGITS, LCD_CHAR_EE);
+                ftoa(graphSettings[selectorIndex], buf, graphingSignificantDigits, LCD_CHAR_EE);
                 
                 for(uint8_t i = 0; buf[i] != '\0'; i ++) {
                     editorContents.add(buf[i]);
@@ -1326,6 +1342,9 @@ toggleEditOption:
         char buf[3];
         ltoa(resultSignificantDigits, buf);
         display.drawString(80, 11, buf, selectorIndex == 1);
+        display.drawString(1, 21, "Graphing S.D.:");
+        ltoa(graphingSignificantDigits, buf);
+        display.drawString(80, 21, buf, selectorIndex == 2);
         display.updateDrawing();
     }
 
@@ -1391,7 +1410,7 @@ toggleEditOption:
             if(!editOption) {
                 // If not editing an option, draw the value normally
                 char buf[64];
-                ftoa(graphSettings[i], buf, GRAPH_SETTINGS_SIGNIFICANT_DIGITS, LCD_CHAR_EE);
+                ftoa(graphSettings[i], buf, graphingSignificantDigits, LCD_CHAR_EE);
 
                 display.drawString(HORIZ_MARGIN + 50, y, buf, selectorIndex == i);
             }
@@ -1399,7 +1418,7 @@ toggleEditOption:
                 // If this value is not being edited, draw it normally
                 if(i != selectorIndex) {
                     char buf[64];
-                    ftoa(graphSettings[i], buf, GRAPH_SETTINGS_SIGNIFICANT_DIGITS, LCD_CHAR_EE);
+                    ftoa(graphSettings[i], buf, graphingSignificantDigits, LCD_CHAR_EE);
 
                     display.drawString(HORIZ_MARGIN + 50, y, buf);
                 }
@@ -1597,7 +1616,7 @@ toggleEditOption:
             buf[0] = LCD_SMALL_CHAR_X;
             buf[1] = LCD_SMALL_CHAR_EQL;
             // Convert the number
-            ftoa(x, buf + 2, GRAPH_SETTINGS_SIGNIFICANT_DIGITS, LCD_SMALL_CHAR_EE);
+            ftoa(x, buf + 2, graphingSignificantDigits, LCD_SMALL_CHAR_EE);
             // Now convert normal characters to the small charset's characters
             for(uint8_t i = 2; buf[i] != '\0'; i ++) {
                 // Numbers
@@ -1619,7 +1638,7 @@ toggleEditOption:
 
             // Do the same with the y coordinate
             buf[0] = LCD_SMALL_CHAR_Y;
-            ftoa(y, buf + 2, GRAPH_SETTINGS_SIGNIFICANT_DIGITS, LCD_SMALL_CHAR_EE);
+            ftoa(y, buf + 2, graphingSignificantDigits, LCD_SMALL_CHAR_EE);
             for(uint8_t i = 2; buf[i] != '\0'; i ++) {
                 // Numbers
                 if(buf[i] >= '0' && buf[i] <= '9') {

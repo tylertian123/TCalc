@@ -55,6 +55,7 @@ namespace expr {
         DisplayMode mode = DisplayMode::NORMAL;
 
         uint8_t resultSignificantDigits = 16;
+        uint8_t graphingSignificantDigits = 8;
 
         const uint16_t HORIZ_MARGIN, VERT_MARGIN;
 
