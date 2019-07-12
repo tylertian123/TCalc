@@ -612,7 +612,7 @@ namespace expr {
             case KEY_GRAPH:
                 mode = DisplayMode::GRAPH_VIEWER;
                 prevMode = DisplayMode::NORMAL;
-                graphCursorX = graphCursorY = graphCursorOn = 0;
+                graphCursorX = graphCursorY = graphCursorOn = selectorIndex = 0;
                 // Before we draw the graph, first update the list of graphable functions
                 // This is so that if any of the graphable functions get deleted, they would not be graphed
                 updateGraphableFunctions();
@@ -978,7 +978,7 @@ namespace expr {
             mode = prevMode;
             if(prevMode == DisplayMode::GRAPH_VIEWER) {
                 prevMode = DisplayMode::NORMAL;
-                graphCursorX = graphCursorY = graphCursorOn = 0;
+                graphCursorX = graphCursorY = graphCursorOn = selectorIndex = 0;
                 redrawGraph();
                 drawInterfaceGraphViewer();
             }
@@ -1084,7 +1084,7 @@ toggleEditOption:
                 mode = prevMode;
                 if(prevMode == DisplayMode::GRAPH_VIEWER) {
                     prevMode = DisplayMode::NORMAL;
-                    graphCursorX = graphCursorY = graphCursorOn = 0;
+                    graphCursorX = graphCursorY = graphCursorOn = selectorIndex = 0;
                     redrawGraph();
                     drawInterfaceGraphViewer();
                 }
@@ -1158,7 +1158,94 @@ toggleEditOption:
         // And toggle function if on
         case KEY_CENTER:
             if(graphCursorOn) {
-                // TODO: Function determination
+                // Determine what function(s) occupy this pixel
+
+                // Graph each function
+                // Construct a environment that can be reused later since all graphable functions only have 1 argument x
+                const char **vNames  = new const char*[varNames.length() + 1];
+                eval::Token **vVals = new eval::Token*[varVals.length() + 1];
+                for(uint16_t i = 0; i < varNames.length(); i ++) {
+                    vNames[i + 1] = varNames[i];
+                    vVals[i + 1] = varVals[i];
+                }
+
+                vNames[0] = "x";
+
+                eval::Number arg(0);
+                vVals[0] = &arg;
+                uint16_t counter = 0;
+                bool incremented = false;
+                for(GraphableFunction &gfunc : graphableFunctions) {
+                    if(gfunc.graph) {
+                        // Get the x value in real coordinate space
+                        double x = unmapX(graphCursorX);
+                        // Set the value of the argument
+                        arg.value = x;
+                        // Attempt to evaluate
+                        eval::Token *t = eval::evaluate(gfunc.func->expr, varNames.length() + 1, vNames, vVals, functions.length(), functions.asArray());
+                        // Watch out for syntax error
+                        double currentPixelY = t ? eval::extractDouble(t) : NAN;
+                        delete t;
+                        t = nullptr;
+
+                        // If the value is undefined then skip this function
+                        if(isnan(currentPixelY)) {
+                            continue;
+                        }
+
+                        // Now calculate the position of the pixel after it
+                        x = unmapX(graphCursorX + 1);
+                        // Set the value of the argument
+                        arg.value = x;
+                        // Attempt to evaluate
+                        t = eval::evaluate(gfunc.func->expr, varNames.length() + 1, vNames, vVals, functions.length(), functions.asArray());
+                        // Watch out for syntax error
+                        double nextPixelY = t ? eval::extractDouble(t) : NAN;
+                        delete t;
+
+                        if(isnan(nextPixelY)) {
+                            if(mapY(currentPixelY) == graphCursorY) {
+                                // Found a match
+                                counter ++;
+                            }
+                        }
+                        else {
+                            int16_t y1 = mapY(currentPixelY);
+                            int16_t y2 = mapY(nextPixelY);
+                            
+                            if(y1 > y2) {
+                                if(graphCursorY <= y1 && graphCursorY > y2) {
+                                    counter ++;
+                                }
+                            }
+                            else if(y1 < y2) {
+                                if(graphCursorY >= y1 && graphCursorY < y2) {
+                                    counter ++;
+                                }
+                            }
+                            // equal
+                            else {
+                                if(graphCursorY == y1) {
+                                    counter ++;
+                                }
+                            }
+                        }
+
+                        if(counter == selectorIndex + 1) {
+                            selectorIndex ++;
+                            graphDispFunc = gfunc.func;
+                            incremented = true;
+                            break;
+                        }
+                    }
+                }
+
+                if(!incremented) {
+                    selectorIndex = 0;
+                }
+
+                delete[] vNames;
+                delete[] vVals;
             }
             else {
                 graphCursorOn = true;
@@ -1189,6 +1276,7 @@ toggleEditOption:
             else {
                 graphCursorX = lcd::SIZE_WIDTH - 1;
             }
+            selectorIndex = 0;
             break;
         case KEY_RIGHT:
             if(graphCursorX < lcd::SIZE_WIDTH - 1) {
@@ -1197,6 +1285,7 @@ toggleEditOption:
             else {
                 graphCursorX = 0;
             }
+            selectorIndex = 0;
             break;
         case KEY_UP:
             if(graphCursorY > 0) {
@@ -1205,6 +1294,7 @@ toggleEditOption:
             else {
                 graphCursorY = lcd::SIZE_HEIGHT - 1;
             }
+            selectorIndex = 0;
             break;
         case KEY_DOWN:
             if(graphCursorY < lcd::SIZE_HEIGHT - 1) {
@@ -1213,6 +1303,7 @@ toggleEditOption:
             else {
                 graphCursorY = 0;
             }
+            selectorIndex = 0;
             break;
 
         case KEY_GSETTINGS:
@@ -1548,7 +1639,7 @@ toggleEditOption:
         // If this is true the two pixels will be connected
         bool prevValid = false;
 
-        for(GraphableFunction gfunc : graphableFunctions) {
+        for(GraphableFunction &gfunc : graphableFunctions) {
             if(gfunc.graph) {
                 const eval::UserDefinedFunction &func = *gfunc.func;
 
@@ -1633,6 +1724,8 @@ toggleEditOption:
             }
             // Find the string's width so we can clear the background
             uint16_t width = lcd::DrawBuf::getDrawnStringWidth(buf);
+            // Used later
+            uint16_t maxWidth = width;
             display.fill(HORIZ_MARGIN - 1, lcd::SIZE_HEIGHT - VERT_MARGIN - 5 - 5 - 1 - 1, width + 2, 7, true);
             display.drawString(HORIZ_MARGIN, lcd::SIZE_HEIGHT - VERT_MARGIN - 5 - 5 - 1, buf);
 
@@ -1655,6 +1748,15 @@ toggleEditOption:
             width = lcd::DrawBuf::getDrawnStringWidth(buf);
             display.fill(HORIZ_MARGIN - 1, lcd::SIZE_HEIGHT - VERT_MARGIN - 5 - 1, width + 2, 7, true);
             display.drawString(HORIZ_MARGIN, lcd::SIZE_HEIGHT - VERT_MARGIN - 5, buf);
+
+            maxWidth = max(maxWidth, width);
+
+            // Draw the function name
+            if(selectorIndex != 0) {
+                width = lcd::DrawBuf::getDrawnStringWidth(graphDispFunc->fullname);
+                display.fill(HORIZ_MARGIN + maxWidth + 4, lcd::SIZE_HEIGHT - VERT_MARGIN - 9 - 1, width + 2, 11, true);
+                display.drawString(HORIZ_MARGIN + maxWidth + 5, lcd::SIZE_HEIGHT - VERT_MARGIN - 9, graphDispFunc->fullname);
+            }
 
             display.setPixel(graphCursorX, graphCursorY - 2);
             display.setPixel(graphCursorX, graphCursorY - 1);

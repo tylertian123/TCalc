@@ -208,6 +208,8 @@ namespace expr {
         int16_t graphCursorY;
         // Whether the graph cursor is on.
         bool graphCursorOn;
+        // The function whose name to display in graphing mode.
+        const eval::UserDefinedFunction *graphDispFunc;
 
         void scrollUp(uint16_t);
         void scrollDown(uint16_t);

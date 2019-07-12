@@ -90,7 +90,7 @@ namespace lcd {
 			}
 			// Finally, if we shifted by more than one bit, then there must be some bits clipped in the end
 			// Here we recover those lost bits and write them to the buffer
-			if(offset != 0) {
+			if(offset != 0 && baseByte + img.bytesWide < 16) {
 				uint8_t finalByte = img.data[row * img.bytesWide + img.bytesWide - 1] << (8 - offset);
 				if(!invert) {
                     buf[row + y][baseByte + img.bytesWide] |= finalByte;
@@ -267,6 +267,9 @@ namespace lcd {
 			}
 		}
         else {
+            if(baseByte >= 16) {
+                return;
+            }
             // Otherwise split into 3 parts, the first byte, the last byte and everything in between
             uint8_t start = 0xFF >> offset;
             // (offset + width) % 8 calculates how many bits are in the last byte
@@ -287,6 +290,9 @@ namespace lcd {
                 }
                 // Middle bytes
                 for(uint16_t col = 0; col < bytesWide; col ++) {
+                    if(baseByte + 1 + col >= 16) {
+                        break;
+                    }
                     if(invert) {
                         buf[y + row][baseByte + 1 + col] = 0x00;
                     }
@@ -294,12 +300,14 @@ namespace lcd {
                         buf[y + row][baseByte + 1 + col] = 0xFF;
                     }
                 }
-                // Last part
-                if(invert) {
-                    buf[y + row][baseByte + 1 + bytesWide] &= ~end;
-                }
-                else {
-                    buf[y + row][baseByte + 1 + bytesWide] |= end;
+                if(baseByte + 1 + bytesWide < 16) {
+                    // Last part
+                    if(invert) {
+                        buf[y + row][baseByte + 1 + bytesWide] &= ~end;
+                    }
+                    else {
+                        buf[y + row][baseByte + 1 + bytesWide] |= end;
+                    }
                 }
             }
         }
