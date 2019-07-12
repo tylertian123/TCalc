@@ -1262,12 +1262,10 @@ toggleEditOption:
                 break;
             }
         case KEY_GRAPH:
-            if(!graphCursorOn) {
-                mode = prevMode;
-                drawInterfaceNormal();
-                return;
-            }
-            break;
+            graphCursorOn = false;
+            mode = prevMode;
+            drawInterfaceNormal();
+            return;
 
         case KEY_LEFT:
             if(graphCursorX > 0) {
@@ -1307,25 +1305,21 @@ toggleEditOption:
             break;
 
         case KEY_GSETTINGS:
-            if(!graphCursorOn) {
-                selectorIndex = 0;
-                editOption = false;
-                mode = DisplayMode::GRAPH_SETTINGS_MENU;
-                prevMode = DisplayMode::GRAPH_VIEWER;
-                drawInterfaceGraphSettings();
-                return;
-            }
-            break;
+            graphCursorOn = false;
+            selectorIndex = 0;
+            editOption = false;
+            mode = DisplayMode::GRAPH_SETTINGS_MENU;
+            prevMode = DisplayMode::GRAPH_VIEWER;
+            drawInterfaceGraphSettings();
+            return;
         case KEY_GFUNCS:
-            if(!graphCursorOn) {
-                selectorIndex = 0;
-                scrollingIndex = 0;
-                mode = DisplayMode::GRAPH_SELECT_MENU;
-                prevMode = DisplayMode::GRAPH_VIEWER;
-                drawInterfaceGraphSelect();
-                return;
-            }
-            break;
+            graphCursorOn = false;
+            selectorIndex = 0;
+            scrollingIndex = 0;
+            mode = DisplayMode::GRAPH_SELECT_MENU;
+            prevMode = DisplayMode::GRAPH_VIEWER;
+            drawInterfaceGraphSelect();
+            return;
         default:
             break;
         }
@@ -1760,13 +1754,15 @@ toggleEditOption:
 
             display.setPixel(graphCursorX, graphCursorY - 2);
             display.setPixel(graphCursorX, graphCursorY - 1);
-            display.setPixel(graphCursorX, graphCursorY);
+
+            display.setPixel(graphCursorX - 2, graphCursorY);
+            display.setPixel(graphCursorX - 1, graphCursorY);
+            display.setPixel(graphCursorX, graphCursorY, false);
+            display.setPixel(graphCursorX + 1, graphCursorY);
+            display.setPixel(graphCursorX + 2, graphCursorY);
+
             display.setPixel(graphCursorX, graphCursorY + 1);
             display.setPixel(graphCursorX, graphCursorY + 2);
-            display.setPixel(graphCursorX - 1, graphCursorY);
-            display.setPixel(graphCursorX + 1, graphCursorY);
-            display.setPixel(graphCursorX - 2, graphCursorY);
-            display.setPixel(graphCursorX + 2, graphCursorY);
         }
 
         display.updateDrawing();
