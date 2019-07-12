@@ -275,10 +275,10 @@ namespace eval {
 		return end;
 	}
 	
-	Token* evaluate(neda::Container *expr, uint8_t varc = 0, const char **varn = nullptr, Token **varv = nullptr,
-			uint8_t funcc = 0, UserDefinedFunction *funcs = nullptr);
-	Token* evaluate(DynamicArray<neda::NEDAObj*>*, uint8_t varc = 0, const char **varn = nullptr, Token **varv = nullptr,
-			uint8_t funcc = 0, UserDefinedFunction *funcs = nullptr);
+	Token* evaluate(neda::Container *expr, uint16_t varc = 0, const char **varn = nullptr, Token **varv = nullptr,
+			uint16_t funcc = 0, UserDefinedFunction *funcs = nullptr);
+	Token* evaluate(DynamicArray<neda::NEDAObj*>*, uint16_t varc = 0, const char **varn = nullptr, Token **varv = nullptr,
+			uint16_t funcc = 0, UserDefinedFunction *funcs = nullptr);
 }
 
 #endif

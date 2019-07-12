@@ -4,7 +4,7 @@
 /**
  * Character set for the 128x64 graphical LCD
  * 
- * This header file defines a bunch of extern const LCD12864Images,
+ * This header file defines a bunch of extern const Images,
  * which encode characters. To implement a character set, provide
  * concrete values for these extern variables. See font.cpp for an
  * example.
@@ -15,10 +15,14 @@
 #include "lcd12864.hpp"
 
 // The lower bound of the "special" (non-ASCII) charset (inclusive).
-#define LCD_CHARSET_LOWBOUND 0x12
+#define LCD_CHARSET_LOWBOUND 0x10
 // The upper bound of the "special" (non-ASCII) charset (inclusive).
 #define LCD_CHARSET_HIGHBOUND 0x1F
 
+// The empty checkbox character in a string.
+#define LCD_STR_ECB "\x10"
+// The checked checkbox character in a string.
+#define LCD_STR_CCB "\x11"
 // The less than or equal character in a string.
 #define LCD_STR_LEQ "\x12"
 // The greater than or equal to character in a string.
@@ -48,6 +52,10 @@
 // The character for the division sign in a string.
 #define LCD_STR_DIV "\x1f"
 
+// The empty checkbox character.
+#define LCD_CHAR_ECB '\x10'
+// The checked checkbox character.
+#define LCD_CHAR_CCB '\x11'
 // The less than or equal character.
 #define LCD_CHAR_LEQ '\x12'
 // The greater than or equal to character.
@@ -77,260 +85,343 @@
 // The character for the division sign.
 #define LCD_CHAR_DIV '\x1f'
 
+// Verify that plain char is unsigned
+// This must be true for the small charset to work
+#include <limits.h>
+#if CHAR_MIN < 0
+    #error "Plain char must be unsigned!"
+#endif
+
+// The lower bound of the small charset (inclusive)
+#define LCD_SMALL_CHARSET_LOWBOUND 0x80
+// The upper bound of the small charset (inclusive)
+#define LCD_SMALL_CHARSET_HIGHBOUND 0x8f
+
+// The lower bound of the small charset's numbers (inclusive)
+#define LCD_SMALL_CHARSET_NUMBER_LOWBOUND 0x80
+// The upper bound of the small charset's numbers (inclusive)
+#define LCD_SMALL_CHARSET_NUMBER_HIGHBOUND 0x89
+
+// The dot (.) character in the small charset, in a string.
+#define LCD_SMALL_STR_DOT "\x8a"
+// The x character in the small charset, in a string.
+#define LCD_SMALL_STR_X "\x8b"
+// The y character in the small charset, in a string.
+#define LCD_SMALL_STR_Y "\x8c"
+// The equals character (=) in the small charset, in a string.
+#define LCD_SMALL_STR_EQL "\x8d"
+// The "10 to the power of" character in the small charset, in a string.
+#define LCD_SMALL_STR_EE "\x8e"
+// The minus (-) character in the small charset, in a string.
+#define LCD_SMALL_STR_MINUS "\x8f"
+
+// The dot (.) character in the small charset.
+#define LCD_SMALL_CHAR_DOT '\x8a'
+// The x character in the small charset.
+#define LCD_SMALL_CHAR_X '\x8b'
+// The y character in the small charset.
+#define LCD_SMALL_CHAR_Y '\x8c'
+// The equals character (=) in the small charset.
+#define LCD_SMALL_CHAR_EQL '\x8d'
+// The "10 to the power of" character in the small charset.
+#define LCD_SMALL_CHAR_EE '\x8e'
+// The minus (-) character in the small charset.
+#define LCD_SMALL_CHAR_MINUS '\x8f'
+
 namespace lcd {
 
-	typedef LCD12864Image Img;
-
     // Space ( )
-	extern const Img CHAR_SPC;
+	extern const Image CHAR_SPC;
     // Exclamation mark (!)
-	extern const Img CHAR_EXMK;
+	extern const Image CHAR_EXMK;
     // Double quotes (")
     // Unused
-	extern const Img CHAR_DBLQ;
+	extern const Image CHAR_DBLQ;
     // Number sign (#)
     // Unused
-	extern const Img CHAR_NSGN;
+	extern const Image CHAR_NSGN;
     // Dollar sign ($)
     // Unused
-	extern const Img CHAR_DLR;
+	extern const Image CHAR_DLR;
     // Percent sign (%)
-	extern const Img CHAR_PCT;
+	extern const Image CHAR_PCT;
     // Ampersand (&)
     // Unused
-	extern const Img CHAR_AND;
+	extern const Image CHAR_AND;
     // Single quote (')
     // Unused
-	extern const Img CHAR_SGLQ;
+	extern const Image CHAR_SGLQ;
     // Left bracket (()
-	extern const Img CHAR_LBKT;
+	extern const Image CHAR_LBKT;
     // Right bracket ())
-	extern const Img CHAR_RBKT;
+	extern const Image CHAR_RBKT;
     // Asterisk (*)
     // Unused
-	extern const Img CHAR_ASTK;
+	extern const Image CHAR_ASTK;
     // Plus (+)
-	extern const Img CHAR_PLUS;
+	extern const Image CHAR_PLUS;
     // Comma (,)
-	extern const Img CHAR_CMMA;
+	extern const Image CHAR_CMMA;
     // Minus (-)
-	extern const Img CHAR_MNUS;
+	extern const Image CHAR_MNUS;
     // Dot (.)
-	extern const Img CHAR_DOT;
+	extern const Image CHAR_DOT;
     // Slash (/)
     // Unused
-	extern const Img CHAR_SLSH;
+	extern const Image CHAR_SLSH;
     // 0 (0)
-	extern const Img CHAR_0;
+	extern const Image CHAR_0;
     // 1 (1)
-	extern const Img CHAR_1;
+	extern const Image CHAR_1;
     // 2 (2)
-	extern const Img CHAR_2;
+	extern const Image CHAR_2;
     // 3 (3)
-	extern const Img CHAR_3;
+	extern const Image CHAR_3;
     // 4 (4)
-	extern const Img CHAR_4;
+	extern const Image CHAR_4;
     // 5 (5)
-	extern const Img CHAR_5;
+	extern const Image CHAR_5;
     // 6 (6)
-	extern const Img CHAR_6;
+	extern const Image CHAR_6;
     // 7 (7)
-	extern const Img CHAR_7;
+	extern const Image CHAR_7;
     // 8 (8)
-	extern const Img CHAR_8;
+	extern const Image CHAR_8;
     // 9 (9)
-	extern const Img CHAR_9;
+	extern const Image CHAR_9;
     // Colon (:)
-	extern const Img CHAR_CLN;
+	extern const Image CHAR_CLN;
     // Semicolon (;)
     // Unused
-	extern const Img CHAR_SMCN;
+	extern const Image CHAR_SMCN;
     // Less than (<)
-	extern const Img CHAR_LSTN;
+	extern const Image CHAR_LSTN;
     // Equal (=)
-	extern const Img CHAR_EQL;
+	extern const Image CHAR_EQL;
     // Greater than (>)
-	extern const Img CHAR_GTTN;
+	extern const Image CHAR_GTTN;
     // Question mark (?)
     // Unused
-	extern const Img CHAR_QNMK;
+	extern const Image CHAR_QNMK;
     // At symbol (@)
     // Unused
-	extern const Img CHAR_ATSB;
+	extern const Image CHAR_ATSB;
     // Uppercase A (A)
-	extern const Img CHAR_A;
+	extern const Image CHAR_A;
     // Uppercase B (B)
-	extern const Img CHAR_B;
+	extern const Image CHAR_B;
     // Uppercase C (C)
-	extern const Img CHAR_C;
+	extern const Image CHAR_C;
     // Uppercase D (D)
-	extern const Img CHAR_D;
+	extern const Image CHAR_D;
     // Uppercase E (E)
-	extern const Img CHAR_E;
+	extern const Image CHAR_E;
     // Uppercase F (F)
-	extern const Img CHAR_F;
+	extern const Image CHAR_F;
     // Uppercase G (G)
-	extern const Img CHAR_G;
+	extern const Image CHAR_G;
     // Uppercase H (H)
-	extern const Img CHAR_H;
+	extern const Image CHAR_H;
     // Uppercase I (I)
-	extern const Img CHAR_I;
+	extern const Image CHAR_I;
     // Uppercase J (J)
-	extern const Img CHAR_J;
+	extern const Image CHAR_J;
     // Uppercase K (K)
-	extern const Img CHAR_K;
+	extern const Image CHAR_K;
     // Uppercase L (L)
-	extern const Img CHAR_L;
+	extern const Image CHAR_L;
     // Uppercase M (M)
-	extern const Img CHAR_M;
+	extern const Image CHAR_M;
     // Uppercase N (N)
-	extern const Img CHAR_N;
+	extern const Image CHAR_N;
     // Uppercase O (O)
-	extern const Img CHAR_O;
+	extern const Image CHAR_O;
     // Uppercase P (P)
-	extern const Img CHAR_P;
+	extern const Image CHAR_P;
     // Uppercase Q (Q)
-	extern const Img CHAR_Q;
+	extern const Image CHAR_Q;
     // Uppercase R (R)
-	extern const Img CHAR_R;
+	extern const Image CHAR_R;
     // Uppercase S (S)
-	extern const Img CHAR_S;
+	extern const Image CHAR_S;
     // Uppercase T (T)
-	extern const Img CHAR_T;
+	extern const Image CHAR_T;
     // Uppercase U (U)
-	extern const Img CHAR_U;
+	extern const Image CHAR_U;
     // Uppercase V (V)
-	extern const Img CHAR_V;
+	extern const Image CHAR_V;
     // Uppercase W (W)
-	extern const Img CHAR_W;
+	extern const Image CHAR_W;
     // Uppercase X (X)
-	extern const Img CHAR_X;
+	extern const Image CHAR_X;
     // Uppercase Y (Y)
-	extern const Img CHAR_Y;
+	extern const Image CHAR_Y;
     // Uppercase Z (Z)
-	extern const Img CHAR_Z;
+	extern const Image CHAR_Z;
     // Left square bracket ([)
     // Unused
-	extern const Img CHAR_LSQB;
+	extern const Image CHAR_LSQB;
     // Backslash (\)
     // Unused
-	extern const Img CHAR_BKSL;
+	extern const Image CHAR_BKSL;
     // Right square bracket (])
     // Unused
-	extern const Img CHAR_RSQB;
+	extern const Image CHAR_RSQB;
     // Caret (^)
     // Unused
-	extern const Img CHAR_CART;
+	extern const Image CHAR_CART;
     // Underscore (_)
     // Unused
-	extern const Img CHAR_USCR;
+	extern const Image CHAR_USCR;
     // Backtick (`)
     // Unused
-	extern const Img CHAR_BKTK;
+	extern const Image CHAR_BKTK;
 	// Lowercase A (a)
-	extern const Img CHAR_LCA;
+	extern const Image CHAR_LCA;
 	// Lowercase B (b)
-	extern const Img CHAR_LCB;
+	extern const Image CHAR_LCB;
 	// Lowercase C (c)
-	extern const Img CHAR_LCC;
+	extern const Image CHAR_LCC;
 	// Lowercase D (d)
-	extern const Img CHAR_LCD;
+	extern const Image CHAR_LCD;
 	// Lowercase E (e)
-	extern const Img CHAR_LCE;
+	extern const Image CHAR_LCE;
 	// Lowercase F (f)
-	extern const Img CHAR_LCF;
+	extern const Image CHAR_LCF;
 	// Lowercase G (g)
-	extern const Img CHAR_LCG;
+	extern const Image CHAR_LCG;
 	// Lowercase H (h)
-	extern const Img CHAR_LCH;
+	extern const Image CHAR_LCH;
 	// Lowercase I (i)
-	extern const Img CHAR_LCI;
+	extern const Image CHAR_LCI;
 	// Lowercase J (j)
-	extern const Img CHAR_LCJ;
+	extern const Image CHAR_LCJ;
 	// Lowercase K (k)
-	extern const Img CHAR_LCK;
+	extern const Image CHAR_LCK;
 	// Lowercase L (l)
-	extern const Img CHAR_LCL;
+	extern const Image CHAR_LCL;
 	// Lowercase M (m)
-	extern const Img CHAR_LCM;
+	extern const Image CHAR_LCM;
 	// Lowercase N (n)
-	extern const Img CHAR_LCN;
+	extern const Image CHAR_LCN;
 	// Lowercase O (o)
-	extern const Img CHAR_LCO;
+	extern const Image CHAR_LCO;
 	// Lowercase P (p)
-	extern const Img CHAR_LCP;
+	extern const Image CHAR_LCP;
 	// Lowercase Q (q)
-	extern const Img CHAR_LCQ;
+	extern const Image CHAR_LCQ;
 	// Lowercase R (r)
-	extern const Img CHAR_LCR;
+	extern const Image CHAR_LCR;
 	// Lowercase S (s)
-	extern const Img CHAR_LCS;
+	extern const Image CHAR_LCS;
 	// Lowercase T (t)
-	extern const Img CHAR_LCT;
+	extern const Image CHAR_LCT;
 	// Lowercase U (u)
-	extern const Img CHAR_LCU;
+	extern const Image CHAR_LCU;
 	// Lowercase V (v)
-	extern const Img CHAR_LCV;
+	extern const Image CHAR_LCV;
 	// Lowercase W (w)
-	extern const Img CHAR_LCW;
+	extern const Image CHAR_LCW;
 	// Lowercase X (x)
-	extern const Img CHAR_LCX;
+	extern const Image CHAR_LCX;
 	// Lowercase Y (y)
-	extern const Img CHAR_LCY;
+	extern const Image CHAR_LCY;
 	// Lowercase Z (z)
-	extern const Img CHAR_LCZ;
+	extern const Image CHAR_LCZ;
     // Left curvy bracket ({)
     // Unused
-	extern const Img CHAR_LCVB;
+	extern const Image CHAR_LCVB;
     // Pipe/vertical bar (|)
     // Unused
-	extern const Img CHAR_PIPE;
+	extern const Image CHAR_PIPE;
     // Right curvy bracket (})
     // Unused
-	extern const Img CHAR_RCVB;
+	extern const Image CHAR_RCVB;
     // Tilde (~)
     // Unused
-	extern const Img CHAR_TLDE;
+	extern const Image CHAR_TLDE;
     // Unknown character (?)
-	extern const Img CHAR_UNKNOWN;
+	extern const Image CHAR_UNKNOWN;
 	
+    // Empty checkbox
+    extern const Image CHAR_ECB;
+    // Checked checkbox
+    extern const Image CHAR_CCB;
     // Less than or equal sign
-    extern const Img CHAR_LEQ;
+    extern const Image CHAR_LEQ;
     // Greater than or equal sign
-    extern const Img CHAR_GEQ;
+    extern const Image CHAR_GEQ;
     // Cross product (x)
-	extern const Img CHAR_CRS;
+	extern const Image CHAR_CRS;
     // Standard gravity (g0)
-	extern const Img CHAR_AGV;
+	extern const Image CHAR_AGV;
     // Avogadro's number (Na)
-	extern const Img CHAR_AVGO;
+	extern const Image CHAR_AVGO;
     // Elementary charge (e-)
-	extern const Img CHAR_ECHG;
+	extern const Image CHAR_ECHG;
     // Velocity of light (c)
-	extern const Img CHAR_VLIG;
+	extern const Image CHAR_VLIG;
     // Times 10 to the power of (E)
-	extern const Img CHAR_EE;
+	extern const Image CHAR_EE;
     // Euler's number (e)
-	extern const Img CHAR_EULR;
+	extern const Image CHAR_EULR;
     // Theta
-	extern const Img CHAR_THETA;
+	extern const Image CHAR_THETA;
     // Syntax error
-	extern const Img CHAR_SERR;
+	extern const Image CHAR_SERR;
     // Pi
-	extern const Img CHAR_PI;
+	extern const Image CHAR_PI;
     // Multiplication sign (dot)
-	extern const Img CHAR_MUL;
+	extern const Image CHAR_MUL;
     // Division sign
-	extern const Img CHAR_DIV;
+	extern const Image CHAR_DIV;
 	// Summation symbol (capital sigma)
-	extern const Img CHAR_SUMMATION;
+	extern const Image CHAR_SUMMATION;
     // Product symbol (capital pi)
-	extern const Img CHAR_PRODUCT;
+	extern const Image CHAR_PRODUCT;
 	
-	extern const Img * const CHAR_ASCII[];
+	extern const Image * const CHAR_ASCII[];
 	
 	uint8_t asciiToIndex(char);
-	const Img& getChar(char);
+	const Image& getChar(char);
+
+    /* SMALL CHARSET */
+    // 0
+    extern const Image CHAR_SMALL_0;
+    // 1
+    extern const Image CHAR_SMALL_1;
+    // 2
+    extern const Image CHAR_SMALL_2;
+    // 3
+    extern const Image CHAR_SMALL_3;
+    // 4
+    extern const Image CHAR_SMALL_4;
+    // 5
+    extern const Image CHAR_SMALL_5;
+    // 6
+    extern const Image CHAR_SMALL_6;
+    // 7
+    extern const Image CHAR_SMALL_7;
+    // 8
+    extern const Image CHAR_SMALL_8;
+    // 9
+    extern const Image CHAR_SMALL_9;
+    // Dot (.)
+    extern const Image CHAR_SMALL_DOT;
+    // X
+    extern const Image CHAR_SMALL_X;
+    // Y
+    extern const Image CHAR_SMALL_Y;
+    // Equals sign (=)
+    extern const Image CHAR_SMALL_EQL;
+    // "10 to the power of" symbol
+    extern const Image CHAR_SMALL_EE;
+    // Minus sign (-)
+    extern const Image CHAR_SMALL_MINUS;
+
+    extern const Image * const CHAR_SMALL[];
+
+    const Image& getSmallNumber(uint8_t);
 }
 
 #endif

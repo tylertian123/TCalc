@@ -16,7 +16,7 @@
 #include "exprentry.hpp"
 #include <stdlib.h>
 
-#define VERSION_STR "V1.1.0-dev"
+#define VERSION_STR "V1.2.0"
 
 /********** GPIO Pins and other pin defs **********/
 GPIOPin RS(GPIOC, GPIO_Pin_10), RW(GPIOC, GPIO_Pin_11), E(GPIOC, GPIO_Pin_12),
@@ -449,7 +449,7 @@ void evaluateExpr(neda::Container *expr) {
                 // Now that the name has been isolated, do the same with each of the arguments
                 uint16_t argStart = i + 1;
                 uint16_t argEnd = i + 1;
-                uint8_t argc = 0;
+                uint16_t argc = 0;
                 DynamicArray<char*> argNames;
 
                 // Find the closing bracket
@@ -485,32 +485,39 @@ void evaluateExpr(neda::Container *expr) {
                         argStart = argEnd;
                     }
 
-                    // Now we should have all the arguments
-                    // Make a new array with the argument names since the DynamicArray's contents will be automatically freed
-                    char **argn = new char*[argc];
-                    // memcpy it in
-                    // Make sure the size is multiplied by the sizeof a char*
-                    memcpy(argn, argNames.asArray(), argc * sizeof(char*));
-
-                    // Make a new container that will hold the expression
-                    neda::Container *funcExpr = new neda::Container();
-                    for(uint16_t i = equalsIndex + 1; i < expr->contents.length(); ++i) {
-                        // Add each expression in
-                        // Make sure they're copied; otherwise segfaults will occur when this expr is deleted
-                        funcExpr->add(expr->contents[i]->copy());
+                    // Error: functions can only have up to 255 arguments!
+                    if(argc > 0xFF) {
+                        result = nullptr;
+                        delete[] vName;
                     }
+                    else {
+                        // Now we should have all the arguments
+                        // Make a new array with the argument names since the DynamicArray's contents will be automatically freed
+                        char **argn = new char*[argc];
+                        // memcpy it in
+                        // Make sure the size is multiplied by the sizeof a char*
+                        memcpy(argn, argNames.asArray(), argc * sizeof(char*));
 
-                    // Finally add the damn thing
-                    expr::updateFunc(vName, funcExpr, argc, const_cast<const char**>(argn));
-                    // Update the result to 1 to signify the operation succeeded
-                    result = new eval::Number(1);
+                        // Make a new container that will hold the expression
+                        neda::Container *funcExpr = new neda::Container();
+                        for(uint16_t i = equalsIndex + 1; i < expr->contents.length(); ++i) {
+                            // Add each expression in
+                            // Make sure they're copied; otherwise segfaults will occur when this expr is deleted
+                            funcExpr->add(expr->contents[i]->copy());
+                        }
+
+                        // Finally add the damn thing
+                        expr::updateFunc(vName, funcExpr, argc, const_cast<const char**>(argn));
+                        // Update the result to 1 to signify the operation succeeded
+                        result = new eval::Number(1);
+                    }
                 }
             }
             else {
                 // Evaluate
                 DynamicArray<neda::NEDAObj*> val(expr->contents.begin() + equalsIndex + 1, expr->contents.end());
-                result = eval::evaluate(&val, static_cast<uint8_t>(expr::varNames.length()), const_cast<const char**>(expr::varNames.asArray()), 
-                        expr::varVals.asArray(), static_cast<uint8_t>(expr::functions.length()), expr::functions.asArray());
+                result = eval::evaluate(&val, expr::varNames.length(), expr::varNames.asArray(), 
+                        expr::varVals.asArray(), expr::functions.length(), expr::functions.asArray());
 
                 // If result is valid, add the variable
                 if(result) {
@@ -536,8 +543,8 @@ void evaluateExpr(neda::Container *expr) {
         }
     }
     else {
-        result = eval::evaluate(expr, static_cast<uint8_t>(expr::varNames.length()), const_cast<const char**>(expr::varNames.asArray()), 
-                expr::varVals.asArray(), static_cast<uint8_t>(expr::functions.length()), expr::functions.asArray());
+        result = eval::evaluate(expr, expr::varNames.length(), expr::varNames.asArray(), 
+                expr::varVals.asArray(), expr::functions.length(), expr::functions.asArray());
     }
     // Create the container that will hold the result
     calcResults[0] = new neda::Container();

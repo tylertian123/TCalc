@@ -461,6 +461,11 @@
               <FileType>8</FileType>
               <FilePath>.\src\Internal\exprentry.cpp</FilePath>
             </File>
+            <File>
+              <FileName>drawbuf.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\src\Internal\drawbuf.cpp</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

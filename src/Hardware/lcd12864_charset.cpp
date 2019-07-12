@@ -1,7 +1,9 @@
 #include "lcd12864_charset.hpp"
 
 namespace lcd {
-	const Img * const CHAR_ASCII[] = {
+	const Image * const CHAR_ASCII[] = {
+        &CHAR_ECB,
+        &CHAR_CCB,
         &CHAR_LEQ,
         &CHAR_GEQ,
 		&CHAR_CRS,
@@ -114,6 +116,24 @@ namespace lcd {
 		&CHAR_UNKNOWN,
 	};
 
+    const Image * const CHAR_SMALL[] {
+        &CHAR_SMALL_0,
+        &CHAR_SMALL_1,
+        &CHAR_SMALL_2,
+        &CHAR_SMALL_3,
+        &CHAR_SMALL_4,
+        &CHAR_SMALL_5,
+        &CHAR_SMALL_6,
+        &CHAR_SMALL_7,
+        &CHAR_SMALL_8,
+        &CHAR_SMALL_9,
+        &CHAR_SMALL_DOT,
+        &CHAR_SMALL_X,
+        &CHAR_SMALL_Y,
+        &CHAR_SMALL_EQL,
+        &CHAR_SMALL_EE,
+        &CHAR_SMALL_MINUS,
+    };
 	
 	uint8_t asciiToIndex(char c) {
 		// If char is outside the range, return 0x7F (CHAR_UNKNOWN) minus the offset
@@ -123,7 +143,14 @@ namespace lcd {
 		// Otherwise subtract the offset
 		return c - LCD_CHARSET_LOWBOUND;
 	}
-	const Img& getChar(char c) {
+	const Image& getChar(char c) {
+        // Special processing for small charset
+        if(c >= LCD_SMALL_CHARSET_LOWBOUND && c <= LCD_SMALL_CHARSET_HIGHBOUND) {
+            return *CHAR_SMALL[c - LCD_SMALL_CHARSET_LOWBOUND];
+        }
 		return *CHAR_ASCII[asciiToIndex(c)];
 	}
+    const Image& getSmallNumber(uint8_t digit) {
+        return *CHAR_SMALL[LCD_SMALL_CHARSET_NUMBER_LOWBOUND + digit];
+    }
 }
