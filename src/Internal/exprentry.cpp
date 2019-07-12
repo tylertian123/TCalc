@@ -1580,6 +1580,17 @@ toggleEditOption:
         return realY;
     }
 
+    eval::Variable* constructFunctionGraphingEnvironment() {
+        eval::Variable *newVars = new eval::Variable[variables.length() + 1];
+        for(uint16_t i = 0; i < variables.length(); i ++) {
+            newVars[i + 1] = variables[i];
+        }
+
+        newVars[0].name = "x";
+
+        return newVars;
+    }
+
     void ExprEntry::redrawGraph() {
         graphBuf.clear();
 
@@ -1609,66 +1620,73 @@ toggleEditOption:
 
         // Graph each function
         // Construct a environment that can be reused later since all graphable functions only have 1 argument x
-        eval::Variable *newVars = new eval::Variable[variables.length() + 1];
-        for(uint16_t i = 0; i < variables.length(); i ++) {
-            newVars[i + 1] = variables[i];
-        }
-
-        newVars[0].name = "x";
+        eval::Variable *newVars = constructFunctionGraphingEnvironment();
 
         eval::Number arg(0);
         newVars[0].value = &arg;
 
-        // The y value of the previous pixel (in the LCD's coordinate system)
-        int16_t prevY = 0;
-        // Whether or not the previous pixel was valid
-        // If this is true the two pixels will be connected
-        bool prevValid = false;
-
+        // The y value of the previous pixel (in the real coordinate system)
+        double prevResult = NAN;
+        int16_t prevYLCD = 0;
         for(GraphableFunction &gfunc : graphableFunctions) {
             if(gfunc.graph) {
                 const eval::UserDefinedFunction &func = *gfunc.func;
 
                 // Evaluate for each x coordinate
-                // We intentially also include the pixel at x = 128, which is out of bounds
+                // We intentially also include the pixel at x = 128 and x = -1, which is out of bounds
                 // This is so that if it needs to be connected to the previous pixel, the connection is drawn
-                for(int16_t dispX = 0; dispX <= lcd::SIZE_WIDTH; dispX ++) {
+                for(int16_t currentXLCD = -1; currentXLCD <= lcd::SIZE_WIDTH; currentXLCD ++) {
                     // Get the x value in real coordinate space
-                    double x = unmapX(dispX);
+                    double currentXReal = unmapX(currentXLCD);
                     // Set the value of the argument
-                    arg.value = x;
+                    arg.value = currentXReal;
                     // Attempt to evaluate
                     eval::Token *t = eval::evaluate(func.expr, variables.length() + 1, newVars, functions.length(), functions.asArray());
                     // Watch out for syntax error
-                    double result = t ? eval::extractDouble(t) : NAN;
-                    // If result is NaN, skip this pixel
-                    if(!isnan(result)) {
-                        // Otherwise map the Y value
-                        int16_t y = mapY(result);
-                        // Set the pixel
-                        graphBuf.setPixel(dispX, y);
-
-                        // Connect the two pixels only if needed
-                        if(prevValid && abs(prevY - y) > 1) {
-                            if(y - prevY > 0) {
-                                for(int16_t py = prevY + 1; py < y; py ++) {
-                                    graphBuf.setPixel(dispX - 1, py);
-                                }
-                            }
-                            else {
-                                for(int16_t py = prevY - 1; py > y; py --) {
-                                    graphBuf.setPixel(dispX - 1, py);
-                                }
-                            }
-                        }
-
-                        prevY = y;
-                        prevValid = true;
-                    }
-                    else {
-                        prevValid = false;
-                    }
+                    double currentYReal = t ? eval::extractDouble(t) : NAN;
                     delete t;
+
+                    
+                    // If result is NaN, skip this pixel
+                    if(!isnan(currentYReal)) {
+                        // Otherwise map the Y value
+                        int16_t currentYLCD = mapY(currentYReal);
+                        int16_t prevXLCD = currentXLCD - 1;
+
+                        // Do a bounds check
+                        if(currentXLCD >= 0 && prevXLCD < lcd::SIZE_WIDTH && (prevYLCD >= 0 || currentYLCD >= 0) 
+                                && (prevYLCD < lcd::SIZE_HEIGHT || currentYLCD < lcd::SIZE_HEIGHT)) {
+                            // If the previous pixel was valid, connect them
+                            if(!isnan(prevResult)) {
+
+                                double prevXReal = unmapX(prevXLCD);
+                                double prevYReal = prevResult;
+
+                                if(abs(currentYLCD - prevYLCD) > 1) {
+                                    // Will be positive if the current pixel is higher than the previous one
+                                    double slope = (currentXReal - prevXReal) / (currentYReal - prevYReal);
+
+                                    if(currentYReal > prevYReal) {
+                                        for(int16_t dispY = prevYLCD - 1; dispY > currentYLCD; dispY --) {
+                                            double realXDiff = (unmapY(dispY) - prevYReal) * slope;
+                                            graphBuf.setPixel(mapX(realXDiff + prevXReal), dispY);
+                                        }
+                                    }
+                                    else {
+                                        for(int16_t dispY = prevYLCD + 1; dispY < currentYLCD; dispY ++) {
+                                            double realXDiff = (unmapY(dispY) - prevYReal) * slope;
+                                            graphBuf.setPixel(mapX(realXDiff + prevXReal), dispY);
+                                        }
+                                    }
+                                }
+
+                            }
+                            // Set the pixel
+                            graphBuf.setPixel(currentXLCD, currentYLCD);
+                        }
+                        prevYLCD = currentYLCD;
+                    }
+                    prevResult = currentYReal;
                 }
             }
         }
