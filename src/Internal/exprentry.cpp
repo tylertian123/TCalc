@@ -1148,6 +1148,7 @@ toggleEditOption:
         drawInterfaceGraphSettings();
     }
 
+    eval::Variable* constructFunctionGraphingEnvironment();
     void ExprEntry::graphViewerKeyPressHandler(uint16_t key) {
         switch(key) {
         // Center should turn on the graph cursor if off
@@ -1158,83 +1159,107 @@ toggleEditOption:
 
                 // Graph each function
                 // Construct a environment that can be reused later since all graphable functions only have 1 argument x
-                eval::Variable *newVars = new eval::Variable[variables.length() + 1];
-                for(uint16_t i = 0; i < variables.length(); i ++) {
-                    newVars[i + 1] = variables[i];
-                }
-
-                newVars[0].name = "x";
+                eval::Variable *newVars = constructFunctionGraphingEnvironment();
 
                 eval::Number arg(0);
                 newVars[0].value = &arg;
 
                 uint16_t counter = 0;
                 bool incremented = false;
+                
+                // Code copied from redrawGraph()
+
+                // The y value of the previous pixel (in the real coordinate system)
+                double prevResult = NAN;
+                int16_t prevYLCD = 0;
                 for(GraphableFunction &gfunc : graphableFunctions) {
                     if(gfunc.graph) {
-                        // Get the x value in real coordinate space
-                        double x = unmapX(graphCursorX);
-                        // Set the value of the argument
-                        arg.value = x;
-                        // Attempt to evaluate
-                        eval::Token *t = eval::evaluate(gfunc.func->expr, variables.length() + 1, newVars, functions.length(), functions.asArray());
-                        // Watch out for syntax error
-                        double currentPixelY = t ? eval::extractDouble(t) : NAN;
-                        delete t;
-                        t = nullptr;
+                        const eval::UserDefinedFunction &func = *gfunc.func;
 
-                        // If the value is undefined then skip this function
-                        if(isnan(currentPixelY)) {
-                            continue;
-                        }
+                        // Evaluate for x coordinates surrounding the cursor
+                        for(int16_t currentXLCD = graphCursorX - 1; currentXLCD <= graphCursorX + 1; currentXLCD ++) {
+                            // Get the x value in real coordinate space
+                            double currentXReal = unmapX(currentXLCD);
+                            // Set the value of the argument
+                            arg.value = currentXReal;
+                            // Attempt to evaluate
+                            eval::Token *t = eval::evaluate(func.expr, variables.length() + 1, newVars, functions.length(), functions.asArray());
+                            // Watch out for syntax error
+                            double currentYReal = t ? eval::extractDouble(t) : NAN;
+                            delete t;
 
-                        // Now calculate the position of the pixel after it
-                        x = unmapX(graphCursorX + 1);
-                        // Set the value of the argument
-                        arg.value = x;
-                        // Attempt to evaluate
-                        t = eval::evaluate(gfunc.func->expr, variables.length() + 1, newVars, functions.length(), functions.asArray());
-                        // Watch out for syntax error
-                        double nextPixelY = t ? eval::extractDouble(t) : NAN;
-                        delete t;
-
-                        if(isnan(nextPixelY)) {
-                            if(mapY(currentPixelY) == graphCursorY) {
-                                // Found a match
-                                counter ++;
-                            }
-                        }
-                        else {
-                            int16_t y1 = mapY(currentPixelY);
-                            int16_t y2 = mapY(nextPixelY);
                             
-                            if(y1 > y2) {
-                                if(graphCursorY <= y1 && graphCursorY > y2) {
-                                    counter ++;
-                                }
-                            }
-                            else if(y1 < y2) {
-                                if(graphCursorY >= y1 && graphCursorY < y2) {
-                                    counter ++;
-                                }
-                            }
-                            // equal
-                            else {
-                                if(graphCursorY == y1) {
-                                    counter ++;
-                                }
-                            }
-                        }
+                            // If result is NaN, skip this pixel
+                            if(!isnan(currentYReal)) {
+                                // Otherwise map the Y value
+                                int16_t currentYLCD = mapY(currentYReal);
+                                int16_t prevXLCD = currentXLCD - 1;
 
-                        if(counter == selectorIndex + 1) {
-                            selectorIndex ++;
-                            graphDispFunc = gfunc.func;
-                            incremented = true;
-                            break;
+                                if(currentXLCD == graphCursorX && currentYLCD == graphCursorY) {
+                                    counter ++;
+                                    if(counter == selectorIndex + 1) {
+                                        selectorIndex ++;
+                                        incremented = true;
+                                        graphDispFunc = gfunc.func;
+                                        goto functionCheckLoopEnd;
+                                    }
+                                    break;
+                                }
+
+                                // Do a bounds check
+                                if(currentXLCD >= 0 && prevXLCD < lcd::SIZE_WIDTH && (prevYLCD >= 0 || currentYLCD >= 0) 
+                                        && (prevYLCD < lcd::SIZE_HEIGHT || currentYLCD < lcd::SIZE_HEIGHT)) {
+                                    // If the previous pixel was valid, connect them
+                                    if(!isnan(prevResult)) {
+
+                                        double prevXReal = unmapX(prevXLCD);
+                                        double prevYReal = prevResult;
+
+                                        if(abs(currentYLCD - prevYLCD) > 1) {
+                                            // Will be positive if the current pixel is higher than the previous one
+                                            double slope = (currentXReal - prevXReal) / (currentYReal - prevYReal);
+
+                                            if(currentYReal > prevYReal) {
+                                                for(int16_t dispY = prevYLCD - 1; dispY > currentYLCD; dispY --) {
+                                                    double realXDiff = (unmapY(dispY) - prevYReal) * slope;
+                                                    if(mapX(realXDiff + prevXReal) == graphCursorX && dispY == graphCursorY) {
+                                                        counter ++;
+                                                        if(counter == selectorIndex + 1) {
+                                                            selectorIndex ++;
+                                                            incremented = true;
+                                                            graphDispFunc = gfunc.func;
+                                                            goto functionCheckLoopEnd;
+                                                        }
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                            else {
+                                                for(int16_t dispY = prevYLCD + 1; dispY < currentYLCD; dispY ++) {
+                                                    double realXDiff = (unmapY(dispY) - prevYReal) * slope;
+                                                    if(mapX(realXDiff + prevXReal) == graphCursorX && dispY == graphCursorY) {
+                                                        counter ++;
+                                                        if(counter == selectorIndex + 1) {
+                                                            selectorIndex ++;
+                                                            incremented = true;
+                                                            graphDispFunc = gfunc.func;
+                                                            goto functionCheckLoopEnd;
+                                                        }
+                                                        break;
+                                                    }
+                                                }
+                                            }
+                                        }
+
+                                    }
+                                }
+                                prevYLCD = currentYLCD;
+                            }
+                            prevResult = currentYReal;
                         }
                     }
                 }
-
+functionCheckLoopEnd:
                 if(!incremented) {
                     selectorIndex = 0;
                 }
