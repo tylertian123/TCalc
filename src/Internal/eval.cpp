@@ -1043,29 +1043,43 @@ convertToDoubleAndOperate:
     }
 
 	// Overloaded instance of the other evaluate() for convenience. Works directly on neda::Containers.
-	Token* evaluate(neda::Container *expr, uint16_t varc, const char **varn, Token **varv, uint16_t funcc, UserDefinedFunction *funcs) {
-		return evaluate(&expr->contents, varc, varn, varv, funcc, funcs);
+	Token* evaluate(neda::Container *expr, DynamicArray<Variable> &vars, DynamicArray<UserDefinedFunction> &funcs) {
+		return evaluate(expr->contents, vars.length(), vars.asArray(), funcs.length(), funcs.asArray());
 	}
 	/*
 	 * Evaluates an expression and returns a token result
 	 * Returns nullptr on syntax errors
 	 * 
 	 * Parameters:
-	 * expr - a pointer to a DynamicArray of neda::NEDAObjs representing an expression
-	 * varc - User-defined variable count
-	 * varn - An array of strings of user-defined variable names
-	 * varv - An array of user-define variable values
-	 * funcc - User-defined function count
-	 * funcs - An array of user-defined functions (stored in structs of UserDefinedFunctions)
+	 * expr - a reference to a DynamicArray of neda::NEDAObjs representing an expression
+	 * vars - a reference to a DynamicArray of Variables representing all user-defined variables
+     * funcs - a reference to a DynamicArray of UserDefinedFunctions representing all user-defined functions
 	 */
-	Token* evaluate(DynamicArray<neda::NEDAObj*> *expr, uint16_t varc, const char **varn, Token **varv, uint16_t funcc, UserDefinedFunction *funcs) {
+    Token* evaluate(DynamicArray<neda::NEDAObj*> &expr, DynamicArray<Variable> &vars, DynamicArray<UserDefinedFunction> &funcs) {
+        return evaluate(expr, vars.length(), vars.asArray(), funcs.length(), funcs.asArray());
+    }
+    // Overloaded instance of the other evaluate() for convenience. Works directly on neda::Containers.
+    Token* evaluate(neda::Container *expr, uint16_t varc, Variable *vars, uint16_t funcc, UserDefinedFunction *funcs) {
+        return evaluate(expr->contents, varc, vars, funcc, funcs);
+    }
+    /*
+	 * Evaluates an expression and returns a token result
+	 * Returns nullptr on syntax errors
+	 * 
+	 * Parameters:
+	 * expr - a reference to a DynamicArray of neda::NEDAObjs representing an expression
+     * varc - the number of user-defined variables
+	 * vars - an array containing all user-defined variables
+     * funcc - the number of user-defined functions
+     * funcs - an array containing all user-defined functions
+	 */
+	Token* evaluate(DynamicArray<neda::NEDAObj*> &expr, uint16_t varc, Variable *vars, uint16_t funcc, UserDefinedFunction *funcs) {
 		// This function first parses the NEDA expression to convert it into eval tokens
 		// It then converts the infix notation to postfix with shunting-yard
 		// And finally evaluates it and returns the result
 		// This dynamic array holds the result of the first stage (basic parsing)
 		DynamicArray<Token*, 4> arr;
-		// Deref the result so the syntax won't be so awkward
-		auto &exprs = *expr;
+		auto &exprs = expr;
 		uint16_t index = 0;
 		// This variable keeps track of whether the last token was an operator
 		// It is used for unary operators like the unary minus and plus
@@ -1106,7 +1120,7 @@ convertToDoubleAndOperate:
 				// Construct a new array of NEDA objects that includes all object inside the brackets (but not the brackets themselves!)
 				DynamicArray<neda::NEDAObj*> inside(exprs.begin() + index + 1, exprs.begin() + endIndex);
 				// Recursively calculate the content inside
-				Token *insideResult = evaluate(&inside, varc, varn, varv, funcc, funcs);
+				Token *insideResult = evaluate(inside, varc, vars, funcc, funcs);
 				// If syntax error inside bracket, clean up and return null
 				if(!insideResult) {
 					freeTokens(&arr);
@@ -1134,9 +1148,9 @@ convertToDoubleAndOperate:
 			// Fractions
 			case neda::ObjType::FRACTION:
 			{
-				// Recursively the numerator and denominator
-				Token *num = evaluate((neda::Container*) ((neda::Fraction*) exprs[index])->numerator, varc, varn, varv, funcc, funcs);
-				Token *denom = evaluate((neda::Container*) ((neda::Fraction*) exprs[index])->denominator, varc, varn, varv, funcc, funcs);
+				// Recursively evaluate the numerator and denominator
+				Token *num = evaluate((neda::Container*) ((neda::Fraction*) exprs[index])->numerator, varc, vars, funcc, funcs);
+				Token *denom = evaluate((neda::Container*) ((neda::Fraction*) exprs[index])->denominator, varc, vars, funcc, funcs);
 				// If one of them results in an error, clean up and return null
 				if(!num || !denom) {
 					// Since deleting nullptrs are allowed, no need for checking
@@ -1158,7 +1172,7 @@ convertToDoubleAndOperate:
 			case neda::ObjType::SUPERSCRIPT:
 			{
 				// Recursively evaluate the exponent
-				Token *exponent = evaluate((neda::Container*) ((neda::Superscript*) exprs[index])->contents, varc, varn, varv, funcc, funcs);
+				Token *exponent = evaluate((neda::Container*) ((neda::Superscript*) exprs[index])->contents, varc, vars, funcc, funcs);
 				// If an error occurs, clean up and return null
 				if(!exponent) {
 					freeTokens(&arr);
@@ -1193,14 +1207,14 @@ convertToDoubleAndOperate:
 				Token *n;
 				// If the base exists, recursively evaluate it
 				if(((neda::Radical*) exprs[index])->n) {
-					n = evaluate((neda::Container*) ((neda::Radical*) exprs[index])->n, varc, varn, varv, funcc, funcs);
+					n = evaluate((neda::Container*) ((neda::Radical*) exprs[index])->n, varc, vars, funcc, funcs);
 				}
 				// No base - implied square root
 				else {
 					n = new Number(2);
 				}
 				// Recursively evaluate the contents of the radical
-				Token *contents = evaluate((neda::Container*) ((neda::Radical*) exprs[index])->contents, varc, varn, varv, funcc, funcs);
+				Token *contents = evaluate((neda::Container*) ((neda::Radical*) exprs[index])->contents, varc, vars, funcc, funcs);
 				// If an error occurs, clean up and return null
 				if(!n || !contents) {
 					// nullptr deletion allowed; no need for checking
@@ -1309,7 +1323,7 @@ convertToDoubleAndOperate:
 						// See if the next object is a subscript (log base)
 						if(end < exprs.length() && exprs[end]->getType() == neda::ObjType::SUBSCRIPT) {
 							// If subscript exists, recursively evaluate it
-							Token *sub = evaluate((neda::Container*) ((neda::Subscript*) exprs[end])->contents, varc, varn, varv, funcc, funcs);
+							Token *sub = evaluate((neda::Container*) ((neda::Subscript*) exprs[end])->contents, varc, vars, funcc, funcs);
 							// If an error occurs, clean up and return
 							if(!sub) {
 								freeTokens(&arr);
@@ -1428,7 +1442,7 @@ evaluateFunctionArguments:
 								}
 								// Recursively evaluate the contents of the argument
 								DynamicArray<neda::NEDAObj*> argContents(exprs.begin() + index, exprs.begin() + argEnd);
-								Token *arg = evaluate(&argContents, varc, varn, varv, funcc, funcs);
+								Token *arg = evaluate(argContents, varc, vars, funcc, funcs);
 								// Cleanup on syntax error
 								if(!arg) {
 									freeTokens(&arr);
@@ -1481,25 +1495,22 @@ evaluateFunctionArguments:
                                 // cause a stack overflow.
 
 								// Construct a new variables list containing the arguments and normal variables
-								const char **vNames = new const char*[varc + uFunc->argc];
-								Token **vVals = new Token*[varc + uFunc->argc];
+                                Variable *newVars = new Variable[varc + uFunc->argc];
                                 // Copy in the names and values of function arguments
                                 for(uint8_t i = 0; i < uFunc->argc; i ++) {
-                                    vNames[i] = uFunc->argn[i];
-                                    vVals[i] = args[i];
+                                    newVars[i].name = uFunc->argn[i];
+                                    newVars[i].value = args[i];
                                 }
 								// Copy in the names and values of variables
 								for(uint16_t i = 0; i < varc; i ++) {
-									vNames[i + uFunc->argc] = varn[i];
-									vVals[i + uFunc->argc] = varv[i];
+                                    newVars[i + uFunc->argc] = vars[i];
 								}
 
 								// Evaluate
-								result = evaluate(uFunc->expr, varc + uFunc->argc, vNames, vVals, funcc, funcs);
+								result = evaluate(uFunc->expr, varc + uFunc->argc, newVars, funcc, funcs);
 								// Syntax error, cleanup
 								if(!result) {
-									delete vNames;
-									delete vVals;
+                                    delete[] newVars;
 
 									freeTokens(&arr);
 									freeTokens(&args);
@@ -1508,8 +1519,7 @@ evaluateFunctionArguments:
 								}
 
 								// Cleanup
-								delete vNames;
-								delete vVals;
+								delete[] newVars;
 							}
 
 							// Free args
@@ -1540,17 +1550,17 @@ evaluateFunctionArguments:
 								uint16_t i;
 								for(i = 0; i < varc; i ++) {
 									// Compare with each variable name
-									if(strcmp(str, varn[i]) == 0) {
+									if(strcmp(str, vars[i].name) == 0) {
 										// We found a match!
-										if(varv[i]->getType() == TokenType::NUMBER) {
-											arr.add(new Number(((Number*) varv[i])->value));
+										if(vars[i].value->getType() == TokenType::NUMBER) {
+											arr.add(new Number(((Number*) vars[i].value)->value));
 										}
-										else if(varv[i]->getType() == TokenType::FRACTION) {
-											arr.add(new Fraction(((Fraction*) varv[i])->num, ((Fraction*) varv[i])->denom));
+										else if(vars[i].value->getType() == TokenType::FRACTION) {
+											arr.add(new Fraction(((Fraction*) vars[i].value)->num, ((Fraction*) vars[i].value)->denom));
 										}
 										// Matrices
 										else {
-											arr.add(new Matrix(*((Matrix*) varv[i])));
+											arr.add(new Matrix(*((Matrix*) vars[i].value)));
 										}
 										break;
 									}
@@ -1583,7 +1593,7 @@ evaluateFunctionArguments:
 			case neda::ObjType::SIGMA_PI:
 			{
 				// First recursively evaluate the end value
-				Token *end = evaluate((neda::Container*) ((neda::SigmaPi*) exprs[index])->finish, varc, varn, varv, funcc, funcs);
+				Token *end = evaluate((neda::Container*) ((neda::SigmaPi*) exprs[index])->finish, varc, vars, funcc, funcs);
 				if(!end) {
 					freeTokens(&arr);
 					return nullptr;
@@ -1600,7 +1610,7 @@ evaluateFunctionArguments:
 				}
 				// Attempt to evaluate the starting condition assign value
 				DynamicArray<neda::NEDAObj*> startVal(startContents->begin() + equalsIndex + 1, startContents->end());
-				Token *start = evaluate(&startVal, varc, varn, varv, funcc, funcs);
+				Token *start = evaluate(startVal, varc, vars, funcc, funcs);
 				// Check for syntax error
 				if(!start) {
 					delete end;
@@ -1626,15 +1636,13 @@ evaluateFunctionArguments:
                 // Just like in the case of a user-defined function, we create a new environment with the counter
                 // variable. The counter variable is copied in first and gets precedence over other variables.
 				// Construct new variable arrays
-				const char **vNames = new const char*[varc + 1];
-				Token **vVals = new Token*[varc + 1];
+                Variable *newVars = new Variable[varc + 1];
 				// Copy in the counter variable
-				vNames[0] = vName;
-				vVals[0] = start;
+                newVars[0].name = vName;
+                newVars[0].value = start;
 				// Copy existing variables
 				for(uint16_t i = 0; i < varc; i ++) {
-					vNames[i + 1] = varn[i];
-					vVals[i + 1] = varv[i];
+                    newVars[i + 1] = vars[i];
 				}
 
 				// Find the type of operation by extracting the symbol
@@ -1644,15 +1652,14 @@ evaluateFunctionArguments:
 				// While the start is still less than or equal to the end
 				while(compareTokens(start, end) <= 0) {
 					// Evaluate the inside expression
-					Token *n = evaluate((neda::Container*) ((neda::SigmaPi*) exprs[index])->contents, varc + 1, vNames, vVals, funcc, funcs);
+					Token *n = evaluate((neda::Container*) ((neda::SigmaPi*) exprs[index])->contents, varc + 1, newVars, funcc, funcs);
 
 					// If there is ever a syntax error then cleanup and exit
 					if(!n) {
 						delete end;
 						delete start;
 						delete[] vName;
-						delete[] vNames;
-						delete[] vVals;
+						delete[] newVars;
 						delete val;
 						freeTokens(&arr);
 						return nullptr;
@@ -1688,8 +1695,7 @@ evaluateFunctionArguments:
 				delete end;
 				delete start;
 				delete[] vName;
-				delete[] vNames;
-				delete[] vVals;
+				delete[] newVars;
 				// Move on to the next object
 				++index;
 				allowUnary = false;
@@ -1708,7 +1714,7 @@ evaluateFunctionArguments:
 				Matrix *mat = new Matrix(nMat->m, nMat->n);
 				// Evaluate every entry
 				for(uint16_t i = 0; i < nMat->m * nMat->n; i ++) {
-					Token *n = evaluate((neda::Container*) nMat->contents[i], varc, varn, varv, funcc, funcs);
+					Token *n = evaluate((neda::Container*) nMat->contents[i], varc, vars, funcc, funcs);
 					// Check for syntax error
 					if(!n) {
 						delete mat;
@@ -1746,7 +1752,7 @@ evaluateFunctionArguments:
                 for(uint8_t i = 0; i < p->pieces; i ++) {
 
                     // Evaluate the condition
-                    Token *n = evaluate(static_cast<neda::Container*>(p->conditions[i]), varc, varn, varv, funcc, funcs);
+                    Token *n = evaluate(static_cast<neda::Container*>(p->conditions[i]), varc, vars, funcc, funcs);
                     bool isElse = false;
                     // Syntax error
                     if(!n) {
@@ -1775,7 +1781,7 @@ evaluateFunctionArguments:
                     // Condition is true
                     else if(condition == 1) {
                         // Evaluate value
-                        val = evaluate(static_cast<neda::Container*>(p->values[i]), varc, varn, varv, funcc, funcs);
+                        val = evaluate(static_cast<neda::Container*>(p->values[i]), varc, vars, funcc, funcs);
 
                         // Syntax error
                         if(!val) {

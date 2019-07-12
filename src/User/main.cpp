@@ -207,7 +207,8 @@ void drawResult(uint8_t id, bool resetLocation = true) {
 	if(asDecimal && calcResults[id]->contents[0]->getType() == neda::ObjType::FRACTION) {
 		result = new neda::Container();
 		// Evaluate the fraction lazily by calling evaluate
-		eval::Token *evalResult = eval::evaluate(calcResults[id]);
+        // Since the result cannot contain any symbols no need to pass in variables and functions
+		eval::Token *evalResult = eval::evaluate(calcResults[id], 0, nullptr, 0, nullptr);
 		// Guaranteed to be a fraction
 		double decimalResult = ((eval::Fraction*) evalResult)->doubleVal();
 		delete evalResult;
@@ -516,8 +517,7 @@ void evaluateExpr(neda::Container *expr) {
             else {
                 // Evaluate
                 DynamicArray<neda::NEDAObj*> val(expr->contents.begin() + equalsIndex + 1, expr->contents.end());
-                result = eval::evaluate(&val, expr::varNames.length(), expr::varNames.asArray(), 
-                        expr::varVals.asArray(), expr::functions.length(), expr::functions.asArray());
+                result = eval::evaluate(val, expr::variables, expr::functions);
 
                 // If result is valid, add the variable
                 if(result) {
@@ -543,8 +543,7 @@ void evaluateExpr(neda::Container *expr) {
         }
     }
     else {
-        result = eval::evaluate(expr, expr::varNames.length(), expr::varNames.asArray(), 
-                expr::varVals.asArray(), expr::functions.length(), expr::functions.asArray());
+        result = eval::evaluate(expr, expr::variables, expr::functions);
     }
     // Create the container that will hold the result
     calcResults[0] = new neda::Container();

@@ -3,30 +3,28 @@
 #include <limits.h>
 
 namespace expr {
-    DynamicArray<const char*> varNames;
-    DynamicArray<eval::Token*> varVals;
+    DynamicArray<eval::Variable> variables;
     DynamicArray<eval::UserDefinedFunction> functions;
 
     void updateVar(const char *varName, eval::Token *varVal) {
         uint16_t i;
         // See if the variable has already been defined
-        for(i = 0; i < varNames.length(); ++i) {
+        for(i = 0; i < variables.length(); ++i) {
             // Update it if found
-            if(strcmp(varNames[i], varName) == 0) {
+            if(strcmp(variables[i].name, varName) == 0) {
                 // Delete the old value
-                delete varVals[i];
-                varVals[i] = varVal;
+                delete variables[i].value;
+                variables[i].value = varVal;
                 // Delete the name since there's no use for it anymore
                 delete[] varName;
 
                 break;
             }
         }
-        // If i is equal to varNames.length() it was not found
-        if(i == varNames.length()) {
+        // If i is equal to variables.length() it was not found
+        if(i == variables.length()) {
             // Add the var if not found
-            varNames.add(varName);
-            varVals.add(varVal);
+            variables.add(eval::Variable(varName, varVal));
         }
     }
     char* getFuncFullName(const eval::UserDefinedFunction &func) {
@@ -85,19 +83,18 @@ namespace expr {
         }
         // If not found, create new function
         if(i == functions.length()) {
-            eval::UserDefinedFunction func(definition, name, argc, argn);
+            eval::UserDefinedFunction func(definition, name, argc, argn, nullptr);
             func.fullname = getFuncFullName(func);
             functions.add(func);
         }
     }
     void clearAll() {
         // Delete all variables
-        for(uint16_t i = 0; i < varNames.length(); i ++) {
-            delete[] varNames[i];
-            delete varVals[i];
+        for(auto var : variables) {
+            delete[] var.name;
+            delete var.value;
         }
-        varNames.empty();
-        varVals.empty();
+        variables.empty();
         // Delete all functions
         for(auto func : functions) {
             delete[] func.name;
@@ -1041,8 +1038,7 @@ toggleEditOption:
                     }
                 }
                 
-                eval::Token *t = eval::evaluate(&objs, varNames.length(), varNames.asArray(), varVals.asArray(),
-                        functions.length(), functions.asArray());
+                eval::Token *t = eval::evaluate(objs, variables, functions);
                 
                 // Free the array of NEDAObjs here
                 for(neda::NEDAObj *ptr : objs) {
@@ -1162,17 +1158,16 @@ toggleEditOption:
 
                 // Graph each function
                 // Construct a environment that can be reused later since all graphable functions only have 1 argument x
-                const char **vNames  = new const char*[varNames.length() + 1];
-                eval::Token **vVals = new eval::Token*[varVals.length() + 1];
-                for(uint16_t i = 0; i < varNames.length(); i ++) {
-                    vNames[i + 1] = varNames[i];
-                    vVals[i + 1] = varVals[i];
+                eval::Variable *newVars = new eval::Variable[variables.length() + 1];
+                for(uint16_t i = 0; i < variables.length(); i ++) {
+                    newVars[i + 1] = variables[i];
                 }
 
-                vNames[0] = "x";
+                newVars[0].name = "x";
 
                 eval::Number arg(0);
-                vVals[0] = &arg;
+                newVars[0].value = &arg;
+
                 uint16_t counter = 0;
                 bool incremented = false;
                 for(GraphableFunction &gfunc : graphableFunctions) {
@@ -1182,7 +1177,7 @@ toggleEditOption:
                         // Set the value of the argument
                         arg.value = x;
                         // Attempt to evaluate
-                        eval::Token *t = eval::evaluate(gfunc.func->expr, varNames.length() + 1, vNames, vVals, functions.length(), functions.asArray());
+                        eval::Token *t = eval::evaluate(gfunc.func->expr, variables.length() + 1, newVars, functions.length(), functions.asArray());
                         // Watch out for syntax error
                         double currentPixelY = t ? eval::extractDouble(t) : NAN;
                         delete t;
@@ -1198,7 +1193,7 @@ toggleEditOption:
                         // Set the value of the argument
                         arg.value = x;
                         // Attempt to evaluate
-                        t = eval::evaluate(gfunc.func->expr, varNames.length() + 1, vNames, vVals, functions.length(), functions.asArray());
+                        t = eval::evaluate(gfunc.func->expr, variables.length() + 1, newVars, functions.length(), functions.asArray());
                         // Watch out for syntax error
                         double nextPixelY = t ? eval::extractDouble(t) : NAN;
                         delete t;
@@ -1244,8 +1239,7 @@ toggleEditOption:
                     selectorIndex = 0;
                 }
 
-                delete[] vNames;
-                delete[] vVals;
+                delete[] newVars;
             }
             else {
                 graphCursorOn = true;
@@ -1615,17 +1609,15 @@ toggleEditOption:
 
         // Graph each function
         // Construct a environment that can be reused later since all graphable functions only have 1 argument x
-        const char **vNames  = new const char*[varNames.length() + 1];
-        eval::Token **vVals = new eval::Token*[varVals.length() + 1];
-        for(uint16_t i = 0; i < varNames.length(); i ++) {
-            vNames[i + 1] = varNames[i];
-            vVals[i + 1] = varVals[i];
+        eval::Variable *newVars = new eval::Variable[variables.length() + 1];
+        for(uint16_t i = 0; i < variables.length(); i ++) {
+            newVars[i + 1] = variables[i];
         }
 
-        vNames[0] = "x";
+        newVars[0].name = "x";
 
         eval::Number arg(0);
-        vVals[0] = &arg;
+        newVars[0].value = &arg;
 
         // The y value of the previous pixel (in the LCD's coordinate system)
         int16_t prevY = 0;
@@ -1646,7 +1638,7 @@ toggleEditOption:
                     // Set the value of the argument
                     arg.value = x;
                     // Attempt to evaluate
-                    eval::Token *t = eval::evaluate(func.expr, varNames.length() + 1, vNames, vVals, functions.length(), functions.asArray());
+                    eval::Token *t = eval::evaluate(func.expr, variables.length() + 1, newVars, functions.length(), functions.asArray());
                     // Watch out for syntax error
                     double result = t ? eval::extractDouble(t) : NAN;
                     // If result is NaN, skip this pixel
@@ -1680,8 +1672,7 @@ toggleEditOption:
                 }
             }
         }
-        delete[] vNames;
-        delete[] vVals;
+        delete[] newVars;
     }
 
     void ExprEntry::drawInterfaceGraphViewer() {

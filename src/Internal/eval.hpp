@@ -211,10 +211,10 @@ namespace eval {
 	};
 
 	struct UserDefinedFunction {
-		UserDefinedFunction(neda::Container *expr, const char *name, uint8_t argc, const char **argn)
-				: expr(expr), name(name), argc(argc), argn(argn), fullname(nullptr) {}
 		UserDefinedFunction(neda::Container *expr, const char *name, uint8_t argc, const char **argn, const char *fullname)
 				: expr(expr), name(name), argc(argc), argn(argn), fullname(fullname) {}
+        UserDefinedFunction(const UserDefinedFunction &other) : expr(other.expr), name(other.name), argc(other.argc), argn(other.argn),
+                fullname(other.fullname) {}
 
 		neda::Container *expr;
 		const char *name;
@@ -222,6 +222,15 @@ namespace eval {
 		const char **argn;
 		const char *fullname;
 	};
+
+    struct Variable {
+        Variable() : name(nullptr), value(nullptr) {}
+        Variable(const char *name, Token *value) : name(name), value(value) {}
+        Variable(const Variable &other) : name(other.name), value(other.value) {}
+
+        const char *name;
+        Token *value;
+    };
 
 	// This will delete the collection of tokens properly. It will destory all tokens in the array.
 	template <uint16_t Increase>
@@ -275,10 +284,10 @@ namespace eval {
 		return end;
 	}
 	
-	Token* evaluate(neda::Container *expr, uint16_t varc = 0, const char **varn = nullptr, Token **varv = nullptr,
-			uint16_t funcc = 0, UserDefinedFunction *funcs = nullptr);
-	Token* evaluate(DynamicArray<neda::NEDAObj*>*, uint16_t varc = 0, const char **varn = nullptr, Token **varv = nullptr,
-			uint16_t funcc = 0, UserDefinedFunction *funcs = nullptr);
+	Token* evaluate(neda::Container*, DynamicArray<Variable>&, DynamicArray<UserDefinedFunction>&);
+	Token* evaluate(DynamicArray<neda::NEDAObj*>&, DynamicArray<Variable>&, DynamicArray<UserDefinedFunction>&);
+    Token* evaluate(neda::Container*, uint16_t, Variable*, uint16_t, UserDefinedFunction*);
+    Token* evaluate(DynamicArray<neda::NEDAObj*>&, uint16_t, Variable*, uint16_t, UserDefinedFunction*);
 }
 
 #endif

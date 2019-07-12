@@ -8,10 +8,8 @@
 
 namespace expr {
 
-    // Names of all user-defined variables
-    extern DynamicArray<const char*> varNames;
-    // Values of all user-defined variables
-    extern DynamicArray<eval::Token*> varVals;
+    // Values all user-defined variables
+    extern DynamicArray<eval::Variable> variables;
     // All user-defined functions
     extern DynamicArray<eval::UserDefinedFunction> functions;
     // Updates the value of the variable with the specified name.
