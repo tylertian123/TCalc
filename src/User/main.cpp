@@ -16,7 +16,7 @@
 #include "exprentry.hpp"
 #include <stdlib.h>
 
-#define VERSION_STR "V1.2.1"
+#define VERSION_STR "V1.2.2"
 
 /********** GPIO Pins and other pin defs **********/
 GPIOPin RS(GPIOC, GPIO_Pin_10), RW(GPIOC, GPIO_Pin_11), E(GPIOC, GPIO_Pin_12),
@@ -33,6 +33,36 @@ GPIOPin SBDI_DATA(GPIOB, GPIO_Pin_6);
 GPIOPin statusLED(GPIOA, GPIO_Pin_1);
 GPIOPin ctrlLED(GPIOA, GPIO_Pin_2);
 GPIOPin shiftLED(GPIOA, GPIO_Pin_3);
+
+/********** Fault Handlers **********/
+extern "C" void HardFault_Handler() {
+    display.endDraw();
+    display.useBasic();
+
+    while(1) {
+        display.clear();
+        display.setCursor(0, 0);
+        display.writeString("ERROR: A fatal");
+        display.setCursor(1, 0);
+        display.writeString("exception has");
+        display.setCursor(2, 0);
+        display.writeString("occurred.");
+
+        for(uint64_t i = 0; i < 7000000; i ++);
+
+        display.clear();
+        display.setCursor(0, 0);
+        display.writeString("Attach debugger");
+        display.setCursor(1, 0);
+        display.writeString("or press the");
+        display.setCursor(2, 0);
+        display.writeString("reset button to");
+        display.setCursor(3, 0);
+        display.writeString("reset TCalc.");
+
+        for(uint64_t i = 0; i < 7000000; i ++);
+    }
+}
 
 /********** Keyboard stuff **********/
 uint64_t keyDataBuffer = 0;

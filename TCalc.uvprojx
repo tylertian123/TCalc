@@ -546,11 +546,6 @@
               <FileType>8</FileType>
               <FilePath>.\src\User\main.cpp</FilePath>
             </File>
-            <File>
-              <FileName>stm32f10x_it.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\src\User\stm32f10x_it.c</FilePath>
-            </File>
           </Files>
         </Group>
       </Groups>
