@@ -700,7 +700,7 @@ namespace expr {
             mode = prevMode;
             drawInterfaceNormal();
             return;
-        case KEY_UP:
+        case KEY_LEFT:
             if(selectorIndex > 0) {
                 --selectorIndex;
             }
@@ -708,7 +708,7 @@ namespace expr {
                 selectorIndex = 5;
             }
             break;
-        case KEY_DOWN:
+        case KEY_RIGHT:
             ++selectorIndex;
             if(selectorIndex >= 6) {
                 selectorIndex = 0;
@@ -1434,10 +1434,11 @@ functionCheckLoopEnd:
 
     void ExprEntry::drawInterfaceConst() {
         display.clearDrawingBuffer();
-        int16_t y = 1;
+        int16_t x = HORIZ_MARGIN;
         for(uint8_t i = 0; i < 6; i ++) {
-            display.drawString(1, y, constantNames[i], selectorIndex == i);
-            y += 10;
+            display.drawString(x, VERT_MARGIN, constantNames[i], selectorIndex == i);
+            
+            x += 15;
         }
 
         display.updateDrawing();
