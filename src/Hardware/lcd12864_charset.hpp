@@ -15,10 +15,18 @@
 #include "lcd12864.hpp"
 
 // The lower bound of the "special" (non-ASCII) charset (inclusive).
-#define LCD_CHARSET_LOWBOUND 0x10
+#define LCD_CHARSET_LOWBOUND 0x0c
 // The upper bound of the "special" (non-ASCII) charset (inclusive).
 #define LCD_CHARSET_HIGHBOUND 0x1F
 
+// The negation (NOT) character in a string.
+#define LCD_STR_LNOT "\x0c"
+// The exclusive disjunction (XOR) character in a string.
+#define LCD_STR_LXOR "\x0d"
+// The logical (inclusive) disjunction (OR) character in a string.
+#define LCD_STR_LOR "\x0e"
+// The logical conjunction (AND) character in a string.
+#define LCD_STR_LAND "\x0f"
 // The empty checkbox character in a string.
 #define LCD_STR_ECB "\x10"
 // The checked checkbox character in a string.
@@ -52,6 +60,14 @@
 // The character for the division sign in a string.
 #define LCD_STR_DIV "\x1f"
 
+// The negation (NOT) character.
+#define LCD_CHAR_LNOT '\x0c'
+// The exclusive disjunction (XOR) character.
+#define LCD_CHAR_LXOR '\x0d'
+// The logical (inclusive) disjunction (OR) character.
+#define LCD_CHAR_LOR '\x0e'
+// The logical conjunction (AND) character.
+#define LCD_CHAR_LAND '\x0f'
 // The empty checkbox character.
 #define LCD_CHAR_ECB '\x10'
 // The checked checkbox character.
@@ -343,6 +359,14 @@ namespace lcd {
     // Unknown character (?)
 	extern const Image CHAR_UNKNOWN;
 	
+    // Logical NOT
+    extern const Image CHAR_LNOT;
+    // Logical XOR
+    extern const Image CHAR_LXOR;
+    // Logical OR
+    extern const Image CHAR_LOR;
+    // Logical AND
+    extern const Image CHAR_LAND;
     // Empty checkbox
     extern const Image CHAR_ECB;
     // Checked checkbox

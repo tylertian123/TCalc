@@ -712,6 +712,7 @@ int main() {
 
     display.clearDrawing();
     if(dispMode == DispMode::NORMAL) {
+        mainExprEntry.cursor->addStr(LCD_STR_LNOT LCD_STR_LXOR LCD_STR_LOR LCD_STR_LAND);
         mainExprEntry.adjustExpr();
         mainExprEntry.cursor->expr->drawConnected(display);
         mainExprEntry.cursor->draw(display);

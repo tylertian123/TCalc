@@ -1158,6 +1158,54 @@ namespace lcd {
 	const Image CHAR_UNKNOWN(CHAR_UNKNOWN_DATA, 4, 30, 9);
 	
 	// Special characters
+    const uint8_t CHAR_LAND_DATA[] = {
+		0x00, // 00000000
+		0x00, // 00000000
+		0x20, // 00100000
+		0x50, // 01010000
+		0x50, // 01010000
+		0x88, // 10001000
+		0x88, // 10001000
+		0x00, // 00000000
+		0x00, // 00000000
+	};
+	const Image CHAR_LAND(CHAR_LAND_DATA, 1, 5, 9);
+    const uint8_t CHAR_LOR_DATA[] = {
+		0x00, // 00000000
+		0x00, // 00000000
+		0x88, // 10001000
+		0x88, // 10001000
+		0x50, // 01010000
+		0x50, // 01010000
+		0x20, // 00100000
+		0x00, // 00000000
+		0x00, // 00000000
+	};
+	const Image CHAR_LOR(CHAR_LOR_DATA, 1, 5, 9);
+    const uint8_t CHAR_LXOR_DATA[] = {
+		0x00, // 00000000
+		0x00, // 00000000
+		0x70, // 01110000
+		0xa8, // 10101000
+		0xf8, // 11111000
+		0xa8, // 10101000
+		0x70, // 01110000
+		0x00, // 00000000
+		0x00, // 00000000
+	};
+	const Image CHAR_LXOR(CHAR_LXOR_DATA, 1, 5, 9);
+    const uint8_t CHAR_LNOT_DATA[] = {
+		0x00, // 00000000
+		0x00, // 00000000
+		0x00, // 00000000
+		0xf8, // 11111000
+		0x08, // 00001000
+		0x08, // 00001000
+		0x00, // 00000000
+		0x00, // 00000000
+		0x00, // 00000000
+	};
+	const Image CHAR_LNOT(CHAR_LNOT_DATA, 1, 5, 9);
     const uint8_t CHAR_ECB_DATA[] = {
         0x00, // 00000000
         0xfe, // 11111110
