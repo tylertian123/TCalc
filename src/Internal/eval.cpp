@@ -369,6 +369,12 @@ namespace eval {
         case Type::LTEQ:
         case Type::GTEQ:
 			return 4;
+        case Type::AND:
+            return 5;
+        case Type::OR:
+            return 6;
+        case Type::XOR:
+            return 7;
 		
 		default: return 0xFF;
 		}
@@ -403,6 +409,18 @@ namespace eval {
         
         case LCD_CHAR_LEQ:
             return &OP_LTEQ;
+        
+        case LCD_CHAR_LAND:
+            return &OP_AND;
+
+        case LCD_CHAR_LOR:
+            return &OP_OR;
+        
+        case LCD_CHAR_LXOR:
+            return &OP_XOR;
+        
+        case LCD_CHAR_LNOT:
+            return &OP_NOT;
 
 		default: return nullptr;
 		}
@@ -419,85 +437,95 @@ namespace eval {
              Operator::OP_GT = { Operator::Type::GT },
              Operator::OP_LT = { Operator::Type::LT },
              Operator::OP_GTEQ = { Operator::Type::GTEQ },
-             Operator::OP_LTEQ = { Operator::Type::LTEQ };
+             Operator::OP_LTEQ = { Operator::Type::LTEQ },
+             Operator::OP_AND = { Operator::Type::AND },
+             Operator::OP_OR = { Operator::Type::OR },
+             Operator::OP_XOR = { Operator::Type::XOR },
+             Operator::OP_NOT = { Operator::Type::NOT };
 	double Operator::operate(double lhs, double rhs) {
 		switch(type) {
 		case Type::PLUS:
-		{
 			return lhs + rhs;
-		}
+
 		case Type::MINUS:
-		{
 			return lhs - rhs;
-		}
+
 		case Type::SP_MULT:
 		case Type::MULTIPLY:
 		// In the case of two scalars, just use it as if it's a normal multiplication
 		case Type::CROSS:
-		{
 			return lhs * rhs;
-		}
+
 		case Type::SP_DIV:
 		case Type::DIVIDE:
-		{
 			return lhs / rhs;
-		}
+
 		case Type::EXPONENT:
-		{
 			return pow(lhs, rhs);
-		}
+
 		case Type::EQUALITY:
-		{
 			return floatEq(lhs, rhs);
-		}
+
         case Type::GT:
-        {
             return lhs > rhs;
-        }
+
         case Type::LT:
-        {
             return lhs < rhs;
-        }
+
         case Type::GTEQ:
-        {
             return lhs > rhs || floatEq(lhs, rhs);
-        }
+
         case Type::LTEQ:
-        {
             return lhs < rhs || floatEq(lhs, rhs);
+
+        case Type::AND:
+        {
+            Number l(lhs);
+            Number r(rhs);
+            return isTruthy(&l) && isTruthy(&r);
         }
+
+        case Type::OR:
+        {
+            Number l(lhs);
+            Number r(rhs);
+            return isTruthy(&l) || isTruthy(&r);
+        }
+
+        case Type::XOR:
+        {
+            Number l(lhs);
+            Number r(rhs);
+            return isTruthy(&l) ^ isTruthy(&r);
+        }
+
 		default: return NAN;
 		}
 	}
 	bool Operator::operateOn(Fraction *frac, Fraction *rhs) {
 		switch(type) {
 		case Type::PLUS:
-		{
 			*frac += *rhs;
 			break;
-		}
+
 		case Type::MINUS:
-		{
 			*frac -= *rhs;
 			break;
-		}
+		
 		case Type::SP_MULT:
 		case Type::MULTIPLY:
 		case Type::CROSS:
-		{
 			*frac *= *rhs;
 			break;
-		}
+		
 		case Type::SP_DIV:
 		case Type::DIVIDE:
-		{
 			*frac /= *rhs;
 			break;
-		}
+		
 		case Type::EXPONENT:
-		{
 			return frac->pow(*rhs);
-		}
+    
 		default: return false;
 		}
 		return true;
@@ -567,21 +595,23 @@ namespace eval {
 		else if(lType == TokenType::FRACTION && rType == TokenType::NUMBER) {
 			// Test if rhs is integer
 			if(isInt(((Number*) rhs)->value)) {
-				// Do a normal fraction operation
-				// Since the rhs is an integer, this operation is guaranteed to succeed
-				// Create this variable to avoid a compiler warning
-				Fraction temp((uint64_t) ((Number*) rhs)->value, 1);
-				operateOn((Fraction*) lhs, &temp);
-
-				// Test if resulting fraction is an integer
-				if(((Fraction*) lhs)->isInteger()) {
-					result = new Number(((Fraction*) lhs)->doubleVal());
-					delete lhs;
+                // This operation is not guaranteed to succeed
+				Fraction rhsFrac((int64_t) ((Number*) rhs)->value, 1);
+				bool success = operateOn((Fraction*) lhs, &rhsFrac);
+				if(success) {
+					if(static_cast<Fraction*>(lhs)->isInteger()) {
+						result = new Number(static_cast<Fraction*>(lhs)->doubleVal());
+                        delete lhs;
+					}
+					else {
+						result = lhs;
+					}
+					delete rhs;
 				}
 				else {
-					result = lhs;
+					// My code is terrible, indeed.
+					goto convertToDoubleAndOperate;
 				}
-				delete rhs;
 			}
 			// Otherwise convert to doubles
 			else {
