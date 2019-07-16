@@ -46,6 +46,7 @@ namespace expr {
             GRAPH_SELECT_MENU = 8,
             GRAPH_SETTINGS_MENU = 9,
             GRAPH_VIEWER = 10,
+            LOGIC_MENU = 11,
         };
 
         neda::Cursor *cursor;
@@ -116,6 +117,8 @@ namespace expr {
         void graphSettingsKeyPressHandler(uint16_t key);
         // Handles key presses in the graph viewer menu.
         void graphViewerKeyPressHandler(uint16_t key);
+        // Handles key presses in the logic operators menu.
+        void logicKeyPressHandler(uint16_t key);
 
         // A key press handler handles key press events.
         typedef void (ExprEntry::*KeyPressHandler)(uint16_t);
@@ -157,6 +160,8 @@ namespace expr {
         void drawInterfaceGraphSettings(bool drawCursor = true);
         // Draws the interface for the graph viewer.
         void drawInterfaceGraphViewer();
+        // Draws the interface for the logic operators menu.
+        void drawInterfaceLogic();
 
         /*
          * These variables are kept between two key presses and thus have to be global.

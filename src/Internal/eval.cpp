@@ -959,6 +959,10 @@ convertToDoubleAndOperate:
             case LCD_CHAR_LEQ:
             case LCD_CHAR_GEQ:
             case LCD_CHAR_SERR:
+            case LCD_CHAR_LAND:
+            case LCD_CHAR_LOR:
+            case LCD_CHAR_LNOT:
+            case LCD_CHAR_LXOR:
                 return false;
             default: return true;
             }

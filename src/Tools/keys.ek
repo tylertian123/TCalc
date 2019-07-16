@@ -129,6 +129,7 @@ gteq
 piecewise
 gfuncs
 gsettings
+logic
 
 EK_RESTART_NUM 0xFFFF
 dummy

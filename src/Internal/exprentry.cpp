@@ -357,6 +357,7 @@ namespace expr {
         &ExprEntry::graphSelectKeyPressHandler,
         &ExprEntry::graphSettingsKeyPressHandler,
         &ExprEntry::graphViewerKeyPressHandler,
+        &ExprEntry::logicKeyPressHandler,
     };
 
     void ExprEntry::handleKeyPress(uint16_t key) {
@@ -615,6 +616,12 @@ namespace expr {
                 updateGraphableFunctions();
                 redrawGraph();
                 drawInterfaceGraphViewer();
+                return;
+            case KEY_LOGIC:
+                mode = DisplayMode::LOGIC_MENU;
+                prevMode = DisplayMode::NORMAL;
+                selectorIndex = 0;
+                drawInterfaceLogic();
                 return;
             default: break;
             }
@@ -1346,6 +1353,45 @@ functionCheckLoopEnd:
         drawInterfaceGraphViewer();
     }
 
+    constexpr uint8_t LCD_LOGIC_CHAR_START = LCD_CHAR_LNOT;
+    constexpr uint8_t LCD_LOGIC_CHAR_END = LCD_CHAR_LAND;
+    void ExprEntry::logicKeyPressHandler(uint16_t key) {
+        switch(key) {
+        case KEY_ENTER:
+        case KEY_CENTER:
+            cursor->add(new neda::Character(LCD_LOGIC_CHAR_START + selectorIndex));
+
+        // Intentional fall-through
+        case KEY_DELETE:
+        case KEY_LOGIC:
+        case KEY_CAT:
+            mode = prevMode;
+            drawInterfaceNormal();
+            return;
+        case KEY_LEFT:
+            if(selectorIndex > 0) {
+                selectorIndex--;
+            }
+            else {
+                selectorIndex = LCD_LOGIC_CHAR_END - LCD_LOGIC_CHAR_START;
+            }
+            break;
+        case KEY_RIGHT:
+            if(selectorIndex < LCD_LOGIC_CHAR_END - LCD_LOGIC_CHAR_START) {
+                selectorIndex ++;
+            }
+            else {
+                selectorIndex = 0;
+            }
+            break;
+        default:
+            break;
+        }
+
+        drawInterfaceLogic();
+    }
+
+
     void ExprEntry::drawInterfaceNormal(bool drawCursor) {
         // Call draw once before everything so that the locations are all updated
         neda::Expr *top = cursor->expr->getTopLevel();
@@ -1797,6 +1843,24 @@ functionCheckLoopEnd:
 
             display.setPixel(graphCursorX, graphCursorY + 1);
             display.setPixel(graphCursorX, graphCursorY + 2);
+        }
+
+        display.updateDrawing();
+    }
+
+    void ExprEntry::drawInterfaceLogic() {
+        display.clearDrawingBuffer();
+
+        int16_t x = HORIZ_MARGIN;
+        // Create a string to give to drawString later
+        char str[2];
+        // Set the null terminator
+        str[1] = '\0';
+        for(uint16_t i = 0; i <= LCD_LOGIC_CHAR_END - LCD_LOGIC_CHAR_START; i ++) {
+            str[0] = LCD_LOGIC_CHAR_START + i;
+            display.drawString(x, VERT_MARGIN, str, i == selectorIndex);
+            
+            x += 15;
         }
 
         display.updateDrawing();
