@@ -356,29 +356,37 @@ namespace eval {
 			return 0;
 		case Type::EXPONENT:
 			return 1;
+        case Type::NOT:
+            return 2;
 		case Type::MULTIPLY:
 		case Type::DIVIDE:
 		case Type::CROSS:
-			return 2;
+			return 3;
 		case Type::PLUS:
 		case Type::MINUS:
-			return 3;
+			return 4;
 		case Type::EQUALITY:
         case Type::LT:
         case Type::GT:
         case Type::LTEQ:
         case Type::GTEQ:
-			return 4;
+			return 5;
         case Type::AND:
-            return 5;
-        case Type::OR:
             return 6;
-        case Type::XOR:
+        case Type::OR:
             return 7;
+        case Type::XOR:
+            return 8;
 		
 		default: return 0xFF;
 		}
 	}
+    bool Operator::isUnary() const {
+        if(type == Type::NOT) {
+            return true;
+        }
+        return false;
+    }
 	Operator* Operator::fromChar(char ch) {
 		switch(ch) {
 		case '+':
@@ -780,6 +788,29 @@ convertToDoubleAndOperate:
 		}
 		return result;
 	}
+    Token* Operator::operator()(Token *t) {
+        switch(type) {
+        case Type::NOT:
+        {
+            int8_t truthy = isTruthy(t);
+            delete t;
+
+            if(truthy == 1) {
+                return new Number(0);
+            }
+            else if(truthy == 0) {
+                return new Number(1);
+            }
+            // Undefined
+            else {
+                return new Number(NAN);
+            }
+        }
+
+        default: 
+            return nullptr;
+        }
+    }
 
 	/******************** Function ********************/
 	// Must be in the same order as type
@@ -1898,17 +1929,32 @@ evaluateFunctionArguments:
 			}
 			// Operator
 			else {
-				// If there aren't enough operators, syntax error
-				if(stack.length() < 2) {
-					freeTokens(&output);
-					freeTokens(&stack);
-					return nullptr;
-				}
-				// Pop the left and right hand side operands
-				Token *rhs = stack.pop();
-				Token *lhs = stack.pop();
-				// Operate and push
-				stack.push((*((Operator*) t))(lhs, rhs));
+                // Unary operator
+                if(static_cast<Operator*>(t)->isUnary()) {
+                    // If there aren't enough operators, syntax error
+                    if(stack.length() < 1) {
+                        freeTokens(&output);
+                        freeTokens(&stack);
+                        return nullptr;
+                    }
+                    // Pop the operand
+                    Token *operand = stack.pop();
+                    // Operate and push
+                    stack.push((*static_cast<Operator*>(t))(operand));
+                }
+                else {
+                    // If there aren't enough operators, syntax error
+                    if(stack.length() < 2) {
+                        freeTokens(&output);
+                        freeTokens(&stack);
+                        return nullptr;
+                    }
+                    // Pop the left and right hand side operands
+                    Token *rhs = stack.pop();
+                    Token *lhs = stack.pop();
+                    // Operate and push
+                    stack.push((*static_cast<Operator*>(t))(lhs, rhs));
+                }
 			}
 		}
 

@@ -80,6 +80,7 @@ namespace eval {
 		Type type;
 
 		uint8_t getPrecedence() const;
+        bool isUnary() const;
 
 		virtual TokenType getType() override {
 			return TokenType::OPERATOR;
@@ -99,6 +100,11 @@ namespace eval {
 		// The returned numerical is allocated on the heap and needs to be freed
 		// The input is deleted
 		Token* operator()(Token*, Token*);
+        // Operates on two numericals, taking into account fractions and everything
+        // This only works when the operator is unary. For binary operators, use the other operator().
+		// The returned numerical is allocated on the heap and needs to be freed
+		// The input is deleted
+        Token* operator()(Token*);
 	
 	private:
 		Operator(Type type) : type(type) {}
