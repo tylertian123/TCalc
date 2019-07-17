@@ -1369,24 +1369,20 @@ convertToDoubleAndOperate:
 				}
 				// Check if the character is an operator
 				if (op) {
-                    lastTokenOperator = true;
 					// Check for unary operators
 					if(lastTokenOperator && (op->type == Operator::Type::PLUS || op->type == Operator::Type::MINUS)) {
 						// Allow unary pluses, but don't do anything
 						if(op->type == Operator::Type::MINUS) {
 							arr.add(&Operator::OP_NEGATE);
 						}
-						// Move on to the next object
-						++index;
-						break;
 					}
 					else {
 						// Otherwise add the operator normally
 						arr.add(op);
-						// Move on to the next object
-						++index;
-						break;
 					}
+                    ++index;
+                    lastTokenOperator = true;
+                    break;
 				}
 
 				// Otherwise, it's probably a number or a variable

@@ -19,9 +19,7 @@ namespace eval {
 		NUMBER,
 		FRACTION,
 		OPERATOR,
-		L_BRACKET,
-		R_BRACKET,
-		FUNCTION,
+        FUNCTION,
 		MATRIX,
 	};
 	class Token {
