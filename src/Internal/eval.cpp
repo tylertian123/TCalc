@@ -356,34 +356,54 @@ namespace eval {
 			return 0;
 		case Type::EXPONENT:
 			return 1;
+        /*
+         * Note: 
+         * Although factorial should have a higher precedence than exponentiation, ie an expression like this
+         * a^b!
+         * should be equivalent to
+         * a^(b!)
+         * and not
+         * (a^b)!
+         * here it's defined the opposite way. 
+         * 
+         * This is because in TCalc, an expression like this
+         *  b
+         * a !
+         * is translated directly into
+         * a^b!
+         * If the factorial operator were to have higher precedence than the exponent operator, this would not make sense,
+         * as the factorial clearly applies to the entire expression a^b.
+         */
+        case Type::FACT:
+            return 2;
         case Type::NOT:
         case Type::NEGATE:
-            return 2;
+            return 3;
 		case Type::MULTIPLY:
 		case Type::DIVIDE:
 		case Type::CROSS:
-			return 3;
+			return 4;
 		case Type::PLUS:
 		case Type::MINUS:
-			return 4;
+			return 5;
 		case Type::EQUALITY:
         case Type::LT:
         case Type::GT:
         case Type::LTEQ:
         case Type::GTEQ:
-			return 5;
+			return 6;
         case Type::AND:
-            return 6;
-        case Type::OR:
             return 7;
-        case Type::XOR:
+        case Type::OR:
             return 8;
+        case Type::XOR:
+            return 9;
 		
 		default: return 0xFF;
 		}
 	}
     bool Operator::isUnary() const {
-        if(type == Type::NOT || type == Type::NEGATE) {
+        if(type == Type::NOT || type == Type::NEGATE || type == Type::FACT) {
             return true;
         }
         return false;
@@ -430,6 +450,9 @@ namespace eval {
         
         case LCD_CHAR_LNOT:
             return &OP_NOT;
+        
+        case '!':
+            return &OP_FACT;
 
 		default: return nullptr;
 		}
@@ -451,7 +474,8 @@ namespace eval {
              Operator::OP_OR = { Operator::Type::OR },
              Operator::OP_XOR = { Operator::Type::XOR },
              Operator::OP_NOT = { Operator::Type::NOT },
-             Operator::OP_NEGATE = { Operator::Type::NEGATE };
+             Operator::OP_NEGATE = { Operator::Type::NEGATE },
+             Operator::OP_FACT = { Operator::Type::FACT };
 	double Operator::operate(double lhs, double rhs) const {
 		switch(type) {
 		case Type::PLUS:
@@ -824,6 +848,20 @@ convertToDoubleAndOperate:
                 }
             }
             return t;
+        }
+        case Type::FACT:
+        {
+            double x = extractDouble(t);
+            delete t;
+			if(!isInt(x) || x < 0) {
+				return new Number(NAN);
+			}
+			double d = 1;
+			while(x > 0) {
+				d *= x;
+				--x;
+			}
+			return new Number(d);
         }
 
         default: 

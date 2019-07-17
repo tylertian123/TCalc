@@ -130,6 +130,7 @@ piecewise
 gfuncs
 gsettings
 logic
+fact
 
 EK_RESTART_NUM 0xFFFF
 dummy

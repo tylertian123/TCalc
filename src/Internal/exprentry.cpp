@@ -340,6 +340,8 @@ namespace expr {
             return LCD_CHAR_GEQ;
         case KEY_LTEQ:
             return LCD_CHAR_LEQ;
+        case KEY_FACT:
+            return '!';
         default: 
             return 0xFF;
         }

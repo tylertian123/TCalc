@@ -69,7 +69,7 @@ namespace eval {
 	class Operator : public Token {
 	public:
 		enum class Type : uint8_t {
-			PLUS, MINUS, MULTIPLY, DIVIDE, EXPONENT, EQUALITY, CROSS, GT, LT, GTEQ, LTEQ, AND, OR, XOR, NOT, NEGATE,
+			PLUS, MINUS, MULTIPLY, DIVIDE, EXPONENT, EQUALITY, CROSS, GT, LT, GTEQ, LTEQ, AND, OR, XOR, NOT, NEGATE, FACT,
 			// Special multiplication and division
 			// These operators have the highest precedence
 			SP_MULT, SP_DIV,
@@ -87,7 +87,7 @@ namespace eval {
 		static Operator* fromChar(char);
 		// Because there are only a set number of possible operators, we can keep singletons
 		static Operator OP_PLUS, OP_MINUS, OP_MULTIPLY, OP_DIVIDE, OP_EXPONENT, OP_SP_MULT, OP_SP_DIV, OP_EQUALITY, OP_CROSS,
-                OP_GT, OP_LT, OP_GTEQ, OP_LTEQ, OP_AND, OP_OR, OP_XOR, OP_NOT, OP_NEGATE;
+                OP_GT, OP_LT, OP_GTEQ, OP_LTEQ, OP_AND, OP_OR, OP_XOR, OP_NOT, OP_NEGATE, OP_FACT;
 
 		double operate(double, double) const;
 		// Returns whether the operation was successful (in the case of fractional exponentiation)
