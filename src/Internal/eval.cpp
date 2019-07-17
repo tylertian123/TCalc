@@ -1168,8 +1168,7 @@ convertToDoubleAndOperate:
 		auto &exprs = expr;
 		uint16_t index = 0;
 		// This variable keeps track of whether the last token was an operator
-		// It is used for unary operators like the unary minus and plus
-		bool allowUnary = true;
+		bool lastTokenOperator = true;
 		// Loop over every NEDA object
 		// Since many types of NEDA objects require index increments of more than 1, using a while loop is more clear than a for loop
 		while (index < exprs.length()) {
@@ -1178,7 +1177,7 @@ convertToDoubleAndOperate:
 			case neda::ObjType::L_BRACKET:
 			{
 				// If the last token was not an operator, then it must be an implied multiplication
-				if(!allowUnary) {
+				if(!lastTokenOperator) {
 					arr.add(&Operator::OP_MULTIPLY);
 				}
 				
@@ -1216,8 +1215,8 @@ convertToDoubleAndOperate:
 				arr.add(insideResult);
 				// Move on to the next part
 				index = endIndex + 1;
-				// No unary after a pair
-				allowUnary = false;
+				// Last token was not an operator
+				lastTokenOperator = false;
 				break;
 			} // neda::ObjType::L_BRACKET
 
@@ -1249,8 +1248,7 @@ convertToDoubleAndOperate:
 				arr.add(Operator::OP_DIVIDE(num, denom));
 				// Move on to the next object
 				++index;
-				// No unary operators after a fraction
-				allowUnary = false;
+				lastTokenOperator = false;
 				break;
 			} // neda::ObjType::FRACTION
 
@@ -1276,17 +1274,15 @@ convertToDoubleAndOperate:
 				arr.add(exponent);
 				// Move on to the next token
 				++index;
-				// No unary after a superscript
-				allowUnary = false;
+				lastTokenOperator = false;
 				break;
 			} // neda::ObjType::SUPERSCRIPT
 
 			// Radicals
 			case neda::ObjType::RADICAL:
 			{   
-				// If unary operators are not allowed, then the last token was not an operator
-				// Then there must be an implied multiplication
-				if(!allowUnary) {
+				// If the last token was not an operator there must be an implied multiplication
+				if(!lastTokenOperator) {
 					arr.add(&Operator::OP_MULTIPLY);
 				}
 				// Used to store the base
@@ -1331,8 +1327,7 @@ convertToDoubleAndOperate:
 				arr.add(Operator::OP_EXPONENT(contents, n));
 				// Move on to the next object
 				++index;
-				// No unary after a radical
-				allowUnary = false;
+				lastTokenOperator = false;
 				break;
 			} // neda::ObjType::RADICAL
 
@@ -1355,8 +1350,9 @@ convertToDoubleAndOperate:
 				}
 				// Check if the character is an operator
 				if (op) {
+                    lastTokenOperator = true;
 					// Check for unary operators
-					if(allowUnary && (op->type == Operator::Type::PLUS || op->type == Operator::Type::MINUS)) {
+					if(lastTokenOperator && (op->type == Operator::Type::PLUS || op->type == Operator::Type::MINUS)) {
 						// If we do encounter a unary operator, translate it to multiplication
 						// This is so that the order of operations won't be messed up (namely exponentiation)
 						// Allow unary pluses, but don't do anything
@@ -1366,8 +1362,6 @@ convertToDoubleAndOperate:
 						}
 						// Move on to the next object
 						++index;
-						// No unary operators after unary operators
-						allowUnary = false;
 						break;
 					}
 					else {
@@ -1375,8 +1369,6 @@ convertToDoubleAndOperate:
 						arr.add(op);
 						// Move on to the next object
 						++index;
-						// Allow unary operators after normal operators
-						allowUnary = true;
 						break;
 					}
 				}
@@ -1455,8 +1447,8 @@ convertToDoubleAndOperate:
 						// Add the function if it's valid
 						if(func || uFunc) {
 evaluateFunctionArguments:
-							// If unary is not allowed, there must be an implied multiplication
-							if(!allowUnary) {
+							// Implied multiplication
+							if(!lastTokenOperator) {
 								arr.add(&Operator::OP_MULTIPLY);
 							}
 							// Find the end of the arguments list
@@ -1612,16 +1604,13 @@ evaluateFunctionArguments:
 							freeTokens(&args);
 							// Add result
 							arr.add(result);
-							// No unary after functions
-							allowUnary = false;
+							lastTokenOperator = false;
 							++end;
 						}
 						// If not a function, check if it's a constant or a variable
 						else {
-							// If unary operators are not allowed, which means that the previous token was not an operator,
-							// There must be an implied multiplication 
-							// Unless the last token was a multiply, which means there was an unary operator
-							if(!allowUnary && (arr.length() != 0 && arr[arr.length() - 1] != &Operator::OP_MULTIPLY)) {
+							// Implied multiplication
+							if(!lastTokenOperator && (arr.length() != 0 && arr[arr.length() - 1] != &Operator::OP_MULTIPLY)) {
 								arr.add(&Operator::OP_MULTIPLY);
 							}
 							// If n is nonnull it must be added, so no need for cleanup for this dynamically allocated variable
@@ -1658,7 +1647,7 @@ evaluateFunctionArguments:
 									return nullptr;
 								}
 							}
-							allowUnary = false;
+							lastTokenOperator = false;
 						}
 					}
 				}
@@ -1666,7 +1655,7 @@ evaluateFunctionArguments:
 				else {
 					arr.add(new Number(atof(str)));
 					index = end;
-					allowUnary = false;
+					lastTokenOperator = false;
 				}
 				// Clean up the string buffer and move on
 				delete[] str;
@@ -1784,15 +1773,15 @@ evaluateFunctionArguments:
 				delete[] newVars;
 				// Move on to the next object
 				++index;
-				allowUnary = false;
+				lastTokenOperator = false;
 				break;
 			} // neda::ObjType::SIGMA_PI
 
 			// Matrices
 			case neda::ObjType::MATRIX:
 			{
-				// If the last token was not an operator, then it must be an implied multiplication
-				if(!allowUnary) {
+				// Implied multiplication
+				if(!lastTokenOperator) {
 					arr.add(&Operator::OP_MULTIPLY);
 				}
 				neda::Matrix *nMat = static_cast<neda::Matrix*>(exprs[index]);
@@ -1822,14 +1811,14 @@ evaluateFunctionArguments:
 				arr.add(mat);
 				// Move on to the next object
 				++index;
-				allowUnary = false;
+				lastTokenOperator = false;
 				break;
 			} // neda::ObjType::MATRIX
 
             case neda::ObjType::PIECEWISE:
             {
-                // If the last token was not an operator, then it must be an implied multiplication
-				if(!allowUnary) {
+                // Implied multiplication
+				if(!lastTokenOperator) {
 					arr.add(&Operator::OP_MULTIPLY);
 				}
                 neda::Piecewise *p = static_cast<neda::Piecewise*>(exprs[index]);
@@ -1886,7 +1875,7 @@ evaluateFunctionArguments:
 
                 arr.add(val);
                 ++index;
-                allowUnary = false;
+                lastTokenOperator = false;
                 break;
             } // neda::ObjType::PIECEWISE
 
