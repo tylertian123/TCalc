@@ -70,8 +70,8 @@ namespace eval {
 
 	class Operator : public Token {
 	public:
-		enum Type {
-			PLUS, MINUS, MULTIPLY, DIVIDE, EXPONENT, EQUALITY, CROSS, GT, LT, GTEQ, LTEQ, AND, OR, XOR, NOT,
+		enum class Type : uint8_t {
+			PLUS, MINUS, MULTIPLY, DIVIDE, EXPONENT, EQUALITY, CROSS, GT, LT, GTEQ, LTEQ, AND, OR, XOR, NOT, NEGATE,
 			// Special multiplication and division
 			// These operators have the highest precedence
 			SP_MULT, SP_DIV,
@@ -89,22 +89,22 @@ namespace eval {
 		static Operator* fromChar(char);
 		// Because there are only a set number of possible operators, we can keep singletons
 		static Operator OP_PLUS, OP_MINUS, OP_MULTIPLY, OP_DIVIDE, OP_EXPONENT, OP_SP_MULT, OP_SP_DIV, OP_EQUALITY, OP_CROSS,
-                OP_GT, OP_LT, OP_GTEQ, OP_LTEQ, OP_AND, OP_OR, OP_XOR, OP_NOT;
+                OP_GT, OP_LT, OP_GTEQ, OP_LTEQ, OP_AND, OP_OR, OP_XOR, OP_NOT, OP_NEGATE;
 
-		double operate(double, double);
+		double operate(double, double) const;
 		// Returns whether the operation was successful (in the case of fractional exponentiation)
 		// Ugly, I know.
-		bool operateOn(Fraction*, Fraction*);
+		bool operateOn(Fraction*, Fraction*) const;
 
 		// Operates on two numericals, taking into account fractions and everything
 		// The returned numerical is allocated on the heap and needs to be freed
 		// The input is deleted
-		Token* operator()(Token*, Token*);
+		Token* operator()(Token*, Token*) const;
         // Operates on two numericals, taking into account fractions and everything
         // This only works when the operator is unary. For binary operators, use the other operator().
 		// The returned numerical is allocated on the heap and needs to be freed
 		// The input is deleted
-        Token* operator()(Token*);
+        Token* operator()(Token*) const;
 	
 	private:
 		Operator(Type type) : type(type) {}

@@ -357,6 +357,7 @@ namespace eval {
 		case Type::EXPONENT:
 			return 1;
         case Type::NOT:
+        case Type::NEGATE:
             return 2;
 		case Type::MULTIPLY:
 		case Type::DIVIDE:
@@ -382,7 +383,7 @@ namespace eval {
 		}
 	}
     bool Operator::isUnary() const {
-        if(type == Type::NOT) {
+        if(type == Type::NOT || type == Type::NEGATE) {
             return true;
         }
         return false;
@@ -449,8 +450,9 @@ namespace eval {
              Operator::OP_AND = { Operator::Type::AND },
              Operator::OP_OR = { Operator::Type::OR },
              Operator::OP_XOR = { Operator::Type::XOR },
-             Operator::OP_NOT = { Operator::Type::NOT };
-	double Operator::operate(double lhs, double rhs) {
+             Operator::OP_NOT = { Operator::Type::NOT },
+             Operator::OP_NEGATE = { Operator::Type::NEGATE };
+	double Operator::operate(double lhs, double rhs) const {
 		switch(type) {
 		case Type::PLUS:
 			return lhs + rhs;
@@ -531,7 +533,7 @@ namespace eval {
 		default: return NAN;
 		}
 	}
-	bool Operator::operateOn(Fraction *frac, Fraction *rhs) {
+	bool Operator::operateOn(Fraction *frac, Fraction *rhs) const {
 		switch(type) {
 		case Type::PLUS:
 			*frac += *rhs;
@@ -561,7 +563,7 @@ namespace eval {
 	}
 	// Operates on two tokens and returns the result
 	// Note: This also deletes the operands!
-	Token* Operator::operator()(Token *lhs, Token *rhs) {
+	Token* Operator::operator()(Token *lhs, Token *rhs) const {
 		// TODO: Matrix processing
 		TokenType lType = lhs->getType();
 		TokenType rType = rhs->getType();
@@ -788,7 +790,7 @@ convertToDoubleAndOperate:
 		}
 		return result;
 	}
-    Token* Operator::operator()(Token *t) {
+    Token* Operator::operator()(Token *t) const {
         switch(type) {
         case Type::NOT:
         {
@@ -805,6 +807,23 @@ convertToDoubleAndOperate:
             else {
                 return new Number(NAN);
             }
+        }
+        case Type::NEGATE:
+        {
+            if(t->getType() == TokenType::NUMBER) {
+                static_cast<Number*>(t)->value *= -1;
+            }
+            else if(t->getType() == TokenType::FRACTION) {
+                static_cast<Fraction*>(t)->num *= -1;
+            }
+            // Matrix
+            else {
+                for(uint16_t i = 0; i < static_cast<Matrix*>(t)->m * static_cast<Matrix*>(t)->n; i ++) {
+                    // Negate every entry
+                    (*static_cast<Matrix*>(t))[i] *= -1;
+                }
+            }
+            return t;
         }
 
         default: 
@@ -1353,12 +1372,9 @@ convertToDoubleAndOperate:
                     lastTokenOperator = true;
 					// Check for unary operators
 					if(lastTokenOperator && (op->type == Operator::Type::PLUS || op->type == Operator::Type::MINUS)) {
-						// If we do encounter a unary operator, translate it to multiplication
-						// This is so that the order of operations won't be messed up (namely exponentiation)
 						// Allow unary pluses, but don't do anything
 						if(op->type == Operator::Type::MINUS) {
-							arr.add(new Number(-1));
-							arr.add(&Operator::OP_MULTIPLY);
+							arr.add(&Operator::OP_NEGATE);
 						}
 						// Move on to the next object
 						++index;
