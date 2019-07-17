@@ -482,21 +482,42 @@ namespace eval {
         {
             Number l(lhs);
             Number r(rhs);
-            return isTruthy(&l) && isTruthy(&r);
+            int8_t lTruthy = isTruthy(&l);
+            int8_t rTruthy = isTruthy(&r);
+            // If the truthiness of either operand is undefined, the expression is undefined
+            if(lTruthy == -1 || rTruthy == -1) {
+                return NAN;
+            } 
+            // Now we know they can only be 0 or 1, we can use regular logical operators
+            return lTruthy && rTruthy;
         }
 
         case Type::OR:
         {
             Number l(lhs);
             Number r(rhs);
-            return isTruthy(&l) || isTruthy(&r);
+            int8_t lTruthy = isTruthy(&l);
+            int8_t rTruthy = isTruthy(&r);
+            // If the truthiness of either operand is undefined, the expression is undefined
+            if(lTruthy == -1 || rTruthy == -1) {
+                return NAN;
+            } 
+
+            return lTruthy || rTruthy;
         }
 
         case Type::XOR:
         {
             Number l(lhs);
             Number r(rhs);
-            return isTruthy(&l) ^ isTruthy(&r);
+            int8_t lTruthy = isTruthy(&l);
+            int8_t rTruthy = isTruthy(&r);
+            // If the truthiness of either operand is undefined, the expression is undefined
+            if(lTruthy == -1 || rTruthy == -1) {
+                return NAN;
+            }
+
+            return lTruthy ^ rTruthy;
         }
 
 		default: return NAN;
