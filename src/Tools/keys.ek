@@ -132,6 +132,7 @@ gsettings
 logic
 fact
 rarrow
+mu
 
 EK_RESTART_NUM 0xFFFF
 dummy

@@ -15,10 +15,12 @@
 #include "lcd12864.hpp"
 
 // The lower bound of the "special" (non-ASCII) charset (inclusive).
-#define LCD_CHARSET_LOWBOUND 0x0b
+#define LCD_CHARSET_LOWBOUND 0x0a
 // The upper bound of the "special" (non-ASCII) charset (inclusive).
 #define LCD_CHARSET_HIGHBOUND 0x1F
 
+// The greek letter mu character in a string.
+#define LCD_STR_MU "\x0a"
 // The right arrow character in a string.
 #define LCD_STR_RARW "\x0b"
 // The negation (NOT) character in a string.
@@ -62,6 +64,8 @@
 // The character for the division sign in a string.
 #define LCD_STR_DIV "\x1f"
 
+// The greek letter mu character.
+#define LCD_CHAR_MU '\x0a'
 // The right arrow character.
 #define LCD_CHAR_RARW '\x0b'
 // The negation (NOT) character.
@@ -363,6 +367,8 @@ namespace lcd {
     // Unknown character (?)
 	extern const Image CHAR_UNKNOWN;
 	
+    // Mu
+    extern const Image CHAR_MU;
     // Right arrow
     extern const Image CHAR_RARW;
     // Logical NOT
