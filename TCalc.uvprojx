@@ -466,6 +466,11 @@
               <FileType>8</FileType>
               <FilePath>.\src\Internal\drawbuf.cpp</FilePath>
             </File>
+            <File>
+              <FileName>unitconv.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\src\Internal\unitconv.cpp</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
