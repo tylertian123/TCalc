@@ -1158,6 +1158,18 @@ namespace lcd {
 	const Image CHAR_UNKNOWN(CHAR_UNKNOWN_DATA, 4, 30, 9);
 	
 	// Special characters
+    const uint8_t CHAR_RARW_DATA[] = {
+		0x00, // 00000000
+		0x00, // 00000000
+		0x20, // 00100000
+		0x10, // 00010000
+		0xf8, // 11111000
+		0x10, // 00010000
+		0x20, // 00100000
+		0x00, // 00000000
+		0x00, // 00000000
+	};
+	const Image CHAR_RARW(CHAR_RARW_DATA, 1, 5, 9);
     const uint8_t CHAR_LAND_DATA[] = {
 		0x00, // 00000000
 		0x00, // 00000000

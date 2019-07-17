@@ -342,6 +342,8 @@ namespace expr {
             return LCD_CHAR_LEQ;
         case KEY_FACT:
             return '!';
+        case KEY_RARROW:
+            return LCD_CHAR_RARW;
         default: 
             return 0xFF;
         }
