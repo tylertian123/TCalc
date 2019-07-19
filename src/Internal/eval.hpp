@@ -24,7 +24,7 @@ namespace eval {
 	};
 	class Token {
 	public:
-		virtual TokenType getType() = 0;
+		virtual TokenType getType() const = 0;
 	};
 
 	class Number : public Token {
@@ -32,7 +32,7 @@ namespace eval {
 		Number(double value) : value(value) {}
 		double value;
 
-		virtual TokenType getType() override {
+		virtual TokenType getType() const override {
 			return TokenType::NUMBER;
 		}
 		
@@ -47,7 +47,7 @@ namespace eval {
 		int64_t num;
 		int64_t denom;
 
-		virtual TokenType getType() override {
+		virtual TokenType getType() const override {
 			return TokenType::FRACTION;
 		}
 
@@ -80,14 +80,11 @@ namespace eval {
 		uint8_t getPrecedence() const;
         bool isUnary() const;
 
-		virtual TokenType getType() override {
+		virtual TokenType getType() const override {
 			return TokenType::OPERATOR;
 		}
 
-		static Operator* fromChar(char);
-		// Because there are only a set number of possible operators, we can keep singletons
-		static Operator OP_PLUS, OP_MINUS, OP_MULTIPLY, OP_DIVIDE, OP_EXPONENT, OP_SP_MULT, OP_SP_DIV, OP_EQUALITY, OP_CROSS,
-                OP_GT, OP_LT, OP_GTEQ, OP_LTEQ, OP_AND, OP_OR, OP_XOR, OP_NOT, OP_NEGATE, OP_FACT;
+		static const Operator* fromChar(char);
 
 		double operate(double, double) const;
 		// Returns whether the operation was successful (in the case of fractional exponentiation)
@@ -104,9 +101,28 @@ namespace eval {
 		// The input is deleted
         Token* operator()(Token*) const;
 	
-	private:
-		Operator(Type type) : type(type) {}
+		constexpr Operator(Type type) : type(type) {}
 	};
+
+    constexpr Operator OP_PLUS(Operator::Type::PLUS),
+                       OP_MINUS(Operator::Type::MINUS),
+                       OP_MULTIPLY(Operator::Type::MULTIPLY),
+                       OP_DIVIDE(Operator::Type::DIVIDE),
+                       OP_EXPONENT(Operator::Type::EXPONENT),
+                       OP_SP_MULT(Operator::Type::SP_MULT),
+                       OP_SP_DIV(Operator::Type::SP_DIV),
+                       OP_EQUALITY(Operator::Type::EQUALITY),
+                       OP_CROSS(Operator::Type::CROSS),
+                       OP_GT(Operator::Type::GT),
+                       OP_LT(Operator::Type::LT),
+                       OP_GTEQ(Operator::Type::GTEQ),
+                       OP_LTEQ(Operator::Type::LTEQ),
+                       OP_AND(Operator::Type::AND),
+                       OP_OR(Operator::Type::OR),
+                       OP_XOR(Operator::Type::XOR),
+                       OP_NOT(Operator::Type::NOT),
+                       OP_NEGATE(Operator::Type::NEGATE),
+                       OP_FACT(Operator::Type::FACT);
 
 	// Even though only one instance of each type of function is needed, because there are a lot of functions, it is not worth it
 	// to make it a singleton
@@ -123,7 +139,7 @@ namespace eval {
 
 		Type type;
 
-		virtual TokenType getType() override {
+		virtual TokenType getType() const override {
 			return TokenType::FUNCTION;
 		}
 
@@ -188,7 +204,7 @@ namespace eval {
 
 		bool eliminate();
 
-		virtual TokenType getType() override {
+		virtual TokenType getType() const override {
 			return TokenType::MATRIX;
 		}
 	
