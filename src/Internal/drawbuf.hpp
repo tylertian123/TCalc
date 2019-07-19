@@ -12,7 +12,7 @@ namespace lcd {
 		uint16_t width;
 		uint16_t height;
 		
-		Image(const uint8_t *data, uint8_t bytesWide, uint8_t width, uint8_t height) : data(data), bytesWide(bytesWide), width(width), height(height) {}
+		constexpr Image(const uint8_t *data, uint8_t bytesWide, uint8_t width, uint8_t height) : data(data), bytesWide(bytesWide), width(width), height(height) {}
 	};
     
     // A 128*64 buffer for drawing.

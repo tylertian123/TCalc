@@ -408,7 +408,7 @@ namespace eval {
         }
         return false;
     }
-	Operator* Operator::fromChar(char ch) {
+	const Operator* Operator::fromChar(char ch) {
 		switch(ch) {
 		case '+':
 			return &OP_PLUS;
@@ -457,25 +457,6 @@ namespace eval {
 		default: return nullptr;
 		}
 	}
-	Operator Operator::OP_PLUS = { Operator::Type::PLUS },
-			 Operator::OP_MINUS = { Operator::Type::MINUS },
-			 Operator::OP_MULTIPLY = { Operator::Type::MULTIPLY },
-			 Operator::OP_DIVIDE = { Operator::Type::DIVIDE },
-			 Operator::OP_EXPONENT = { Operator::Type::EXPONENT },
-			 Operator::OP_SP_MULT = { Operator::Type::SP_MULT },
-			 Operator::OP_SP_DIV = { Operator::Type::SP_DIV },
-			 Operator::OP_EQUALITY = { Operator::Type::EQUALITY },
-			 Operator::OP_CROSS = { Operator::Type::CROSS },
-             Operator::OP_GT = { Operator::Type::GT },
-             Operator::OP_LT = { Operator::Type::LT },
-             Operator::OP_GTEQ = { Operator::Type::GTEQ },
-             Operator::OP_LTEQ = { Operator::Type::LTEQ },
-             Operator::OP_AND = { Operator::Type::AND },
-             Operator::OP_OR = { Operator::Type::OR },
-             Operator::OP_XOR = { Operator::Type::XOR },
-             Operator::OP_NOT = { Operator::Type::NOT },
-             Operator::OP_NEGATE = { Operator::Type::NEGATE },
-             Operator::OP_FACT = { Operator::Type::FACT };
 	double Operator::operate(double lhs, double rhs) const {
 		switch(type) {
 		case Type::PLUS:
@@ -1235,7 +1216,8 @@ convertToDoubleAndOperate:
 			{
 				// If the last token was not an operator, then it must be an implied multiplication
 				if(!lastTokenOperator) {
-					arr.add(&Operator::OP_MULTIPLY);
+                    // This looks very dangerous but in reality all methods of Operator are const
+					arr.add(const_cast<Operator*>(&OP_MULTIPLY));
 				}
 				
 				// Look for the matching right bracket
@@ -1302,7 +1284,7 @@ convertToDoubleAndOperate:
 					return nullptr;
 				}
 				// Otherwise, call the division operator to evaluate the fraction and add it to the tokens list
-				arr.add(Operator::OP_DIVIDE(num, denom));
+				arr.add(OP_DIVIDE(num, denom));
 				// Move on to the next object
 				++index;
 				lastTokenOperator = false;
@@ -1327,7 +1309,7 @@ convertToDoubleAndOperate:
 					return new Number(NAN);
 				}
 				// Otherwise, turn it into an exponentiation operator and the value of the exponent
-				arr.add(&Operator::OP_EXPONENT);
+				arr.add(const_cast<Operator*>(&OP_EXPONENT));
 				arr.add(exponent);
 				// Move on to the next token
 				++index;
@@ -1340,7 +1322,7 @@ convertToDoubleAndOperate:
 			{   
 				// If the last token was not an operator there must be an implied multiplication
 				if(!lastTokenOperator) {
-					arr.add(&Operator::OP_MULTIPLY);
+					arr.add(const_cast<Operator*>(&OP_MULTIPLY));
 				}
 				// Used to store the base
 				Token *n;
@@ -1381,7 +1363,7 @@ convertToDoubleAndOperate:
 					return new Number(NAN);
 				}
 				// Evaluate the radical and add the result to the tokens array
-				arr.add(Operator::OP_EXPONENT(contents, n));
+				arr.add(OP_EXPONENT(contents, n));
 				// Move on to the next object
 				++index;
 				lastTokenOperator = false;
@@ -1399,10 +1381,10 @@ convertToDoubleAndOperate:
 					break;
 				}
 				// See if the character is a known operator
-				Operator *op = Operator::fromChar(ch);
+				const Operator *op = Operator::fromChar(ch);
 				// Check for equality operator which is two characters and not handled by Operator::fromChar
 				if(ch == '=' && index + 1 < exprs.length() && extractChar(exprs[index + 1]) == '=') {
-					op = &Operator::OP_EQUALITY;
+					op = &OP_EQUALITY;
 					++index;
 				}
 				// Check if the character is an operator
@@ -1411,12 +1393,12 @@ convertToDoubleAndOperate:
 					if(lastTokenOperator && (op->type == Operator::Type::PLUS || op->type == Operator::Type::MINUS)) {
 						// Allow unary pluses, but don't do anything
 						if(op->type == Operator::Type::MINUS) {
-							arr.add(&Operator::OP_NEGATE);
+							arr.add(const_cast<Operator*>(&OP_NEGATE));
 						}
 					}
 					else {
 						// Otherwise add the operator normally
-						arr.add(op);
+						arr.add(const_cast<Operator*>(op));
 					}
                     ++index;
                     lastTokenOperator = true;
@@ -1465,7 +1447,7 @@ convertToDoubleAndOperate:
 							// Convert it to a multiplication with a base 2 log
 							arr.add(new Number(multiplier));
 							// Use special multiply to ensure the order of operations do not mess it up
-							arr.add(&Operator::OP_SP_MULT);
+							arr.add(const_cast<Operator*>(&OP_SP_MULT));
 							// The function is base 2 log
 							func = new Function(Function::Type::LOG2);
 							// Increment end so the index gets set properly afterwards
@@ -1499,7 +1481,7 @@ convertToDoubleAndOperate:
 evaluateFunctionArguments:
 							// Implied multiplication
 							if(!lastTokenOperator) {
-								arr.add(&Operator::OP_MULTIPLY);
+								arr.add(const_cast<Operator*>(&OP_MULTIPLY));
 							}
 							// Find the end of the arguments list
 							index = end;
@@ -1660,8 +1642,8 @@ evaluateFunctionArguments:
 						// If not a function, check if it's a constant or a variable
 						else {
 							// Implied multiplication
-							if(!lastTokenOperator && (arr.length() != 0 && arr[arr.length() - 1] != &Operator::OP_MULTIPLY)) {
-								arr.add(&Operator::OP_MULTIPLY);
+							if(!lastTokenOperator && (arr.length() != 0 && arr[arr.length() - 1] != &OP_MULTIPLY)) {
+								arr.add(const_cast<Operator*>(&OP_MULTIPLY));
 							}
 							// If n is nonnull it must be added, so no need for cleanup for this dynamically allocated variable
 							Number *n = Number::constFromString(str);
@@ -1792,7 +1774,7 @@ evaluateFunctionArguments:
 					// Add or multiply the expressions if val exists
 					// Operate takes care of deletion of operands
 					if(val) {
-						val = (type.data == lcd::CHAR_SUMMATION.data ? Operator::OP_PLUS : Operator::OP_MULTIPLY)(val, n);
+						val = (type.data == lcd::CHAR_SUMMATION.data ? OP_PLUS : OP_MULTIPLY)(val, n);
 					}
 					// Set val if it doesn't exist
 					else {
@@ -1832,7 +1814,7 @@ evaluateFunctionArguments:
 			{
 				// Implied multiplication
 				if(!lastTokenOperator) {
-					arr.add(&Operator::OP_MULTIPLY);
+					arr.add(const_cast<Operator*>(&OP_MULTIPLY));
 				}
 				neda::Matrix *nMat = static_cast<neda::Matrix*>(exprs[index]);
 				// Convert to a eval::Matrix
@@ -1869,7 +1851,7 @@ evaluateFunctionArguments:
             {
                 // Implied multiplication
 				if(!lastTokenOperator) {
-					arr.add(&Operator::OP_MULTIPLY);
+					arr.add(const_cast<Operator*>(&OP_MULTIPLY));
 				}
                 neda::Piecewise *p = static_cast<neda::Piecewise*>(exprs[index]);
                 
@@ -1945,7 +1927,7 @@ evaluateFunctionArguments:
 			else {
 				// Operator
 				// Pop all items on the stack that have higher precedence and put into the output queue
-				while(!stack.isEmpty() && ((Operator*) stack.peek())->getPrecedence() <= ((Operator*) t)->getPrecedence()) {
+				while(!stack.isEmpty() && static_cast<const Operator*>(stack.peek())->getPrecedence() <= static_cast<const Operator*>(t)->getPrecedence()) {
 					output.enqueue(stack.pop());
 				}
 				// Push the operator
@@ -1969,7 +1951,7 @@ evaluateFunctionArguments:
 			// Operator
 			else {
                 // Unary operator
-                if(static_cast<Operator*>(t)->isUnary()) {
+                if(static_cast<const Operator*>(t)->isUnary()) {
                     // If there aren't enough operators, syntax error
                     if(stack.length() < 1) {
                         freeTokens(&output);
@@ -1979,7 +1961,7 @@ evaluateFunctionArguments:
                     // Pop the operand
                     Token *operand = stack.pop();
                     // Operate and push
-                    stack.push((*static_cast<Operator*>(t))(operand));
+                    stack.push((*static_cast<const Operator*>(t))(operand));
                 }
                 else {
                     // If there aren't enough operators, syntax error
@@ -1992,7 +1974,7 @@ evaluateFunctionArguments:
                     Token *rhs = stack.pop();
                     Token *lhs = stack.pop();
                     // Operate and push
-                    stack.push((*static_cast<Operator*>(t))(lhs, rhs));
+                    stack.push((*static_cast<const Operator*>(t))(lhs, rhs));
                 }
 			}
 		}
