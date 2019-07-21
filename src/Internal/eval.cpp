@@ -19,6 +19,7 @@
 namespace eval {
 	
 	bool useRadians = true;
+    bool autoFractions = true;
 
 	/******************** Number ********************/
 	Number* Number::constFromString(const char* str) {
@@ -575,8 +576,9 @@ namespace eval {
 		Token *result = nullptr;
 		// Two numbers: normal operation
 		if(lType == TokenType::NUMBER && rType == TokenType::NUMBER) {
-			// Special case for division: if the operands are whole numbers, create a fraction
-			if((type == Operator::Type::DIVIDE || type == Operator::Type::SP_DIV) && isInt(((Number*) lhs)->value) && isInt(((Number*) rhs)->value)) {
+			// Special case for division: if the operands are whole numbers, create a fraction if auto fractions is on
+			if(autoFractions && (type == Operator::Type::DIVIDE || type == Operator::Type::SP_DIV) && 
+                    isInt(((Number*) lhs)->value) && isInt(((Number*) rhs)->value)) {
 				auto n = static_cast<int64_t>(((Number*) lhs)->value);
 				auto d = static_cast<int64_t>(((Number*) rhs)->value);
 				// See if the division yields a whole number
@@ -1284,7 +1286,12 @@ convertToDoubleAndOperate:
 					return nullptr;
 				}
 				// Otherwise, call the division operator to evaluate the fraction and add it to the tokens list
+                // Temporarily set autoFractions to true so a fraction is created no matter what
+                bool tmp = autoFractions;
+                autoFractions = true;
 				arr.add(OP_DIVIDE(num, denom));
+                autoFractions = tmp;
+                
 				// Move on to the next object
 				++index;
 				lastTokenOperator = false;

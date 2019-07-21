@@ -11,6 +11,7 @@
 namespace eval {
 
 	extern bool useRadians;
+    extern bool autoFractions;
 
 	/*
 	 * Base Token class and type enum
