@@ -2092,7 +2092,15 @@ evaluateFunctionArguments:
                     // Pop the operand
                     Token *operand = stack.pop();
                     // Operate and push
-                    stack.push((*static_cast<const Operator*>(t))(operand));
+                    Token *result = (*static_cast<const Operator*>(t))(operand);
+                    if(result) {
+                        stack.push(result);
+                    }
+                    else {
+                        freeTokens(&output);
+                        freeTokens(&stack);
+                        return nullptr;
+                    }
                 }
                 else {
                     // If there aren't enough operators, syntax error
@@ -2105,7 +2113,15 @@ evaluateFunctionArguments:
                     Token *rhs = stack.pop();
                     Token *lhs = stack.pop();
                     // Operate and push
-                    stack.push((*static_cast<const Operator*>(t))(lhs, rhs));
+                    Token *result = (*static_cast<const Operator*>(t))(lhs, rhs);
+                    if(result) {
+                        stack.push(result);
+                    }
+                    else {
+                        freeTokens(&output);
+                        freeTokens(&stack);
+                        return nullptr;
+                    }
                 }
 			}
 		}
