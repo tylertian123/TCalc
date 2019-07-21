@@ -722,13 +722,13 @@ namespace expr {
         drawInterfaceConst();
     }
 
-    constexpr uint8_t BUILTIN_FUNC_COUNT = 24;
+    constexpr uint8_t BUILTIN_FUNC_COUNT = 25;
     constexpr uint8_t FUNC_SCROLLBAR_WIDTH = 4;
     const char * const allFuncDispNames[BUILTIN_FUNC_COUNT] = {
         "sin(angle)", "cos(angle)", "tan(angle)", "asin(x)", "acos(x)", "atan(x)", 
         "sinh(angle)", "cosh(angle)", "tanh(angle)", "asinh(x)", "acosh(x)", "atanh(x)",
         "ln(x)", "qdRtA(a,b,c)", "qdRtB(a,b,c)", "round(n,decimals)", "abs(x)", "fact(x)",
-        "det(A)", "len(v)", "transpose(A)", "inv(A)", "I(n)", "linSolve(A)"
+        "det(A)", "len(v)", "transpose(A)", "inv(A)", "I(n)", "linSolve(A)", "rref(A)"
     };
     void ExprEntry::funcKeyPressHandler(uint16_t key) {
         const uint16_t funcCount = BUILTIN_FUNC_COUNT + expr::functions.length();

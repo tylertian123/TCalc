@@ -854,7 +854,7 @@ convertToDoubleAndOperate:
 		// log10 and log2 cannot be directly entered with a string
 		"\xff", "\xff",
 
-		"qdRtA", "qdRtB", "round", "abs", "fact", "det", "len", "transpose", "inv", "I", "linSolve",
+		"qdRtA", "qdRtB", "round", "abs", "fact", "det", "len", "transpose", "inv", "I", "linSolve", "rref",
 	};
 	Function* Function::fromString(const char *str) {
 		for(uint8_t i = 0; i < sizeof(FUNCNAMES) / sizeof(FUNCNAMES[0]); i ++) {
@@ -1051,6 +1051,19 @@ convertToDoubleAndOperate:
 			}
 			return result;
 		}
+        case Type::RREF:
+        {
+            // Syntax error: rref of a scalar
+			if(args[0]->getType() != TokenType::MATRIX) {
+				return nullptr;
+			}
+
+            // Create a copy of the matrix
+            // This is because the args may be freed in the future
+            Matrix *mat = new Matrix(*static_cast<Matrix*>(args[0]));
+            mat->eliminate(true);
+            return mat;
+        }
 		default: return new Number(NAN);
 		}
 	}
