@@ -133,6 +133,7 @@ logic
 fact
 rarrow
 mu
+sub
 
 EK_RESTART_NUM 0xFFFF
 dummy

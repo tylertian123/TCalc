@@ -1305,6 +1305,7 @@ loopEnd:
 		}
 		mat->exprWidth = exprWidth;
 		mat->exprHeight = exprHeight;
+        mat->topSpacing = topSpacing;
 		return mat;
 	}
 
@@ -1512,6 +1513,7 @@ loopEnd:
         }
         other->exprWidth = exprWidth;
         other->exprHeight = exprHeight;
+        other->topSpacing = topSpacing;
         return other;
     }
 

@@ -461,6 +461,14 @@ namespace expr {
                 }
                 break;
             }
+            case KEY_SUB:
+            {
+                neda::Subscript *sub = new neda::Subscript(new neda::Container());
+                cursor->add(sub);
+
+                sub->getCursor(*cursor, neda::CURSORLOCATION_START);
+                break;
+            }
             case KEY_EXP:
             {
                 cursor->add(new neda::Character(LCD_CHAR_EULR));
@@ -726,13 +734,13 @@ namespace expr {
         drawInterfaceConst();
     }
 
-    constexpr uint8_t BUILTIN_FUNC_COUNT = 24;
+    constexpr uint8_t BUILTIN_FUNC_COUNT = 25;
     constexpr uint8_t FUNC_SCROLLBAR_WIDTH = 4;
     const char * const allFuncDispNames[BUILTIN_FUNC_COUNT] = {
         "sin(angle)", "cos(angle)", "tan(angle)", "asin(x)", "acos(x)", "atan(x)", 
         "sinh(angle)", "cosh(angle)", "tanh(angle)", "asinh(x)", "acosh(x)", "atanh(x)",
         "ln(x)", "qdRtA(a,b,c)", "qdRtB(a,b,c)", "round(n,decimals)", "abs(x)", "fact(x)",
-        "det(A)", "len(v)", "transpose(A)", "inv(A)", "I(n)", "linSolve(A)"
+        "det(A)", "len(v)", "transpose(A)", "inv(A)", "I(n)", "linSolve(A)", "rref(A)"
     };
     void ExprEntry::funcKeyPressHandler(uint16_t key) {
         const uint16_t funcCount = BUILTIN_FUNC_COUNT + expr::functions.length();
@@ -821,6 +829,9 @@ namespace expr {
             else if(selectorIndex == 2 && graphingSignificantDigits > 1) {
                 graphingSignificantDigits --;
             }
+            else if(selectorIndex == 3) {
+                eval::autoFractions = !eval::autoFractions;
+            }
             break;
         case KEY_RIGHT:
             if(selectorIndex == 0) {
@@ -832,18 +843,20 @@ namespace expr {
             else if(selectorIndex == 2 && graphingSignificantDigits < 20) {
                 graphingSignificantDigits ++;
             }
+            else if(selectorIndex == 3) {
+                eval::autoFractions = !eval::autoFractions;
+            }
             break;
-        // Currently there are only two options, so this is good enough
         case KEY_UP:
             if(selectorIndex > 0) {
                 selectorIndex --;
             }
             else {
-                selectorIndex = 2;
+                selectorIndex = 3;
             }
             break;
         case KEY_DOWN:
-            if(selectorIndex < 2) {
+            if(selectorIndex < 3) {
                 selectorIndex ++;
             }
             else {
@@ -1493,15 +1506,22 @@ functionCheckLoopEnd:
 
     void ExprEntry::drawInterfaceConfig() {
         display.clearDrawingBuffer();
+
         display.drawString(1, 1, "Angles:");
-        display.drawString(80, 1, eval::useRadians ? "Radians" : "Degrees", selectorIndex == 0);
+        display.drawString(85, 1, eval::useRadians ? "Radians" : "Degrees", selectorIndex == 0);
+
         display.drawString(1, 11, "Result S.D.:");
         char buf[3];
         ltoa(resultSignificantDigits, buf);
-        display.drawString(80, 11, buf, selectorIndex == 1);
+        display.drawString(85, 11, buf, selectorIndex == 1);
+
         display.drawString(1, 21, "Graphing S.D.:");
         ltoa(graphingSignificantDigits, buf);
-        display.drawString(80, 21, buf, selectorIndex == 2);
+        display.drawString(85, 21, buf, selectorIndex == 2);
+
+        display.drawString(1, 31, "Auto Fractions:");
+        display.drawString(85, 31, eval::autoFractions ? "On" : "Off", selectorIndex == 3);
+
         display.updateDrawing();
     }
 

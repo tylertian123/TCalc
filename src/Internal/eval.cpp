@@ -19,6 +19,7 @@
 namespace eval {
 	
 	bool useRadians = true;
+    bool autoFractions = true;
 
 	/******************** Number ********************/
 	Number* Number::constFromString(const char* str) {
@@ -274,47 +275,42 @@ namespace eval {
 		}
 		return result;
 	}
-	bool Matrix::eliminate() {
+	bool Matrix::eliminate(bool allowSingular) {
 		// If there are more rows than columns, don't do anything
-		if(n < m) {
+		if(n < m && !allowSingular) {
 			return false;
 		}
-		// Forward elimination
-		for(uint8_t i = 0; i < m; i ++) {
-			// If pivot is 0, try to swap it with another row below it
-			if(getEntry(i, i) == 0) {
-				// Find a row with a nonzero value at this column
-				uint8_t j;
-				for(j = i + 1; j < m; j ++) {
-					if(getEntry(j, i) != 0) {
-						// If found swap the rows
-						rowSwap(i, j);
-						break;
-					}
-				}
-				// If nothing was found the matrix is singular
-				if(j == m) {
-					return false;
-				}
-			}
-			double pivot = getEntry(i, i);
-			// Now the pivot should be nonzero
-			// Eliminate this column in all rows below
-			for(uint8_t j = i + 1; j < m; j ++) {
-				rowAdd(j, i, -(getEntry(j, i) / pivot));
-			}
-		}
-		// Back substitution
-		for(uint8_t i = m; i --> 0;) {
-			// Make the pivot 1
-			rowMult(i, 1 / getEntry(i, i));
-			// Eliminate this column in all rows above
-			if(i != 0) {
-				for(uint8_t j = i; j --> 0;) {
-					rowAdd(j, i, -getEntry(j, i));
-				}
-			}
-		}
+
+        for(uint8_t i = 0, j = 0; i < m && j < n; j ++) {
+            if(getEntry(i, j) == 0) {
+                uint8_t k = i;
+                for(; k < m; k ++) {
+                    if(getEntry(k, j) != 0) {
+                        rowSwap(i, k);
+                        break;
+                    }
+                }
+
+                if(k == m) {
+                    if(!allowSingular) {
+                        return false;
+                    }
+                    continue;
+                }
+            }
+
+            rowMult(i, 1 / getEntry(i, j));
+            for(uint8_t k = 0; k < m; k ++) {
+                if(i == k) {
+                    continue;
+                }
+
+                rowAdd(k, i, -getEntry(k, j));
+            }
+            
+            i ++;
+        }
+
 		return true;
 	}
 	Matrix* Matrix::inv() const {
@@ -335,7 +331,7 @@ namespace eval {
 			block.setEntry(i, i + m, 1);
 		}
 		// Eliminate
-		if(!block.eliminate()) {
+		if(!block.eliminate(false)) {
 			return nullptr;
 		}
 		// Copy inverse
@@ -575,8 +571,9 @@ namespace eval {
 		Token *result = nullptr;
 		// Two numbers: normal operation
 		if(lType == TokenType::NUMBER && rType == TokenType::NUMBER) {
-			// Special case for division: if the operands are whole numbers, create a fraction
-			if((type == Operator::Type::DIVIDE || type == Operator::Type::SP_DIV) && isInt(((Number*) lhs)->value) && isInt(((Number*) rhs)->value)) {
+			// Special case for division: if the operands are whole numbers, create a fraction if auto fractions is on
+			if(autoFractions && (type == Operator::Type::DIVIDE || type == Operator::Type::SP_DIV) && 
+                    isInt(((Number*) lhs)->value) && isInt(((Number*) rhs)->value)) {
 				auto n = static_cast<int64_t>(((Number*) lhs)->value);
 				auto d = static_cast<int64_t>(((Number*) rhs)->value);
 				// See if the division yields a whole number
@@ -857,7 +854,7 @@ convertToDoubleAndOperate:
 		// log10 and log2 cannot be directly entered with a string
 		"\xff", "\xff",
 
-		"qdRtA", "qdRtB", "round", "abs", "fact", "det", "len", "transpose", "inv", "I", "linSolve",
+		"qdRtA", "qdRtB", "round", "abs", "fact", "det", "len", "transpose", "inv", "I", "linSolve", "rref",
 	};
 	Function* Function::fromString(const char *str) {
 		for(uint8_t i = 0; i < sizeof(FUNCNAMES) / sizeof(FUNCNAMES[0]); i ++) {
@@ -1016,7 +1013,7 @@ convertToDoubleAndOperate:
 				return nullptr;
 			}
 			Matrix *mat = (Matrix*) args[0];
-			if(!mat->eliminate()) {
+			if(!mat->eliminate(false)) {
 				return new Number(NAN);
 			}
 			// Construct solution as vector
@@ -1054,6 +1051,19 @@ convertToDoubleAndOperate:
 			}
 			return result;
 		}
+        case Type::RREF:
+        {
+            // Syntax error: rref of a scalar
+			if(args[0]->getType() != TokenType::MATRIX) {
+				return nullptr;
+			}
+
+            // Create a copy of the matrix
+            // This is because the args may be freed in the future
+            Matrix *mat = new Matrix(*static_cast<Matrix*>(args[0]));
+            mat->eliminate(true);
+            return mat;
+        }
 		default: return new Number(NAN);
 		}
 	}
@@ -1284,7 +1294,12 @@ convertToDoubleAndOperate:
 					return nullptr;
 				}
 				// Otherwise, call the division operator to evaluate the fraction and add it to the tokens list
+                // Temporarily set autoFractions to true so a fraction is created no matter what
+                bool tmp = autoFractions;
+                autoFractions = true;
 				arr.add(OP_DIVIDE(num, denom));
+                autoFractions = tmp;
+
 				// Move on to the next object
 				++index;
 				lastTokenOperator = false;
@@ -1847,6 +1862,7 @@ evaluateFunctionArguments:
 				break;
 			} // neda::ObjType::MATRIX
 
+            // Piecewise functions
             case neda::ObjType::PIECEWISE:
             {
                 // Implied multiplication
@@ -1910,6 +1926,120 @@ evaluateFunctionArguments:
                 lastTokenOperator = false;
                 break;
             } // neda::ObjType::PIECEWISE
+
+            // Subscripts
+            case neda::ObjType::SUBSCRIPT:
+            {
+                // Since if the subscript was part of a log expression, it would already be handled by neda::ObjType::CHAR_TYPE,
+                // currently the only use for the subscript is for matrix indices
+                // Check the last item in the array and make sure it's a matrix
+                if(arr[arr.length() - 1]->getType() != TokenType::MATRIX) {
+                    freeTokens(&arr);
+                    return nullptr;
+                }
+                auto &contents = static_cast<neda::Container*>(static_cast<neda::Subscript*>(exprs[index])->contents)->contents;
+                // See if there's a comma in the expression
+                uint16_t commaIndex;
+                // Find the comma
+                // Take care of brackets
+                uint16_t nesting = 0;
+                for(commaIndex = 0; commaIndex < contents.length(); commaIndex ++) {
+
+                    if(contents[commaIndex]->getType() == neda::ObjType::L_BRACKET) {
+                        nesting ++;
+                    }
+                    else if(contents[commaIndex]->getType() == neda::ObjType::R_BRACKET) {
+                        if(nesting > 0) {
+                            nesting --;
+                        }
+                        else {
+                            freeTokens(&arr);
+                            return nullptr;
+                        }
+                    }
+                    else if(nesting == 0 && extractChar(contents[commaIndex]) == ',') {
+                        break;
+                    }
+                }
+
+                // Get the matrix
+                const Matrix *mat = static_cast<const Matrix*>(arr[arr.length() - 1]);
+
+                Token *result = nullptr;
+                
+                // No comma
+                if(commaIndex == contents.length()) {
+                    Token *t = evaluate(contents, varc, vars, funcc, funcs);
+                    // Check for syntax errors in expression, or noninteger result
+                    if(!t || t->getType() == TokenType::MATRIX || !isInt(extractDouble(t))) {
+                        delete t;
+                        freeTokens(&arr);
+                        return nullptr;
+                    }
+
+                    int64_t indexInt = static_cast<int64_t>(extractDouble(t));
+                    delete t;
+                    // Out of bounds check
+                    // 1-based index
+                    if(indexInt <= 0 || indexInt > mat->m) {
+                        freeTokens(&arr);
+                        return nullptr;
+                    }
+                    else {
+                        // For vectors, just take the number
+                        if(mat->n == 1) {
+                            result = new Number(mat->getEntry(indexInt - 1, 0));
+                        }
+                        else {
+                            // Otherwise take a row vector
+                            result = new Matrix(1, mat->n);
+                            for(uint8_t i = 0; i < mat->n; i ++) {
+                                static_cast<Matrix*>(result)->getEntry(0, i) = mat->getEntry(indexInt - 1, i);
+                            }
+                        }
+                    }
+                }
+                else {
+                    DynamicArray<neda::NEDAObj*> rowExpr(contents.begin(), contents.begin() + commaIndex);
+                    DynamicArray<neda::NEDAObj*> colExpr(contents.begin() + commaIndex + 1, contents.end());
+                    Token *row = evaluate(rowExpr, varc, vars, funcc, funcs);
+                    // Check for syntax errors in expression, or noninteger result
+                    if(!row || row->getType() == TokenType::MATRIX || !isInt(extractDouble(row))) {
+                        delete row;
+                        freeTokens(&arr);
+                        return nullptr;
+                    }
+                    Token *col = evaluate(colExpr, varc, vars, funcc, funcs);
+                    if(!col || col->getType() == TokenType::MATRIX || !isInt(extractDouble(col))) {
+                        delete row;
+                        delete col;
+                        freeTokens(&arr);
+                        return nullptr;
+                    }
+
+                    int64_t rowInt = static_cast<int64_t>(extractDouble(row));
+                    int64_t colInt = static_cast<int64_t>(extractDouble(col));
+                    delete row;
+                    delete col;
+
+                    if(rowInt <= 0 || colInt <= 0 || rowInt > mat->m || colInt > mat->n) {
+                        freeTokens(&arr);
+                        return nullptr;
+                    }
+                    else {
+                        result = new Number(mat->getEntry(rowInt - 1, colInt - 1));
+                    }
+                }
+
+                // Delete the matrix
+                delete mat;
+                // Replace it with the result
+                arr[arr.length() - 1] = result;
+
+                lastTokenOperator = false;
+                index ++;
+                break;
+            } // neda::ObjType::SUBSCRIPT
 
 			default: ++index; break;
 			}
