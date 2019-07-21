@@ -332,14 +332,6 @@ namespace expr {
             return LCD_CHAR_EE;
         case KEY_CROSS:
             return LCD_CHAR_CRS;
-        case KEY_GT:
-            return '>';
-        case KEY_LT:
-            return '<';
-        case KEY_GTEQ:
-            return LCD_CHAR_GEQ;
-        case KEY_LTEQ:
-            return LCD_CHAR_LEQ;
         case KEY_FACT:
             return '!';
         default: 

@@ -122,16 +122,13 @@ ctrloff
 recall
 matrix
 cross
-lt
-gt
-lteq
-gteq
 piecewise
 gfuncs
 gsettings
 logic
 fact
 sub
+abs
 
 EK_RESTART_NUM 0xFFFF
 dummy
