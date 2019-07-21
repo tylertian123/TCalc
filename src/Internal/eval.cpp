@@ -883,7 +883,7 @@ convertToDoubleAndOperate:
 		// log10 and log2 cannot be directly entered with a string
 		"\xff", "\xff",
 
-		"qdRtA", "qdRtB", "round", "abs", "fact", "det", "len", "transpose", "inv", "I", "linSolve", "rref",
+		"qdRtA", "qdRtB", "round", "abs", "fact", "det", "len", "linSolve", "rref",
 	};
 	Function* Function::fromString(const char *str) {
 		for(uint8_t i = 0; i < sizeof(FUNCNAMES) / sizeof(FUNCNAMES[0]); i ++) {
@@ -1026,15 +1026,6 @@ convertToDoubleAndOperate:
 			Matrix *vec = (Matrix*) args[0];
 			return new Number(vec->len());
 		}
-		case Type::TRANSPOSE:
-		{
-			// Syntax error: transpose of a scalar
-			if(args[0]->getType() != TokenType::MATRIX) {
-				return nullptr;
-			}
-			Matrix *mat = (Matrix*) args[0];
-			return mat->transpose();
-		}
 		case Type::LINSOLVE:
 		{
 			// Syntax error: can't solve a scalar or a matrix of the wrong dimensions
@@ -1051,34 +1042,6 @@ convertToDoubleAndOperate:
 				(*solution)[i] = mat->getEntry(i, mat->m);
 			}
 			return solution;
-		}
-		case Type::INV:
-		{
-			// Syntax error: inverse of a scalar
-			if(args[0]->getType() != TokenType::MATRIX) {
-				return nullptr;
-			}
-			Matrix *mat = (Matrix*) args[0];
-			Matrix *result = mat->inv();
-			
-			return result ? (Token*) result : (Token*) new Number(NAN);
-		}
-		case Type::IDENTITY:
-		{
-			if(args[0]->getType() == TokenType::MATRIX) {
-				return nullptr;
-			}
-			double d = extractDouble(args[0]);
-			uint8_t n = d;
-			// If d cannot be properly casted to a uint8_t, then it cannot be valid for matrix dimensions
-			if(n != d || n == 0) {
-				return nullptr;
-			}
-			Matrix *result = new Matrix(n, n);
-			for(uint8_t i = 0; i < n; i ++) {
-				result->setEntry(i, i, 1);
-			}
-			return result;
 		}
         case Type::RREF:
         {
