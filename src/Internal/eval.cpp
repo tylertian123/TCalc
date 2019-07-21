@@ -2111,6 +2111,38 @@ evaluateFunctionArguments:
                 break;
             } // neda::ObjType::SUBSCRIPT
 
+            // Absolute value
+            case neda::ObjType::ABS:
+            {
+                // Implied multiplication
+				if(!lastTokenOperator) {
+					arr.add(const_cast<Operator*>(&OP_MULTIPLY));
+				}
+                Token *t = evaluate(static_cast<neda::Container*>(static_cast<neda::Abs*>(exprs[index])->contents), varc, vars, funcc, funcs);
+
+                if(!t) {
+                    freeTokens(&arr);
+                    return nullptr;
+                }
+
+                if(t->getType() == TokenType::NUMBER) {
+                    static_cast<Number*>(t)->value = abs(static_cast<Number*>(t)->value);
+                    arr.add(t);
+                }
+                else if(t->getType() == TokenType::FRACTION) {
+                    static_cast<Fraction*>(t)->num = abs(static_cast<Fraction*>(t)->num);
+                    arr.add(t);
+                }
+                else {
+                    arr.add(new Number(static_cast<Matrix*>(t)->len()));
+                    delete t;
+                }
+
+                lastTokenOperator = false;
+                index ++;
+                break;
+            } // neda::ObjType::ABS
+
 			default: ++index; break;
 			}
 		}
