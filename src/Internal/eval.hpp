@@ -197,7 +197,8 @@ namespace eval {
 		static Matrix* multiply(const Matrix&, double);
 		static Matrix* multiply(const Matrix&, const Matrix&);
 		static double dot(const Matrix&, const Matrix&);
-		double det() const;
+        // Note: This will modify the matrix
+		double det();
 		double len() const;
 		static Matrix* cross(const Matrix&, const Matrix&);
 		Matrix* transpose() const;
@@ -225,10 +226,6 @@ namespace eval {
 				getEntry(a, i) += getEntry(b, i) * scalar;
 			}
 		}
-
-	private:
-		// This method does not check for size and only accepts matrices larger than 2*2
-		static double det(const Matrix&);
 	};
 
 	struct UserDefinedFunction {
