@@ -1489,6 +1489,35 @@ convertToDoubleAndOperate:
 				// Add null terminator
 				str[end - index] = '\0';
 
+                // Special processing for identity matrix and 0 matrix notation
+                if(end < exprs.length() && exprs[end]->getType() == neda::ObjType::SUBSCRIPT && (strcmp(str, "I") == 0 || strcmp(str, "0") == 0)) {
+                    // Evaluate the contents of the subscript
+                    Token *res = evaluate(static_cast<neda::Container*>(static_cast<neda::Superscript*>(exprs[end])->contents), varc, vars, funcc, funcs);
+                    // Check for syntax errors, noninteger result, and out of bounds
+                    double n;
+                    if(!res || res->getType() == TokenType::MATRIX || (n = extractDouble(res), !isInt(n)) || n <= 0 || n > 255) {
+                        delete res;
+                        delete[] str;
+                        freeTokens(&arr);
+                        return nullptr;
+                    }
+                    delete res;
+
+                    Matrix *mat = new Matrix(static_cast<uint8_t>(n), static_cast<uint8_t>(n));
+                    // If identity matrix, fill it in
+                    if(str[0] == 'I') {
+                        for(uint8_t i = 0; i < mat->m; i ++) {
+                            mat->setEntry(i, i, 1);
+                        }
+                    }
+                    
+                    arr.add(mat);
+                    delete[] str;
+                    index = end + 1;
+                    lastTokenOperator = false;
+                    break;
+                }
+
 				Function *func = nullptr;
 				UserDefinedFunction *uFunc = nullptr;
 				// If the token isn't a number
