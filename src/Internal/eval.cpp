@@ -1862,6 +1862,7 @@ evaluateFunctionArguments:
 				break;
 			} // neda::ObjType::MATRIX
 
+            // Piecewise functions
             case neda::ObjType::PIECEWISE:
             {
                 // Implied multiplication
@@ -1925,6 +1926,120 @@ evaluateFunctionArguments:
                 lastTokenOperator = false;
                 break;
             } // neda::ObjType::PIECEWISE
+
+            // Subscripts
+            case neda::ObjType::SUBSCRIPT:
+            {
+                // Since if the subscript was part of a log expression, it would already be handled by neda::ObjType::CHAR_TYPE,
+                // currently the only use for the subscript is for matrix indices
+                // Check the last item in the array and make sure it's a matrix
+                if(arr[arr.length() - 1]->getType() != TokenType::MATRIX) {
+                    freeTokens(&arr);
+                    return nullptr;
+                }
+                auto &contents = static_cast<neda::Container*>(static_cast<neda::Subscript*>(exprs[index])->contents)->contents;
+                // See if there's a comma in the expression
+                uint16_t commaIndex;
+                // Find the comma
+                // Take care of brackets
+                uint16_t nesting = 0;
+                for(commaIndex = 0; commaIndex < contents.length(); commaIndex ++) {
+
+                    if(contents[commaIndex]->getType() == neda::ObjType::L_BRACKET) {
+                        nesting ++;
+                    }
+                    else if(contents[commaIndex]->getType() == neda::ObjType::R_BRACKET) {
+                        if(nesting > 0) {
+                            nesting --;
+                        }
+                        else {
+                            freeTokens(&arr);
+                            return nullptr;
+                        }
+                    }
+                    else if(nesting == 0 && extractChar(contents[commaIndex]) == ',') {
+                        break;
+                    }
+                }
+
+                // Get the matrix
+                const Matrix *mat = static_cast<const Matrix*>(arr[arr.length() - 1]);
+
+                Token *result = nullptr;
+                
+                // No comma
+                if(commaIndex == contents.length()) {
+                    Token *t = evaluate(contents, varc, vars, funcc, funcs);
+                    // Check for syntax errors in expression, or noninteger result
+                    if(!t || t->getType() == TokenType::MATRIX || !isInt(extractDouble(t))) {
+                        delete t;
+                        freeTokens(&arr);
+                        return nullptr;
+                    }
+
+                    int64_t indexInt = static_cast<int64_t>(extractDouble(t));
+                    delete t;
+                    // Out of bounds check
+                    // 1-based index
+                    if(indexInt <= 0 || indexInt > mat->m) {
+                        freeTokens(&arr);
+                        return nullptr;
+                    }
+                    else {
+                        // For vectors, just take the number
+                        if(mat->n == 1) {
+                            result = new Number(mat->getEntry(indexInt - 1, 0));
+                        }
+                        else {
+                            // Otherwise take a row vector
+                            result = new Matrix(1, mat->n);
+                            for(uint8_t i = 0; i < mat->n; i ++) {
+                                static_cast<Matrix*>(result)->getEntry(0, i) = mat->getEntry(indexInt - 1, i);
+                            }
+                        }
+                    }
+                }
+                else {
+                    DynamicArray<neda::NEDAObj*> rowExpr(contents.begin(), contents.begin() + commaIndex);
+                    DynamicArray<neda::NEDAObj*> colExpr(contents.begin() + commaIndex + 1, contents.end());
+                    Token *row = evaluate(rowExpr, varc, vars, funcc, funcs);
+                    // Check for syntax errors in expression, or noninteger result
+                    if(!row || row->getType() == TokenType::MATRIX || !isInt(extractDouble(row))) {
+                        delete row;
+                        freeTokens(&arr);
+                        return nullptr;
+                    }
+                    Token *col = evaluate(colExpr, varc, vars, funcc, funcs);
+                    if(!col || col->getType() == TokenType::MATRIX || !isInt(extractDouble(col))) {
+                        delete row;
+                        delete col;
+                        freeTokens(&arr);
+                        return nullptr;
+                    }
+
+                    int64_t rowInt = static_cast<int64_t>(extractDouble(row));
+                    int64_t colInt = static_cast<int64_t>(extractDouble(col));
+                    delete row;
+                    delete col;
+
+                    if(rowInt <= 0 || colInt <= 0 || rowInt > mat->m || colInt > mat->n) {
+                        freeTokens(&arr);
+                        return nullptr;
+                    }
+                    else {
+                        result = new Number(mat->getEntry(rowInt - 1, colInt - 1));
+                    }
+                }
+
+                // Delete the matrix
+                delete mat;
+                // Replace it with the result
+                arr[arr.length() - 1] = result;
+
+                lastTokenOperator = false;
+                index ++;
+                break;
+            } // neda::ObjType::SUBSCRIPT
 
 			default: ++index; break;
 			}
