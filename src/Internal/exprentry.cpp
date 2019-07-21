@@ -457,6 +457,14 @@ namespace expr {
                 }
                 break;
             }
+            case KEY_SUB:
+            {
+                neda::Subscript *sub = new neda::Subscript(new neda::Container());
+                cursor->add(sub);
+
+                sub->getCursor(*cursor, neda::CURSORLOCATION_START);
+                break;
+            }
             case KEY_EXP:
             {
                 cursor->add(new neda::Character(LCD_CHAR_EULR));

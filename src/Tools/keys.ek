@@ -131,6 +131,7 @@ gfuncs
 gsettings
 logic
 fact
+sub
 
 EK_RESTART_NUM 0xFFFF
 dummy
