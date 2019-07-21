@@ -372,6 +372,8 @@ namespace eval {
          * as the factorial clearly applies to the entire expression a^b.
          */
         case Type::FACT:
+        case Type::TRANSPOSE:
+        case Type::INVERSE:
             return 2;
         case Type::NOT:
         case Type::NEGATE:
@@ -400,7 +402,12 @@ namespace eval {
 		}
 	}
     bool Operator::isUnary() const {
-        if(type == Type::NOT || type == Type::NEGATE || type == Type::FACT) {
+        switch(type) {
+        case Type::NOT:
+        case Type::NEGATE:
+        case Type::FACT:
+        case Type::TRANSPOSE:
+        case Type::INVERSE:
             return true;
         }
         return false;
@@ -842,7 +849,27 @@ convertToDoubleAndOperate:
 			}
 			return new Number(d);
         }
-
+        case Type::TRANSPOSE:
+		{
+            if(t->getType() != TokenType::MATRIX) {
+                return nullptr;
+            }
+			Matrix *mat = static_cast<Matrix*>(t);
+			Matrix *result = mat->transpose();
+            delete t;
+            return result;
+		}
+        case Type::INVERSE:
+		{
+			if(t->getType() != TokenType::MATRIX) {
+                return nullptr;
+            }
+			Matrix *mat = static_cast<Matrix*>(t);
+			Matrix *result = mat->inv();
+            delete t;
+			
+			return result ? (Token*) result : (Token*) new Number(NAN);
+		}
         default: 
             return nullptr;
         }

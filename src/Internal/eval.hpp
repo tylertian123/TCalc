@@ -71,6 +71,7 @@ namespace eval {
 	public:
 		enum class Type : uint8_t {
 			PLUS, MINUS, MULTIPLY, DIVIDE, EXPONENT, EQUALITY, CROSS, GT, LT, GTEQ, LTEQ, AND, OR, XOR, NOT, NEGATE, FACT,
+            TRANSPOSE, INVERSE,
 			// Special multiplication and division
 			// These operators have the highest precedence
 			SP_MULT, SP_DIV,
@@ -123,7 +124,9 @@ namespace eval {
                        OP_XOR(Operator::Type::XOR),
                        OP_NOT(Operator::Type::NOT),
                        OP_NEGATE(Operator::Type::NEGATE),
-                       OP_FACT(Operator::Type::FACT);
+                       OP_FACT(Operator::Type::FACT),
+                       OP_TRANSPOSE(Operator::Type::TRANSPOSE),
+                       OP_INVERSE(Operator::Type::INVERSE);
 
 	// Even though only one instance of each type of function is needed, because there are a lot of functions, it is not worth it
 	// to make it a singleton
