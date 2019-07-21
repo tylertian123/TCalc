@@ -465,6 +465,13 @@ namespace expr {
                 super->getCursor(*cursor, neda::CURSORLOCATION_START);
                 break;
             }
+            case KEY_ABS:
+            {
+                neda::Abs *a = new neda::Abs(new neda::Container());
+                cursor->add(a);
+                a->getCursor(*cursor, neda::CURSORLOCATION_START);
+                break;
+            }
             case KEY_LN:
             {
                 cursor->addStr("ln");

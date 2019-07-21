@@ -1517,6 +1517,56 @@ loopEnd:
         return other;
     }
 
+    // *************************** Abs ***************************************
+    ObjType Abs::getType() {
+        return ObjType::ABS;
+    }
+    Abs::~Abs() {
+        DESTROY_IF_NONNULL(contents);
+    }
+    void Abs::computeDimensions() {
+
+        topSpacing = SAFE_ACCESS_0(contents, topSpacing) + 1;
+        exprWidth = SAFE_ACCESS_0(contents, exprWidth) + 4;
+        exprHeight = SAFE_ACCESS_0(contents, exprHeight) + 2;
+
+        SAFE_EXEC(parent, computeDimensions);
+    }
+    void Abs::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
+        this->x = x;
+        this->y = y;
+        VERIFY_INBOUNDS(x, y);
+
+        // Draw contents
+        SAFE_EXEC(contents, draw, dest, x + 2, y + 1);
+
+        // Draw vertical bars
+        for(uint16_t i = 0; i < exprHeight; i ++) {
+            dest.setPixel(x, y + i, true);
+            dest.setPixel(x + exprWidth - 1, y + i, true);
+        }
+    }
+    void Abs::getCursor(Cursor &cursor, CursorLocation location) {
+        SAFE_EXEC(contents, getCursor, cursor, location);
+    }
+    void Abs::updatePosition(int16_t dx, int16_t dy) {
+        x += dx;
+        y += dy;
+        
+        if(contents) {
+            contents->x += dx;
+            contents->y += dy;
+        }
+    }
+    Abs* Abs::copy() {
+        if(contents) {
+            return new Abs(static_cast<neda::Expr*>(contents->copy()));
+        }
+        else {
+            return new Abs;
+        }
+    }
+
 	// *************************** Cursor ***************************************
 	void Cursor::draw(lcd::LCD12864 &dest) {
 		expr->drawCursor(dest, *this);

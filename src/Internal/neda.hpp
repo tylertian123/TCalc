@@ -41,6 +41,7 @@ namespace neda {
 		SIGMA_PI,
 		MATRIX,
         PIECEWISE,
+        ABS,
 	};
 	
 	/*
@@ -526,6 +527,39 @@ namespace neda {
         virtual void updatePosition(int16_t, int16_t) override;
 
 		virtual Piecewise* copy() override;
+
+		virtual ObjType getType() override;
+    };
+
+    // Absolute value
+    class Abs : public Expr {
+    public:
+        Abs(Expr *contents) : contents(contents) {
+            contents->parent = this;
+            computeDimensions();
+        }
+        Abs() : contents(nullptr) {
+            computeDimensions();
+        }
+
+        inline void setContents(Expr *contents) {
+            this->contents = contents;
+            contents->parent = this;
+            computeDimensions();
+        }
+        
+        virtual ~Abs();
+
+        Expr *contents;
+
+        virtual void computeDimensions() override;
+		virtual void draw(lcd::LCD12864&, int16_t, int16_t) override;
+
+		virtual void getCursor(Cursor&, CursorLocation) override;
+
+        virtual void updatePosition(int16_t, int16_t) override;
+
+		virtual Abs* copy() override;
 
 		virtual ObjType getType() override;
     };
