@@ -1369,7 +1369,7 @@ functionCheckLoopEnd:
     }
 
     const char LCD_LOGIC_CHARS[] = {
-        '=', '<', '>', LCD_CHAR_LEQ, LCD_CHAR_GEQ, 
+        '=', '!', '<', '>', LCD_CHAR_LEQ, LCD_CHAR_GEQ, 
 
         LCD_CHAR_LAND, LCD_CHAR_LOR, LCD_CHAR_LNOT, LCD_CHAR_LXOR,
     };
@@ -1379,7 +1379,7 @@ functionCheckLoopEnd:
         case KEY_ENTER:
         case KEY_CENTER:
             cursor->add(new neda::Character(LCD_LOGIC_CHARS[selectorIndex]));
-            if(selectorIndex == 0) {
+            if(selectorIndex == 0 || selectorIndex == 1) {
                 cursor->add(new neda::Character('='));
             }
 
@@ -1407,13 +1407,13 @@ functionCheckLoopEnd:
             }
             break;
         case KEY_UP:
-            if(selectorIndex >= 5) {
-                selectorIndex -= 5;
+            if(selectorIndex >= 6) {
+                selectorIndex -= 6;
             }
             break;
         case KEY_DOWN:
-            if(selectorIndex + 5 < LCD_LOGIC_CHAR_LEN) {
-                selectorIndex += 5;
+            if(selectorIndex + 6 < LCD_LOGIC_CHAR_LEN) {
+                selectorIndex += 6;
             }
             break;
         default:
@@ -1901,13 +1901,16 @@ functionCheckLoopEnd:
             if(i == 0) {
                 display.drawString(x, y, "==", i == selectorIndex);
             }
+            else if(i == 1) {
+                display.drawString(x, y, "!=", i == selectorIndex);
+            }
             else {
                 str[0] = LCD_LOGIC_CHARS[i];
                 display.drawString(x, y, str, i == selectorIndex);
             }
             
             x += 20;
-            if((i + 1) % 5 == 0) {
+            if((i + 1) % 6 == 0) {
                 y += 15;
                 x = 0;
             }
