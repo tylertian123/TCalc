@@ -387,6 +387,7 @@ namespace eval {
 		case Type::MINUS:
 			return 6;
 		case Type::EQUALITY:
+        case Type::NOT_EQUAL:
         case Type::LT:
         case Type::GT:
         case Type::LTEQ:
@@ -485,6 +486,9 @@ namespace eval {
 
 		case Type::EQUALITY:
 			return floatEq(lhs, rhs);
+        
+        case Type::NOT_EQUAL:
+            return !floatEq(lhs, rhs);
 
         case Type::GT:
             return lhs > rhs;
@@ -743,6 +747,22 @@ convertToDoubleAndOperate:
                 result = new Number(equal);
                 break;
             }
+            case Type::NOT_EQUAL:
+            {
+                if(lMat->m != rMat->m || lMat->n != rMat->n) {
+                    result = new Number(1);
+                    break;
+                }
+                bool equal = true;
+                for(uint16_t i = 0; i < lMat->m * lMat->n; i ++) {
+                    if(!floatEq((*lMat)[i], (*rMat)[i])) {
+                        equal = false;
+                        break;
+                    }
+                }
+                result = new Number(!equal);
+                break;
+            }
 			default:
 				result = new Number(NAN);
 				break;
@@ -767,6 +787,9 @@ convertToDoubleAndOperate:
             case Type::EQUALITY:
                 result = new Number(0);
                 break;
+            case Type::NOT_EQUAL:
+                result = new Number(1);
+                break;
 			default:
 				result = new Number(NAN);
 				break;
@@ -786,6 +809,9 @@ convertToDoubleAndOperate:
 				break;
             case Type::EQUALITY:
                 result = new Number(0);
+                break;
+            case Type::NOT_EQUAL:
+                result = new Number(1);
                 break;
 			default:
 				result = new Number(NAN);
@@ -1118,8 +1144,10 @@ convertToDoubleAndOperate:
 		for(; equalsIndex < arr->length(); ++equalsIndex) {
 			// Search for equals
 			if(extractChar((*arr)[equalsIndex]) == '=') {
-				// At the same time make sure it's not a ==
-				// If it is, then skip the next character
+				// At the same time make sure it's not a == or a !=
+                if(equalsIndex != 0 && extractChar((*arr)[equalsIndex - 1]) == '!') {
+                    continue;
+                }
 				if(equalsIndex + 1 < arr->length() && extractChar((*arr)[equalsIndex + 1]) == '=') {
 					++equalsIndex;
 					continue;
@@ -1411,8 +1439,8 @@ convertToDoubleAndOperate:
 				// See if the character is a known operator
 				const Operator *op = Operator::fromChar(ch);
 				// Check for equality operator which is two characters and not handled by Operator::fromChar
-				if(ch == '=' && index + 1 < exprs.length() && extractChar(exprs[index + 1]) == '=') {
-					op = &OP_EQUALITY;
+				if((ch == '=' || ch == '!') && index + 1 < exprs.length() && extractChar(exprs[index + 1]) == '=') {
+					op = ch == '=' ? &OP_EQUALITY : &OP_NOT_EQUAL;
 					++index;
 				}
 				// Check if the character is an operator
