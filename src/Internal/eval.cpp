@@ -275,47 +275,42 @@ namespace eval {
 		}
 		return result;
 	}
-	bool Matrix::eliminate() {
+	bool Matrix::eliminate(bool allowSingular) {
 		// If there are more rows than columns, don't do anything
-		if(n < m) {
+		if(n < m && !allowSingular) {
 			return false;
 		}
-		// Forward elimination
-		for(uint8_t i = 0; i < m; i ++) {
-			// If pivot is 0, try to swap it with another row below it
-			if(getEntry(i, i) == 0) {
-				// Find a row with a nonzero value at this column
-				uint8_t j;
-				for(j = i + 1; j < m; j ++) {
-					if(getEntry(j, i) != 0) {
-						// If found swap the rows
-						rowSwap(i, j);
-						break;
-					}
-				}
-				// If nothing was found the matrix is singular
-				if(j == m) {
-					return false;
-				}
-			}
-			double pivot = getEntry(i, i);
-			// Now the pivot should be nonzero
-			// Eliminate this column in all rows below
-			for(uint8_t j = i + 1; j < m; j ++) {
-				rowAdd(j, i, -(getEntry(j, i) / pivot));
-			}
-		}
-		// Back substitution
-		for(uint8_t i = m; i --> 0;) {
-			// Make the pivot 1
-			rowMult(i, 1 / getEntry(i, i));
-			// Eliminate this column in all rows above
-			if(i != 0) {
-				for(uint8_t j = i; j --> 0;) {
-					rowAdd(j, i, -getEntry(j, i));
-				}
-			}
-		}
+
+        for(uint8_t i = 0, j = 0; i < m && j < n; j ++) {
+            if(getEntry(i, j) == 0) {
+                uint8_t k = i;
+                for(; k < m; k ++) {
+                    if(getEntry(k, j) != 0) {
+                        rowSwap(i, k);
+                        break;
+                    }
+                }
+
+                if(k == m) {
+                    if(!allowSingular) {
+                        return false;
+                    }
+                    continue;
+                }
+            }
+
+            rowMult(i, 1 / getEntry(i, j));
+            for(uint8_t k = 0; k < m; k ++) {
+                if(i == k) {
+                    continue;
+                }
+
+                rowAdd(k, i, -getEntry(k, j));
+            }
+            
+            i ++;
+        }
+
 		return true;
 	}
 	Matrix* Matrix::inv() const {
@@ -336,7 +331,7 @@ namespace eval {
 			block.setEntry(i, i + m, 1);
 		}
 		// Eliminate
-		if(!block.eliminate()) {
+		if(!block.eliminate(false)) {
 			return nullptr;
 		}
 		// Copy inverse
@@ -1018,7 +1013,7 @@ convertToDoubleAndOperate:
 				return nullptr;
 			}
 			Matrix *mat = (Matrix*) args[0];
-			if(!mat->eliminate()) {
+			if(!mat->eliminate(false)) {
 				return new Number(NAN);
 			}
 			// Construct solution as vector
@@ -1291,7 +1286,7 @@ convertToDoubleAndOperate:
                 autoFractions = true;
 				arr.add(OP_DIVIDE(num, denom));
                 autoFractions = tmp;
-                
+
 				// Move on to the next object
 				++index;
 				lastTokenOperator = false;

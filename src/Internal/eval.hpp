@@ -203,7 +203,7 @@ namespace eval {
 		Matrix* transpose() const;
 		Matrix* inv() const;
 
-		bool eliminate();
+		bool eliminate(bool allowSingular = true);
 
 		virtual TokenType getType() const override {
 			return TokenType::MATRIX;
