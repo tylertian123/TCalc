@@ -351,8 +351,11 @@ namespace eval {
 		case Type::SP_MULT:
 		case Type::SP_DIV:
 			return 0;
+        case Type::TRANSPOSE:
+        case Type::INVERSE:
+            return 1;
 		case Type::EXPONENT:
-			return 1;
+			return 2;
         /*
          * Note: 
          * Although factorial should have a higher precedence than exponentiation, ie an expression like this
@@ -372,31 +375,29 @@ namespace eval {
          * as the factorial clearly applies to the entire expression a^b.
          */
         case Type::FACT:
-        case Type::TRANSPOSE:
-        case Type::INVERSE:
-            return 2;
+            return 3;
         case Type::NOT:
         case Type::NEGATE:
-            return 3;
+            return 4;
 		case Type::MULTIPLY:
 		case Type::DIVIDE:
 		case Type::CROSS:
-			return 4;
+			return 5;
 		case Type::PLUS:
 		case Type::MINUS:
-			return 5;
+			return 6;
 		case Type::EQUALITY:
         case Type::LT:
         case Type::GT:
         case Type::LTEQ:
         case Type::GTEQ:
-			return 6;
+			return 7;
         case Type::AND:
-            return 7;
-        case Type::OR:
             return 8;
-        case Type::XOR:
+        case Type::OR:
             return 9;
+        case Type::XOR:
+            return 10;
 		
 		default: return 0xFF;
 		}
@@ -1337,6 +1338,27 @@ convertToDoubleAndOperate:
 			// Superscripts (exponentiation)
 			case neda::ObjType::SUPERSCRIPT:
 			{
+                // If the last thing in the tokens array was a matrix, this may be a transpose or inverse operation
+                if(arr[arr.length() - 1]->getType() == TokenType::MATRIX) {
+                    const auto &c = static_cast<neda::Container*>(static_cast<neda::Superscript*>(exprs[index])->contents)->contents;
+
+                    // Transpose
+                    if(c.length() == 1 && extractChar(c[0]) == 'T') {
+                        arr.add(const_cast<Operator*>(&OP_TRANSPOSE));
+                        // Break here so the rest of the code isn't executed
+                        ++index;
+                        lastTokenOperator = false;
+                        break;
+                    }
+                    // Inverse
+                    else if(c.length() == 2 && extractChar(c[0]) == '-' && extractChar(c[1]) == '1') {
+                        arr.add(const_cast<Operator*>(&OP_INVERSE));
+                        // Break here so the rest of the code isn't executed
+                        ++index;
+                        lastTokenOperator = false;
+                        break;
+                    }
+                }
 				// Recursively evaluate the exponent
 				Token *exponent = evaluate((neda::Container*) ((neda::Superscript*) exprs[index])->contents, varc, vars, funcc, funcs);
 				// If an error occurs, clean up and return null
