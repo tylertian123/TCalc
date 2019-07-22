@@ -11,10 +11,14 @@
 #define USART_RX_PIN GPIO_Pin_10
 #define USART_IRQn USART1_IRQn
 
-//Maximum string length is this buffer size minus one (leaving room for the null terminator)
-#define USART_PRINTF_BUFFER_SIZE 512
-//Comment this out to use query instead of interrupt
-//#define USART_RECEIVE_METHOD_INTERRUPT
+#ifndef USART_PRINTF_BUFFER_SIZE
+    // Maximum string length is this buffer size minus one (leaving room for the null terminator)
+    #define USART_PRINTF_BUFFER_SIZE 512
+#endif
+// Comment this out to use query instead of interrupt
+#ifndef USART_RECEIVE_METHOD_INTERRUPT
+    #define USART_RECEIVE_METHOD_INTERRUPT
+#endif
 
 namespace usart {
 	void init(uint32_t);

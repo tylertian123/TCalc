@@ -1,6 +1,10 @@
 #include "stm32f10x.h"
 #include "sys.hpp"
 #include "delay.hpp"
+#ifdef _USE_CONSOLE
+    #define USART_RECEIVE_METHOD_INTERRUPT
+    #include "console.hpp"
+#endif
 #include "usart.hpp"
 #include "gpiopin.hpp"
 #include "sbdi.hpp"
@@ -16,7 +20,7 @@
 #include "exprentry.hpp"
 #include <stdlib.h>
 
-#define VERSION_STR "V1.2.8"
+#define VERSION_STR "V1.2.9"
 
 /********** GPIO Pins and other pin defs **********/
 GPIOPin RS(GPIOC, GPIO_Pin_10), RW(GPIOC, GPIO_Pin_11), E(GPIOC, GPIO_Pin_12),
@@ -697,6 +701,10 @@ int main() {
 	display.clearDrawing();
 
     usart::println("Peripherals initialized.");
+#ifdef _USE_CONSOLE
+    usart::println("Initializing Console...");
+    console::init();
+#endif
     
     uint16_t offset = (lcd::SIZE_WIDTH - lcd::LCD12864::getDrawnStringWidth("TCalc " VERSION_STR)) / 2;
 	display.drawString(offset, 25, "TCalc " VERSION_STR, true);
@@ -724,8 +732,6 @@ int main() {
     }
 
 	uint16_t key = KEY_NULL;
-
-    usart::println("Entering main routine...");
 	
 	while(true) {
 		if((key = fetchKey()) != KEY_NULL) {
