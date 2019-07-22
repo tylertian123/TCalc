@@ -49,7 +49,7 @@ namespace neda {
 	 */ 
 	class NEDAObj {
 	public:
-		virtual ObjType getType() = 0;
+		virtual ObjType getType() const = 0;
 
 		virtual NEDAObj* copy() = 0;
 
@@ -63,7 +63,7 @@ namespace neda {
 	public:
 		Character(const char ch) : ch(ch) {}
 
-		virtual ObjType getType() override {
+		virtual ObjType getType() const override {
 			return ObjType::CHAR_TYPE;
 		}
 
@@ -116,7 +116,7 @@ namespace neda {
 		virtual void down(Expr*, Cursor&);
 		virtual void getCursor(Cursor&, CursorLocation) = 0;
 
-		virtual ObjType getType() = 0;
+		virtual ObjType getType() const = 0;
 	
 		uint16_t exprWidth;
 		uint16_t exprHeight;
@@ -177,7 +177,7 @@ namespace neda {
 		NEDAObj* removeAtCursor(Cursor&);
 		void getCursorInfo(const Cursor&, CursorInfo&);
 
-		virtual ObjType getType() override {
+		virtual ObjType getType() const override {
 			return ObjType::CONTAINER;
 		}
 
@@ -219,7 +219,7 @@ namespace neda {
 		virtual void down(Expr*, Cursor&) override;
 		virtual void getCursor(Cursor&, CursorLocation) override;
 
-		virtual ObjType getType() override {
+		virtual ObjType getType() const override {
 			return ObjType::FRACTION;
 		}
 
@@ -244,7 +244,7 @@ namespace neda {
 		// Realistically this method is never going to be called on LeftBracket anyways
 		virtual void getCursor(Cursor &cursor, CursorLocation location) override {}
 
-		virtual ObjType getType() override {
+		virtual ObjType getType() const override {
 			return ObjType::L_BRACKET;
 		}
 
@@ -265,7 +265,7 @@ namespace neda {
 		// Do nothing
 		// Realistically this method is never going to be called on RightBracket anyways
 		virtual void getCursor(Cursor &cursor, CursorLocation location) override {}
-		virtual ObjType getType() override {
+		virtual ObjType getType() const override {
 			return ObjType::R_BRACKET;
 		}
 
@@ -306,7 +306,7 @@ namespace neda {
 		virtual void right(Expr*, Cursor&) override;
 		virtual void getCursor(Cursor&, CursorLocation) override;
 
-		virtual ObjType getType() override {
+		virtual ObjType getType() const override {
 			return ObjType::RADICAL;
 		}
 
@@ -339,7 +339,7 @@ namespace neda {
 
 		virtual ~Superscript();
 
-		virtual ObjType getType() override {
+		virtual ObjType getType() const override {
 			return ObjType::SUPERSCRIPT;
 		}
 
@@ -372,7 +372,7 @@ namespace neda {
 
 		virtual void getCursor(Cursor&, CursorLocation) override;
 
-		virtual ObjType getType() override {
+		virtual ObjType getType() const override {
 			return ObjType::SUBSCRIPT;
 		}
 
@@ -413,7 +413,7 @@ namespace neda {
 		virtual void down(Expr*, Cursor&) override;
 		virtual void getCursor(Cursor&, CursorLocation) override;
 
-		virtual ObjType getType() override {
+		virtual ObjType getType() const override {
 			return ObjType::SIGMA_PI;
 		}
 
@@ -478,7 +478,7 @@ namespace neda {
 
 		virtual Matrix* copy() override;
 
-		virtual ObjType getType() override;
+		virtual ObjType getType() const override;
 	};
 
     // Piecewise function
@@ -528,7 +528,7 @@ namespace neda {
 
 		virtual Piecewise* copy() override;
 
-		virtual ObjType getType() override;
+		virtual ObjType getType() const override;
     };
 
     // Absolute value
@@ -561,7 +561,7 @@ namespace neda {
 
 		virtual Abs* copy() override;
 
-		virtual ObjType getType() override;
+		virtual ObjType getType() const override;
     };
 	
 	/*
@@ -590,7 +590,7 @@ namespace neda {
 		void add(NEDAObj*);
         void addStr(const char*);
 
-		virtual ObjType getType() override {
+		virtual ObjType getType() const override {
 			return ObjType::CURSOR_TYPE;
 		}
 		

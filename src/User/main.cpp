@@ -455,7 +455,7 @@ void evaluateExpr(neda::Container *expr) {
     eval::Token *result = nullptr;
 
     // First see if this is an assignment operation
-    uint16_t equalsIndex = eval::findEquals(&expr->contents, false);
+    uint16_t equalsIndex = eval::findEquals(expr->contents, false);
     if(equalsIndex != 0xFFFF) {
         // Isolate the variable name
         char *vName = new char[equalsIndex + 1];

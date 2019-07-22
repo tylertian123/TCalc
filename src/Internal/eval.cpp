@@ -1120,7 +1120,7 @@ convertToDoubleAndOperate:
             return false;
         }
 	}
-	char extractChar(neda::NEDAObj *obj) {
+	char extractChar(const neda::NEDAObj *obj) {
 		if(obj->getType() != neda::ObjType::CHAR_TYPE) {
 			return '\0';
 		}
@@ -1128,27 +1128,27 @@ convertToDoubleAndOperate:
 	}
 	// Returns the double value of a Token
 	// The token must be a number or fraction. Otherwise NaN will be returned.
-	inline double extractDouble(Token *t) {
+	double extractDouble(const Token *t) {
 		return t->getType() == TokenType::NUMBER ? ((Number*) t)->value 
 				: (t->getType() == TokenType::FRACTION ? ((Fraction*) t)->doubleVal() : NAN);
 	}
 	// Returns positive if a > b, zero if equal, and negative if a < b
-	int8_t compareTokens(Token *a, Token *b) {
+	int8_t compareTokens(const Token *a, const Token *b) {
 		double aVal = extractDouble(a);
 		double bVal = extractDouble(b);
 		return aVal > bVal ? 1 : bVal > aVal ? -1 : 0;
 	}
-	uint16_t findEquals(DynamicArray<neda::NEDAObj*> *arr, bool forceVarName) {
+	uint16_t findEquals(const DynamicArray<neda::NEDAObj*> &arr, bool forceVarName) {
 		uint16_t equalsIndex = 0;
 		bool validName = true;
-		for(; equalsIndex < arr->length(); ++equalsIndex) {
+		for(; equalsIndex < arr.length(); ++equalsIndex) {
 			// Search for equals
-			if(extractChar((*arr)[equalsIndex]) == '=') {
+			if(extractChar(arr[equalsIndex]) == '=') {
 				// At the same time make sure it's not a == or a !=
-                if(equalsIndex != 0 && extractChar((*arr)[equalsIndex - 1]) == '!') {
+                if(equalsIndex != 0 && extractChar(arr[equalsIndex - 1]) == '!') {
                     continue;
                 }
-				if(equalsIndex + 1 < arr->length() && extractChar((*arr)[equalsIndex + 1]) == '=') {
+				if(equalsIndex + 1 < arr.length() && extractChar(arr[equalsIndex + 1]) == '=') {
 					++equalsIndex;
 					continue;
 				}
@@ -1160,7 +1160,7 @@ convertToDoubleAndOperate:
 				// Check for name validity only if forceVarName is true
 				// In addition to finding the equals sign, also verify that the left hand side of the equals only contains valid
 				// name characters
-				if(!isNameChar(extractChar((*arr)[equalsIndex]))) {
+				if(!isNameChar(extractChar(arr[equalsIndex]))) {
 					validName = false;
 					break;
 				}
@@ -1169,7 +1169,7 @@ convertToDoubleAndOperate:
 		// If equalsIndex is the same as the length, then the if condition was never true, return an error value
 		// Or if it's at index 0 or length - 1, return null since the condition can't be complete
 		// Or if the name is not valid
-		if(!validName || equalsIndex == arr->length() || equalsIndex == 0 || equalsIndex == arr->length() - 1) {
+		if(!validName || equalsIndex == arr.length() || equalsIndex == 0 || equalsIndex == arr.length() - 1) {
 			return 0xFFFF;
 		}
 		return equalsIndex;
@@ -1182,11 +1182,12 @@ convertToDoubleAndOperate:
      * 
      * Returns 1 if truthy, 0 if not, -1 if undefined.
      */
-    int8_t isTruthy(Token *token) {
+    int8_t isTruthy(const Token *token) {
         if(token->getType() == TokenType::MATRIX) {
             return 1;
         }
-        double v = token->getType() == TokenType::NUMBER ? static_cast<Number*>(token)->value : static_cast<Fraction*>(token)->doubleVal();
+        double v = token->getType() == TokenType::NUMBER ? static_cast<const Number*>(token)->value 
+                : static_cast<const Fraction*>(token)->doubleVal();
         
         // Infinite or NaN
         if(!isfinite(v)) {
@@ -1197,7 +1198,7 @@ convertToDoubleAndOperate:
     }
 
 	// Overloaded instance of the other evaluate() for convenience. Works directly on neda::Containers.
-	Token* evaluate(neda::Container *expr, DynamicArray<Variable> &vars, DynamicArray<UserDefinedFunction> &funcs) {
+	Token* evaluate(const neda::Container *expr, const DynamicArray<Variable> &vars, const DynamicArray<UserDefinedFunction> &funcs) {
 		return evaluate(expr->contents, vars.length(), vars.asArray(), funcs.length(), funcs.asArray());
 	}
 	/*
@@ -1209,11 +1210,11 @@ convertToDoubleAndOperate:
 	 * vars - a reference to a DynamicArray of Variables representing all user-defined variables
      * funcs - a reference to a DynamicArray of UserDefinedFunctions representing all user-defined functions
 	 */
-    Token* evaluate(DynamicArray<neda::NEDAObj*> &expr, DynamicArray<Variable> &vars, DynamicArray<UserDefinedFunction> &funcs) {
+    Token* evaluate(const DynamicArray<neda::NEDAObj*> &expr, const DynamicArray<Variable> &vars, const DynamicArray<UserDefinedFunction> &funcs) {
         return evaluate(expr, vars.length(), vars.asArray(), funcs.length(), funcs.asArray());
     }
     // Overloaded instance of the other evaluate() for convenience. Works directly on neda::Containers.
-    Token* evaluate(neda::Container *expr, uint16_t varc, Variable *vars, uint16_t funcc, UserDefinedFunction *funcs) {
+    Token* evaluate(const neda::Container *expr, uint16_t varc, const Variable *vars, uint16_t funcc, const UserDefinedFunction *funcs) {
         return evaluate(expr->contents, varc, vars, funcc, funcs);
     }
     /*
@@ -1221,19 +1222,18 @@ convertToDoubleAndOperate:
 	 * Returns nullptr on syntax errors
 	 * 
 	 * Parameters:
-	 * expr - a reference to a DynamicArray of neda::NEDAObjs representing an expression
+	 * exprs - a reference to a DynamicArray of neda::NEDAObjs representing an expression
      * varc - the number of user-defined variables
 	 * vars - an array containing all user-defined variables
      * funcc - the number of user-defined functions
      * funcs - an array containing all user-defined functions
 	 */
-	Token* evaluate(DynamicArray<neda::NEDAObj*> &expr, uint16_t varc, Variable *vars, uint16_t funcc, UserDefinedFunction *funcs) {
+	Token* evaluate(const DynamicArray<neda::NEDAObj*> &exprs, uint16_t varc, const Variable *vars, uint16_t funcc, const UserDefinedFunction *funcs) {
 		// This function first parses the NEDA expression to convert it into eval tokens
 		// It then converts the infix notation to postfix with shunting-yard
 		// And finally evaluates it and returns the result
 		// This dynamic array holds the result of the first stage (basic parsing)
 		DynamicArray<Token*, 4> arr;
-		auto &exprs = expr;
 		uint16_t index = 0;
 		// This variable keeps track of whether the last token was an operator
 		bool lastTokenOperator = true;
@@ -1509,8 +1509,8 @@ convertToDoubleAndOperate:
                     break;
                 }
 
-				Function *func = nullptr;
-				UserDefinedFunction *uFunc = nullptr;
+				const Function *func = nullptr;
+				const UserDefinedFunction *uFunc = nullptr;
 				// If the token isn't a number
 				if(!isNum) {
 					// Special processing for logarithms:
@@ -1792,7 +1792,7 @@ evaluateFunctionArguments:
 				}
 				// Evaluate the starting value
 				// Split the starting condition at the equals sign
-				auto startContents = &((neda::Container*) ((neda::SigmaPi*) exprs[index])->start)->contents;
+				auto &startContents = ((neda::Container*) ((neda::SigmaPi*) exprs[index])->start)->contents;
 				uint16_t equalsIndex = findEquals(startContents, true);
 				// If equals sign not found, syntax error
 				if(equalsIndex == 0xFFFF) {
@@ -1801,7 +1801,7 @@ evaluateFunctionArguments:
 					return nullptr;
 				}
 				// Attempt to evaluate the starting condition assign value
-				DynamicArray<neda::NEDAObj*> startVal(startContents->begin() + equalsIndex + 1, startContents->end());
+				DynamicArray<neda::NEDAObj*> startVal(startContents.begin() + equalsIndex + 1, startContents.end());
 				Token *start = evaluate(startVal, varc, vars, funcc, funcs);
 				// Check for syntax error
 				if(!start) {
@@ -1820,7 +1820,7 @@ evaluateFunctionArguments:
 				char *vName = new char[equalsIndex + 1];
 				// Extract each character
 				for(uint16_t i = 0; i < equalsIndex; i ++) {
-					vName[i] = extractChar((*startContents)[i]);
+					vName[i] = extractChar(startContents[i]);
 				}
 				// Null termination
 				vName[equalsIndex] = '\0';

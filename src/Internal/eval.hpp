@@ -274,14 +274,14 @@ namespace eval {
 	}
 	bool isDigit(char);
 	bool isNameChar(char);
-	char extractChar(neda::NEDAObj*);
-	double extractDouble(Token*);
-	int8_t compareTokens(Token*, Token*);
-	uint16_t findEquals(DynamicArray<neda::NEDAObj*>*, bool forceVarName = true);
-    int8_t isTruthy(Token*);
+	char extractChar(const neda::NEDAObj*);
+	double extractDouble(const Token*);
+	int8_t compareTokens(const Token*, const Token*);
+	uint16_t findEquals(const DynamicArray<neda::NEDAObj*>&, bool forceVarName = true);
+    int8_t isTruthy(const Token*);
 
 	template <uint16_t Increase>
-	uint16_t findTokenEnd(DynamicArray<neda::NEDAObj*, Increase> *arr, uint16_t start, int8_t direction, bool &isNum) {
+	uint16_t findTokenEnd(const DynamicArray<neda::NEDAObj*, Increase> *arr, uint16_t start, int8_t direction, bool &isNum) {
 		int16_t end = start;
 		for (; end < arr->length() && end >= 0; end += direction) {
 			char ch = extractChar((*arr)[end]);
@@ -306,10 +306,10 @@ namespace eval {
 		return end;
 	}
 	
-	Token* evaluate(neda::Container*, DynamicArray<Variable>&, DynamicArray<UserDefinedFunction>&);
-	Token* evaluate(DynamicArray<neda::NEDAObj*>&, DynamicArray<Variable>&, DynamicArray<UserDefinedFunction>&);
-    Token* evaluate(neda::Container*, uint16_t, Variable*, uint16_t, UserDefinedFunction*);
-    Token* evaluate(DynamicArray<neda::NEDAObj*>&, uint16_t, Variable*, uint16_t, UserDefinedFunction*);
+	Token* evaluate(const neda::Container*, const DynamicArray<Variable>&, const DynamicArray<UserDefinedFunction>&);
+	Token* evaluate(const DynamicArray<neda::NEDAObj*>&, const DynamicArray<Variable>&, const DynamicArray<UserDefinedFunction>&);
+    Token* evaluate(const neda::Container*, uint16_t, const Variable*, uint16_t, const UserDefinedFunction*);
+    Token* evaluate(const DynamicArray<neda::NEDAObj*>&, uint16_t, const Variable*, uint16_t, const UserDefinedFunction*);
 }
 
 #endif
