@@ -1196,6 +1196,95 @@ convertToDoubleAndOperate:
         
         return v == 0 ? 0 : 1;
     }
+    /*
+     * Evaluates a function arguments list, which starts with a left bracket, ends with a right bracket and is separated by commas.
+     * 
+     * expr - The NEDA expression containing the arguments list
+     * varc - The number of user-defined variables
+     * vars - An array of all user-defined variables
+     * funcc - The number of user-defined functions
+     * funcs - An array of all user-defined functions
+     * start - Where to start evaluating. This should be the index of the left bracket marking the beginning of the arguments list.
+     * end *(out)* - A uint16_t reference which will be set to the index of the right bracket marking the end of the arguments list.
+     * 
+     * If there is a syntax error in the arguments list, this function will return an empty DynamicArray<Token*>.
+     */
+    DynamicArray<Token*> evaluateArgs(const DynamicArray<neda::NEDAObj*>& expr, 
+            uint16_t varc, const Variable *vars, uint16_t funcc, const UserDefinedFunction *funcs, uint16_t start, uint16_t &end) {
+        
+        // Args must start with a left bracket
+        if(expr[start]->getType() != neda::ObjType::L_BRACKET) {
+            return DynamicArray<Token*>();
+        }
+        uint16_t nesting = 0;
+        for(end = start; end < expr.length(); end ++) {
+            // Increase and decrease the nesting level accordingly and exit when nesting level is 0
+            if(expr[end]->getType() == neda::ObjType::L_BRACKET) {
+                ++nesting;
+            }
+            else if(expr[end]->getType() == neda::ObjType::R_BRACKET) {
+                --nesting;
+                if(!nesting) {
+                    break;
+                }
+            }
+        }
+		
+        if(nesting != 0) {
+            // Mismatched brackets
+            return DynamicArray<Token*>();
+        }
+		
+        DynamicArray<Token*> args;
+        // Increment to skip the first left bracket
+        start ++;
+        uint16_t argEnd = start;
+        while(start != end) {
+            // Take care of nested brackets
+            uint16_t nesting = 0;
+            for(; argEnd < end; ++argEnd) {
+                // Increase and decrease nesting accordingly
+                if(expr[argEnd]->getType() == neda::ObjType::L_BRACKET) {
+                    ++nesting;
+                    continue;
+                }
+                else if(expr[argEnd]->getType() == neda::ObjType::R_BRACKET) {
+                    // Arguments can only end by a comma
+                    // Thus if nesting ever reaches a level less than zero, there are mismatched parentheses
+                    if(!nesting) {
+                        freeTokens(&args);
+                        return DynamicArray<Token*>();
+                    }
+                    // Decrease nesting since we now know it's nonzero
+                    --nesting;
+                    continue;
+                }
+                // Only end arguments when the nesting level is 0
+                // This ensures that expressions like f(g(x, y), 0) get parsed properly
+                if(nesting == 0 && extractChar(expr[argEnd]) == ',') {
+                    break;
+                }
+            }
+
+            // Isolate the argument's contents
+            const DynamicArray<neda::NEDAObj*> argContents = 
+                    DynamicArray<neda::NEDAObj*>::createConstRef(expr.begin() + start, expr.begin() + argEnd);
+            Token *arg = evaluate(argContents, varc, vars, funcc, funcs);
+            // Syntax error
+            if(!arg) {
+                freeTokens(&args);
+                return DynamicArray<Token*>();
+            }
+            args.add(arg);
+
+            // If we ended on a comma (because this argument isn't the last), skip it
+            if(extractChar(expr[argEnd]) == ',') {
+                ++argEnd;
+            }
+            start = argEnd;
+        }
+		return args;
+    }
 
 	// Overloaded instance of the other evaluate() for convenience. Works directly on neda::Containers.
 	Token* evaluate(const neda::Container *expr, const DynamicArray<Variable> &vars, const DynamicArray<UserDefinedFunction> &funcs) {
@@ -1544,8 +1633,8 @@ convertToDoubleAndOperate:
 							// The function is base 10 log
 							func = new Function(Function::Type::LOG10);
 						}
-						// Move on to evaluate arguments 
-						goto evaluateFunctionArguments;
+						// Move on to evaluate the arguments 
+						goto evaluateFunc;
 					}
 					// If it's not a log, see if it's a built-in function
 					else {
@@ -1564,99 +1653,12 @@ convertToDoubleAndOperate:
 						}
 						// Add the function if it's valid
 						if(func || uFunc) {
-evaluateFunctionArguments:
+evaluateFunc:
 							// Implied multiplication
 							if(!lastTokenOperator) {
 								arr.add(const_cast<Operator*>(&OP_MULTIPLY));
 							}
-							// Find the end of the arguments list
-							index = end;
-							// If the next token is not a left bracket, syntax error
-							if(end >= exprs.length() || exprs[index]->getType() != neda::ObjType::L_BRACKET) {
-								freeTokens(&arr);
-								delete[] str;
-								// No need to check if func is nonnull
-								delete func;
-								return nullptr;
-							}
-							uint16_t nesting = 1;
-							++index;
-							++end;
-							// Find the end of this bracket
-							for(; end < exprs.length(); ++end) {
-								// Increase and decrease the nesting level accordingly and exit when nesting level is 0
-								if(exprs[end]->getType() == neda::ObjType::L_BRACKET) {
-									++nesting;
-								}
-								else if(exprs[end]->getType() == neda::ObjType::R_BRACKET) {
-									--nesting;
-									if(!nesting) {
-										break;
-									}
-								}
-							}
-							// If after the loop exists, nesting is nonzero then there are mismatched parentheses
-							if(nesting != 0) {
-								freeTokens(&arr);
-								delete[] str;
-								delete func;
-								return nullptr;
-							}
-							// Now index should be right after the bracket, and end is at the closing bracket
-							// Isolate each argument
-							DynamicArray<Token*> args;
-							uint16_t argEnd = index;
-							while(index != end) {
-								// Take care of nested brackets
-								uint16_t nesting = 0;
-								// Find the end of this argument
-								for(; argEnd < end; ++argEnd) {
-									// Increase and decrease nesting accordingly
-									if(exprs[argEnd]->getType() == neda::ObjType::L_BRACKET) {
-										++nesting;
-										continue;
-									}
-									else if(exprs[argEnd]->getType() == neda::ObjType::R_BRACKET) {
-										// Arguments can only end by a comma
-										// Thus if nesting ever reaches a level less than zero, there are mismatched parentheses
-										if(!nesting) {
-											freeTokens(&arr);
-											freeTokens(&args);
-											delete[] str;
-											delete func;
-											return nullptr;
-										}
-										// Decrease nesting since we now know it's nonzero
-										--nesting;
-										continue;
-									}
-									// Only end arguments when the nesting level is 0
-									// This ensures that expressions like f(g(x, y), 0) get parsed properly
-									if(nesting == 0 && extractChar(exprs[argEnd]) == ',') {
-										break;
-									}
-								}
-								// Recursively evaluate the contents of the argument
-								const DynamicArray<neda::NEDAObj*> argContents = 
-                                        DynamicArray<neda::NEDAObj*>::createConstRef(exprs.begin() + index, exprs.begin() + argEnd);
-								Token *arg = evaluate(argContents, varc, vars, funcc, funcs);
-								// Cleanup on syntax error
-								if(!arg) {
-									freeTokens(&arr);
-									freeTokens(&args);
-									delete[] str;
-									delete func;
-									return nullptr;
-								}
-								// Add to arguments list
-								args.add(arg);
-
-								// If we ended on a comma (this argument isn't the last), skip it
-								if(extractChar(exprs[argEnd]) == ',') {
-									++argEnd;
-								}
-								index = argEnd;
-							}
+                            auto args = evaluateArgs(exprs, varc, vars, funcc, funcs, end, end);
 							// Verify that the number of arguments is correct
 							// Make sure to handle user-defined functions as well
 							if((func && func->getNumArgs() != args.length()) || (uFunc && uFunc->argc != args.length())) {
@@ -1724,6 +1726,7 @@ evaluateFunctionArguments:
 							// Add result
 							arr.add(result);
 							lastTokenOperator = false;
+                            // Increment end to skip the ending right bracket
 							++end;
 						}
 						// If not a function, check if it's a constant or a variable
