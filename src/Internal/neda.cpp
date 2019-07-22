@@ -1093,7 +1093,7 @@ namespace neda {
 	}
 
 	// *************************** Matrix ***************************************
-	ObjType Matrix::getType() {
+	ObjType Matrix::getType() const {
 		return ObjType::MATRIX;
 	}
 	Matrix::~Matrix() {
@@ -1310,7 +1310,7 @@ loopEnd:
 	}
 
     // *************************** Piecewise ***************************************
-    ObjType Piecewise::getType() {
+    ObjType Piecewise::getType() const {
         return ObjType::PIECEWISE;
     }
     Piecewise::~Piecewise() {
@@ -1518,7 +1518,7 @@ loopEnd:
     }
 
     // *************************** Abs ***************************************
-    ObjType Abs::getType() {
+    ObjType Abs::getType() const {
         return ObjType::ABS;
     }
     Abs::~Abs() {
