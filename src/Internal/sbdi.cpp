@@ -1,6 +1,5 @@
 #include "sbdi.hpp"
 #include "delay.hpp"
-#include "usart.hpp"
 
 namespace sbdi {
 	
@@ -60,9 +59,6 @@ namespace sbdi {
             // Even parity
             if(parity) {
                 transmissionFailed = true;
-            }
-            else {
-                usart::println("Parity OK");
             }
 
             parity = 0;

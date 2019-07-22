@@ -647,6 +647,9 @@ int main() {
 	sys::initRCC();
 	sys::initNVIC();
 	usart::init(115200);
+    usart::println("******** Welcome to TCalc " VERSION_STR " ********");
+    usart::println("System Core initialization complete.");
+    usart::println("Initializing Peripherals...");
 	// Init LEDs
 	statusLED.init(GPIO_Mode_Out_PP, GPIO_Speed_2MHz);
 	shiftLED.init(GPIO_Mode_Out_PP, GPIO_Speed_2MHz);
@@ -692,6 +695,8 @@ int main() {
 	display.useExtended();
 	display.startDraw();
 	display.clearDrawing();
+
+    usart::println("Peripherals initialized.");
     
     uint16_t offset = (lcd::SIZE_WIDTH - lcd::LCD12864::getDrawnStringWidth("TCalc " VERSION_STR)) / 2;
 	display.drawString(offset, 25, "TCalc " VERSION_STR, true);
@@ -719,6 +724,8 @@ int main() {
     }
 
 	uint16_t key = KEY_NULL;
+
+    usart::println("Entering main routine...");
 	
 	while(true) {
 		if((key = fetchKey()) != KEY_NULL) {
