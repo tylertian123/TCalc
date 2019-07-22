@@ -1,6 +1,10 @@
 #include "stm32f10x.h"
 #include "sys.hpp"
 #include "delay.hpp"
+#ifdef _USE_CONSOLE
+    #define USART_RECEIVE_METHOD_INTERRUPT
+    #include "console.hpp"
+#endif
 #include "usart.hpp"
 #include "gpiopin.hpp"
 #include "sbdi.hpp"
@@ -16,7 +20,7 @@
 #include "exprentry.hpp"
 #include <stdlib.h>
 
-#define VERSION_STR "V1.2.6"
+#define VERSION_STR "V1.2.9"
 
 /********** GPIO Pins and other pin defs **********/
 GPIOPin RS(GPIOC, GPIO_Pin_10), RW(GPIOC, GPIO_Pin_11), E(GPIOC, GPIO_Pin_12),
@@ -647,6 +651,9 @@ int main() {
 	sys::initRCC();
 	sys::initNVIC();
 	usart::init(115200);
+    usart::println("******** Welcome to TCalc " VERSION_STR " ********");
+    usart::println("System Core initialization complete.");
+    usart::println("Initializing Peripherals...");
 	// Init LEDs
 	statusLED.init(GPIO_Mode_Out_PP, GPIO_Speed_2MHz);
 	shiftLED.init(GPIO_Mode_Out_PP, GPIO_Speed_2MHz);
@@ -692,6 +699,14 @@ int main() {
 	display.useExtended();
 	display.startDraw();
 	display.clearDrawing();
+
+    usart::println("Peripherals initialized.");
+#ifdef _USE_CONSOLE
+    usart::println("Initializing Console...");
+    console::init();
+#else
+    usart::println("This version of TCalc was compiled without the USART console.");
+#endif
     
     uint16_t offset = (lcd::SIZE_WIDTH - lcd::LCD12864::getDrawnStringWidth("TCalc " VERSION_STR)) / 2;
 	display.drawString(offset, 25, "TCalc " VERSION_STR, true);
@@ -702,15 +717,13 @@ int main() {
 
 	if(fetchKey() == KEY_LCT) {
 		dispMode = DispMode::GAME;
-		putKey(KEY_DUMMY);
-
 		respawn();
 	}
 
 	// Start blink
 	initCursorTimer(dispMode == DispMode::GAME ? 1000 : 2000);
 
-    display.clearDrawing();
+    display.clearDrawingBuffer();
     if(dispMode == DispMode::NORMAL) {
         mainExprEntry.adjustExpr();
         mainExprEntry.cursor->expr->drawConnected(display);

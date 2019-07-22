@@ -197,51 +197,52 @@ namespace eval {
 			return NAN;
 		}
 	}
-	double Matrix::det() const {
+	double Matrix::det() {
 		// No determinant for nonsquare matrices
 		if(m != n) {
 			return NAN;
 		}
-		// Matrices with size 1
-		if(m == 1) {
-			return contents[0];
-		}
-		return Matrix::det(*this);
-	}
-	double Matrix::det(const Matrix &mat) {
-		// 2x2 matrix
-		if(mat.m == 2) {
-			return mat.contents[0] * mat.contents[3] - mat.contents[1] * mat.contents[2];
-		}
-		// Otherwise split into smaller matrices and recurse
-		double d = 0;
-		// Use the first row
-		for(uint8_t i = 0; i < mat.m; i ++) {
-			// Construct sub-matrix
-			Matrix minor(mat.m - 1, mat.m - 1);
-			// Copy in all the values
-			uint16_t index = 0;
-			// The minor ignores the row and column the number chosen is on
-			// The row is, of course, always the first row
-			// Therefore start directly at index m to skip that row
-			for(uint16_t j = mat.m; j < mat.m * mat.m; j ++) {
-				// Also ignore the column the chosen number is on
-				// If the result of the index modulo the number of items in a row is equal to i, then they must be in the same row
-				if(j % mat.m != i) {
-					minor.contents[index++] = mat.contents[j];
-				}
-			}
-			// Now do a recursive call to compute the determinant of the minor and multiply that by the term
-			double value = Matrix::det(minor) * mat.contents[i];
-			// Decide whether to add or subtract based on i
-			if(i % 2 == 0) {
-				d += value;
-			}
-			else {
-				d -= value;
-			}
-		}
-		return d;
+		
+        // Apply gaussian elimination to make the matrix upper-triangular
+        // Keep track of the negating
+        bool neg = 0;
+        // Copied from eliminate() and modified
+        for(uint8_t i = 0; i < m; i ++) {
+            if(getEntry(i, i) == 0) {
+                uint8_t k = i;
+                for(; k < m; k ++) {
+                    if(getEntry(k, i) != 0) {
+                        rowSwap(i, k);
+                        // Swapping two rows negates the determinant
+                        neg = -neg;
+                        break;
+                    }
+                }
+
+                if(k == m) {
+                    // If the entire column is 0, the matrix is singular
+                    // Therefore the determinant must be 0
+                    return 0;
+                }
+            }
+
+            double pivot = getEntry(i, i);
+
+            // Eliminate this column in all rows below
+            // Adding to one row a scalar multiple of another does not change the determinant
+            for(uint8_t k = i + 1; k < m; k ++) {
+                rowAdd(k, i, -(getEntry(k, i) / pivot));
+            }
+        }
+
+        // Now the matrix should be upper-triangular
+        // Take the product of the main diagonal to get the determinant
+        double d = 1;
+        for(uint8_t i = 0; i < m; i ++) {
+            d *= getEntry(i, i);
+        }
+
+        return neg ? -d : d;
 	}
 	double Matrix::len() const {
 		if(n != 1) {
@@ -350,8 +351,11 @@ namespace eval {
 		case Type::SP_MULT:
 		case Type::SP_DIV:
 			return 0;
+        case Type::TRANSPOSE:
+        case Type::INVERSE:
+            return 1;
 		case Type::EXPONENT:
-			return 1;
+			return 2;
         /*
          * Note: 
          * Although factorial should have a higher precedence than exponentiation, ie an expression like this
@@ -371,35 +375,41 @@ namespace eval {
          * as the factorial clearly applies to the entire expression a^b.
          */
         case Type::FACT:
-            return 2;
+            return 3;
         case Type::NOT:
         case Type::NEGATE:
-            return 3;
+            return 4;
 		case Type::MULTIPLY:
 		case Type::DIVIDE:
 		case Type::CROSS:
-			return 4;
+			return 5;
 		case Type::PLUS:
 		case Type::MINUS:
-			return 5;
+			return 6;
 		case Type::EQUALITY:
+        case Type::NOT_EQUAL:
         case Type::LT:
         case Type::GT:
         case Type::LTEQ:
         case Type::GTEQ:
-			return 6;
+			return 7;
         case Type::AND:
-            return 7;
-        case Type::OR:
             return 8;
-        case Type::XOR:
+        case Type::OR:
             return 9;
+        case Type::XOR:
+            return 10;
 		
 		default: return 0xFF;
 		}
 	}
     bool Operator::isUnary() const {
-        if(type == Type::NOT || type == Type::NEGATE || type == Type::FACT) {
+        switch(type) {
+        case Type::NOT:
+        case Type::NEGATE:
+        case Type::FACT:
+        case Type::TRANSPOSE:
+        case Type::INVERSE:
             return true;
         }
         return false;
@@ -476,6 +486,9 @@ namespace eval {
 
 		case Type::EQUALITY:
 			return floatEq(lhs, rhs);
+        
+        case Type::NOT_EQUAL:
+            return !floatEq(lhs, rhs);
 
         case Type::GT:
             return lhs > rhs;
@@ -734,6 +747,22 @@ convertToDoubleAndOperate:
                 result = new Number(equal);
                 break;
             }
+            case Type::NOT_EQUAL:
+            {
+                if(lMat->m != rMat->m || lMat->n != rMat->n) {
+                    result = new Number(1);
+                    break;
+                }
+                bool equal = true;
+                for(uint16_t i = 0; i < lMat->m * lMat->n; i ++) {
+                    if(!floatEq((*lMat)[i], (*rMat)[i])) {
+                        equal = false;
+                        break;
+                    }
+                }
+                result = new Number(!equal);
+                break;
+            }
 			default:
 				result = new Number(NAN);
 				break;
@@ -758,6 +787,9 @@ convertToDoubleAndOperate:
             case Type::EQUALITY:
                 result = new Number(0);
                 break;
+            case Type::NOT_EQUAL:
+                result = new Number(1);
+                break;
 			default:
 				result = new Number(NAN);
 				break;
@@ -777,6 +809,9 @@ convertToDoubleAndOperate:
 				break;
             case Type::EQUALITY:
                 result = new Number(0);
+                break;
+            case Type::NOT_EQUAL:
+                result = new Number(1);
                 break;
 			default:
 				result = new Number(NAN);
@@ -841,7 +876,27 @@ convertToDoubleAndOperate:
 			}
 			return new Number(d);
         }
-
+        case Type::TRANSPOSE:
+		{
+            if(t->getType() != TokenType::MATRIX) {
+                return nullptr;
+            }
+			Matrix *mat = static_cast<Matrix*>(t);
+			Matrix *result = mat->transpose();
+            delete t;
+            return result;
+		}
+        case Type::INVERSE:
+		{
+			if(t->getType() != TokenType::MATRIX) {
+                return nullptr;
+            }
+			Matrix *mat = static_cast<Matrix*>(t);
+			Matrix *result = mat->inv();
+            delete t;
+			
+			return result ? (Token*) result : (Token*) new Number(NAN);
+		}
         default: 
             return nullptr;
         }
@@ -854,7 +909,7 @@ convertToDoubleAndOperate:
 		// log10 and log2 cannot be directly entered with a string
 		"\xff", "\xff",
 
-		"qdRtA", "qdRtB", "round", "abs", "fact", "det", "len", "transpose", "inv", "I", "linSolve", "rref",
+		"qdRtA", "qdRtB", "round", "abs", "fact", "det", "len", "linSolve", "rref",
 	};
 	Function* Function::fromString(const char *str) {
 		for(uint8_t i = 0; i < sizeof(FUNCNAMES) / sizeof(FUNCNAMES[0]); i ++) {
@@ -997,15 +1052,6 @@ convertToDoubleAndOperate:
 			Matrix *vec = (Matrix*) args[0];
 			return new Number(vec->len());
 		}
-		case Type::TRANSPOSE:
-		{
-			// Syntax error: transpose of a scalar
-			if(args[0]->getType() != TokenType::MATRIX) {
-				return nullptr;
-			}
-			Matrix *mat = (Matrix*) args[0];
-			return mat->transpose();
-		}
 		case Type::LINSOLVE:
 		{
 			// Syntax error: can't solve a scalar or a matrix of the wrong dimensions
@@ -1022,34 +1068,6 @@ convertToDoubleAndOperate:
 				(*solution)[i] = mat->getEntry(i, mat->m);
 			}
 			return solution;
-		}
-		case Type::INV:
-		{
-			// Syntax error: inverse of a scalar
-			if(args[0]->getType() != TokenType::MATRIX) {
-				return nullptr;
-			}
-			Matrix *mat = (Matrix*) args[0];
-			Matrix *result = mat->inv();
-			
-			return result ? (Token*) result : (Token*) new Number(NAN);
-		}
-		case Type::IDENTITY:
-		{
-			if(args[0]->getType() == TokenType::MATRIX) {
-				return nullptr;
-			}
-			double d = extractDouble(args[0]);
-			uint8_t n = d;
-			// If d cannot be properly casted to a uint8_t, then it cannot be valid for matrix dimensions
-			if(n != d || n == 0) {
-				return nullptr;
-			}
-			Matrix *result = new Matrix(n, n);
-			for(uint8_t i = 0; i < n; i ++) {
-				result->setEntry(i, i, 1);
-			}
-			return result;
 		}
         case Type::RREF:
         {
@@ -1126,8 +1144,10 @@ convertToDoubleAndOperate:
 		for(; equalsIndex < arr->length(); ++equalsIndex) {
 			// Search for equals
 			if(extractChar((*arr)[equalsIndex]) == '=') {
-				// At the same time make sure it's not a ==
-				// If it is, then skip the next character
+				// At the same time make sure it's not a == or a !=
+                if(equalsIndex != 0 && extractChar((*arr)[equalsIndex - 1]) == '!') {
+                    continue;
+                }
 				if(equalsIndex + 1 < arr->length() && extractChar((*arr)[equalsIndex + 1]) == '=') {
 					++equalsIndex;
 					continue;
@@ -1309,6 +1329,27 @@ convertToDoubleAndOperate:
 			// Superscripts (exponentiation)
 			case neda::ObjType::SUPERSCRIPT:
 			{
+                // If the last thing in the tokens array was a matrix, this may be a transpose or inverse operation
+                if(arr[arr.length() - 1]->getType() == TokenType::MATRIX) {
+                    const auto &c = static_cast<neda::Container*>(static_cast<neda::Superscript*>(exprs[index])->contents)->contents;
+
+                    // Transpose
+                    if(c.length() == 1 && extractChar(c[0]) == 'T') {
+                        arr.add(const_cast<Operator*>(&OP_TRANSPOSE));
+                        // Break here so the rest of the code isn't executed
+                        ++index;
+                        lastTokenOperator = false;
+                        break;
+                    }
+                    // Inverse
+                    else if(c.length() == 2 && extractChar(c[0]) == '-' && extractChar(c[1]) == '1') {
+                        arr.add(const_cast<Operator*>(&OP_INVERSE));
+                        // Break here so the rest of the code isn't executed
+                        ++index;
+                        lastTokenOperator = false;
+                        break;
+                    }
+                }
 				// Recursively evaluate the exponent
 				Token *exponent = evaluate((neda::Container*) ((neda::Superscript*) exprs[index])->contents, varc, vars, funcc, funcs);
 				// If an error occurs, clean up and return null
@@ -1398,8 +1439,8 @@ convertToDoubleAndOperate:
 				// See if the character is a known operator
 				const Operator *op = Operator::fromChar(ch);
 				// Check for equality operator which is two characters and not handled by Operator::fromChar
-				if(ch == '=' && index + 1 < exprs.length() && extractChar(exprs[index + 1]) == '=') {
-					op = &OP_EQUALITY;
+				if((ch == '=' || ch == '!') && index + 1 < exprs.length() && extractChar(exprs[index + 1]) == '=') {
+					op = ch == '=' ? &OP_EQUALITY : &OP_NOT_EQUAL;
 					++index;
 				}
 				// Check if the character is an operator
@@ -1438,6 +1479,35 @@ convertToDoubleAndOperate:
 				}
 				// Add null terminator
 				str[end - index] = '\0';
+
+                // Special processing for identity matrix and 0 matrix notation
+                if(end < exprs.length() && exprs[end]->getType() == neda::ObjType::SUBSCRIPT && (strcmp(str, "I") == 0 || strcmp(str, "0") == 0)) {
+                    // Evaluate the contents of the subscript
+                    Token *res = evaluate(static_cast<neda::Container*>(static_cast<neda::Superscript*>(exprs[end])->contents), varc, vars, funcc, funcs);
+                    // Check for syntax errors, noninteger result, and out of bounds
+                    double n;
+                    if(!res || res->getType() == TokenType::MATRIX || (n = extractDouble(res), !isInt(n)) || n <= 0 || n > 255) {
+                        delete res;
+                        delete[] str;
+                        freeTokens(&arr);
+                        return nullptr;
+                    }
+                    delete res;
+
+                    Matrix *mat = new Matrix(static_cast<uint8_t>(n), static_cast<uint8_t>(n));
+                    // If identity matrix, fill it in
+                    if(str[0] == 'I') {
+                        for(uint8_t i = 0; i < mat->m; i ++) {
+                            mat->setEntry(i, i, 1);
+                        }
+                    }
+                    
+                    arr.add(mat);
+                    delete[] str;
+                    index = end + 1;
+                    lastTokenOperator = false;
+                    break;
+                }
 
 				Function *func = nullptr;
 				UserDefinedFunction *uFunc = nullptr;
@@ -2041,6 +2111,38 @@ evaluateFunctionArguments:
                 break;
             } // neda::ObjType::SUBSCRIPT
 
+            // Absolute value
+            case neda::ObjType::ABS:
+            {
+                // Implied multiplication
+				if(!lastTokenOperator) {
+					arr.add(const_cast<Operator*>(&OP_MULTIPLY));
+				}
+                Token *t = evaluate(static_cast<neda::Container*>(static_cast<neda::Abs*>(exprs[index])->contents), varc, vars, funcc, funcs);
+
+                if(!t) {
+                    freeTokens(&arr);
+                    return nullptr;
+                }
+
+                if(t->getType() == TokenType::NUMBER) {
+                    static_cast<Number*>(t)->value = abs(static_cast<Number*>(t)->value);
+                    arr.add(t);
+                }
+                else if(t->getType() == TokenType::FRACTION) {
+                    static_cast<Fraction*>(t)->num = abs(static_cast<Fraction*>(t)->num);
+                    arr.add(t);
+                }
+                else {
+                    arr.add(new Number(static_cast<Matrix*>(t)->len()));
+                    delete t;
+                }
+
+                lastTokenOperator = false;
+                index ++;
+                break;
+            } // neda::ObjType::ABS
+
 			default: ++index; break;
 			}
 		}
@@ -2091,7 +2193,15 @@ evaluateFunctionArguments:
                     // Pop the operand
                     Token *operand = stack.pop();
                     // Operate and push
-                    stack.push((*static_cast<const Operator*>(t))(operand));
+                    Token *result = (*static_cast<const Operator*>(t))(operand);
+                    if(result) {
+                        stack.push(result);
+                    }
+                    else {
+                        freeTokens(&output);
+                        freeTokens(&stack);
+                        return nullptr;
+                    }
                 }
                 else {
                     // If there aren't enough operators, syntax error
@@ -2104,7 +2214,15 @@ evaluateFunctionArguments:
                     Token *rhs = stack.pop();
                     Token *lhs = stack.pop();
                     // Operate and push
-                    stack.push((*static_cast<const Operator*>(t))(lhs, rhs));
+                    Token *result = (*static_cast<const Operator*>(t))(lhs, rhs);
+                    if(result) {
+                        stack.push(result);
+                    }
+                    else {
+                        freeTokens(&output);
+                        freeTokens(&stack);
+                        return nullptr;
+                    }
                 }
 			}
 		}

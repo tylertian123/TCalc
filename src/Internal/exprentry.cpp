@@ -332,14 +332,6 @@ namespace expr {
             return LCD_CHAR_EE;
         case KEY_CROSS:
             return LCD_CHAR_CRS;
-        case KEY_GT:
-            return '>';
-        case KEY_LT:
-            return '<';
-        case KEY_GTEQ:
-            return LCD_CHAR_GEQ;
-        case KEY_LTEQ:
-            return LCD_CHAR_LEQ;
         case KEY_FACT:
             return '!';
         case KEY_RARROW:
@@ -475,6 +467,13 @@ namespace expr {
                 neda::Superscript *super = new neda::Superscript(new neda::Container());
                 cursor->add(super);
                 super->getCursor(*cursor, neda::CURSORLOCATION_START);
+                break;
+            }
+            case KEY_ABS:
+            {
+                neda::Abs *a = new neda::Abs(new neda::Container());
+                cursor->add(a);
+                a->getCursor(*cursor, neda::CURSORLOCATION_START);
                 break;
             }
             case KEY_LN:
@@ -1372,13 +1371,20 @@ functionCheckLoopEnd:
         drawInterfaceGraphViewer();
     }
 
-    constexpr uint8_t LCD_LOGIC_CHAR_START = LCD_CHAR_LNOT;
-    constexpr uint8_t LCD_LOGIC_CHAR_END = LCD_CHAR_LAND;
+    const char LCD_LOGIC_CHARS[] = {
+        '=', '!', '<', '>', LCD_CHAR_LEQ, LCD_CHAR_GEQ, 
+
+        LCD_CHAR_LAND, LCD_CHAR_LOR, LCD_CHAR_LNOT, LCD_CHAR_LXOR,
+    };
+    constexpr uint16_t LCD_LOGIC_CHAR_LEN = sizeof(LCD_LOGIC_CHARS) / sizeof(char);
     void ExprEntry::logicKeyPressHandler(uint16_t key) {
         switch(key) {
         case KEY_ENTER:
         case KEY_CENTER:
-            cursor->add(new neda::Character(LCD_LOGIC_CHAR_START + selectorIndex));
+            cursor->add(new neda::Character(LCD_LOGIC_CHARS[selectorIndex]));
+            if(selectorIndex == 0 || selectorIndex == 1) {
+                cursor->add(new neda::Character('='));
+            }
 
         // Intentional fall-through
         case KEY_DELETE:
@@ -1392,15 +1398,25 @@ functionCheckLoopEnd:
                 selectorIndex--;
             }
             else {
-                selectorIndex = LCD_LOGIC_CHAR_END - LCD_LOGIC_CHAR_START;
+                selectorIndex = LCD_LOGIC_CHAR_LEN - 1;
             }
             break;
         case KEY_RIGHT:
-            if(selectorIndex < LCD_LOGIC_CHAR_END - LCD_LOGIC_CHAR_START) {
+            if(selectorIndex < LCD_LOGIC_CHAR_LEN - 1) {
                 selectorIndex ++;
             }
             else {
                 selectorIndex = 0;
+            }
+            break;
+        case KEY_UP:
+            if(selectorIndex >= 6) {
+                selectorIndex -= 6;
+            }
+            break;
+        case KEY_DOWN:
+            if(selectorIndex + 6 < LCD_LOGIC_CHAR_LEN) {
+                selectorIndex += 6;
             }
             break;
         default:
@@ -1879,15 +1895,28 @@ functionCheckLoopEnd:
         display.clearDrawingBuffer();
 
         int16_t x = HORIZ_MARGIN;
+        int16_t y = VERT_MARGIN;
         // Create a string to give to drawString later
         char str[2];
         // Set the null terminator
         str[1] = '\0';
-        for(uint16_t i = 0; i <= LCD_LOGIC_CHAR_END - LCD_LOGIC_CHAR_START; i ++) {
-            str[0] = LCD_LOGIC_CHAR_START + i;
-            display.drawString(x, VERT_MARGIN, str, i == selectorIndex);
+        for(uint16_t i = 0; i <= LCD_LOGIC_CHAR_LEN; i ++) {
+            if(i == 0) {
+                display.drawString(x, y, "==", i == selectorIndex);
+            }
+            else if(i == 1) {
+                display.drawString(x, y, "!=", i == selectorIndex);
+            }
+            else {
+                str[0] = LCD_LOGIC_CHARS[i];
+                display.drawString(x, y, str, i == selectorIndex);
+            }
             
-            x += 15;
+            x += 20;
+            if((i + 1) % 6 == 0) {
+                y += 15;
+                x = 0;
+            }
         }
 
         display.updateDrawing();

@@ -335,7 +335,7 @@
             <v6Rtti>0</v6Rtti>
             <VariousControls>
               <MiscControls>--cpp11 --no_rtti -Ospace --depend_format=unix</MiscControls>
-              <Define>USE_STDPERIPH_DRIVER,STM32F10X_HD</Define>
+              <Define>USE_STDPERIPH_DRIVER,STM32F10X_HD,_USE_CONSOLE</Define>
               <Undefine></Undefine>
               <IncludePath>.\src\CMSIS;.\src\Hardware;.\src\Internal;.\src\Lib\inc;.\src\Startup;.\src\User;.\src\8051</IncludePath>
             </VariousControls>
@@ -470,6 +470,16 @@
               <FileName>unitconv.cpp</FileName>
               <FileType>8</FileType>
               <FilePath>.\src\Internal\unitconv.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>heapstats.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\src\Internal\heapstats.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>console.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\src\Internal\console.cpp</FilePath>
             </File>
           </Files>
         </Group>

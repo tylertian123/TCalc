@@ -71,6 +71,7 @@ namespace eval {
 	public:
 		enum class Type : uint8_t {
 			PLUS, MINUS, MULTIPLY, DIVIDE, EXPONENT, EQUALITY, CROSS, GT, LT, GTEQ, LTEQ, AND, OR, XOR, NOT, NEGATE, FACT,
+            TRANSPOSE, INVERSE, NOT_EQUAL,
 			// Special multiplication and division
 			// These operators have the highest precedence
 			SP_MULT, SP_DIV,
@@ -123,7 +124,10 @@ namespace eval {
                        OP_XOR(Operator::Type::XOR),
                        OP_NOT(Operator::Type::NOT),
                        OP_NEGATE(Operator::Type::NEGATE),
-                       OP_FACT(Operator::Type::FACT);
+                       OP_FACT(Operator::Type::FACT),
+                       OP_TRANSPOSE(Operator::Type::TRANSPOSE),
+                       OP_INVERSE(Operator::Type::INVERSE),
+                       OP_NOT_EQUAL(Operator::Type::NOT_EQUAL);
 
 	// Even though only one instance of each type of function is needed, because there are a lot of functions, it is not worth it
 	// to make it a singleton
@@ -131,7 +135,7 @@ namespace eval {
 	public:
 		enum Type : uint8_t {
 			SIN, COS, TAN, ASIN, ACOS, ATAN, SINH, COSH, TANH, ASINH, ACOSH, ATANH, LN, LOG10, LOG2, QUADROOT_A, QUADROOT_B,
-			ROUND, ABS, FACT, DET, LEN, TRANSPOSE, INV, IDENTITY, LINSOLVE, RREF,
+			ROUND, ABS, FACT, DET, LEN, LINSOLVE, RREF,
 		};
 		// Must be in the same order as type
 		static const char * const FUNCNAMES[];
@@ -197,7 +201,8 @@ namespace eval {
 		static Matrix* multiply(const Matrix&, double);
 		static Matrix* multiply(const Matrix&, const Matrix&);
 		static double dot(const Matrix&, const Matrix&);
-		double det() const;
+        // Note: This will modify the matrix
+		double det();
 		double len() const;
 		static Matrix* cross(const Matrix&, const Matrix&);
 		Matrix* transpose() const;
@@ -225,10 +230,6 @@ namespace eval {
 				getEntry(a, i) += getEntry(b, i) * scalar;
 			}
 		}
-
-	private:
-		// This method does not check for size and only accepts matrices larger than 2*2
-		static double det(const Matrix&);
 	};
 
 	struct UserDefinedFunction {
