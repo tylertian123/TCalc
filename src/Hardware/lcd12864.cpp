@@ -1,6 +1,7 @@
 #include "lcd12864.hpp"
 #include "lcd12864_charset.hpp"
 #include "util.hpp"
+#include <string.h>
 
 namespace lcd {
 	
@@ -113,6 +114,7 @@ namespace lcd {
                 );
             }
         }
+        memset(dispBuf, 0, sizeof(dispBuf));
         drawBuf.clear();
 	}
 	// This function takes the drawing buffer, compares it with the display buffer and writes any necessary bytes.

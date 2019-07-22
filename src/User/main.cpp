@@ -704,6 +704,8 @@ int main() {
 #ifdef _USE_CONSOLE
     usart::println("Initializing Console...");
     console::init();
+#else
+    usart::println("This version of TCalc was compiled without the USART console.");
 #endif
     
     uint16_t offset = (lcd::SIZE_WIDTH - lcd::LCD12864::getDrawnStringWidth("TCalc " VERSION_STR)) / 2;
@@ -715,15 +717,13 @@ int main() {
 
 	if(fetchKey() == KEY_LCT) {
 		dispMode = DispMode::GAME;
-		putKey(KEY_DUMMY);
-
 		respawn();
 	}
 
 	// Start blink
 	initCursorTimer(dispMode == DispMode::GAME ? 1000 : 2000);
 
-    display.clearDrawing();
+    display.clearDrawingBuffer();
     if(dispMode == DispMode::NORMAL) {
         mainExprEntry.adjustExpr();
         mainExprEntry.cursor->expr->drawConnected(display);
