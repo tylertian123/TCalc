@@ -28,6 +28,11 @@ public:
 			contents[i] = other.contents[i];
 		}
 	}
+    // Move constructor
+    DynamicArray(DynamicArray &&other) : len(other.len), maxLen(other.maxLen) {
+        contents = other.contents;
+        other.contents = nullptr;
+    }
 	typedef T* iterator;
 	typedef const T* const_iterator;
 	// Iterator constructor
@@ -48,7 +53,9 @@ public:
 		}
 	}
 	~DynamicArray() {
-		free(contents);
+        if(contents) {
+		    free(contents);
+        }
 	}
 
 	// Retrieves the length of this DynamicArray
