@@ -32,6 +32,7 @@ public:
     DynamicArray(DynamicArray &&other) : len(other.len), maxLen(other.maxLen) {
         contents = other.contents;
         other.contents = nullptr;
+        other.createdNormally = false;
     }
 	typedef T* iterator;
 	typedef const T* const_iterator;
@@ -53,7 +54,7 @@ public:
 		}
 	}
 	~DynamicArray() {
-        if(contents) {
+        if(contents && createdNormally) {
 		    free(contents);
         }
 	}
@@ -194,10 +195,28 @@ public:
 		return &contents[len];
 	}
 
+    // Creates a const DynamicArray from a begin and an end iterator.
+    // The DynamicArray created does allocate its own memory; it just points to the piece of memory specified by the iterators.
+    // Therefore, the elements don't undergo a copy operation.
+    static const DynamicArray<T, IncreaseAmount> createConstRef(const_iterator start, const_iterator fin) {
+        DynamicArray<T, IncreaseAmount> arr(fin - start, fin - start);
+        // This might look dangerous, but since a const DynamicArray does not offer any way to change its contents, this is fine
+        arr.contents = const_cast<T*>(start);
+        // Set this to false to prevent the destructor from freeing memory since it was never allocated in the first place
+        arr.createdNormally = false;
+        return arr;
+    }
+
 protected:
 	T *contents;
 	uint16_t len;
 	uint16_t maxLen;
+    bool createdNormally = true;
+
+private:
+    // This constructor is intended for internal use only
+    // It only sets the length and max length
+    DynamicArray(uint16_t len, uint16_t maxLen) : len(len), maxLen(maxLen) {}
 };
 
 #endif

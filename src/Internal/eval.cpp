@@ -1272,7 +1272,8 @@ convertToDoubleAndOperate:
 					return nullptr;
 				}
 				// Construct a new array of NEDA objects that includes all object inside the brackets (but not the brackets themselves!)
-				DynamicArray<neda::NEDAObj*> inside(exprs.begin() + index + 1, exprs.begin() + endIndex);
+				const DynamicArray<neda::NEDAObj*> inside = 
+                        DynamicArray<neda::NEDAObj*>::createConstRef(exprs.begin() + index + 1, exprs.begin() + endIndex);
 				// Recursively calculate the content inside
 				Token *insideResult = evaluate(inside, varc, vars, funcc, funcs);
 				// If syntax error inside bracket, clean up and return null
@@ -1636,7 +1637,8 @@ evaluateFunctionArguments:
 									}
 								}
 								// Recursively evaluate the contents of the argument
-								DynamicArray<neda::NEDAObj*> argContents(exprs.begin() + index, exprs.begin() + argEnd);
+								const DynamicArray<neda::NEDAObj*> argContents = 
+                                        DynamicArray<neda::NEDAObj*>::createConstRef(exprs.begin() + index, exprs.begin() + argEnd);
 								Token *arg = evaluate(argContents, varc, vars, funcc, funcs);
 								// Cleanup on syntax error
 								if(!arg) {
@@ -1801,7 +1803,8 @@ evaluateFunctionArguments:
 					return nullptr;
 				}
 				// Attempt to evaluate the starting condition assign value
-				DynamicArray<neda::NEDAObj*> startVal(startContents.begin() + equalsIndex + 1, startContents.end());
+				const DynamicArray<neda::NEDAObj*> startVal = 
+                        DynamicArray<neda::NEDAObj*>::createConstRef(startContents.begin() + equalsIndex + 1, startContents.end());
 				Token *start = evaluate(startVal, varc, vars, funcc, funcs);
 				// Check for syntax error
 				if(!start) {
@@ -2070,8 +2073,10 @@ evaluateFunctionArguments:
                     }
                 }
                 else {
-                    DynamicArray<neda::NEDAObj*> rowExpr(contents.begin(), contents.begin() + commaIndex);
-                    DynamicArray<neda::NEDAObj*> colExpr(contents.begin() + commaIndex + 1, contents.end());
+                    const DynamicArray<neda::NEDAObj*> rowExpr = 
+                            DynamicArray<neda::NEDAObj*>::createConstRef(contents.begin(), contents.begin() + commaIndex);
+                    const DynamicArray<neda::NEDAObj*> colExpr = 
+                            DynamicArray<neda::NEDAObj*>::createConstRef(contents.begin() + commaIndex + 1, contents.end());
                     Token *row = evaluate(rowExpr, varc, vars, funcc, funcs);
                     // Check for syntax errors in expression, or noninteger result
                     if(!row || row->getType() == TokenType::MATRIX || !isInt(extractDouble(row))) {

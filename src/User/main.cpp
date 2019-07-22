@@ -225,7 +225,7 @@ extern "C" void TIM3_IRQHandler() {
 	}
 }
 
-#define RESULT_STORE_COUNT 4
+#define RESULT_STORE_COUNT 5
 // Previous expressions and their results
 neda::Container *calcResults[RESULT_STORE_COUNT] = { nullptr };
 neda::Container *expressions[RESULT_STORE_COUNT] = { nullptr };
@@ -550,7 +550,7 @@ void evaluateExpr(neda::Container *expr) {
             }
             else {
                 // Evaluate
-                DynamicArray<neda::NEDAObj*> val(expr->contents.begin() + equalsIndex + 1, expr->contents.end());
+                DynamicArray<neda::NEDAObj*> val = DynamicArray<neda::NEDAObj*>::createConstRef(expr->contents.begin() + equalsIndex + 1, expr->contents.end());
                 result = eval::evaluate(val, expr::variables, expr::functions);
 
                 // If result is valid, add the variable
