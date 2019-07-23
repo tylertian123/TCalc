@@ -334,6 +334,10 @@ namespace expr {
             return LCD_CHAR_CRS;
         case KEY_FACT:
             return '!';
+        case KEY_RARROW:
+            return LCD_CHAR_RARW;
+        case KEY_MU:
+            return LCD_CHAR_MU;
         default: 
             return 0xFF;
         }
