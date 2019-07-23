@@ -10,18 +10,18 @@ namespace eval {
      * Base Unit: m
      */
     const Unit UNIT_DISTANCE[] = {
-        Unit("km", 1000),
-        Unit("m", 1),
-        Unit("dm", 0.1),
-        Unit("cm", 0.01),
-        Unit("mm", 1e-3),
-        Unit(LCD_STR_MU "m", 1e-6),
-        Unit("nm", 1e-9),
+        { "km", 1000 },
+        { "m", 1 },
+        { "dm", 0.1 },
+        { "cm", 0.01 },
+        { "mm", 1e-3 },
+        { LCD_STR_MU "m", 1e-6 },
+        { "nm", 1e-9 },
 
-        Unit("in", 0.0254),
-        Unit("ft", 0.3048),
-        Unit("yd", 0.9144),
-        Unit("mi", 1609.344),
+        { "in", 0.0254 },
+        { "ft", 0.3048 },
+        { "yd", 0.9144 },
+        { "mi", 1609.344 },
     };
 
     constexpr uint16_t UNIT_DISTANCE_LEN = sizeof(UNIT_DISTANCE) / sizeof(Unit);
@@ -31,20 +31,20 @@ namespace eval {
      * Base Unit: kg
      */
     const Unit UNIT_MASS[] = {
-        Unit("t", 1000),
-        Unit("kg", 1),
-        Unit("g", 1e-3),
-        Unit("mg", 1e-6),
-        Unit(LCD_STR_MU "g", 1e-9),
-        Unit("ng", 1e-12),
+        { "t", 1000 },
+        { "kg", 1 },
+        { "g", 1e-3 },
+        { "mg", 1e-6 },
+        { LCD_STR_MU "g", 1e-9 },
+        { "ng", 1e-12 },
 
-        Unit("sl", 14.5939029),
-        Unit("lb", 0.453592),
+        { "sl", 14.5939029 },
+        { "lb", 0.453592 },
     };
 
     constexpr uint16_t UNIT_MASS_LEN = sizeof(UNIT_MASS) / sizeof(Unit);
 
-    const Unit *UNIT_TYPES[] = {
+    const Unit * const UNIT_TYPES[] = {
         UNIT_DISTANCE,
         UNIT_MASS,
     };
