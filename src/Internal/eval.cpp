@@ -1,5 +1,6 @@
 #include "eval.hpp"
 #include "lcd12864_charset.hpp"
+#include "unitconv.hpp"
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -1111,6 +1112,7 @@ convertToDoubleAndOperate:
             case LCD_CHAR_LOR:
             case LCD_CHAR_LNOT:
             case LCD_CHAR_LXOR:
+            case LCD_CHAR_RARW:
                 return false;
             default: return true;
             }
@@ -1213,7 +1215,7 @@ convertToDoubleAndOperate:
             uint16_t varc, const Variable *vars, uint16_t funcc, const UserDefinedFunction *funcs, uint16_t start, uint16_t &end) {
         
         // Args must start with a left bracket
-        if(expr[start]->getType() != neda::ObjType::L_BRACKET) {
+        if(start < expr.length() && expr[start]->getType() != neda::ObjType::L_BRACKET) {
             return DynamicArray<Token*>();
         }
         uint16_t nesting = 0;
@@ -1593,6 +1595,50 @@ convertToDoubleAndOperate:
                     }
                     
                     arr.add(mat);
+                    delete[] str;
+                    index = end + 1;
+                    lastTokenOperator = false;
+                    break;
+                }
+
+                // Special processing for unit conversions
+                if(end < exprs.length() && extractChar(exprs[end]) == LCD_CHAR_RARW) {
+                    // Find the other unit
+                    index = end + 1;
+                    end = findTokenEnd(&exprs, index, 1, isNum);
+
+                    // Copy the other unit
+                    char *unit = new char[end - index + 1];
+                    for(uint16_t i = index; i < end; i ++) {
+                        unit[i - index] = extractChar(exprs[i]);
+                    }
+                    unit[end - index] = '\0';
+
+                    // Evaluate its arguments
+                    auto args = evaluateArgs(exprs, varc, vars, funcc, funcs, end, end);
+                    if(args.length() != 1 || args[0]->getType() == TokenType::MATRIX) {
+                        // Syntax error
+                        freeTokens(&args);
+                        freeTokens(&arr);
+                        delete[] unit;
+                        delete[] str;
+                        return nullptr;
+                    }
+
+                    double result = convertUnits(extractDouble(args[0]), str, unit);
+                    if(isnan(result)) {
+                        // Syntax error
+                        freeTokens(&args);
+                        freeTokens(&arr);
+                        delete[] unit;
+                        delete[] str;
+                        return nullptr;
+                    }
+                    // Add the result
+                    arr.add(new Number(result));
+
+                    freeTokens(&args);
+                    delete[] unit;
                     delete[] str;
                     index = end + 1;
                     lastTokenOperator = false;
