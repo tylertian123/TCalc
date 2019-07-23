@@ -34,7 +34,7 @@ namespace eval {
         // Mile
         { "mi", 1609.344, 0 },
     };
-    constexpr uint16_t UNIT_DISTANCE_LEN = sizeof(UNIT_DISTANCE) / sizeof(Unit);
+    constexpr uint8_t UNIT_DISTANCE_LEN = sizeof(UNIT_DISTANCE) / sizeof(Unit);
 
     /*
      * Area Units
@@ -69,7 +69,7 @@ namespace eval {
         // Acre
         { "ac", 4046.85642, 0 },
     };
-    constexpr uint16_t UNIT_AREA_LEN = sizeof(UNIT_AREA) / sizeof(Unit);
+    constexpr uint8_t UNIT_AREA_LEN = sizeof(UNIT_AREA) / sizeof(Unit);
 
     /* 
      * Volume Units 
@@ -119,7 +119,7 @@ namespace eval {
         // Teaspoon (Metric)
         { "tsp", 5e-6, 0 },
     };
-    constexpr uint16_t UNIT_VOLUME_LEN = sizeof(UNIT_VOLUME) / sizeof(Unit);
+    constexpr uint8_t UNIT_VOLUME_LEN = sizeof(UNIT_VOLUME) / sizeof(Unit);
 
     /*
      * Mass Units
@@ -144,7 +144,7 @@ namespace eval {
         // Pound
         { "lb", 0.453592, 0 },
     };
-    constexpr uint16_t UNIT_MASS_LEN = sizeof(UNIT_MASS) / sizeof(Unit);
+    constexpr uint8_t UNIT_MASS_LEN = sizeof(UNIT_MASS) / sizeof(Unit);
 
     /*
      * Pressure Units
@@ -166,7 +166,7 @@ namespace eval {
         // Pounds per Square Inch
         { "psi", 6894.75729, 0 },
     };
-    constexpr uint16_t UNIT_PRESSURE_LEN = sizeof(UNIT_PRESSURE) / sizeof(Unit);
+    constexpr uint8_t UNIT_PRESSURE_LEN = sizeof(UNIT_PRESSURE) / sizeof(Unit);
 
     /*
      * Temperature Units
@@ -182,7 +182,84 @@ namespace eval {
         // Fahrenheit
         { "F", 5.0f/9.0f, 32 },
     };
-    constexpr uint16_t UNIT_TEMPERATURE_LEN = sizeof(UNIT_TEMPERATURE) / sizeof(Unit);
+    constexpr uint8_t UNIT_TEMPERATURE_LEN = sizeof(UNIT_TEMPERATURE) / sizeof(Unit);
+
+    /*
+     * Time Units
+     * Base Unit: s
+     */
+    const Unit UNIT_TIME[] = {
+        // Week
+        { "week", 604800, 0 },
+        // Day
+        { "day", 86400, 0 },
+        // Hour
+        { "h", 3600, 0 },
+        // Minute
+        { "m", 60, 0 },
+        // Second
+        { "s", 1, 0 },
+        // Millisecond
+        { "ms", 1e-3, 0 },
+        // Microsecond
+        { LCD_STR_MU "s", 1e-6, 0 },
+        // Nanosecond
+        { "ns", 1e-9, 0 },
+    };
+    constexpr uint8_t UNIT_TIME_LEN = sizeof(UNIT_TIME) / sizeof(Unit);
+
+    /*
+     * Energy Units
+     * Base Unit: J
+     */
+    const Unit UNIT_ENERGY[] = {
+        // Megajoule
+        { "MJ", 1e6, 0 },
+        // Kilojoule
+        { "kJ", 1000, 0 },
+        // Joule
+        { "J", 1, 0 },
+        // Gram calorie
+        { "cal", 4.184, 0 },
+        // Kilocalorie (Food Calorie)
+        { "Cal", 4184, 0 },
+        { "kcal", 4184, 0 },
+        // Watt hour
+        { "Wh", 3600, 0 },
+        // Kilowatt hour
+        { "kWh", 3600000, 0 },
+
+        // Electron volt
+        { "eV", 1.602176634e-19, 0 },
+        // Kilo-electron volt
+        { "keV", 1.602176634e-16, 0 },
+        // Mega-electron volt
+        { "MeV", 1.602176634e-13, 0 },
+        // Giga-electron volt
+        { "GeV", 1.602176634e-10, 0 },
+
+        // British Thermal Unit
+        { "BTU", 1055.0558526, 0 },
+        // US therm
+        { "thm", 105505585.26, 0 },
+        // Foot-pound
+        { "ftlb", 1.355818, 0 },
+    };
+    constexpr uint8_t UNIT_ENERGY_LEN = sizeof(UNIT_ENERGY) / sizeof(Unit);
+
+    /*
+     * Angle Units
+     * Base Unit: rad
+     */
+    const Unit UNIT_ANGLE[] = {
+        // Radians
+        { "rad", 1, 0 },
+        // Degrees
+        { "deg", 3.14159265358979323846 / 180, 0 },
+        // Gradians
+        { "grad", 3.14159265358979323846 / 200, 0 },
+    };
+    constexpr uint8_t UNIT_ANGLE_LEN = sizeof(UNIT_ANGLE) / sizeof(Unit);
 
     const Unit * const UNIT_TYPES[] = {
         UNIT_DISTANCE,
@@ -191,22 +268,28 @@ namespace eval {
         UNIT_MASS,
         UNIT_PRESSURE,
         UNIT_TEMPERATURE,
+        UNIT_TIME,
+        UNIT_ENERGY,
+        UNIT_ANGLE,
     };
 
-    const uint16_t UNIT_LENS[] = {
+    const uint8_t UNIT_LENS[] = {
         UNIT_DISTANCE_LEN,
         UNIT_AREA_LEN,
         UNIT_VOLUME_LEN,
         UNIT_MASS_LEN,
         UNIT_PRESSURE_LEN,
         UNIT_TEMPERATURE_LEN,
+        UNIT_TIME_LEN,
+        UNIT_ENERGY_LEN,
+        UNIT_ANGLE_LEN,
     };
 
-    constexpr uint16_t UNIT_TYPES_LEN = sizeof(UNIT_TYPES) / sizeof(Unit*);
+    constexpr uint8_t UNIT_TYPES_LEN = sizeof(UNIT_TYPES) / sizeof(Unit*);
 
     // Converts from a non-base unit to the base unit.
-    double convertUnitsHelper1(double n, const char *unit, const Unit UNIT_TYPE_ARR[], uint16_t UNIT_ARR_LEN) {
-        for(uint16_t i = 0; i < UNIT_ARR_LEN; i ++) {
+    double convertUnitsHelper1(double n, const char *unit, const Unit UNIT_TYPE_ARR[], uint8_t UNIT_ARR_LEN) {
+        for(uint8_t i = 0; i < UNIT_ARR_LEN; i ++) {
             if(strcmp(UNIT_TYPE_ARR[i].name, unit) == 0) {
                 return (n - UNIT_TYPE_ARR[i].bias) * UNIT_TYPE_ARR[i].conversion;
             }
@@ -214,8 +297,8 @@ namespace eval {
         return NAN;
     }
     // Converts from the base unit to a non-base unit.
-    double convertUnitsHelper2(double n, const char *unit, const Unit UNIT_TYPE_ARR[], uint16_t UNIT_ARR_LEN) {
-        for(uint16_t i = 0; i < UNIT_ARR_LEN; i ++) {
+    double convertUnitsHelper2(double n, const char *unit, const Unit UNIT_TYPE_ARR[], uint8_t UNIT_ARR_LEN) {
+        for(uint8_t i = 0; i < UNIT_ARR_LEN; i ++) {
             if(strcmp(UNIT_TYPE_ARR[i].name, unit) == 0) {
                 return n / UNIT_TYPE_ARR[i].conversion + UNIT_TYPE_ARR[i].bias;
             }
@@ -232,7 +315,7 @@ namespace eval {
      * Returns NAN if units are not compatible.
      */
     double convertUnits(double n, const char *srcUnit, const char *destUnit) {
-        for(uint16_t i = 0; i < UNIT_TYPES_LEN; i ++) {
+        for(uint8_t i = 0; i < UNIT_TYPES_LEN; i ++) {
             double d = convertUnitsHelper1(n, srcUnit, UNIT_TYPES[i], UNIT_LENS[i]);
 
             if(!isnan(d)) {
