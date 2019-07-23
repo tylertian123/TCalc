@@ -293,14 +293,13 @@ namespace eval {
 				isNum = isDigit(ch);
 			}
 			else {
-				// Otherwise, break if one of the three conditions:
+				// Otherwise, break if one of the two conditions:
 				// The char is neither a name char or digit, and that it's not a plus or minus followed by an ee
 				// Or if the token is a number and the char is a name char
-				// Or if the token is not a number and the char is a digit
 				bool inc = isNameChar(ch);
 				bool id = isDigit(ch);
 				if ((!inc && !id && !((ch == '+' || ch == '-') && extractChar((*arr)[end - direction]) == LCD_CHAR_EE))
-					|| isNum && inc || !isNum && id) {
+					|| isNum && inc) {
 					break;
 				}
 			}
