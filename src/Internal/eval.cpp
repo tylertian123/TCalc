@@ -1,6 +1,7 @@
 #include "eval.hpp"
 #include "lcd12864_charset.hpp"
 #include "unitconv.hpp"
+#include "usart.hpp"
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -1308,6 +1309,10 @@ convertToDoubleAndOperate:
     Token* evaluate(const neda::Container *expr, uint16_t varc, const Variable *vars, uint16_t funcc, const UserDefinedFunction *funcs) {
         return evaluate(expr->contents, varc, vars, funcc, funcs);
     }
+    // This is a label that was declared in the startup asm and exported
+    // Take its address for the stack limit
+    extern "C" void *__stack_limit;
+    constexpr uint32_t STACK_DANGER_LIMIT = 0x00000050;
     /*
 	 * Evaluates an expression and returns a token result
 	 * Returns nullptr on syntax errors
@@ -1323,6 +1328,12 @@ convertToDoubleAndOperate:
 		// This function first parses the NEDA expression to convert it into eval tokens
 		// It then converts the infix notation to postfix with shunting-yard
 		// And finally evaluates it and returns the result
+
+        // First, perform a stack pointer check to make sure we don't overflow when evaluating recursive functions
+        if(__current_sp() + STACK_DANGER_LIMIT >= reinterpret_cast<uint32_t>(&__stack_limit)) {
+            return nullptr;
+        }
+
 		// This dynamic array holds the result of the first stage (basic parsing)
 		DynamicArray<Token*, 4> arr;
 		uint16_t index = 0;

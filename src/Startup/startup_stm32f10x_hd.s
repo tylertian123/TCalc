@@ -35,6 +35,7 @@
 Stack_Size      EQU     0x00001600
 
                 AREA    STACK, NOINIT, READWRITE, ALIGN=3
+__stack_limit
 Stack_Mem       SPACE   Stack_Size
 __initial_sp
                                                   
@@ -353,6 +354,8 @@ __user_initial_stackheap
 
                  ENDIF
 
+                 EXPORT __stack_limit
                  END
+
 
 ;******************* (C) COPYRIGHT 2011 STMicroelectronics *****END OF FILE*****
