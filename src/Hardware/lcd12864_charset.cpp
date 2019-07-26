@@ -55,7 +55,7 @@ namespace lcd {
 		&CHAR_LSTN,
 		&CHAR_EQL,
 		&CHAR_GTTN,
-		&CHAR_UNKNOWN,//&CHAR_QNMK,
+		&CHAR_QNMK,
 		&CHAR_UNKNOWN,//&CHAR_ATSB,
 		&CHAR_A,
 		&CHAR_B,

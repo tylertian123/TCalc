@@ -47,6 +47,7 @@ namespace expr {
             GRAPH_SETTINGS_MENU = 9,
             GRAPH_VIEWER = 10,
             LOGIC_MENU = 11,
+            CLEAR_VAR_MENU = 12,
         };
 
         neda::Cursor *cursor;
@@ -119,6 +120,8 @@ namespace expr {
         void graphViewerKeyPressHandler(uint16_t key);
         // Handles key presses in the logic operators menu.
         void logicKeyPressHandler(uint16_t key);
+        // Handles key presses in the clear variables confirmation menu.
+        void clearVarKeyPressHandler(uint16_t key);
 
         // A key press handler handles key press events.
         typedef void (ExprEntry::*KeyPressHandler)(uint16_t);
@@ -162,6 +165,8 @@ namespace expr {
         void drawInterfaceGraphViewer();
         // Draws the interface for the logic operators menu.
         void drawInterfaceLogic();
+        // Draws the interface for the clear variables confirmation menu.
+        void drawInterfaceClearVar();
 
         /*
          * These variables are kept between two key presses and thus have to be global.
@@ -213,6 +218,8 @@ namespace expr {
         bool graphCursorOn;
         // The function whose name to display in graphing mode.
         const eval::UserDefinedFunction *graphDispFunc;
+        // Whether the key pressed was a clear variables key or all clear key.
+        bool isAllClear;
 
         void scrollUp(uint16_t);
         void scrollDown(uint16_t);

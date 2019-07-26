@@ -376,18 +376,18 @@ namespace lcd {
         0x00,
 	};
 	const Image CHAR_GTTN(CHAR_GTTN_DATA, 1, 4, 9);
-	// const uint8_t CHAR_QNMK_DATA[] = {
-	//     0x70,
-	//     0x88,
-	//     0x88,
-	//     0x08,
-	//     0x10,
-	//     0x20,
-	//     0x20,
-	//     0x00,
-	//     0x20,
-	// };
-	// const Image CHAR_QNMK(CHAR_QNMK_DATA, 1, 5, 9);
+	const uint8_t CHAR_QNMK_DATA[] = {
+	    0x70,
+	    0x88,
+	    0x88,
+	    0x08,
+	    0x10,
+	    0x20,
+	    0x20,
+	    0x00,
+	    0x20,
+	};
+	const Image CHAR_QNMK(CHAR_QNMK_DATA, 1, 5, 9);
 	// const uint8_t CHAR_ATSB_DATA[] = {
 	//     0x70,
 	//     0x88,

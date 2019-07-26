@@ -225,7 +225,6 @@ namespace lcd {
     // Greater than (>)
 	extern const Image CHAR_GTTN;
     // Question mark (?)
-    // Unused
 	extern const Image CHAR_QNMK;
     // At symbol (@)
     // Unused

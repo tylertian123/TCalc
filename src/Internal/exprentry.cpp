@@ -356,6 +356,7 @@ namespace expr {
         &ExprEntry::graphSettingsKeyPressHandler,
         &ExprEntry::graphViewerKeyPressHandler,
         &ExprEntry::logicKeyPressHandler,
+        &ExprEntry::clearVarKeyPressHandler,
     };
 
     void ExprEntry::handleKeyPress(uint16_t key) {
@@ -529,15 +530,6 @@ namespace expr {
                 }
                 break;
             }
-            case KEY_CLEARVAR:
-            {
-                expr::clearAll();
-                break;
-            }
-            // AC clears the expression and all variables
-            // It should also clear all stored results, but that's not handled here.
-            case KEY_ALLCLEAR:
-                expr::clearAll();
             case KEY_CLEAR:
             {
                 display.clearDrawing();
@@ -635,6 +627,22 @@ namespace expr {
                 prevMode = DisplayMode::NORMAL;
                 selectorIndex = 0;
                 drawInterfaceLogic();
+                return;
+            case KEY_CLEARVAR:
+                isAllClear = false;
+                mode = DisplayMode::CLEAR_VAR_MENU;
+                prevMode = DisplayMode::NORMAL;
+                // Select "No" by default
+                selectorIndex = 1;
+                drawInterfaceClearVar();
+                return;
+            case KEY_ALLCLEAR:
+                isAllClear = true;
+                mode = DisplayMode::CLEAR_VAR_MENU;
+                prevMode = DisplayMode::NORMAL;
+                // Select "No" by default
+                selectorIndex = 1;
+                drawInterfaceClearVar();
                 return;
             default: break;
             }
@@ -1911,6 +1919,50 @@ functionCheckLoopEnd:
             }
         }
 
+        display.updateDrawing();
+    }
+
+    void ExprEntry::clearVarKeyPressHandler(uint16_t key) {
+        switch(key) {
+        case KEY_ENTER:
+        case KEY_CENTER:
+            if(selectorIndex == 0) {
+                expr::clearAll();
+                if(isAllClear) {
+                    display.clearDrawing();
+                    // Keep pointer of original
+                    neda::Expr *original = cursor->expr->getTopLevel();
+                    // Create new expression and change cursor location
+                    neda::Container *container = new neda::Container;
+                    container->getCursor(*cursor, neda::CURSORLOCATION_START);
+                    // Make sure the cursor's location is updated
+                    container->draw(display, 0, 0);
+                    // Delete old
+                    delete original;
+                }
+            }
+        // Intentional fall-through
+        case KEY_CLEARVAR:
+        case KEY_DELETE:
+            mode = prevMode;
+            drawInterfaceNormal();
+            return;
+        case KEY_LEFT:
+        case KEY_RIGHT:
+            selectorIndex = !selectorIndex;
+            break;
+        }
+
+        drawInterfaceClearVar();
+    }
+
+    void ExprEntry::drawInterfaceClearVar() {
+        display.clearDrawingBuffer();
+        display.drawString(HORIZ_MARGIN, VERT_MARGIN, "Clear All Functions");
+        display.drawString(HORIZ_MARGIN, VERT_MARGIN + 10, "and Variables?");
+
+        display.drawString(32, 32, "Yes", selectorIndex == 0);
+        display.drawString(85, 32, "No", selectorIndex == 1);
         display.updateDrawing();
     }
 
