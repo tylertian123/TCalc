@@ -1330,7 +1330,7 @@ convertToDoubleAndOperate:
 		// And finally evaluates it and returns the result
 
         // First, perform a stack pointer check to make sure we don't overflow when evaluating recursive functions
-        if(__current_sp() + STACK_DANGER_LIMIT >= reinterpret_cast<uint32_t>(&__stack_limit)) {
+        if(__current_sp() + STACK_DANGER_LIMIT <= reinterpret_cast<uint32_t>(&__stack_limit)) {
             return nullptr;
         }
 
