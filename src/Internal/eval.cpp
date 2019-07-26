@@ -2007,6 +2007,8 @@ evaluateFunc:
 				neda::Matrix *nMat = static_cast<neda::Matrix*>(exprs[index]);
 				// Convert to a eval::Matrix
 				Matrix *mat = new Matrix(nMat->m, nMat->n);
+                // Matrices can be constructed from a bunch of column vectors too
+                bool fromVecs = false;
 				// Evaluate every entry
 				for(uint16_t i = 0; i < nMat->m * nMat->n; i ++) {
 					Token *n = evaluate((neda::Container*) nMat->contents[i], varc, vars, funcc, funcs);
@@ -2016,16 +2018,44 @@ evaluateFunc:
 						freeTokens(&arr);
 						return nullptr;
 					}
-					// No tensors allowed!
-					if(n->getType() == TokenType::MATRIX) {
-						delete mat;
-						delete n;
-						freeTokens(&arr);
-						return new Number(NAN);
-					}
-					// Ignore fractions and just use their numerical values
-					mat->contents[i] = extractDouble(n);
-					delete n;
+                    if(!fromVecs) {
+                        // Matrices can't be inside matrices...
+                        if(n->getType() == TokenType::MATRIX) {
+                            // Unless the matrix inside is actually a column vector
+                            // And we're on the first entry
+                            // And the neda::Matrix only has one row
+                            // In which case the matrix would be constructed using column vectors
+                            if(i == 0 && static_cast<Matrix*>(n)->n == 1 && nMat->m == 1) {
+                                fromVecs = true;
+                                // Reconstruct the eval::Matrix
+                                delete mat;
+                                mat = new Matrix(static_cast<Matrix*>(n)->m, nMat->n);
+                                goto constructMatrixFromVectors;
+                            }
+                            delete mat;
+                            delete n;
+                            freeTokens(&arr);
+                            return nullptr;
+                        }
+                        // Ignore fractions and just use their numerical values
+                        mat->contents[i] = extractDouble(n);
+                    }
+                    else {
+                        // Check that the vector only has 1 column and the rows are as expected
+                        if(n->getType() != TokenType::MATRIX || static_cast<Matrix*>(n)->n != 1
+                                || static_cast<Matrix*>(n)->m != mat->m) {
+                            delete mat;
+                            delete n;
+                            freeTokens(&arr);
+                            return nullptr;
+                        }
+constructMatrixFromVectors:
+                        // Fill in the column of the matrix with the entires in this column vector
+                        for(uint8_t row = 0; row < mat->m; row ++) {
+                            mat->setEntry(row, i, static_cast<Matrix*>(n)->contents[row]);
+                        }
+                    }
+                    delete n;
 				}
 				// Insert value
 				arr.add(mat);
