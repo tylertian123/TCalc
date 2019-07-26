@@ -1199,14 +1199,17 @@ convertToDoubleAndOperate:
 					break;
 				}
 			}
-			if(forceVarName) {
+			if(forceVarName && validName) {
 				// Check for name validity only if forceVarName is true
 				// In addition to finding the equals sign, also verify that the left hand side of the equals only contains valid
 				// name characters
-				if(!isNameChar(extractChar(arr[equalsIndex]))) {
+                // Allow variable names containing numbers such as a1 and a2, but the number must not be the first character
+                char ch = extractChar(arr[equalsIndex]);
+                bool nc = isNameChar(ch);
+                if((equalsIndex == 0 && !nc) || !(nc || (ch >= '0' && ch <= '9'))) {
 					validName = false;
 					break;
-				}
+                }
 			}
 		}
 		// If equalsIndex is the same as the length, then the if condition was never true, return an error value

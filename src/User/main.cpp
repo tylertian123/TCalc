@@ -469,7 +469,9 @@ void evaluateExpr(neda::Container *expr) {
                 break;
             }
             vName[i] = eval::extractChar(expr->contents[i]);
-            if(!eval::isNameChar(vName[i])) {
+            // Allow variable names containing numbers such as a1 and a2, but the number must not be the first character
+            bool nc = eval::isNameChar(vName[i]);
+            if((i == 0 && !nc) || !(nc || (vName[i] >= '0' && vName[i] <= '9'))) {
                 isValid = false;
                 break;
             }
