@@ -912,13 +912,13 @@ convertToDoubleAndOperate:
 		// log10 and log2 cannot be directly entered with a string
 		"\xff", "\xff",
 
-		"qdRtA", "qdRtB", "round", "det", "linSolve", "rref",
+		"qdRtA", "qdRtB", "round", "min", "max", "floor", "ceil", "det", "linSolve", "rref",
 	};
     const char * const Function::FUNC_FULLNAMES[TYPE_COUNT_DISPLAYABLE] = {
         "sin(angle)", "cos(angle)", "tan(angle)", "asin(x)", "acos(x)", "atan(x)", 
         "sinh(angle)", "cosh(angle)", "tanh(angle)", "asinh(x)", "acosh(x)", "atanh(x)",
-        "ln(x)", "qdRtA(a,b,c)", "qdRtB(a,b,c)", "round(n,decimals)", "det(A)", 
-        "linSolve(A)", "rref(A)"
+        "ln(x)", "qdRtA(a,b,c)", "qdRtB(a,b,c)", "round(n,decimals)", "min(a,b)",
+        "max(a,b)", "floor(x)", "ceil(x)", "det(A)", "linSolve(A)", "rref(A)"
     };
 	Function* Function::fromString(const char *str) {
 		for(uint8_t i = 0; i < TYPE_COUNT; i ++) {
@@ -934,6 +934,8 @@ convertToDoubleAndOperate:
 		case Type::QUADROOT_B:
 			return 3;
 		case Type::ROUND:
+        case Type::MAX:
+        case Type::MIN:
 			return 2;
 		default: 
 			return 1;
@@ -1059,6 +1061,68 @@ convertToDoubleAndOperate:
             Matrix *mat = new Matrix(*static_cast<Matrix*>(args[0]));
             mat->eliminate(true);
             return mat;
+        }
+        case Type::MIN:
+        {
+            if(args[0]->getType() == TokenType::MATRIX || args[1]->getType() == TokenType::MATRIX) {
+                return nullptr;
+            }
+            // a is greater than b
+            if(compareTokens(args[0], args[1]) > 0) {
+                // Make a copy of b
+                if(args[1]->getType() == TokenType::NUMBER) {
+                    return new Number(*static_cast<Number*>(args[1]));
+                }
+                else {
+                    return new Fraction(*static_cast<Fraction*>(args[1]));
+                }
+            }
+            else {
+                if(args[0]->getType() == TokenType::NUMBER) {
+                    return new Number(*static_cast<Number*>(args[0]));
+                }
+                else {
+                    return new Fraction(*static_cast<Fraction*>(args[0]));
+                }
+            }
+        }
+        case Type::MAX:
+        {
+            if(args[0]->getType() == TokenType::MATRIX || args[1]->getType() == TokenType::MATRIX) {
+                return nullptr;
+            }
+            // a is less than b
+            if(compareTokens(args[0], args[1]) < 0) {
+                // Make a copy of b
+                if(args[1]->getType() == TokenType::NUMBER) {
+                    return new Number(*static_cast<Number*>(args[1]));
+                }
+                else {
+                    return new Fraction(*static_cast<Fraction*>(args[1]));
+                }
+            }
+            else {
+                if(args[0]->getType() == TokenType::NUMBER) {
+                    return new Number(*static_cast<Number*>(args[0]));
+                }
+                else {
+                    return new Fraction(*static_cast<Fraction*>(args[0]));
+                }
+            }
+        }
+        case Type::FLOOR:
+        {
+            if(args[0]->getType() == TokenType::MATRIX) {
+                return nullptr;
+            }
+            return new Number(floor(extractDouble(args[0])));
+        }
+        case Type::CEIL:
+        {
+            if(args[0]->getType() == TokenType::MATRIX) {
+                return nullptr;
+            }
+            return new Number(ceil(extractDouble(args[0])));
         }
 		default: return new Number(NAN);
 		}

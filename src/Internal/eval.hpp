@@ -31,6 +31,7 @@ namespace eval {
 	class Number : public Token {
 	public:
 		Number(double value) : value(value) {}
+        Number(const Number &other) : value(other.value) {}
 		double value;
 
 		virtual TokenType getType() const override {
@@ -45,6 +46,7 @@ namespace eval {
 		Fraction(int64_t num, int64_t denom) : num(num), denom(denom) {
 			reduce();
 		}
+        Fraction(const Fraction &other) : num(other.num), denom(other.denom) {}
 		int64_t num;
 		int64_t denom;
 
@@ -135,7 +137,7 @@ namespace eval {
 	public:
 		enum class Type : uint8_t {
 			SIN, COS, TAN, ASIN, ACOS, ATAN, SINH, COSH, TANH, ASINH, ACOSH, ATANH, LN, LOG10, LOG2, QUADROOT_A, QUADROOT_B,
-			ROUND, DET, LINSOLVE, RREF,
+			ROUND, MIN, MAX, FLOOR, CEIL, DET, LINSOLVE, RREF,
 
             // Cast this into an unit8_t for the total function count
             TOTAL_TYPE_COUNT
@@ -146,7 +148,7 @@ namespace eval {
         // Used for displaying, doesn't have to contain all functions
         static const char * const FUNC_FULLNAMES[];
         // Length of FUNC_FULLNAMES
-        static constexpr uint8_t TYPE_COUNT_DISPLAYABLE = 19;
+        static constexpr uint8_t TYPE_COUNT_DISPLAYABLE = 23;
 		
 		Function(Type type) : type(type) {}
 
