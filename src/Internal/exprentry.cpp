@@ -644,9 +644,25 @@ namespace expr {
         drawInterfaceNormal();
     }
 
+    void ExprEntry::drawInterfaceNormal(bool drawCursor) {
+        // Call draw once before everything so that the locations are all updated
+        neda::Expr *top = cursor->expr->getTopLevel();
+        top->draw(display);
+        // First make sure the cursor is visible
+        adjustExpr();
+        // Clear the screen
+        display.clearDrawingBuffer();
+        // Draw everything
+        top->draw(display);
+        if(drawCursor) {
+            cursor->draw(display);
+        }
+        display.updateDrawing();
+    }
+
     const char * const trigFuncs[] = {
-	"sin", "cos", "tan", "arcsin", "arccos", "arctan",
-	"sinh", "cosh", "tanh", "arcsinh", "arccosh", "arctanh",
+        "sin", "cos", "tan", "arcsin", "arccos", "arctan",
+        "sinh", "cosh", "tanh", "arcsinh", "arccosh", "arctanh",
     };
     const char * const trigFuncNames[] = {
         "sin", "cos", "tan", "asin", "acos", "atan",
@@ -698,6 +714,30 @@ namespace expr {
 
     }
 
+    void ExprEntry::drawInterfaceTrig() {
+
+        display.clearDrawingBuffer();
+        // The y coordinate is incremented with every function
+        int16_t y = 1;
+        for(uint8_t i = 0; i < 12; i ++) {
+            // Reset y if we are in the second column
+            if(i == 6) {
+                y = 1;
+            }
+
+            if(i < 6) {
+                display.drawString(1, y, trigFuncs[i], selectorIndex == i);
+            }
+            else {
+                display.drawString(64, y, trigFuncs[i], selectorIndex == i);
+            }
+            // Increment y
+            y += 10;
+        }
+
+        display.updateDrawing();
+    }
+
     const char * const constantNames[] = {
         LCD_STR_PI, LCD_STR_EULR, LCD_STR_AVGO, LCD_STR_ECHG, LCD_STR_VLIG, LCD_STR_AGV,
     };
@@ -731,6 +771,18 @@ namespace expr {
         }
 
         drawInterfaceConst();
+    }
+
+    void ExprEntry::drawInterfaceConst() {
+        display.clearDrawingBuffer();
+        int16_t x = HORIZ_MARGIN;
+        for(uint8_t i = 0; i < 6; i ++) {
+            display.drawString(x, VERT_MARGIN, constantNames[i], selectorIndex == i);
+            
+            x += 15;
+        }
+
+        display.updateDrawing();
     }
 
     constexpr uint8_t FUNC_SCROLLBAR_WIDTH = 4;
@@ -771,6 +823,27 @@ namespace expr {
         drawInterfaceFunc();
     }
 
+    void ExprEntry::drawInterfaceFunc() {
+        display.clearDrawingBuffer();
+        int16_t y = 1;
+        // Draw the full names of functions
+        // Only 6 fit at a time, so only draw from the scrolling index to scrolling index + 6
+        for(uint8_t i = scrollingIndex; i < scrollingIndex + 6; i ++) {
+            if(i < eval::Function::TYPE_COUNT_DISPLAYABLE) {
+                display.drawString(1, y, eval::Function::FUNC_FULLNAMES[i], selectorIndex == i);
+            }
+            else {
+                display.drawString(1, y, expr::functions[i - eval::Function::TYPE_COUNT_DISPLAYABLE].fullname, selectorIndex == i);
+            }
+            y += 10;
+        }
+        // Draw the scrollbar
+        uint16_t scrollbarLocation = static_cast<uint16_t>(scrollingIndex * 64 / (eval::Function::TYPE_COUNT_DISPLAYABLE + expr::functions.length()));
+        uint16_t scrollbarHeight = 6 * 64 / (eval::Function::TYPE_COUNT_DISPLAYABLE + expr::functions.length());
+        display.fill(128 - FUNC_SCROLLBAR_WIDTH, scrollbarLocation, FUNC_SCROLLBAR_WIDTH, scrollbarHeight);
+        display.updateDrawing();
+    }
+
     void ExprEntry::recallKeyPressHandler(uint16_t key) {
         switch(key) {
         case KEY_CENTER:
@@ -800,6 +873,26 @@ namespace expr {
         }
 
         drawInterfaceRecall();
+    }
+
+    void ExprEntry::drawInterfaceRecall() {
+        display.clearDrawingBuffer();
+        if(expr::functions.length() == 0) {
+            display.drawString(1, 1, "No Functions to");
+            display.drawString(1, 11, "Recall");
+        }
+        else {
+            int16_t y = 1;
+            for(uint8_t i = scrollingIndex; i < scrollingIndex + 6 && i < expr::functions.length(); i ++) {
+                display.drawString(1, y, expr::functions[i].fullname, selectorIndex == i);
+                y += 10;
+            }
+
+            uint16_t scrollbarLocation = static_cast<uint16_t>(scrollingIndex * 64 / expr::functions.length());
+            uint16_t scrollbarHeight = 6 * 64 / expr::functions.length();
+            display.fill(128 - FUNC_SCROLLBAR_WIDTH, scrollbarLocation, FUNC_SCROLLBAR_WIDTH, scrollbarHeight);
+        }
+        display.updateDrawing();
     }
 
     void ExprEntry::configKeyPressHandler(uint16_t key) {
@@ -861,6 +954,27 @@ namespace expr {
         drawInterfaceConfig();
     }
 
+    void ExprEntry::drawInterfaceConfig() {
+        display.clearDrawingBuffer();
+
+        display.drawString(1, 1, "Angles:");
+        display.drawString(85, 1, eval::useRadians ? "Radians" : "Degrees", selectorIndex == 0);
+
+        display.drawString(1, 11, "Result S.D.:");
+        char buf[3];
+        ltoa(resultSignificantDigits, buf);
+        display.drawString(85, 11, buf, selectorIndex == 1);
+
+        display.drawString(1, 21, "Graphing S.D.:");
+        ltoa(graphingSignificantDigits, buf);
+        display.drawString(85, 21, buf, selectorIndex == 2);
+
+        display.drawString(1, 31, "Auto Fractions:");
+        display.drawString(85, 31, eval::autoFractions ? "On" : "Off", selectorIndex == 3);
+
+        display.updateDrawing();
+    }
+
     void ExprEntry::matrixKeyPressHandler(uint16_t key) {
         switch(key) {
         case KEY_CENTER:
@@ -919,6 +1033,20 @@ namespace expr {
         drawInterfaceMatrix();
     }
 
+    void ExprEntry::drawInterfaceMatrix() {
+        display.clearDrawingBuffer();
+        display.drawString(1, 1, "Matrix Size:");
+
+        char sizeBuf[8];
+        uint8_t len = ltoa(matRows, sizeBuf);
+        display.drawString(48, 13, sizeBuf, selectorIndex == 0);
+        display.drawString(48 + len * 6, 13, "x");
+        ltoa(matCols, sizeBuf);
+        display.drawString(54 + len * 6, 13, sizeBuf, selectorIndex == 1);
+
+        display.updateDrawing();
+    }
+
     void ExprEntry::piecewiseKeyPressHandler(uint16_t key) {
         switch(key) {
         case KEY_CENTER:
@@ -952,6 +1080,18 @@ namespace expr {
         }
 
         drawInterfacePiecewise();
+    }
+    
+    void ExprEntry::drawInterfacePiecewise() {
+        display.clearDrawingBuffer();
+        display.drawString(1, 1, "Number of Function");
+        display.drawString(1, 11, "Pieces:");
+
+        char sizeBuf[4];
+        ltoa(piecewisePieces , sizeBuf);
+
+        display.drawString(60, 21, sizeBuf, true);
+        display.updateDrawing();
     }
 
     void ExprEntry::updateGraphableFunctions() {
@@ -1013,6 +1153,31 @@ namespace expr {
         drawInterfaceGraphSelect();
     }
 
+    void ExprEntry::drawInterfaceGraphSelect() {
+        display.clearDrawingBuffer();
+        if(graphableFunctions.length() == 0) {
+            display.drawString(1, 1, "No Graphable Functions");
+        }
+        else {
+            int16_t y = 1;
+            for(uint8_t i = scrollingIndex; i < scrollingIndex + 6 && i < graphableFunctions.length(); i ++) {
+                // Draw checkbox
+                display.drawString(1, y, graphableFunctions[i].graph ? LCD_STR_CCB : LCD_STR_ECB, selectorIndex == i);
+                display.drawString(9, y, graphableFunctions[i].func->fullname, selectorIndex == i);
+                y += 10;
+            }
+
+            uint16_t scrollbarLocation = static_cast<uint16_t>(scrollingIndex * 64 / graphableFunctions.length());
+            uint16_t scrollbarHeight = 6 * 64 / graphableFunctions.length();
+            display.fill(128 - FUNC_SCROLLBAR_WIDTH, scrollbarLocation, FUNC_SCROLLBAR_WIDTH, scrollbarHeight);
+        }
+        display.updateDrawing();
+    }
+
+    // Names of graph settings
+    const char * const graphSettingNames[] = {
+        "Min X:", "Max X:", "X Scale:", "Min Y:", "Max Y:", "Y Scale:"
+    };
     void ExprEntry::graphSettingsKeyPressHandler(uint16_t key) {
         switch(key) {
         case KEY_CENTER:
@@ -1164,6 +1329,58 @@ toggleEditOption:
             break;
         }
         drawInterfaceGraphSettings();
+    }
+
+    void ExprEntry::drawInterfaceGraphSettings(bool drawCursor) {
+        display.clearDrawingBuffer();
+
+        uint16_t y = VERT_MARGIN;
+        for(uint8_t i = 0; i < 6; i ++) {
+            // Draw the name of the option
+            display.drawString(HORIZ_MARGIN, y, graphSettingNames[i]);
+
+            if(!editOption) {
+                // If not editing an option, draw the value normally
+                char buf[64];
+                ftoa(graphSettings[i], buf, graphingSignificantDigits, LCD_CHAR_EE);
+
+                display.drawString(HORIZ_MARGIN + 50, y, buf, selectorIndex == i);
+            }
+            else {
+                // If this value is not being edited, draw it normally
+                if(i != selectorIndex) {
+                    char buf[64];
+                    ftoa(graphSettings[i], buf, graphingSignificantDigits, LCD_CHAR_EE);
+
+                    display.drawString(HORIZ_MARGIN + 50, y, buf);
+                }
+                // Otherwise draw the editing stuff
+                else {
+                    // Draw the contents
+                    display.drawString(HORIZ_MARGIN + 50, y, editorContents.asArray());
+                    // Draw the cursor if told to
+                    if(drawCursor) {
+                        // To figure out the position, replace the character at the cursor with a null terminator
+                        // and then call getDrawnStringWidth
+                        char temp = editorContents[cursorIndex];
+                        editorContents[cursorIndex] = '\0';
+                        uint16_t strWidth = lcd::LCD12864::getDrawnStringWidth(editorContents.asArray());
+                        editorContents[cursorIndex] = temp;
+
+                        uint16_t cursorX = HORIZ_MARGIN + 50 + strWidth;
+                        // Take the empty expression height as the height for the cursor
+                        for(uint16_t i = 0; i < neda::Container::EMPTY_EXPR_HEIGHT; i ++) {
+                            display.setPixel(cursorX, y + i, true);
+                            display.setPixel(cursorX + 1, y + i, true);
+                        }
+                    }
+                }
+            }
+
+            y += 10;
+        }
+
+        display.updateDrawing();
     }
 
     eval::Variable* constructFunctionGraphingEnvironment();
@@ -1364,279 +1581,6 @@ functionCheckLoopEnd:
         drawInterfaceGraphViewer();
     }
 
-    const char LCD_LOGIC_CHARS[] = {
-        '=', '!', '<', '>', LCD_CHAR_LEQ, LCD_CHAR_GEQ, 
-
-        LCD_CHAR_LAND, LCD_CHAR_LOR, LCD_CHAR_LNOT, LCD_CHAR_LXOR,
-    };
-    constexpr uint16_t LCD_LOGIC_CHAR_LEN = sizeof(LCD_LOGIC_CHARS) / sizeof(char);
-    void ExprEntry::logicKeyPressHandler(uint16_t key) {
-        switch(key) {
-        case KEY_ENTER:
-        case KEY_CENTER:
-            cursor->add(new neda::Character(LCD_LOGIC_CHARS[selectorIndex]));
-            if(selectorIndex == 0 || selectorIndex == 1) {
-                cursor->add(new neda::Character('='));
-            }
-
-        // Intentional fall-through
-        case KEY_DELETE:
-        case KEY_LOGIC:
-        case KEY_CAT:
-            mode = prevMode;
-            drawInterfaceNormal();
-            return;
-        case KEY_LEFT:
-            if(selectorIndex > 0) {
-                selectorIndex--;
-            }
-            else {
-                selectorIndex = LCD_LOGIC_CHAR_LEN - 1;
-            }
-            break;
-        case KEY_RIGHT:
-            if(selectorIndex < LCD_LOGIC_CHAR_LEN - 1) {
-                selectorIndex ++;
-            }
-            else {
-                selectorIndex = 0;
-            }
-            break;
-        case KEY_UP:
-            if(selectorIndex >= 6) {
-                selectorIndex -= 6;
-            }
-            break;
-        case KEY_DOWN:
-            if(selectorIndex + 6 < LCD_LOGIC_CHAR_LEN) {
-                selectorIndex += 6;
-            }
-            break;
-        default:
-            break;
-        }
-
-        drawInterfaceLogic();
-    }
-
-
-    void ExprEntry::drawInterfaceNormal(bool drawCursor) {
-        // Call draw once before everything so that the locations are all updated
-        neda::Expr *top = cursor->expr->getTopLevel();
-        top->draw(display);
-        // First make sure the cursor is visible
-        adjustExpr();
-        // Clear the screen
-        display.clearDrawingBuffer();
-        // Draw everything
-        top->draw(display);
-        if(drawCursor) {
-            cursor->draw(display);
-        }
-        display.updateDrawing();
-    }
-    
-    void ExprEntry::drawInterfaceTrig() {
-
-        display.clearDrawingBuffer();
-        // The y coordinate is incremented with every function
-        int16_t y = 1;
-        for(uint8_t i = 0; i < 12; i ++) {
-            // Reset y if we are in the second column
-            if(i == 6) {
-                y = 1;
-            }
-
-            if(i < 6) {
-                display.drawString(1, y, trigFuncs[i], selectorIndex == i);
-            }
-            else {
-                display.drawString(64, y, trigFuncs[i], selectorIndex == i);
-            }
-            // Increment y
-            y += 10;
-        }
-
-        display.updateDrawing();
-    }
-
-    void ExprEntry::drawInterfaceConst() {
-        display.clearDrawingBuffer();
-        int16_t x = HORIZ_MARGIN;
-        for(uint8_t i = 0; i < 6; i ++) {
-            display.drawString(x, VERT_MARGIN, constantNames[i], selectorIndex == i);
-            
-            x += 15;
-        }
-
-        display.updateDrawing();
-    }
-
-    void ExprEntry::drawInterfaceFunc() {
-        display.clearDrawingBuffer();
-        int16_t y = 1;
-        // Draw the full names of functions
-        // Only 6 fit at a time, so only draw from the scrolling index to scrolling index + 6
-        for(uint8_t i = scrollingIndex; i < scrollingIndex + 6; i ++) {
-            if(i < eval::Function::TYPE_COUNT_DISPLAYABLE) {
-                display.drawString(1, y, eval::Function::FUNC_FULLNAMES[i], selectorIndex == i);
-            }
-            else {
-                display.drawString(1, y, expr::functions[i - eval::Function::TYPE_COUNT_DISPLAYABLE].fullname, selectorIndex == i);
-            }
-            y += 10;
-        }
-        // Draw the scrollbar
-        uint16_t scrollbarLocation = static_cast<uint16_t>(scrollingIndex * 64 / (eval::Function::TYPE_COUNT_DISPLAYABLE + expr::functions.length()));
-        uint16_t scrollbarHeight = 6 * 64 / (eval::Function::TYPE_COUNT_DISPLAYABLE + expr::functions.length());
-        display.fill(128 - FUNC_SCROLLBAR_WIDTH, scrollbarLocation, FUNC_SCROLLBAR_WIDTH, scrollbarHeight);
-        display.updateDrawing();
-    }
-
-    void ExprEntry::drawInterfaceRecall() {
-        display.clearDrawingBuffer();
-        if(expr::functions.length() == 0) {
-            display.drawString(1, 1, "No Functions to");
-            display.drawString(1, 11, "Recall");
-        }
-        else {
-            int16_t y = 1;
-            for(uint8_t i = scrollingIndex; i < scrollingIndex + 6 && i < expr::functions.length(); i ++) {
-                display.drawString(1, y, expr::functions[i].fullname, selectorIndex == i);
-                y += 10;
-            }
-
-            uint16_t scrollbarLocation = static_cast<uint16_t>(scrollingIndex * 64 / expr::functions.length());
-            uint16_t scrollbarHeight = 6 * 64 / expr::functions.length();
-            display.fill(128 - FUNC_SCROLLBAR_WIDTH, scrollbarLocation, FUNC_SCROLLBAR_WIDTH, scrollbarHeight);
-        }
-        display.updateDrawing();
-    }
-
-    void ExprEntry::drawInterfaceConfig() {
-        display.clearDrawingBuffer();
-
-        display.drawString(1, 1, "Angles:");
-        display.drawString(85, 1, eval::useRadians ? "Radians" : "Degrees", selectorIndex == 0);
-
-        display.drawString(1, 11, "Result S.D.:");
-        char buf[3];
-        ltoa(resultSignificantDigits, buf);
-        display.drawString(85, 11, buf, selectorIndex == 1);
-
-        display.drawString(1, 21, "Graphing S.D.:");
-        ltoa(graphingSignificantDigits, buf);
-        display.drawString(85, 21, buf, selectorIndex == 2);
-
-        display.drawString(1, 31, "Auto Fractions:");
-        display.drawString(85, 31, eval::autoFractions ? "On" : "Off", selectorIndex == 3);
-
-        display.updateDrawing();
-    }
-
-    void ExprEntry::drawInterfaceMatrix() {
-        display.clearDrawingBuffer();
-        display.drawString(1, 1, "Matrix Size:");
-
-        char sizeBuf[8];
-        uint8_t len = ltoa(matRows, sizeBuf);
-        display.drawString(48, 13, sizeBuf, selectorIndex == 0);
-        display.drawString(48 + len * 6, 13, "x");
-        ltoa(matCols, sizeBuf);
-        display.drawString(54 + len * 6, 13, sizeBuf, selectorIndex == 1);
-
-        display.updateDrawing();
-    }
-
-    void ExprEntry::drawInterfacePiecewise() {
-        display.clearDrawingBuffer();
-        display.drawString(1, 1, "Number of Function");
-        display.drawString(1, 11, "Pieces:");
-
-        char sizeBuf[4];
-        ltoa(piecewisePieces , sizeBuf);
-
-        display.drawString(60, 21, sizeBuf, true);
-        display.updateDrawing();
-    }
-
-    void ExprEntry::drawInterfaceGraphSelect() {
-        display.clearDrawingBuffer();
-        if(graphableFunctions.length() == 0) {
-            display.drawString(1, 1, "No Graphable Functions");
-        }
-        else {
-            int16_t y = 1;
-            for(uint8_t i = scrollingIndex; i < scrollingIndex + 6 && i < graphableFunctions.length(); i ++) {
-                // Draw checkbox
-                display.drawString(1, y, graphableFunctions[i].graph ? LCD_STR_CCB : LCD_STR_ECB, selectorIndex == i);
-                display.drawString(9, y, graphableFunctions[i].func->fullname, selectorIndex == i);
-                y += 10;
-            }
-
-            uint16_t scrollbarLocation = static_cast<uint16_t>(scrollingIndex * 64 / graphableFunctions.length());
-            uint16_t scrollbarHeight = 6 * 64 / graphableFunctions.length();
-            display.fill(128 - FUNC_SCROLLBAR_WIDTH, scrollbarLocation, FUNC_SCROLLBAR_WIDTH, scrollbarHeight);
-        }
-        display.updateDrawing();
-    }
-
-    // Names of graph settings
-    const char * const graphSettingNames[] = {
-        "Min X:", "Max X:", "X Scale:", "Min Y:", "Max Y:", "Y Scale:"
-    };
-    void ExprEntry::drawInterfaceGraphSettings(bool drawCursor) {
-        display.clearDrawingBuffer();
-
-        uint16_t y = VERT_MARGIN;
-        for(uint8_t i = 0; i < 6; i ++) {
-            // Draw the name of the option
-            display.drawString(HORIZ_MARGIN, y, graphSettingNames[i]);
-
-            if(!editOption) {
-                // If not editing an option, draw the value normally
-                char buf[64];
-                ftoa(graphSettings[i], buf, graphingSignificantDigits, LCD_CHAR_EE);
-
-                display.drawString(HORIZ_MARGIN + 50, y, buf, selectorIndex == i);
-            }
-            else {
-                // If this value is not being edited, draw it normally
-                if(i != selectorIndex) {
-                    char buf[64];
-                    ftoa(graphSettings[i], buf, graphingSignificantDigits, LCD_CHAR_EE);
-
-                    display.drawString(HORIZ_MARGIN + 50, y, buf);
-                }
-                // Otherwise draw the editing stuff
-                else {
-                    // Draw the contents
-                    display.drawString(HORIZ_MARGIN + 50, y, editorContents.asArray());
-                    // Draw the cursor if told to
-                    if(drawCursor) {
-                        // To figure out the position, replace the character at the cursor with a null terminator
-                        // and then call getDrawnStringWidth
-                        char temp = editorContents[cursorIndex];
-                        editorContents[cursorIndex] = '\0';
-                        uint16_t strWidth = lcd::LCD12864::getDrawnStringWidth(editorContents.asArray());
-                        editorContents[cursorIndex] = temp;
-
-                        uint16_t cursorX = HORIZ_MARGIN + 50 + strWidth;
-                        // Take the empty expression height as the height for the cursor
-                        for(uint16_t i = 0; i < neda::Container::EMPTY_EXPR_HEIGHT; i ++) {
-                            display.setPixel(cursorX, y + i, true);
-                            display.setPixel(cursorX + 1, y + i, true);
-                        }
-                    }
-                }
-            }
-
-            y += 10;
-        }
-
-        display.updateDrawing();
-    }
-
     int16_t ExprEntry::mapX(double x) {
         // First translate
         // We want the result x to be 0 when x is equal to xMin
@@ -1799,7 +1743,7 @@ functionCheckLoopEnd:
         }
         delete[] newVars;
     }
-
+    
     void ExprEntry::drawInterfaceGraphViewer() {
         // First copy the base graph
         // No need to clear the buffer since it will be overwritten anyways
@@ -1882,6 +1826,61 @@ functionCheckLoopEnd:
         }
 
         display.updateDrawing();
+    }
+
+    const char LCD_LOGIC_CHARS[] = {
+        '=', '!', '<', '>', LCD_CHAR_LEQ, LCD_CHAR_GEQ, 
+
+        LCD_CHAR_LAND, LCD_CHAR_LOR, LCD_CHAR_LNOT, LCD_CHAR_LXOR,
+    };
+    constexpr uint16_t LCD_LOGIC_CHAR_LEN = sizeof(LCD_LOGIC_CHARS) / sizeof(char);
+    void ExprEntry::logicKeyPressHandler(uint16_t key) {
+        switch(key) {
+        case KEY_ENTER:
+        case KEY_CENTER:
+            cursor->add(new neda::Character(LCD_LOGIC_CHARS[selectorIndex]));
+            if(selectorIndex == 0 || selectorIndex == 1) {
+                cursor->add(new neda::Character('='));
+            }
+
+        // Intentional fall-through
+        case KEY_DELETE:
+        case KEY_LOGIC:
+        case KEY_CAT:
+            mode = prevMode;
+            drawInterfaceNormal();
+            return;
+        case KEY_LEFT:
+            if(selectorIndex > 0) {
+                selectorIndex--;
+            }
+            else {
+                selectorIndex = LCD_LOGIC_CHAR_LEN - 1;
+            }
+            break;
+        case KEY_RIGHT:
+            if(selectorIndex < LCD_LOGIC_CHAR_LEN - 1) {
+                selectorIndex ++;
+            }
+            else {
+                selectorIndex = 0;
+            }
+            break;
+        case KEY_UP:
+            if(selectorIndex >= 6) {
+                selectorIndex -= 6;
+            }
+            break;
+        case KEY_DOWN:
+            if(selectorIndex + 6 < LCD_LOGIC_CHAR_LEN) {
+                selectorIndex += 6;
+            }
+            break;
+        default:
+            break;
+        }
+
+        drawInterfaceLogic();
     }
 
     void ExprEntry::drawInterfaceLogic() {
