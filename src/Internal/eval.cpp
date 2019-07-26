@@ -906,17 +906,24 @@ convertToDoubleAndOperate:
 
 	/******************** Function ********************/
 	// Must be in the same order as type
-	const char * const Function::FUNCNAMES[] = {
-		"sin", "cos", "tan", "asin", "acos", "atan", "sinh", "cosh", "tanh", "asinh", "acosh", "atanh", "ln", 
+	const char * const Function::FUNCNAMES[TYPE_COUNT] = {
+		"sin", "cos", "tan", "asin", "acos", "atan", "sinh", "cosh", "tanh", "asinh",
+        "acosh", "atanh", "ln", 
 		// log10 and log2 cannot be directly entered with a string
 		"\xff", "\xff",
 
-		"qdRtA", "qdRtB", "round", "abs", "fact", "det", "len", "linSolve", "rref",
+		"qdRtA", "qdRtB", "round", "det", "linSolve", "rref",
 	};
+    const char * const Function::FUNC_FULLNAMES[TYPE_COUNT_DISPLAYABLE] = {
+        "sin(angle)", "cos(angle)", "tan(angle)", "asin(x)", "acos(x)", "atan(x)", 
+        "sinh(angle)", "cosh(angle)", "tanh(angle)", "asinh(x)", "acosh(x)", "atanh(x)",
+        "ln(x)", "qdRtA(a,b,c)", "qdRtB(a,b,c)", "round(n,decimals)", "det(A)", 
+        "linSolve(A)", "rref(A)"
+    };
 	Function* Function::fromString(const char *str) {
-		for(uint8_t i = 0; i < sizeof(FUNCNAMES) / sizeof(FUNCNAMES[0]); i ++) {
+		for(uint8_t i = 0; i < TYPE_COUNT; i ++) {
 			if(strcmp(str, FUNCNAMES[i]) == 0) {
-				return new Function((Function::Type) i);
+				return new Function(static_cast<Type>(i));
 			}
 		}
 		return nullptr;
@@ -1013,28 +1020,6 @@ convertToDoubleAndOperate:
 			}
 			return new Number(round(extractDouble(args[0]), extractDouble(args[1])));
 		}
-		case Type::ABS:
-		{
-			if(args[0]->getType() == TokenType::NUMBER) {
-				return new Number(abs(((Number*) args[0])->value));
-			}
-			else {
-				return new Fraction(abs(((Fraction*) args[0])->num), ((Fraction*) args[0])->denom);
-			}
-		}
-		case Type::FACT:
-		{
-			double x = extractDouble(args[0]);
-			if(!isInt(x) || x < 0) {
-				return new Number(NAN);
-			}
-			double d = 1;
-			while(x > 0) {
-				d *= x;
-				--x;
-			}
-			return new Number(d);
-		}
 		case Type::DET:
 		{
 			// Syntax error: determinant of a scalar??
@@ -1044,15 +1029,6 @@ convertToDoubleAndOperate:
 			Matrix *mat = (Matrix*) args[0];
 			
 			return new Number(mat->det());
-		}
-		case Type::LEN:
-		{
-			// Syntax error: length of a scalar
-			if(args[0]->getType() != TokenType::MATRIX) {
-				return nullptr;
-			}
-			Matrix *vec = (Matrix*) args[0];
-			return new Number(vec->len());
 		}
 		case Type::LINSOLVE:
 		{

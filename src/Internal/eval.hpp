@@ -133,12 +133,20 @@ namespace eval {
 	// to make it a singleton
 	class Function : public Token {
 	public:
-		enum Type : uint8_t {
+		enum class Type : uint8_t {
 			SIN, COS, TAN, ASIN, ACOS, ATAN, SINH, COSH, TANH, ASINH, ACOSH, ATANH, LN, LOG10, LOG2, QUADROOT_A, QUADROOT_B,
-			ROUND, ABS, FACT, DET, LEN, LINSOLVE, RREF,
+			ROUND, DET, LINSOLVE, RREF,
+
+            // Cast this into an unit8_t for the total function count
+            TOTAL_TYPE_COUNT
 		};
+        static constexpr uint8_t TYPE_COUNT = static_cast<uint8_t>(Type::TOTAL_TYPE_COUNT);
 		// Must be in the same order as type
-		static const char * const FUNCNAMES[];
+		static const char * const FUNCNAMES[TYPE_COUNT];
+        // Used for displaying, doesn't have to contain all functions
+        static const char * const FUNC_FULLNAMES[];
+        // Length of FUNC_FULLNAMES
+        static constexpr uint8_t TYPE_COUNT_DISPLAYABLE = 19;
 		
 		Function(Type type) : type(type) {}
 

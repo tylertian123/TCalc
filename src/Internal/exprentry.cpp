@@ -733,23 +733,16 @@ namespace expr {
         drawInterfaceConst();
     }
 
-    constexpr uint8_t BUILTIN_FUNC_COUNT = 25;
     constexpr uint8_t FUNC_SCROLLBAR_WIDTH = 4;
-    const char * const allFuncDispNames[BUILTIN_FUNC_COUNT] = {
-        "sin(angle)", "cos(angle)", "tan(angle)", "asin(x)", "acos(x)", "atan(x)", 
-        "sinh(angle)", "cosh(angle)", "tanh(angle)", "asinh(x)", "acosh(x)", "atanh(x)",
-        "ln(x)", "qdRtA(a,b,c)", "qdRtB(a,b,c)", "round(n,decimals)", "abs(x)", "fact(x)",
-        "det(A)", "len(v)", "transpose(A)", "inv(A)", "I(n)", "linSolve(A)", "rref(A)"
-    };
     void ExprEntry::funcKeyPressHandler(uint16_t key) {
-        const uint16_t funcCount = BUILTIN_FUNC_COUNT + expr::functions.length();
+        const uint16_t funcCount = eval::Function::TYPE_COUNT_DISPLAYABLE + expr::functions.length();
         switch(key) {
         case KEY_CENTER:
         case KEY_ENTER:
             // If the selected item is in the range of builtin functions, insert that
-            if(selectorIndex < BUILTIN_FUNC_COUNT) {
+            if(selectorIndex < eval::Function::TYPE_COUNT_DISPLAYABLE) {
                 // Extract the function name from its full name
-                const char *s = allFuncDispNames[selectorIndex];
+                const char *s = eval::Function::FUNC_FULLNAMES[selectorIndex];
                 // Add until we see the null terminator or the left bracket
                 while(*s != '\0' && *s != '(') {
                     cursor->add(new neda::Character(*s++));
@@ -757,7 +750,7 @@ namespace expr {
             }
             else {
                 // Otherwise take the name directly from the builtin function struct
-                cursor->addStr(expr::functions[selectorIndex - BUILTIN_FUNC_COUNT].name);
+                cursor->addStr(expr::functions[selectorIndex - eval::Function::TYPE_COUNT_DISPLAYABLE].name);
             }
             cursor->add(new neda::LeftBracket);
         // Intentional fall-through
@@ -1485,17 +1478,17 @@ functionCheckLoopEnd:
         // Draw the full names of functions
         // Only 6 fit at a time, so only draw from the scrolling index to scrolling index + 6
         for(uint8_t i = scrollingIndex; i < scrollingIndex + 6; i ++) {
-            if(i < BUILTIN_FUNC_COUNT) {
-                display.drawString(1, y, allFuncDispNames[i], selectorIndex == i);
+            if(i < eval::Function::TYPE_COUNT_DISPLAYABLE) {
+                display.drawString(1, y, eval::Function::FUNC_FULLNAMES[i], selectorIndex == i);
             }
             else {
-                display.drawString(1, y, expr::functions[i - BUILTIN_FUNC_COUNT].fullname, selectorIndex == i);
+                display.drawString(1, y, expr::functions[i - eval::Function::TYPE_COUNT_DISPLAYABLE].fullname, selectorIndex == i);
             }
             y += 10;
         }
         // Draw the scrollbar
-        uint16_t scrollbarLocation = static_cast<uint16_t>(scrollingIndex * 64 / (BUILTIN_FUNC_COUNT + expr::functions.length()));
-        uint16_t scrollbarHeight = 6 * 64 / (BUILTIN_FUNC_COUNT + expr::functions.length());
+        uint16_t scrollbarLocation = static_cast<uint16_t>(scrollingIndex * 64 / (eval::Function::TYPE_COUNT_DISPLAYABLE + expr::functions.length()));
+        uint16_t scrollbarHeight = 6 * 64 / (eval::Function::TYPE_COUNT_DISPLAYABLE + expr::functions.length());
         display.fill(128 - FUNC_SCROLLBAR_WIDTH, scrollbarLocation, FUNC_SCROLLBAR_WIDTH, scrollbarHeight);
         display.updateDrawing();
     }
