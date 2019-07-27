@@ -403,26 +403,28 @@ namespace eval {
         case Type::NOT:
         case Type::NEGATE:
             return 4;
+        case Type::AUGMENT:
+            return 5;
 		case Type::MULTIPLY:
 		case Type::DIVIDE:
 		case Type::CROSS:
-			return 5;
+			return 6;
 		case Type::PLUS:
 		case Type::MINUS:
-			return 6;
+			return 7;
 		case Type::EQUALITY:
         case Type::NOT_EQUAL:
         case Type::LT:
         case Type::GT:
         case Type::LTEQ:
         case Type::GTEQ:
-			return 7;
+			return 8;
         case Type::AND:
-            return 8;
-        case Type::OR:
             return 9;
-        case Type::XOR:
+        case Type::OR:
             return 10;
+        case Type::XOR:
+            return 11;
 		
 		default: return 0xFF;
 		}
@@ -483,6 +485,9 @@ namespace eval {
         
         case '!':
             return &OP_FACT;
+        
+        case '|':
+            return &OP_AUGMENT;
 
 		default: return nullptr;
 		}
@@ -785,6 +790,26 @@ convertToDoubleAndOperate:
                     }
                 }
                 result = new Number(!equal);
+                break;
+            }
+            case Type::AUGMENT:
+            {
+                if(lMat->m != rMat->m) {
+                    result = new Number(NAN);
+                    break;
+                }
+                Matrix *mat = new Matrix(lMat->m, lMat->n + rMat->n);
+                for(uint8_t i = 0; i < mat->m; i ++) {
+                    for(uint8_t j = 0; j < mat->n; j ++) {
+                        if(j < lMat->n) {
+                            mat->setEntry(i, j, lMat->getEntry(i, j));
+                        }
+                        else {
+                            mat->setEntry(i, j, rMat->getEntry(i, j - lMat->n));
+                        }
+                    }
+                }
+                result = mat;
                 break;
             }
 			default:
