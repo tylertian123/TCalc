@@ -180,7 +180,6 @@ namespace lcd {
     // Right bracket ())
 	extern const Image CHAR_RBKT;
     // Asterisk (*)
-    // Unused
 	extern const Image CHAR_ASTK;
     // Plus (+)
 	extern const Image CHAR_PLUS;
@@ -355,7 +354,6 @@ namespace lcd {
     // Unused
 	extern const Image CHAR_LCVB;
     // Pipe/vertical bar (|)
-    // Unused
 	extern const Image CHAR_PIPE;
     // Right curvy bracket (})
     // Unused

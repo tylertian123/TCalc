@@ -338,6 +338,10 @@ namespace expr {
             return LCD_CHAR_RARW;
         case KEY_MU:
             return LCD_CHAR_MU;
+        case KEY_ASTERISK:
+            return '*';
+        case KEY_AUGMENT:
+            return '|';
         default: 
             return 0xFF;
         }

@@ -244,18 +244,18 @@ namespace lcd {
         0x80,
     };
     const Image CHAR_RBKT(CHAR_RBKT_DATA, 1, 3, 9);
-	// const uint8_t CHAR_ASTK_DATA[] = {
-	//     0x00,
-	//     0x20,
-	//     0xa8,
-	//     0x70,
-	//     0xa8,
-	//     0x20,
-	//     0x00,
-	//     0x00,
-	//     0x00,
-	// };
-	// const Image CHAR_ASTK(CHAR_ASTK_DATA, 1, 5, 9);
+	const uint8_t CHAR_ASTK_DATA[] = {
+	    0x00,
+	    0x20,
+	    0xa8,
+	    0x70,
+	    0xa8,
+	    0x20,
+	    0x00,
+	    0x00,
+	    0x00,
+	};
+	const Image CHAR_ASTK(CHAR_ASTK_DATA, 1, 5, 9);
 	const uint8_t CHAR_PLUS_DATA[] = {
 		0x00,
 		0x00,
@@ -1108,18 +1108,18 @@ namespace lcd {
     //     0x20, // 00100000
 	// };
 	// const Image CHAR_LCVB(CHAR_LCVB_DATA, 1, 3, 9);
-	// const uint8_t CHAR_PIPE_DATA[] = {
-    //     0x80, // 10000000
-    //     0x80, // 10000000
-    //     0x80, // 10000000
-    //     0x80, // 10000000
-    //     0x80, // 10000000
-    //     0x80, // 10000000
-    //     0x80, // 10000000
-    //     0x80, // 10000000
-    //     0x80, // 10000000
-	// };
-	// const Image CHAR_PIPE(CHAR_PIPE_DATA, 1, 1, 9);
+	const uint8_t CHAR_PIPE_DATA[] = {
+        0x80, // 10000000
+        0x80, // 10000000
+        0x80, // 10000000
+        0x80, // 10000000
+        0x80, // 10000000
+        0x80, // 10000000
+        0x80, // 10000000
+        0x80, // 10000000
+        0x80, // 10000000
+	};
+	const Image CHAR_PIPE(CHAR_PIPE_DATA, 1, 1, 9);
 	// const uint8_t CHAR_RCVB_DATA[] = {
 	// 	0x80, // 10000000
     //     0x40, // 01000000

@@ -1,5 +1,6 @@
 #ifndef __KEYDEF_H__
 #define __KEYDEF_H__
+#define KEY_EK_KEY_PREFIX KEY_0x0000
 
 #define KEY_NULL        0x0000
 
@@ -126,6 +127,8 @@
 #define KEY_MU          0xE167
 #define KEY_SUB         0xF45B
 #define KEY_ABS         0x82FC
+#define KEY_ASTERISK    0x1582
+#define KEY_AUGMENT     0x3205
 
 #define KEY_DUMMY       0xFFFF
 
