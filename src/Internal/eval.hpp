@@ -218,6 +218,9 @@ namespace eval {
 		Matrix* transpose() const;
 		Matrix* inv() const;
 
+        Matrix* getRowVector(uint8_t row) const;
+        Matrix* getColVector(uint8_t col) const;
+
 		bool eliminate(bool allowSingular = true);
 
 		virtual TokenType getType() const override {

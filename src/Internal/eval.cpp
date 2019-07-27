@@ -346,6 +346,28 @@ namespace eval {
 		}
 		return result;
 	}
+    Matrix* Matrix::getRowVector(uint8_t row) const {
+        if(row >= m) {
+            return nullptr;
+        }
+
+        Matrix *mat = new Matrix(1, n);
+        for(uint8_t i = 0; i < n; i ++) {
+            mat->contents[i] = getEntry(row, i);
+        }
+        return mat;
+    }
+    Matrix* Matrix::getColVector(uint8_t col) const {
+        if(col >= n) {
+            return nullptr;
+        }
+        
+        Matrix *mat = new Matrix(m, 1);
+        for(uint8_t i = 0; i < m; i ++) {
+            mat->contents[i] = getEntry(i, col);
+        }
+        return mat;
+    }
 
 	/******************** Operator ********************/
 	uint8_t Operator::getPrecedence() const {
@@ -2183,25 +2205,31 @@ constructMatrixFromVectors:
                         return nullptr;
                     }
 
-                    int64_t indexInt = static_cast<int64_t>(extractDouble(t));
-                    delete t;
-                    // Out of bounds check
-                    // 1-based index
-                    if(indexInt <= 0 || indexInt > mat->m) {
+                    double d = extractDouble(t);
+                    if(!canCastProperly<double, uint8_t>(d - 1)) {
                         freeTokens(&arr);
+                        delete t;
                         return nullptr;
                     }
-                    else {
-                        // For vectors, just take the number
-                        if(mat->n == 1) {
-                            result = new Number(mat->getEntry(indexInt - 1, 0));
+                    uint8_t index = static_cast<uint8_t>(d - 1);
+                    delete t;
+
+                    // For vectors, just take the number
+                    if(mat->n == 1) {
+                        if(index < mat->m) {
+                            result = new Number((*mat)[index]);
                         }
                         else {
-                            // Otherwise take a row vector
-                            result = new Matrix(1, mat->n);
-                            for(uint8_t i = 0; i < mat->n; i ++) {
-                                static_cast<Matrix*>(result)->getEntry(0, i) = mat->getEntry(indexInt - 1, i);
-                            }
+                            freeTokens(&arr);
+                            return nullptr;
+                        }
+                    }
+                    else {
+                        // Otherwise take a row vector
+                        result = mat->getRowVector(index);
+                        if(!result) {
+                            freeTokens(&arr);
+                            return nullptr;
                         }
                     }
                 }
@@ -2210,33 +2238,102 @@ constructMatrixFromVectors:
                             DynamicArray<neda::NEDAObj*>::createConstRef(contents.begin(), contents.begin() + commaIndex);
                     const DynamicArray<neda::NEDAObj*> colExpr = 
                             DynamicArray<neda::NEDAObj*>::createConstRef(contents.begin() + commaIndex + 1, contents.end());
+                    
                     Token *row = evaluate(rowExpr, varc, vars, funcc, funcs);
                     // Check for syntax errors in expression, or noninteger result
                     if(!row || row->getType() == TokenType::MATRIX || !isInt(extractDouble(row))) {
-                        delete row;
-                        freeTokens(&arr);
-                        return nullptr;
+                        // Wildcard syntax
+                        if(rowExpr.length() == 1 && extractChar(rowExpr[0]) == '*') {
+                            row = nullptr;
+                        }
+                        else {
+                            delete row;
+                            freeTokens(&arr);
+                            return nullptr;
+                        }
                     }
                     Token *col = evaluate(colExpr, varc, vars, funcc, funcs);
                     if(!col || col->getType() == TokenType::MATRIX || !isInt(extractDouble(col))) {
-                        delete row;
-                        delete col;
-                        freeTokens(&arr);
-                        return nullptr;
+                        // Wildcard syntax
+                        if(colExpr.length() == 1 && extractChar(colExpr[0]) == '*') {
+                            col = nullptr;
+                        }
+                        else {
+                            delete row;
+                            delete col;
+                            freeTokens(&arr);
+                            return nullptr;
+                        }
                     }
+                    
+                    // Wildcard on column
+                    // Take row vector
+                    if(row && !col) {
+                        // Verify cast into uint8_t
+                        double drow = extractDouble(row);
+                        if(!canCastProperly<double, uint8_t>(drow - 1)) {
+                            delete row;
+                            freeTokens(&arr);
+                            return nullptr;
+                        }
+                        
+                        uint8_t rowInt = static_cast<uint8_t>(drow - 1);
+                        result = mat->getRowVector(rowInt);
+                        // If out of range, syntax error
+                        if(!result) {
+                            delete row;
+                            freeTokens(&arr);
+                            return nullptr;
+                        }
+                    }
+                    // Wildcard on row
+                    // Take column vector
+                    else if(col && !row) {
+                        double dcol = extractDouble(col);
+                        if(!canCastProperly<double, uint8_t>(dcol - 1)) {
+                            delete col;
+                            freeTokens(&arr);
+                            return nullptr;
+                        }
 
-                    int64_t rowInt = static_cast<int64_t>(extractDouble(row));
-                    int64_t colInt = static_cast<int64_t>(extractDouble(col));
-                    delete row;
-                    delete col;
-
-                    if(rowInt <= 0 || colInt <= 0 || rowInt > mat->m || colInt > mat->n) {
-                        freeTokens(&arr);
-                        return nullptr;
+                        uint8_t colInt = static_cast<uint8_t>(dcol - 1);
+                        result = mat->getColVector(colInt);
+                        if(!result) {
+                            delete col;
+                            freeTokens(&arr);
+                            return nullptr;
+                        }
+                    }
+                    // Wildcard on both indices
+                    // Just copy the matrix itself
+                    else if(!col && !row) {
+                        result = new Matrix(*mat);
                     }
                     else {
-                        result = new Number(mat->getEntry(rowInt - 1, colInt - 1));
+                        double drow = extractDouble(row);
+                        double dcol = extractDouble(col);
+                        // Verify that the indices can be properly casted into uint8_ts
+                        if(!canCastProperly<double, uint8_t>(drow - 1) || !canCastProperly<double, uint8_t>(dcol - 1)) {
+                            delete row;
+                            delete col;
+                            freeTokens(&arr);
+                            return nullptr;
+                        }
+
+                        uint8_t rowInt = static_cast<uint8_t>(drow - 1);
+                        uint8_t colInt = static_cast<uint8_t>(dcol - 1);
+                        if(rowInt >= mat->m || colInt >= mat->n) {
+                            delete row;
+                            delete col;
+                            freeTokens(&arr);
+                            return nullptr;
+                        }
+                        else {
+                            result = new Number(mat->getEntry(rowInt, colInt));
+                        }
                     }
+                    delete row;
+                    delete col;
                 }
 
                 // Delete the matrix

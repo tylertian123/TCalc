@@ -50,9 +50,13 @@ template <typename T>
 inline T floorDiv(T a, T b) {
 	return a > 0 ? a / b : (a - b + 1) / b;
 }
+template <typename T, typename U>
+inline bool canCastProperly(T n) {
+    return static_cast<U>(n) == n;
+}
 template <typename T>
 inline bool isInt(T n) {
-	return static_cast<int64_t>(n) == n;
+	return canCastProperly<T, int64_t>(n);
 }
 template <typename T>
 void swap(T &t1, T &t2) {
