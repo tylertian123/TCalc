@@ -4,7 +4,7 @@
 #include "stm32f10x.h"
 #include <stdlib.h>
 
-template <typename T, uint16_t IncreaseAmount = 1>
+template <typename T, uint16_t IncreaseAmount = 8>
 class Deque {
 public:
 	Deque(uint16_t capacity) : len(0), start(0), maxLen(capacity) {

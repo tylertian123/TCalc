@@ -10,7 +10,7 @@
  * T - The type of elements in this array
  * IncreaseAmount - The amount of elements by which to increase the size every time the array is filled
  */
-template <typename T, uint16_t IncreaseAmount = 1>
+template <typename T, uint16_t IncreaseAmount = 8>
 class DynamicArray {
 public:
 	// Creates a new DynamicArray with a default length of 0

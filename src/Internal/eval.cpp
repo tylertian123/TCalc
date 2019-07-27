@@ -1264,6 +1264,23 @@ convertToDoubleAndOperate:
         
         return v == 0 ? 0 : 1;
     }
+    // This will delete the collection of tokens properly. It will destory all tokens in the array.
+	void freeTokens(Deque<Token*> &q) {
+		while (!q.isEmpty()) {
+			Token *t = q.dequeue();
+			if (t->getType() == TokenType::MATRIX || t->getType() == TokenType::NUMBER || t->getType() == TokenType::FRACTION || t->getType() == TokenType::FUNCTION) {
+				delete t;
+			}
+		}
+	}
+    // This will delete the collection of tokens properly. It will destory all tokens in the array.
+	void freeTokens(DynamicArray<Token*> &q) {
+		for(Token *t : q) {
+			if (t->getType() == TokenType::MATRIX || t->getType() == TokenType::NUMBER || t->getType() == TokenType::FRACTION || t->getType() == TokenType::FUNCTION) {
+				delete t;
+			}
+		}
+	}
     /*
      * Evaluates a function arguments list, which starts with a left bracket, ends with a right bracket and is separated by commas.
      * 
@@ -1320,7 +1337,7 @@ convertToDoubleAndOperate:
                     // Arguments can only end by a comma
                     // Thus if nesting ever reaches a level less than zero, there are mismatched parentheses
                     if(!nesting) {
-                        freeTokens(&args);
+                        freeTokens(args);
                         return DynamicArray<Token*>();
                     }
                     // Decrease nesting since we now know it's nonzero
@@ -1340,7 +1357,7 @@ convertToDoubleAndOperate:
             Token *arg = evaluate(argContents, varc, vars, funcc, funcs);
             // Syntax error
             if(!arg) {
-                freeTokens(&args);
+                freeTokens(args);
                 return DynamicArray<Token*>();
             }
             args.add(arg);
@@ -1400,7 +1417,7 @@ convertToDoubleAndOperate:
         }
 
 		// This dynamic array holds the result of the first stage (basic parsing)
-		DynamicArray<Token*, 4> arr;
+		DynamicArray<Token*> arr;
 		uint16_t index = 0;
 		// This variable keeps track of whether the last token was an operator
 		bool lastTokenOperator = true;
@@ -1435,7 +1452,7 @@ convertToDoubleAndOperate:
 				}
 				// If nesting is nonzero, there must be mismatched parentheses
 				if(nesting) {
-					freeTokens(&arr);
+					freeTokens(arr);
 					return nullptr;
 				}
 				// Construct a new array of NEDA objects that includes all object inside the brackets (but not the brackets themselves!)
@@ -1445,7 +1462,7 @@ convertToDoubleAndOperate:
 				Token *insideResult = evaluate(inside, varc, vars, funcc, funcs);
 				// If syntax error inside bracket, clean up and return null
 				if(!insideResult) {
-					freeTokens(&arr);
+					freeTokens(arr);
 					return nullptr;
 				}
 				// Otherwise, add result to token array
@@ -1463,7 +1480,7 @@ convertToDoubleAndOperate:
 				// Since the processing for left brackets also handle their corresponding right brackets,
 				// encountering a right bracket means there are mismatched parentheses. 
 				// Clean up and signal error.
-				freeTokens(&arr);
+				freeTokens(arr);
 				return nullptr;
 			} // neda::ObjType::R_BRACKET
 
@@ -1478,7 +1495,7 @@ convertToDoubleAndOperate:
 					// Since deleting nullptrs are allowed, no need for checking
 					delete num;
 					delete denom;
-					freeTokens(&arr);
+					freeTokens(arr);
 					return nullptr;
 				}
 				// Otherwise, call the division operator to evaluate the fraction and add it to the tokens list
@@ -1522,14 +1539,14 @@ convertToDoubleAndOperate:
 				Token *exponent = evaluate((neda::Container*) ((neda::Superscript*) exprs[index])->contents, varc, vars, funcc, funcs);
 				// If an error occurs, clean up and return null
 				if(!exponent) {
-					freeTokens(&arr);
+					freeTokens(arr);
 					return nullptr;
 				}
 				// If the exponent is a matrix, return NaN
 				// We really don't want to do the Taylor series of exp(A)
 				if(exponent->getType() == TokenType::MATRIX) {
 					delete exponent;
-					freeTokens(&arr);
+					freeTokens(arr);
 					return new Number(NAN);
 				}
 				// Otherwise, turn it into an exponentiation operator and the value of the exponent
@@ -1565,7 +1582,7 @@ convertToDoubleAndOperate:
 					// nullptr deletion allowed; no need for checking
 					delete n;
 					delete contents;
-					freeTokens(&arr);
+					freeTokens(arr);
 					return nullptr;
 				}
 				// Convert the radical into an exponentiation operation
@@ -1583,7 +1600,7 @@ convertToDoubleAndOperate:
 				else {
 					delete n;
 					delete contents;
-					freeTokens(&arr);
+					freeTokens(arr);
 					return new Number(NAN);
 				}
 				// Evaluate the radical and add the result to the tokens array
@@ -1657,7 +1674,7 @@ convertToDoubleAndOperate:
                     if(!res || res->getType() == TokenType::MATRIX || (n = extractDouble(res), !isInt(n)) || n <= 0 || n > 255) {
                         delete res;
                         delete[] str;
-                        freeTokens(&arr);
+                        freeTokens(arr);
                         return nullptr;
                     }
                     delete res;
@@ -1694,8 +1711,8 @@ convertToDoubleAndOperate:
                     auto args = evaluateArgs(exprs, varc, vars, funcc, funcs, end, end);
                     if(args.length() != 1 || args[0]->getType() == TokenType::MATRIX) {
                         // Syntax error
-                        freeTokens(&args);
-                        freeTokens(&arr);
+                        freeTokens(args);
+                        freeTokens(arr);
                         delete[] unit;
                         delete[] str;
                         return nullptr;
@@ -1704,8 +1721,8 @@ convertToDoubleAndOperate:
                     double result = convertUnits(extractDouble(args[0]), str, unit);
                     if(isnan(result)) {
                         // Syntax error
-                        freeTokens(&args);
-                        freeTokens(&arr);
+                        freeTokens(args);
+                        freeTokens(arr);
                         delete[] unit;
                         delete[] str;
                         return nullptr;
@@ -1713,7 +1730,7 @@ convertToDoubleAndOperate:
                     // Add the result
                     arr.add(new Number(result));
 
-                    freeTokens(&args);
+                    freeTokens(args);
                     delete[] unit;
                     delete[] str;
                     index = end + 1;
@@ -1733,7 +1750,7 @@ convertToDoubleAndOperate:
 							Token *sub = evaluate((neda::Container*) ((neda::Subscript*) exprs[end])->contents, varc, vars, funcc, funcs);
 							// If an error occurs, clean up and return
 							if(!sub) {
-								freeTokens(&arr);
+								freeTokens(arr);
 								delete[] str;
 								return nullptr;
 							}
@@ -1784,8 +1801,8 @@ evaluateFunc:
 							// Verify that the number of arguments is correct
 							// Make sure to handle user-defined functions as well
 							if((func && func->getNumArgs() != args.length()) || (uFunc && uFunc->argc != args.length())) {
-								freeTokens(&arr);
-								freeTokens(&args);
+								freeTokens(arr);
+								freeTokens(args);
 								delete[] str;
 								delete func;
 								return nullptr;
@@ -1797,8 +1814,8 @@ evaluateFunc:
 								result = (*func)(args.asArray());
 								// If result cannot be computed, syntax error
 								if(!result) {
-									freeTokens(&arr);
-									freeTokens(&args);
+									freeTokens(arr);
+									freeTokens(args);
 									delete[] str;
 									delete func;
 									return nullptr;
@@ -1833,8 +1850,8 @@ evaluateFunc:
 								if(!result) {
                                     delete[] newVars;
 
-									freeTokens(&arr);
-									freeTokens(&args);
+									freeTokens(arr);
+									freeTokens(args);
 									delete[] str;
 									return nullptr;
 								}
@@ -1844,7 +1861,7 @@ evaluateFunc:
 							}
 
 							// Free args
-							freeTokens(&args);
+							freeTokens(args);
 							// Add result
 							arr.add(result);
 							lastTokenOperator = false;
@@ -1886,7 +1903,7 @@ evaluateFunc:
 								}
 								// If no match was found, cleanup and return
 								if(i == varc) {
-									freeTokens(&arr);
+									freeTokens(arr);
 									delete[] str;
 									return nullptr;
 								}
@@ -1914,7 +1931,7 @@ evaluateFunc:
 				// First recursively evaluate the end value
 				Token *end = evaluate((neda::Container*) ((neda::SigmaPi*) exprs[index])->finish, varc, vars, funcc, funcs);
 				if(!end) {
-					freeTokens(&arr);
+					freeTokens(arr);
 					return nullptr;
 				}
 				// Evaluate the starting value
@@ -1924,7 +1941,7 @@ evaluateFunc:
 				// If equals sign not found, syntax error
 				if(equalsIndex == 0xFFFF) {
 					delete end;
-					freeTokens(&arr);
+					freeTokens(arr);
 					return nullptr;
 				}
 				// Attempt to evaluate the starting condition assign value
@@ -1934,14 +1951,14 @@ evaluateFunc:
 				// Check for syntax error
 				if(!start) {
 					delete end;
-					freeTokens(&arr);
+					freeTokens(arr);
 					return nullptr;
 				}
 				// Matrices are not allowed as counters
 				if(start->getType() == TokenType::MATRIX) {
 					delete end;
 					delete start;
-					freeTokens(&arr);
+					freeTokens(arr);
 					return nullptr;
 				}
 				// Isolate the variable name
@@ -1981,7 +1998,7 @@ evaluateFunc:
 						delete[] vName;
 						delete[] newVars;
 						delete val;
-						freeTokens(&arr);
+						freeTokens(arr);
 						return nullptr;
 					}
 					// Add or multiply the expressions if val exists
@@ -2040,7 +2057,7 @@ evaluateFunc:
 					// Check for syntax error
 					if(!n) {
 						delete mat;
-						freeTokens(&arr);
+						freeTokens(arr);
 						return nullptr;
 					}
                     if(!fromVecs) {
@@ -2059,7 +2076,7 @@ evaluateFunc:
                             }
                             delete mat;
                             delete n;
-                            freeTokens(&arr);
+                            freeTokens(arr);
                             return nullptr;
                         }
                         // Ignore fractions and just use their numerical values
@@ -2071,7 +2088,7 @@ evaluateFunc:
                                 || static_cast<Matrix*>(n)->m != mat->m) {
                             delete mat;
                             delete n;
-                            freeTokens(&arr);
+                            freeTokens(arr);
                             return nullptr;
                         }
 constructMatrixFromVectors:
@@ -2116,7 +2133,7 @@ constructMatrixFromVectors:
                             isElse = true;
                         }
                         else {
-                            freeTokens(&arr);
+                            freeTokens(arr);
                             return nullptr;
                         }
                     }
@@ -2126,7 +2143,7 @@ constructMatrixFromVectors:
                     // Condition undefined
                     // Then the entire expression is undefined
                     if(condition == -1) {
-                        freeTokens(&arr);
+                        freeTokens(arr);
                         return new Number(NAN);
                     }
                     // Condition is true
@@ -2136,7 +2153,7 @@ constructMatrixFromVectors:
 
                         // Syntax error
                         if(!val) {
-                            freeTokens(&arr);
+                            freeTokens(arr);
                             return nullptr;
                         }
                         break;
@@ -2145,7 +2162,7 @@ constructMatrixFromVectors:
                 }
                 // No condition was true - value is undefined
                 if(!val) {
-                    freeTokens(&arr);
+                    freeTokens(arr);
                     return new Number(NAN);
                 }
 
@@ -2162,7 +2179,7 @@ constructMatrixFromVectors:
                 // currently the only use for the subscript is for matrix indices
                 // Check the last item in the array and make sure it's a matrix
                 if(arr[arr.length() - 1]->getType() != TokenType::MATRIX) {
-                    freeTokens(&arr);
+                    freeTokens(arr);
                     return nullptr;
                 }
                 auto &contents = static_cast<neda::Container*>(static_cast<neda::Subscript*>(exprs[index])->contents)->contents;
@@ -2181,7 +2198,7 @@ constructMatrixFromVectors:
                             nesting --;
                         }
                         else {
-                            freeTokens(&arr);
+                            freeTokens(arr);
                             return nullptr;
                         }
                     }
@@ -2201,13 +2218,13 @@ constructMatrixFromVectors:
                     // Check for syntax errors in expression, or noninteger result
                     if(!t || t->getType() == TokenType::MATRIX || !isInt(extractDouble(t))) {
                         delete t;
-                        freeTokens(&arr);
+                        freeTokens(arr);
                         return nullptr;
                     }
 
                     double d = extractDouble(t);
                     if(!canCastProperly<double, uint8_t>(d - 1)) {
-                        freeTokens(&arr);
+                        freeTokens(arr);
                         delete t;
                         return nullptr;
                     }
@@ -2220,7 +2237,7 @@ constructMatrixFromVectors:
                             result = new Number((*mat)[index]);
                         }
                         else {
-                            freeTokens(&arr);
+                            freeTokens(arr);
                             return nullptr;
                         }
                     }
@@ -2228,7 +2245,7 @@ constructMatrixFromVectors:
                         // Otherwise take a row vector
                         result = mat->getRowVector(index);
                         if(!result) {
-                            freeTokens(&arr);
+                            freeTokens(arr);
                             return nullptr;
                         }
                     }
@@ -2248,7 +2265,7 @@ constructMatrixFromVectors:
                         }
                         else {
                             delete row;
-                            freeTokens(&arr);
+                            freeTokens(arr);
                             return nullptr;
                         }
                     }
@@ -2261,7 +2278,7 @@ constructMatrixFromVectors:
                         else {
                             delete row;
                             delete col;
-                            freeTokens(&arr);
+                            freeTokens(arr);
                             return nullptr;
                         }
                     }
@@ -2273,7 +2290,7 @@ constructMatrixFromVectors:
                         double drow = extractDouble(row);
                         if(!canCastProperly<double, uint8_t>(drow - 1)) {
                             delete row;
-                            freeTokens(&arr);
+                            freeTokens(arr);
                             return nullptr;
                         }
                         
@@ -2282,7 +2299,7 @@ constructMatrixFromVectors:
                         // If out of range, syntax error
                         if(!result) {
                             delete row;
-                            freeTokens(&arr);
+                            freeTokens(arr);
                             return nullptr;
                         }
                     }
@@ -2292,7 +2309,7 @@ constructMatrixFromVectors:
                         double dcol = extractDouble(col);
                         if(!canCastProperly<double, uint8_t>(dcol - 1)) {
                             delete col;
-                            freeTokens(&arr);
+                            freeTokens(arr);
                             return nullptr;
                         }
 
@@ -2300,7 +2317,7 @@ constructMatrixFromVectors:
                         result = mat->getColVector(colInt);
                         if(!result) {
                             delete col;
-                            freeTokens(&arr);
+                            freeTokens(arr);
                             return nullptr;
                         }
                     }
@@ -2316,7 +2333,7 @@ constructMatrixFromVectors:
                         if(!canCastProperly<double, uint8_t>(drow - 1) || !canCastProperly<double, uint8_t>(dcol - 1)) {
                             delete row;
                             delete col;
-                            freeTokens(&arr);
+                            freeTokens(arr);
                             return nullptr;
                         }
 
@@ -2325,7 +2342,7 @@ constructMatrixFromVectors:
                         if(rowInt >= mat->m || colInt >= mat->n) {
                             delete row;
                             delete col;
-                            freeTokens(&arr);
+                            freeTokens(arr);
                             return nullptr;
                         }
                         else {
@@ -2356,7 +2373,7 @@ constructMatrixFromVectors:
                 Token *t = evaluate(static_cast<neda::Container*>(static_cast<neda::Abs*>(exprs[index])->contents), varc, vars, funcc, funcs);
 
                 if(!t) {
-                    freeTokens(&arr);
+                    freeTokens(arr);
                     return nullptr;
                 }
 
@@ -2421,8 +2438,8 @@ constructMatrixFromVectors:
                 if(static_cast<const Operator*>(t)->isUnary()) {
                     // If there aren't enough operators, syntax error
                     if(stack.length() < 1) {
-                        freeTokens(&output);
-                        freeTokens(&stack);
+                        freeTokens(output);
+                        freeTokens(stack);
                         return nullptr;
                     }
                     // Pop the operand
@@ -2433,16 +2450,16 @@ constructMatrixFromVectors:
                         stack.push(result);
                     }
                     else {
-                        freeTokens(&output);
-                        freeTokens(&stack);
+                        freeTokens(output);
+                        freeTokens(stack);
                         return nullptr;
                     }
                 }
                 else {
                     // If there aren't enough operators, syntax error
                     if(stack.length() < 2) {
-                        freeTokens(&output);
-                        freeTokens(&stack);
+                        freeTokens(output);
+                        freeTokens(stack);
                         return nullptr;
                     }
                     // Pop the left and right hand side operands
@@ -2454,8 +2471,8 @@ constructMatrixFromVectors:
                         stack.push(result);
                     }
                     else {
-                        freeTokens(&output);
-                        freeTokens(&stack);
+                        freeTokens(output);
+                        freeTokens(stack);
                         return nullptr;
                     }
                 }

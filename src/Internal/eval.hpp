@@ -268,23 +268,9 @@ namespace eval {
     };
 
 	// This will delete the collection of tokens properly. It will destory all tokens in the array.
-	template <uint16_t Increase>
-	void freeTokens(Deque<Token*, Increase> *q) {
-		while (!q->isEmpty()) {
-			Token *t = q->dequeue();
-			if (t->getType() == TokenType::MATRIX || t->getType() == TokenType::NUMBER || t->getType() == TokenType::FRACTION || t->getType() == TokenType::FUNCTION) {
-				delete t;
-			}
-		}
-	}
-	template <uint16_t Increase>
-	void freeTokens(DynamicArray<Token*, Increase> *q) {
-		for(Token *t : *q) {
-			if (t->getType() == TokenType::MATRIX || t->getType() == TokenType::NUMBER || t->getType() == TokenType::FRACTION || t->getType() == TokenType::FUNCTION) {
-				delete t;
-			}
-		}
-	}
+	void freeTokens(Deque<Token*> &q);
+    // This will delete the collection of tokens properly. It will destory all tokens in the array.
+	void freeTokens(DynamicArray<Token*> &q);
 	bool isDigit(char);
 	bool isNameChar(char);
 	char extractChar(const neda::NEDAObj*);
