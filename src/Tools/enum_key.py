@@ -5,6 +5,7 @@ numstart = 0x0000
 keys = open(argv[1], "r")
 
 used_nums = set()
+existing_nums = {}
 
 include_guard = None
 randnum = False
@@ -13,13 +14,28 @@ num_range_low = 0
 num_range_high = 0x10000
 num_length = 6
 num_padding_length = 10
+key_prefix = "KEY_"
 
-def parse_int_param(s):
-    n = s.split()[1]
+def parse_int(n):
     if n.startswith('0x') or n.startswith('0X'):
         return int(n[2:], base=16)
     else:
         return int(n)
+
+def parse_int_param(s):
+    n = s.split()[1]
+    return parse_int(n)
+
+if len(argv) >= 3:
+    existing = open(argv[2], "r")
+    for line in existing:
+        line = line[:-1]
+        if not line.startswith("#define"):
+            continue
+        segments = line.split()
+        if len(segments) < 3:
+            continue
+        existing_nums[segments[1]] = parse_int(segments[2])
 
 for key in keys:
     key = key[:-1]
@@ -50,28 +66,35 @@ for key in keys:
     elif key.startswith('EK_NUM_PADDING'):
         num_padding_length = parse_int_param(key)
         continue
+    elif key.startswith('EK_KEY_PREFIX'):
+        key_prefix = key.split()[1]
 
     eq = key.find('=')
+    key = key.upper()
     num = 0
-    if eq != -1:
-        num = int(key.split('=')[1])
+    if (key_prefix + key) in existing_nums:
+        num = existing_nums[key_prefix + key]
+        del existing_nums[key_prefix + key]
     else:
-        if not randnum:
-            num = numstart
-            numstart += 1
-            while num in used_nums:
+        if eq != -1:
+            num = int(key.split('=')[1])
+        else:
+            if not randnum:
                 num = numstart
                 numstart += 1
-        else:
-            num = randrange(num_range_low, num_range_high)
-            while num in used_nums:
+                while num in used_nums:
+                    num = numstart
+                    numstart += 1
+            else:
                 num = randrange(num_range_low, num_range_high)
+                while num in used_nums:
+                    num = randrange(num_range_low, num_range_high)
     
     used_nums.add(num)
 
-    name = key.upper() if eq == -1 else key.split('=')[0].upper()
+    name = key if eq == -1 else key.split('=')[0]
     
-    print(f"#define KEY_{name}{' ' * (num_padding_length - len(name))}0x{'0' * (num_length - len(hex(num)))}{hex(num).upper()[2:]}")
+    print(f"#define {key_prefix}{name}{' ' * (num_padding_length - len(name))}0x{'0' * (num_length - len(hex(num)))}{hex(num).upper()[2:]}")
 
 if include_guard != None:
     print()
