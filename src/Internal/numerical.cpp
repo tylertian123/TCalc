@@ -6,12 +6,12 @@ namespace util {
     Numerical::Numerical() {
         num.d = 0;
         // Mark as number
-        denom.i = 0x8000'0000'0000'0000;
+        denom.i = IS_NUMBER_FLAG;
     }
     Numerical::Numerical(double val) {
         num.d = val;
         // Mark as number
-        denom.i = 0x8000'0000'0000'0000;
+        denom.i = IS_NUMBER_FLAG;
     }
     Numerical::Numerical(int64_t num, int64_t denom) {
         this->num.i = num;
@@ -19,19 +19,11 @@ namespace util {
         // Reduce the fraction without checking for validity
         _reduce();
     }
-
-    Numerical::Numerical(const Numerical &other) {
-        num = other.num;
-        denom = other.denom;
-    }
-    Numerical::Numerical(Numerical &&other) {
-        num = other.num;
-        denom = other.denom;
-    }
+    Numerical::Numerical(const Fraction &frac) : Numerical(frac.num, frac.denom) {}
 
     bool Numerical::isNumber() const {
         // See docs for Numerical::DoubleOrInt64
-        return denom.i >> 63;
+        return denom.i & IS_NUMBER_FLAG;
     }
 
     double Numerical::asDouble() const {
@@ -43,12 +35,8 @@ namespace util {
         }
     }
 
-    int64_t Numerical::numerator() const {
-        return num.i;
-    }
-
-    int64_t Numerical::denominator() const {
-        return denom.i;
+    Fraction Numerical::asFraction() const {
+        return { num.i, denom.i };
     }
 
     void Numerical::reduce() {
@@ -71,5 +59,20 @@ namespace util {
 		}
 		num.i /= divisor;
 		denom.i /= divisor;
+    }
+
+    Numerical& Numerical::operator=(double n) {
+        num.d = n;
+        // Mark as number
+        denom.i = IS_NUMBER_FLAG;
+        return *this;
+    }
+    
+    Numerical& Numerical::operator=(const Fraction &frac) {
+        num.i = frac.num;
+        denom.i = frac.num;
+        _reduce();
+
+        return *this;
     }
 }

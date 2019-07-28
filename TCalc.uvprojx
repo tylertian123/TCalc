@@ -481,6 +481,11 @@
               <FileType>8</FileType>
               <FilePath>.\src\Internal\console.cpp</FilePath>
             </File>
+            <File>
+              <FileName>numerical.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\src\Internal\numerical.cpp</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

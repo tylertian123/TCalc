@@ -4,6 +4,15 @@
 #include <stdint.h>
 
 namespace util {
+
+    /*
+     * Represents a fraction.
+     */
+    struct Fraction {
+        int64_t num;
+        int64_t denom;
+    };
+
     /*
      * A class that can represent either a fraction or a floating-point number.
      */
@@ -21,11 +30,15 @@ namespace util {
          * Constucts a Numerical representing a fraction.
          */
         Numerical(int64_t num, int64_t denom);
+        /*
+         * Constucts a Numerical representing a fraction.
+         */
+        Numerical(const Fraction &frac);
 
         // Copy constructor
-        Numerical(const Numerical &other);
+        Numerical(const Numerical &other) = default;
         // Move constructor
-        Numerical(Numerical &&other);
+        Numerical(Numerical &&other) = default;
         
         /*
          * Tests whether or not this Numerical represents a floating-point number.
@@ -36,25 +49,61 @@ namespace util {
          */
         double asDouble() const;
         /*
-         * Returns the numerator of the fraction represented.
-         * If the fraction is negative, this will be negative.
+         * Returns the value of this Numerical as a fraction.
          * 
          * Warning: This does not check whether or not a fraction is actually represented!
          */
-        int64_t numerator() const;
-        /*
-         * Returns the denominator of the fraction represented.
-         * Even if the fraction is negative, this value will always be positive.
-         * 
-         * Warning: This does not check whether or not a fraction is actually represented!
-         */
-        int64_t denominator() const;
+        Fraction asFraction() const;
 
         /*
          * Reduces the fraction represented by this Numerical.
          * If this numerical does not represent a fraction, this method will have no effect.
          */
         void reduce();
+
+        Numerical& operator=(const Numerical &other) = default;
+        Numerical& operator=(double n);
+        Numerical& operator=(const Fraction &frac);
+
+        Numerical& operator+=(const Numerical &other);
+        Numerical& operator+=(double n);
+        Numerical& operator+=(const Fraction &frac);
+
+        Numerical& operator-=(const Numerical &other);
+        Numerical& operator-=(double n);
+        Numerical& operator-=(const Fraction &frac);
+
+        Numerical& operator*=(const Numerical &other);
+        Numerical& operator*=(double n);
+        Numerical& operator*=(const Fraction &frac);
+
+        Numerical& operator/=(const Numerical &other);
+        Numerical& operator/=(double n);
+        Numerical& operator/=(const Fraction &frac);
+
+        Numerical operator+(const Numerical &other);
+        Numerical operator+(double n);
+        Numerical operator+(const Fraction &frac);
+        friend Numerical operator+(double n, const Numerical &num);
+        friend Numerical operator+(const Fraction &frac, const Numerical &num);
+
+        Numerical operator-(const Numerical &other);
+        Numerical operator-(double n);
+        Numerical operator-(const Fraction &frac);
+        friend Numerical operator-(double n, const Numerical &num);
+        friend Numerical operator-(const Fraction &frac, const Numerical &num);
+
+        Numerical operator*(const Numerical &other);
+        Numerical operator*(double n);
+        Numerical operator*(const Fraction &frac);
+        friend Numerical operator*(double n, const Numerical &num);
+        friend Numerical operator*(const Fraction &frac, const Numerical &num);
+
+        Numerical operator/(const Numerical &other);
+        Numerical operator/(double n);
+        Numerical operator/(const Fraction &frac);
+        friend Numerical operator/(double n, const Numerical &num);
+        friend Numerical operator/(const Fraction &frac, const Numerical &num);
 
     protected:
         /*
@@ -79,6 +128,8 @@ namespace util {
 
         // This method does not check that the Numerical is indeed a fraction.
         void _reduce();
+    
+        static constexpr uint64_t IS_NUMBER_FLAG = 0x8000000000000000;
     };
 }
 
