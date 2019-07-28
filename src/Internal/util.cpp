@@ -20,4 +20,23 @@ namespace util {
             return diff / (absA + absB) < epsilon;
         }
     }
+
+    int64_t gcd(int64_t a, int64_t b) {
+		while(true) {
+			if(a == 0) {
+				return b;
+			}
+			if(b == 0) {
+				return a;
+			}
+
+			int64_t r = a % b;
+			a = b;
+			b = r;
+		}
+	}
+    
+	int64_t lcm(int64_t a, int64_t b) {
+		return (a * b) / gcd(a, b);
+	}
 }

@@ -78,6 +78,9 @@ namespace util {
      * return false.
      */
     bool floatEq(double a, double b, double epsilon = 1e-10);
+
+    int64_t gcd(int64_t a, int64_t b);
+    int64_t lcm(int64_t a, int64_t b);
 }
 
 #endif

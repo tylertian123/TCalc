@@ -49,23 +49,6 @@ namespace eval {
 	}
 
 	/******************** Fraction ********************/
-	int64_t Fraction::gcd(int64_t a, int64_t b) {
-		while(true) {
-			if(a == 0) {
-				return b;
-			}
-			if(b == 0) {
-				return a;
-			}
-
-			int64_t r = a % b;
-			a = b;
-			b = r;
-		}
-	}
-	int64_t Fraction::lcm(int64_t a, int64_t b) {
-		return (a * b) / gcd(a, b);
-	}
 	double Fraction::doubleVal() const {
 		// Make sure they're cast to doubles first to avoid integer division
 		return static_cast<double>(num) / static_cast<double>(denom);
@@ -81,7 +64,7 @@ namespace eval {
 		}
 
 		// Now that the denominator is positive, we can make sure the result we get is also positive
-		int64_t divisor = labs(gcd(num, denom));
+		int64_t divisor = labs(util::gcd(num, denom));
 		if(divisor == 1) {
 			return;
 		}
@@ -89,7 +72,7 @@ namespace eval {
 		denom /= divisor;
 	}
 	Fraction& Fraction::operator+=(const Fraction &frac) {
-		int64_t newDenom = lcm(denom, frac.denom);
+		int64_t newDenom = util::lcm(denom, frac.denom);
 		int64_t numA = num * (newDenom / denom);
 		int64_t numB = frac.num * (newDenom / frac.denom);
 		num = numA + numB;
@@ -98,7 +81,7 @@ namespace eval {
 		return *this;
 	}
 	Fraction& Fraction::operator-=(const Fraction &frac) {
-		int64_t newDenom = lcm(denom, frac.denom);
+		int64_t newDenom = util::lcm(denom, frac.denom);
 		int64_t numA = num * (newDenom / denom);
 		int64_t numB = frac.num * (newDenom / frac.denom);
 		num = numA - numB;

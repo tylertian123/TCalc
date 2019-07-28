@@ -54,9 +54,6 @@ namespace eval {
 			return TokenType::FRACTION;
 		}
 
-		static int64_t gcd(int64_t, int64_t);
-		static int64_t lcm(int64_t, int64_t);
-
 		double doubleVal() const;
 		bool isInteger() const;
 		void reduce();

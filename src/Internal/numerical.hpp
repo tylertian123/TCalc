@@ -9,14 +9,52 @@ namespace util {
      */
     class Numerical {
     public:
+        /*
+         * Constructs a Numerical representing the floating-point number 0.
+         */
         Numerical();
+        /*
+         * Constucts a Numerical representing a floating point value.
+         */
         Numerical(double value);
+        /*
+         * Constucts a Numerical representing a fraction.
+         */
         Numerical(int64_t num, int64_t denom);
 
+        // Copy constructor
         Numerical(const Numerical &other);
+        // Move constructor
         Numerical(Numerical &&other);
         
+        /*
+         * Tests whether or not this Numerical represents a floating-point number.
+         */
         bool isNumber() const;
+        /*
+         * Returns the value of this Numerical as a double.
+         */
+        double asDouble() const;
+        /*
+         * Returns the numerator of the fraction represented.
+         * If the fraction is negative, this will be negative.
+         * 
+         * Warning: This does not check whether or not a fraction is actually represented!
+         */
+        int64_t numerator() const;
+        /*
+         * Returns the denominator of the fraction represented.
+         * Even if the fraction is negative, this value will always be positive.
+         * 
+         * Warning: This does not check whether or not a fraction is actually represented!
+         */
+        int64_t denominator() const;
+
+        /*
+         * Reduces the fraction represented by this Numerical.
+         * If this numerical does not represent a fraction, this method will have no effect.
+         */
+        void reduce();
 
     protected:
         /*
