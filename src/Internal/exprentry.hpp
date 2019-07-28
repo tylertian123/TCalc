@@ -9,9 +9,9 @@
 namespace expr {
 
     // Values all user-defined variables
-    extern DynamicArray<eval::Variable> variables;
+    extern util::DynamicArray<eval::Variable> variables;
     // All user-defined functions
-    extern DynamicArray<eval::UserDefinedFunction> functions;
+    extern util::DynamicArray<eval::UserDefinedFunction> functions;
     // Updates the value of the variable with the specified name.
     // If the variable was not previously defined, a new variable will be created.
     // Note that the name and value must be allocated with new for cleanup to work properly.
@@ -135,7 +135,7 @@ namespace expr {
             bool graph = false;
         };
         // A list of graphable functions.
-        DynamicArray<GraphableFunction> graphableFunctions;
+        util::DynamicArray<GraphableFunction> graphableFunctions;
 
         /* 
          * These functions draw the interface for a given mode. 
@@ -205,7 +205,7 @@ namespace expr {
         // Whether the user is editing a number.
         bool editOption = false;
         // Contents of the option editor
-        DynamicArray<char> editorContents;
+        util::DynamicArray<char> editorContents;
         // Index of the cursor in the option editor
         uint16_t cursorIndex;
         // Buffer storing the graph.

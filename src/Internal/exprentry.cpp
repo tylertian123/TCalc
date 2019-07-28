@@ -3,8 +3,8 @@
 #include <limits.h>
 
 namespace expr {
-    DynamicArray<eval::Variable> variables;
-    DynamicArray<eval::UserDefinedFunction> functions;
+    util::DynamicArray<eval::Variable> variables;
+    util::DynamicArray<eval::UserDefinedFunction> functions;
 
     void updateVar(const char *varName, eval::Token *varVal) {
         uint16_t i;
@@ -431,7 +431,7 @@ namespace expr {
                     uint16_t len = cursor->index - end;
                     
                     // Create a new array with the objects
-                    DynamicArray<neda::NEDAObj*> arr(cursor->expr->contents.begin() + end, cursor->expr->contents.begin() + cursor->index);
+                    util::DynamicArray<neda::NEDAObj*> arr(cursor->expr->contents.begin() + end, cursor->expr->contents.begin() + cursor->index);
                     cursor->index = end;
                     // Remove the objects from the original array
                     cursor->expr->contents.removeAt(end, len);
@@ -974,11 +974,11 @@ namespace expr {
 
         display.drawString(1, 11, "Result S.D.:");
         char buf[3];
-        ltoa(resultSignificantDigits, buf);
+        util::ltoa(resultSignificantDigits, buf);
         display.drawString(85, 11, buf, selectorIndex == 1);
 
         display.drawString(1, 21, "Graphing S.D.:");
-        ltoa(graphingSignificantDigits, buf);
+        util::ltoa(graphingSignificantDigits, buf);
         display.drawString(85, 21, buf, selectorIndex == 2);
 
         display.drawString(1, 31, "Auto Fractions:");
@@ -1050,10 +1050,10 @@ namespace expr {
         display.drawString(1, 1, "Matrix Size:");
 
         char sizeBuf[8];
-        uint8_t len = ltoa(matRows, sizeBuf);
+        uint8_t len = util::ltoa(matRows, sizeBuf);
         display.drawString(48, 13, sizeBuf, selectorIndex == 0);
         display.drawString(48 + len * 6, 13, "x");
-        ltoa(matCols, sizeBuf);
+        util::ltoa(matCols, sizeBuf);
         display.drawString(54 + len * 6, 13, sizeBuf, selectorIndex == 1);
 
         display.updateDrawing();
@@ -1100,14 +1100,14 @@ namespace expr {
         display.drawString(1, 11, "Pieces:");
 
         char sizeBuf[4];
-        ltoa(piecewisePieces , sizeBuf);
+        util::ltoa(piecewisePieces , sizeBuf);
 
         display.drawString(60, 21, sizeBuf, true);
         display.updateDrawing();
     }
 
     void ExprEntry::updateGraphableFunctions() {
-        DynamicArray<GraphableFunction> newGraphableFunctions;
+        util::DynamicArray<GraphableFunction> newGraphableFunctions;
 
         for(const auto &func : functions) {
             // A function is only graphable if it only takes a single parameter x.
@@ -1200,7 +1200,7 @@ toggleEditOption:
                 // Fill the editor with the previous number
                 editorContents.empty();
                 char buf[64];
-                ftoa(graphSettings[selectorIndex], buf, graphingSignificantDigits, LCD_CHAR_EE);
+                util::ftoa(graphSettings[selectorIndex], buf, graphingSignificantDigits, LCD_CHAR_EE);
                 
                 for(uint8_t i = 0; buf[i] != '\0'; i ++) {
                     editorContents.add(buf[i]);
@@ -1215,7 +1215,7 @@ toggleEditOption:
                 // Convert to double by calling eval::evaluate
                 // This way the user can input simple expressions
                 // First translate into an array of NEDAObjs
-                DynamicArray<neda::NEDAObj*> objs;
+                util::DynamicArray<neda::NEDAObj*> objs;
                 for(char ch : editorContents) {
                     if(ch == '\0') {
                         break;
@@ -1354,7 +1354,7 @@ toggleEditOption:
             if(!editOption) {
                 // If not editing an option, draw the value normally
                 char buf[64];
-                ftoa(graphSettings[i], buf, graphingSignificantDigits, LCD_CHAR_EE);
+                util::ftoa(graphSettings[i], buf, graphingSignificantDigits, LCD_CHAR_EE);
 
                 display.drawString(HORIZ_MARGIN + 50, y, buf, selectorIndex == i);
             }
@@ -1362,7 +1362,7 @@ toggleEditOption:
                 // If this value is not being edited, draw it normally
                 if(i != selectorIndex) {
                     char buf[64];
-                    ftoa(graphSettings[i], buf, graphingSignificantDigits, LCD_CHAR_EE);
+                    util::ftoa(graphSettings[i], buf, graphingSignificantDigits, LCD_CHAR_EE);
 
                     display.drawString(HORIZ_MARGIN + 50, y, buf);
                 }
@@ -1773,7 +1773,7 @@ functionCheckLoopEnd:
             buf[0] = LCD_SMALL_CHAR_X;
             buf[1] = LCD_SMALL_CHAR_EQL;
             // Convert the number
-            ftoa(x, buf + 2, graphingSignificantDigits, LCD_SMALL_CHAR_EE);
+            util::ftoa(x, buf + 2, graphingSignificantDigits, LCD_SMALL_CHAR_EE);
             // Now convert normal characters to the small charset's characters
             for(uint8_t i = 2; buf[i] != '\0'; i ++) {
                 // Numbers
@@ -1797,7 +1797,7 @@ functionCheckLoopEnd:
 
             // Do the same with the y coordinate
             buf[0] = LCD_SMALL_CHAR_Y;
-            ftoa(y, buf + 2, graphingSignificantDigits, LCD_SMALL_CHAR_EE);
+            util::ftoa(y, buf + 2, graphingSignificantDigits, LCD_SMALL_CHAR_EE);
             for(uint8_t i = 2; buf[i] != '\0'; i ++) {
                 // Numbers
                 if(buf[i] >= '0' && buf[i] <= '9') {
@@ -1815,7 +1815,7 @@ functionCheckLoopEnd:
             display.fill(HORIZ_MARGIN - 1, lcd::SIZE_HEIGHT - VERT_MARGIN - 5 - 1, width + 2, 7, true);
             display.drawString(HORIZ_MARGIN, lcd::SIZE_HEIGHT - VERT_MARGIN - 5, buf);
 
-            maxWidth = max(maxWidth, width);
+            maxWidth = util::max(maxWidth, width);
 
             // Draw the function name
             if(selectorIndex != 0) {
@@ -1980,7 +1980,7 @@ functionCheckLoopEnd:
         }
         else {
             selectorIndex = len - 1;
-            scrollingIndex = max(len - 6, 0);
+            scrollingIndex = util::max(len - 6, 0);
         }
     }
     void ExprEntry::scrollDown(uint16_t len) {

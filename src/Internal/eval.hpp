@@ -231,7 +231,7 @@ namespace eval {
 	protected:
 		inline void rowSwap(uint8_t a, uint8_t b) {
 			for(uint8_t i = 0; i < n; i ++) {
-				swap(getEntry(a, i), getEntry(b, i));
+				util::swap(getEntry(a, i), getEntry(b, i));
 			}
 		}
 		inline void rowMult(uint8_t row, double scalar) {
@@ -269,21 +269,21 @@ namespace eval {
     };
 
 	// This will delete the collection of tokens properly. It will destory all tokens in the array.
-	void freeTokens(Deque<Token*> &q);
+	void freeTokens(util::Deque<Token*> &q);
     // This will delete the collection of tokens properly. It will destory all tokens in the array.
-	void freeTokens(DynamicArray<Token*> &q);
+	void freeTokens(util::DynamicArray<Token*> &q);
 	bool isDigit(char);
 	bool isNameChar(char);
 	char extractChar(const neda::NEDAObj*);
 	double extractDouble(const Token*);
 	int8_t compareTokens(const Token*, const Token*);
-	uint16_t findEquals(const DynamicArray<neda::NEDAObj*>&, bool forceVarName = true);
+	uint16_t findEquals(const util::DynamicArray<neda::NEDAObj*>&, bool forceVarName = true);
     int8_t isTruthy(const Token*);
-    DynamicArray<Token*> evaluateArgs(const DynamicArray<neda::NEDAObj*>& expr, 
+    util::DynamicArray<Token*> evaluateArgs(const util::DynamicArray<neda::NEDAObj*>& expr, 
             uint16_t varc, const Variable *vars, uint16_t funcc, const UserDefinedFunction *funcs, uint16_t start, uint16_t &end);
 
 	template <uint16_t Increase>
-	uint16_t findTokenEnd(const DynamicArray<neda::NEDAObj*, Increase> *arr, uint16_t start, int8_t direction, bool &isNum) {
+	uint16_t findTokenEnd(const util::DynamicArray<neda::NEDAObj*, Increase> *arr, uint16_t start, int8_t direction, bool &isNum) {
 		int16_t end = start;
 		for (; end < arr->length() && end >= 0; end += direction) {
 			char ch = extractChar((*arr)[end]);
@@ -307,10 +307,10 @@ namespace eval {
 		return end;
 	}
 	
-	Token* evaluate(const neda::Container*, const DynamicArray<Variable>&, const DynamicArray<UserDefinedFunction>&);
-	Token* evaluate(const DynamicArray<neda::NEDAObj*>&, const DynamicArray<Variable>&, const DynamicArray<UserDefinedFunction>&);
+	Token* evaluate(const neda::Container*, const util::DynamicArray<Variable>&, const util::DynamicArray<UserDefinedFunction>&);
+	Token* evaluate(const util::DynamicArray<neda::NEDAObj*>&, const util::DynamicArray<Variable>&, const util::DynamicArray<UserDefinedFunction>&);
     Token* evaluate(const neda::Container*, uint16_t, const Variable*, uint16_t, const UserDefinedFunction*);
-    Token* evaluate(const DynamicArray<neda::NEDAObj*>&, uint16_t, const Variable*, uint16_t, const UserDefinedFunction*);
+    Token* evaluate(const util::DynamicArray<neda::NEDAObj*>&, uint16_t, const Variable*, uint16_t, const UserDefinedFunction*);
 }
 
 #endif

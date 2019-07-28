@@ -77,7 +77,7 @@ namespace neda {
             exprHeight = EMPTY_EXPR_HEIGHT;
 		}
         else {
-            // The top spacing is the max of all the top spacings
+            // The top spacing is the util::max of all the top spacings
             topSpacing = 0;
             // The expression width is increased with each element
             exprWidth = 0;
@@ -86,15 +86,15 @@ namespace neda {
                 // Separate processing for regular characters vs expressions
                 if(ex->getType() == ObjType::CHAR_TYPE) {
                     auto charData = static_cast<Character*>(ex)->getCharData();
-                    // Take the maximum of the current max and the top spacing
-                    topSpacing = max(static_cast<uint16_t>(charData.height / 2), topSpacing);
+                    // Take the maximum of the current util::max and the top spacing
+                    topSpacing = util::max(static_cast<uint16_t>(charData.height / 2), topSpacing);
                     // Add the expression width to the total width
                     exprWidth += charData.width;
                 }
                 else {
                     Expr *expr = static_cast<Expr*>(ex);
-                    // Take the maximum of the current max and the top spacing
-                    topSpacing = max(static_cast<uint16_t>(SAFE_ACCESS_0(expr, topSpacing)), topSpacing);
+                    // Take the maximum of the current util::max and the top spacing
+                    topSpacing = util::max(static_cast<uint16_t>(SAFE_ACCESS_0(expr, topSpacing)), topSpacing);
                     // Add the expression width to the total width
                     exprWidth += SAFE_ACCESS_0(expr, exprWidth);
                 }
@@ -104,21 +104,21 @@ namespace neda {
             exprWidth += (contents.length() - 1) * EXPR_SPACING;
 
             // The expression height is computed separately as it requires the top spacing
-            // Computing the height takes special logic as it is more than just taking the max of all the children's heights.
-            // In the case of expressions such as 1^2+3_4, the height is greater than the max of all the children because the 
+            // Computing the height takes special logic as it is more than just taking the util::max of all the children's heights.
+            // In the case of expressions such as 1^2+3_4, the height is greater than the util::max of all the children because the 
             // 1 and 3 have to line up.
-            // Now with the max top spacing we can compute the heights and see what the max is
+            // Now with the util::max top spacing we can compute the heights and see what the util::max is
             exprHeight = 0;
             for(NEDAObj *ex : contents) {
-                // To calculate the height of any expression in this container, we essentially "replace" the top spacing with the max
+                // To calculate the height of any expression in this container, we essentially "replace" the top spacing with the util::max
                 // top spacing, so that there is now a padding on the top. This is done in the expression below.
-                // When that expression's top spacing is the max top spacing, the expression will be touching the top of the container.
-                // Therefore, its height is just the height. In other cases, it will be increased by the difference between the max top
+                // When that expression's top spacing is the util::max top spacing, the expression will be touching the top of the container.
+                // Therefore, its height is just the height. In other cases, it will be increased by the difference between the util::max top
                 // spacing and the top spacing.
                 uint16_t height = ex->getType() == ObjType::CHAR_TYPE ? 
                         ((Character*) ex)->getHeight() - ((Character*) ex)->getHeight() / 2 + topSpacing
                         : (SAFE_ACCESS_0((Expr*) ex, exprHeight) - SAFE_ACCESS_0((Expr*) ex, topSpacing)) + topSpacing;
-                exprHeight = max(height, exprHeight);
+                exprHeight = util::max(height, exprHeight);
             }
         }
 
@@ -148,10 +148,10 @@ namespace neda {
 			if(!ex) {
 				continue;
 			}
-			// For each expression, its top padding is the difference between the max top spacing and its top spacing.
-			// E.g. A tall expression like 1^2 would have a higher top spacing than 3, so the max top spacing would be its top spacing;
-			// So when drawing the 1^2, there is no difference between the max top spacing and the top spacing, and therefore it has
-			// no top padding. But when drawing the 3, the difference between its top spacing and the max creates a top padding.
+			// For each expression, its top padding is the difference between the util::max top spacing and its top spacing.
+			// E.g. A tall expression like 1^2 would have a higher top spacing than 3, so the util::max top spacing would be its top spacing;
+			// So when drawing the 1^2, there is no difference between the util::max top spacing and the top spacing, and therefore it has
+			// no top padding. But when drawing the 3, the difference between its top spacing and the util::max creates a top padding.
 			if(ex->getType() == ObjType::CHAR_TYPE) {
 				Character *ch = (Character*) ex;
 				ch->draw(dest, x, y + (topSpacing - ch->getHeight() / 2));
@@ -437,7 +437,7 @@ namespace neda {
         // Take the greater of the widths and add 2 for the spacing at the sides
 		uint16_t numeratorWidth = SAFE_ACCESS_0(numerator, exprWidth);
 		uint16_t denominatorWidth = SAFE_ACCESS_0(denominator, exprWidth);
-		exprWidth = max(numeratorWidth, denominatorWidth) + 2;
+		exprWidth = util::max(numeratorWidth, denominatorWidth) + 2;
 		// Take the sum of the heights and add 3 for the fraction line
         uint16_t numeratorHeight = SAFE_ACCESS_0(numerator, exprHeight);
 		uint16_t denominatorHeight = SAFE_ACCESS_0(denominator, exprHeight);
@@ -552,12 +552,12 @@ namespace neda {
 				if(ex->getType() == ObjType::CHAR_TYPE) {
 					auto charData = static_cast<Character*>(ex)->getCharData();
 
-                    topSpacing = max(topSpacing, static_cast<uint16_t>(charData.height / 2));
+                    topSpacing = util::max(topSpacing, static_cast<uint16_t>(charData.height / 2));
 				}
 				else {
                     Expr *expr = static_cast<Expr*>(ex);
 
-                    topSpacing = max(topSpacing, static_cast<uint16_t>(SAFE_ACCESS_0(expr, topSpacing)));
+                    topSpacing = util::max(topSpacing, static_cast<uint16_t>(SAFE_ACCESS_0(expr, topSpacing)));
 				}
 			}
 		}
@@ -586,12 +586,12 @@ namespace neda {
 				if(ex->getType() == ObjType::CHAR_TYPE) {
                     auto charData = static_cast<Character*>(ex)->getCharData();
                     
-                    exprHeight = max(exprHeight, static_cast<uint16_t>(charData.height - charData.height / 2 + topSpacing));
+                    exprHeight = util::max(exprHeight, static_cast<uint16_t>(charData.height - charData.height / 2 + topSpacing));
 				}
 				else {
                     Expr *expr = static_cast<Expr*>(ex);
 
-                    exprHeight = max(exprHeight, static_cast<uint16_t>(SAFE_ACCESS_0(expr, exprHeight) - SAFE_ACCESS_0(expr, topSpacing) + topSpacing));
+                    exprHeight = util::max(exprHeight, static_cast<uint16_t>(SAFE_ACCESS_0(expr, exprHeight) - SAFE_ACCESS_0(expr, topSpacing) + topSpacing));
 				}
 			}
 		}
@@ -664,12 +664,12 @@ namespace neda {
 				if(ex->getType() == ObjType::CHAR_TYPE) {
 					auto charData = static_cast<Character*>(ex)->getCharData();
 
-                    topSpacing = max(topSpacing, static_cast<uint16_t>(charData.height / 2));
+                    topSpacing = util::max(topSpacing, static_cast<uint16_t>(charData.height / 2));
 				}
 				else {
                     Expr *expr = static_cast<Expr*>(ex);
 
-                    topSpacing = max(topSpacing, static_cast<uint16_t>(SAFE_ACCESS_0(expr, topSpacing)));
+                    topSpacing = util::max(topSpacing, static_cast<uint16_t>(SAFE_ACCESS_0(expr, topSpacing)));
 				}
 			}
 		}
@@ -699,12 +699,12 @@ namespace neda {
 				if(ex->getType() == ObjType::CHAR_TYPE) {
                     auto charData = static_cast<Character*>(ex)->getCharData();
                     
-                    exprHeight = max(exprHeight, static_cast<uint16_t>(charData.height - charData.height / 2 + topSpacing));
+                    exprHeight = util::max(exprHeight, static_cast<uint16_t>(charData.height - charData.height / 2 + topSpacing));
 				}
 				else {
                     Expr *expr = static_cast<Expr*>(ex);
 
-                    exprHeight = max(exprHeight, static_cast<uint16_t>(SAFE_ACCESS_0(expr, exprHeight) - SAFE_ACCESS_0(expr, topSpacing) + topSpacing));
+                    exprHeight = util::max(exprHeight, static_cast<uint16_t>(SAFE_ACCESS_0(expr, exprHeight) - SAFE_ACCESS_0(expr, topSpacing) + topSpacing));
 				}
 			}
 		}
@@ -758,11 +758,11 @@ namespace neda {
         else {
             // Additional height added by the base of the radical.
             // It's either the height of the base minus the overlap or 0 in the case that the base is short.
-            uint16_t additionalHeight = max(0, n->exprHeight - CONTENTS_N_OVERLAP);
+            uint16_t additionalHeight = util::max(0, n->exprHeight - CONTENTS_N_OVERLAP);
             topSpacing = SAFE_ACCESS_0(contents, topSpacing) + 2 + additionalHeight;
             exprHeight = SAFE_ACCESS_0(contents, exprHeight) + 2 + additionalHeight;
             // The width is also the contents width plus the width of the base
-            exprWidth =  SAFE_ACCESS_0(contents, exprWidth) + 8 + max(0, n->exprWidth - SIGN_N_OVERLAP);
+            exprWidth =  SAFE_ACCESS_0(contents, exprWidth) + 8 + util::max(0, n->exprWidth - SIGN_N_OVERLAP);
         }
 
         SAFE_EXEC(parent, computeDimensions);
@@ -781,8 +781,8 @@ namespace neda {
 		}
 		else {
 			n->draw(dest, x, y);
-			uint16_t xoffset = max(0, n->exprWidth - SIGN_N_OVERLAP);
-			uint16_t yoffset = max(0, n->exprHeight - CONTENTS_N_OVERLAP);
+			uint16_t xoffset = util::max(0, n->exprWidth - SIGN_N_OVERLAP);
+			uint16_t yoffset = util::max(0, n->exprHeight - CONTENTS_N_OVERLAP);
 			dest.drawLine(x + xoffset, y + exprHeight - 1 - 2, x + 2 + xoffset, y + exprHeight - 1);
 			dest.drawLine(x + 2 + xoffset, y + exprHeight - 1, x + 6 + xoffset, y + yoffset);
 			dest.drawLine(x + 6 + xoffset, y + yoffset, x + exprWidth - 1, y + yoffset);
@@ -990,19 +990,19 @@ namespace neda {
 		uint16_t a = SAFE_ACCESS_0(finish, exprHeight) + 2 + CONTENT_SYMBOL_OVERLAP 
 				- (Container::EMPTY_EXPR_HEIGHT / 2);
 		uint16_t b = SAFE_ACCESS_0(contents, topSpacing);
-		topSpacing = max(a, b);
+		topSpacing = util::max(a, b);
 
         // The width is split into two parts: the width of the conditions and symbol, and the width of the contents.
         // The first part is just the maximum of the three.
         uint16_t topWidth = SAFE_ACCESS_0(finish, exprWidth);
 		uint16_t bottomWidth = SAFE_ACCESS_0(start, exprWidth);
-		exprWidth = max(symbol.width, max(topWidth, bottomWidth)) + 3 + SAFE_ACCESS_0(contents, exprWidth);
+		exprWidth = util::max(symbol.width, util::max(topWidth, bottomWidth)) + 3 + SAFE_ACCESS_0(contents, exprWidth);
 
         // Logic here is similar to that of Container
         uint16_t symbolHeight = SAFE_ACCESS_0(finish, exprHeight) + 2 + symbol.height + 2 + SAFE_ACCESS_0(start, exprHeight)
 				+ topSpacing - a;
 		uint16_t bodyHeight = SAFE_ACCESS_0(contents, exprHeight) + topSpacing - b;
-		exprHeight = max(symbolHeight, bodyHeight);
+		exprHeight = util::max(symbolHeight, bodyHeight);
 
         SAFE_EXEC(parent, computeDimensions);
     }
@@ -1025,7 +1025,7 @@ namespace neda {
 		uint16_t contentsYOffset = topSpacing - b;
 
 		// Center the top, the bottom and the symbol
-		uint16_t widest = max(start->exprWidth, max(finish->exprWidth, symbol.width));
+		uint16_t widest = util::max(start->exprWidth, util::max(finish->exprWidth, symbol.width));
 		finish->draw(dest, x + (widest - finish->exprWidth) / 2, y + symbolYOffset);
 		dest.drawImage(x + (widest - symbol.width) / 2, y + finish->exprHeight + 2 + symbolYOffset, symbol);
 		start->draw(dest, x + (widest - start->exprWidth) / 2, y + finish->exprHeight + 2 + symbol.height + 2 + symbolYOffset);
@@ -1112,21 +1112,21 @@ namespace neda {
 	uint16_t Matrix::rowTopSpacing_0(uint8_t row) {
 		uint16_t rowMax = 0;
 		for(uint8_t j = 0; j < n; j ++) {
-			rowMax = max(rowMax, static_cast<uint16_t>(SAFE_ACCESS_0(contents[index_0(j, row)], topSpacing)));
+			rowMax = util::max(rowMax, static_cast<uint16_t>(SAFE_ACCESS_0(contents[index_0(j, row)], topSpacing)));
 		}
 		return rowMax;
 	}
 	uint16_t Matrix::rowHeight_0(uint8_t row) {
 		uint16_t rowMax = 0;
 		for(uint8_t j = 0; j < n; j ++) {
-			rowMax = max(rowMax, static_cast<uint16_t>(SAFE_ACCESS_0(contents[index_0(j, row)], exprHeight)));
+			rowMax = util::max(rowMax, static_cast<uint16_t>(SAFE_ACCESS_0(contents[index_0(j, row)], exprHeight)));
 		}
 		return rowMax;
 	}
 	uint16_t Matrix::colWidth_0(uint8_t col) {
 		uint16_t colMax = 0;
 		for(uint8_t j = 0; j < m; j ++) {
-			colMax = max(colMax, static_cast<uint16_t>(SAFE_ACCESS_0(contents[index_0(col, j)], exprWidth)));
+			colMax = util::max(colMax, static_cast<uint16_t>(SAFE_ACCESS_0(contents[index_0(col, j)], exprWidth)));
 		}
 		return colMax;
 	}
@@ -1157,7 +1157,7 @@ namespace neda {
         
         exprHeight = 0;
 		for(uint8_t i = 0; i < m; i ++) {
-			// For every row find the max height
+			// For every row find the util::max height
 			exprHeight += rowHeight_0(i);
 		}
 		exprHeight += (m - 1) * ENTRY_SPACING;
@@ -1332,7 +1332,7 @@ loopEnd:
         // Go through every row in the top half
 		topSpacing = 0;
 		for(uint8_t i = 0; i < pieces / 2; i ++) {
-			topSpacing += max(SAFE_ACCESS_0(values[i], exprHeight), SAFE_ACCESS_0(conditions[i], exprHeight));
+			topSpacing += util::max(SAFE_ACCESS_0(values[i], exprHeight), SAFE_ACCESS_0(conditions[i], exprHeight));
 		}
 		// Add edge spacing (top)
 		topSpacing += TOP_SPACING;
@@ -1350,20 +1350,20 @@ loopEnd:
 			// Add spacing between rows
 			topSpacing += pieces / 2 * ROW_SPACING;
 			// Add the top spacing of the middle row
-			topSpacing += max(SAFE_ACCESS_0(values[pieces / 2], topSpacing), SAFE_ACCESS_0(conditions[pieces / 2], topSpacing));
+			topSpacing += util::max(SAFE_ACCESS_0(values[pieces / 2], topSpacing), SAFE_ACCESS_0(conditions[pieces / 2], topSpacing));
 		}
 
         uint16_t widestValue = 0;
         uint16_t widestCondition = 0;
         for(uint8_t i = 0; i < pieces; i ++) {
-            widestValue = max(widestValue, static_cast<uint16_t>(SAFE_ACCESS_0(values[i], exprWidth)));
-            widestCondition = max(widestCondition, static_cast<uint16_t>(SAFE_ACCESS_0(conditions[i], exprWidth)));
+            widestValue = util::max(widestValue, static_cast<uint16_t>(SAFE_ACCESS_0(values[i], exprWidth)));
+            widestCondition = util::max(widestCondition, static_cast<uint16_t>(SAFE_ACCESS_0(conditions[i], exprWidth)));
         }
         exprWidth = widestValue + widestCondition + LEFT_SPACING + VALUE_CONDITION_SPACING;
 
         exprHeight = TOP_SPACING + TOP_SPACING + (pieces - 1) * ROW_SPACING;
         for(uint8_t i = 0; i < pieces; i ++) {
-            exprHeight += max(SAFE_ACCESS_0(values[i], exprHeight), SAFE_ACCESS_0(conditions[i], exprHeight));
+            exprHeight += util::max(SAFE_ACCESS_0(values[i], exprHeight), SAFE_ACCESS_0(conditions[i], exprHeight));
         }
 
         SAFE_EXEC(parent, computeDimensions);
@@ -1376,7 +1376,7 @@ loopEnd:
 		// Draw contents first
 		uint16_t maxValueWidth = 0;
         for(uint8_t i = 0; i < pieces; i ++) {
-            maxValueWidth = max(maxValueWidth, static_cast<uint16_t>(SAFE_ACCESS_0(values[i], exprWidth)));
+            maxValueWidth = util::max(maxValueWidth, static_cast<uint16_t>(SAFE_ACCESS_0(values[i], exprWidth)));
         }
 
 		// Go row-by-row
@@ -1385,12 +1385,12 @@ loopEnd:
             if(values[i] && conditions[i]) {
                 uint16_t valueTopSpacing = values[i]->topSpacing;
                 uint16_t conditionTopSpacing = conditions[i]->topSpacing;
-                uint16_t maxTopSpacing = max(valueTopSpacing, conditionTopSpacing);
+                uint16_t maxTopSpacing = util::max(valueTopSpacing, conditionTopSpacing);
 
                 values[i]->draw(dest, x + LEFT_SPACING, exprY + (maxTopSpacing - valueTopSpacing));
                 conditions[i]->draw(dest, x + LEFT_SPACING + maxValueWidth + VALUE_CONDITION_SPACING, exprY + (maxTopSpacing - conditionTopSpacing));
 
-                exprY += max(values[i]->exprHeight, conditions[i]->exprHeight) + ROW_SPACING;
+                exprY += util::max(values[i]->exprHeight, conditions[i]->exprHeight) + ROW_SPACING;
             }
 		}
 

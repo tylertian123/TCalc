@@ -213,7 +213,7 @@ extern "C" void TIM3_IRQHandler() {
 			
 			display.drawString(GAME_FIELD_X_MAX * 2 + 2, 1, "Score");
 			char buf[10];
-			ltoa(gameScore, buf);
+			util::ltoa(gameScore, buf);
 			display.drawString(GAME_FIELD_X_MAX * 2 + 2, 12, buf);
 
 			if(gamePaused) {
@@ -247,7 +247,7 @@ void drawResult(uint8_t id, bool resetLocation = true) {
 		double decimalResult = ((eval::Fraction*) evalResult)->doubleVal();
 		delete evalResult;
 		char buf[64];
-		ftoa(decimalResult, buf, mainExprEntry.resultSignificantDigits, LCD_CHAR_EE);
+		util::ftoa(decimalResult, buf, mainExprEntry.resultSignificantDigits, LCD_CHAR_EE);
 		result->addString(buf);
 	}
 	else {
@@ -487,7 +487,7 @@ void evaluateExpr(neda::Container *expr) {
                 uint16_t argStart = i + 1;
                 uint16_t argEnd = i + 1;
                 uint16_t argc = 0;
-                DynamicArray<char*> argNames;
+                util::DynamicArray<char*> argNames;
 
                 // Find the closing bracket
                 uint16_t end = argStart;
@@ -529,7 +529,7 @@ void evaluateExpr(neda::Container *expr) {
                     }
                     else {
                         // Now we should have all the arguments
-                        // Make a new array with the argument names since the DynamicArray's contents will be automatically freed
+                        // Make a new array with the argument names since the util::DynamicArray's contents will be automatically freed
                         char **argn = new char*[argc];
                         // memcpy it in
                         // Make sure the size is multiplied by the sizeof a char*
@@ -552,7 +552,7 @@ void evaluateExpr(neda::Container *expr) {
             }
             else {
                 // Evaluate
-                DynamicArray<neda::NEDAObj*> val = DynamicArray<neda::NEDAObj*>::createConstRef(expr->contents.begin() + equalsIndex + 1, expr->contents.end());
+                util::DynamicArray<neda::NEDAObj*> val = util::DynamicArray<neda::NEDAObj*>::createConstRef(expr->contents.begin() + equalsIndex + 1, expr->contents.end());
                 result = eval::evaluate(val, expr::variables, expr::functions);
 
                 // If result is valid, add the variable
@@ -596,7 +596,7 @@ void evaluateExpr(neda::Container *expr) {
             else {
                 char buf[64];
                 // Convert the result and store it
-                ftoa(((eval::Number*) result)->value, buf, mainExprEntry.resultSignificantDigits, LCD_CHAR_EE);
+                util::ftoa(((eval::Number*) result)->value, buf, mainExprEntry.resultSignificantDigits, LCD_CHAR_EE);
                 calcResults[0]->addString(buf);
             }
         }
@@ -610,9 +610,9 @@ void evaluateExpr(neda::Container *expr) {
                 calcResults[0]->add(new neda::Character('-'));
             }
 
-            ltoa(labs(((eval::Fraction*) result)->num), buf);
+            util::ltoa(labs(((eval::Fraction*) result)->num), buf);
             num->addString(buf);
-            ltoa(((eval::Fraction*) result)->denom, buf);
+            util::ltoa(((eval::Fraction*) result)->denom, buf);
             denom->addString(buf);
 
             calcResults[0]->add(new neda::Fraction(num, denom));
@@ -629,7 +629,7 @@ void evaluateExpr(neda::Container *expr) {
                 neda::Container *cont = new neda::Container();
                 nMat->contents[i] = cont;
                 // Convert the number
-                ftoa(mat->contents[i], buf, mainExprEntry.resultSignificantDigits, LCD_CHAR_EE);
+                util::ftoa(mat->contents[i], buf, mainExprEntry.resultSignificantDigits, LCD_CHAR_EE);
                 cont->addString(buf);
             }
             nMat->computeDimensions();

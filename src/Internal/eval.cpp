@@ -122,11 +122,11 @@ namespace eval {
 		double e = other.doubleVal();
 		double n = ::pow(num, e);
 		// Check if the numerator and denominator are still ints
-		if(!isInt(n)) {
+		if(!util::isInt(n)) {
 			return false;
 		}
 		double d = ::pow(denom, e);
-		if(!isInt(d)) {
+		if(!util::isInt(d)) {
 			return false;
 		}
 
@@ -514,10 +514,10 @@ namespace eval {
 			return pow(lhs, rhs);
 
 		case Type::EQUALITY:
-			return floatEq(lhs, rhs);
+			return util::floatEq(lhs, rhs);
         
         case Type::NOT_EQUAL:
-            return !floatEq(lhs, rhs);
+            return !util::floatEq(lhs, rhs);
 
         case Type::GT:
             return lhs > rhs;
@@ -526,10 +526,10 @@ namespace eval {
             return lhs < rhs;
 
         case Type::GTEQ:
-            return lhs > rhs || floatEq(lhs, rhs);
+            return lhs > rhs || util::floatEq(lhs, rhs);
 
         case Type::LTEQ:
-            return lhs < rhs || floatEq(lhs, rhs);
+            return lhs < rhs || util::floatEq(lhs, rhs);
 
         case Type::AND:
         {
@@ -615,7 +615,7 @@ namespace eval {
 		if(lType == TokenType::NUMBER && rType == TokenType::NUMBER) {
 			// Special case for division: if the operands are whole numbers, create a fraction if auto fractions is on
 			if(autoFractions && (type == Operator::Type::DIVIDE || type == Operator::Type::SP_DIV) && 
-                    isInt(((Number*) lhs)->value) && isInt(((Number*) rhs)->value)) {
+                    util::isInt(((Number*) lhs)->value) && util::isInt(((Number*) rhs)->value)) {
 				auto n = static_cast<int64_t>(((Number*) lhs)->value);
 				auto d = static_cast<int64_t>(((Number*) rhs)->value);
 				// See if the division yields a whole number
@@ -669,7 +669,7 @@ namespace eval {
 		// One fraction: fraction operation if the other one is integer, normal operation if not
 		else if(lType == TokenType::FRACTION && rType == TokenType::NUMBER) {
 			// Test if rhs is integer
-			if(isInt(((Number*) rhs)->value)) {
+			if(util::isInt(((Number*) rhs)->value)) {
                 // This operation is not guaranteed to succeed
 				Fraction rhsFrac((int64_t) ((Number*) rhs)->value, 1);
 				bool success = operateOn((Fraction*) lhs, &rhsFrac);
@@ -697,7 +697,7 @@ namespace eval {
 		}
 		// One fraction: fraction operation if the other one is integer, normal operation if not
 		else if(lType == TokenType::NUMBER && rType == TokenType::FRACTION) {
-			if(isInt(((Number*) lhs)->value)) {
+			if(util::isInt(((Number*) lhs)->value)) {
 				// This operation is not guaranteed to succeed
 				// Construct fraction since it's not going to be temporary if this operation succeeds
 				Fraction *lhsFrac = new Fraction((int64_t) ((Number*) lhs)->value, 1);
@@ -768,7 +768,7 @@ convertToDoubleAndOperate:
                 }
                 bool equal = true;
                 for(uint16_t i = 0; i < lMat->m * lMat->n; i ++) {
-                    if(!floatEq((*lMat)[i], (*rMat)[i])) {
+                    if(!util::floatEq((*lMat)[i], (*rMat)[i])) {
                         equal = false;
                         break;
                     }
@@ -784,7 +784,7 @@ convertToDoubleAndOperate:
                 }
                 bool equal = true;
                 for(uint16_t i = 0; i < lMat->m * lMat->n; i ++) {
-                    if(!floatEq((*lMat)[i], (*rMat)[i])) {
+                    if(!util::floatEq((*lMat)[i], (*rMat)[i])) {
                         equal = false;
                         break;
                     }
@@ -915,7 +915,7 @@ convertToDoubleAndOperate:
         {
             double x = extractDouble(t);
             delete t;
-			if(!isInt(x) || x < 0) {
+			if(!util::isInt(x) || x < 0) {
 				return new Number(NAN);
 			}
 			double d = 1;
@@ -1064,10 +1064,10 @@ convertToDoubleAndOperate:
 		}
 		case Type::ROUND:
 		{
-			if(!isInt(extractDouble(args[1]))) {
+			if(!util::isInt(extractDouble(args[1]))) {
 				return new Number(NAN);
 			}
-			return new Number(round(extractDouble(args[0]), extractDouble(args[1])));
+			return new Number(util::round(extractDouble(args[0]), extractDouble(args[1])));
 		}
 		case Type::DET:
 		{
@@ -1228,7 +1228,7 @@ convertToDoubleAndOperate:
 		double bVal = extractDouble(b);
 		return aVal > bVal ? 1 : bVal > aVal ? -1 : 0;
 	}
-	uint16_t findEquals(const DynamicArray<neda::NEDAObj*> &arr, bool forceVarName) {
+	uint16_t findEquals(const util::DynamicArray<neda::NEDAObj*> &arr, bool forceVarName) {
 		uint16_t equalsIndex = 0;
 		bool validName = true;
 		for(; equalsIndex < arr.length(); ++equalsIndex) {
@@ -1290,7 +1290,7 @@ convertToDoubleAndOperate:
         return v == 0 ? 0 : 1;
     }
     // This will delete the collection of tokens properly. It will destory all tokens in the array.
-	void freeTokens(Deque<Token*> &q) {
+	void freeTokens(util::Deque<Token*> &q) {
 		while (!q.isEmpty()) {
 			Token *t = q.dequeue();
 			if (t->getType() == TokenType::MATRIX || t->getType() == TokenType::NUMBER || t->getType() == TokenType::FRACTION || t->getType() == TokenType::FUNCTION) {
@@ -1299,7 +1299,7 @@ convertToDoubleAndOperate:
 		}
 	}
     // This will delete the collection of tokens properly. It will destory all tokens in the array.
-	void freeTokens(DynamicArray<Token*> &q) {
+	void freeTokens(util::DynamicArray<Token*> &q) {
 		for(Token *t : q) {
 			if (t->getType() == TokenType::MATRIX || t->getType() == TokenType::NUMBER || t->getType() == TokenType::FRACTION || t->getType() == TokenType::FUNCTION) {
 				delete t;
@@ -1317,14 +1317,14 @@ convertToDoubleAndOperate:
      * start - Where to start evaluating. This should be the index of the left bracket marking the beginning of the arguments list.
      * end *(out)* - A uint16_t reference which will be set to the index of the right bracket marking the end of the arguments list.
      * 
-     * If there is a syntax error in the arguments list, this function will return an empty DynamicArray<Token*>.
+     * If there is a syntax error in the arguments list, this function will return an empty util::DynamicArray<Token*>.
      */
-    DynamicArray<Token*> evaluateArgs(const DynamicArray<neda::NEDAObj*>& expr, 
+    util::DynamicArray<Token*> evaluateArgs(const util::DynamicArray<neda::NEDAObj*>& expr, 
             uint16_t varc, const Variable *vars, uint16_t funcc, const UserDefinedFunction *funcs, uint16_t start, uint16_t &end) {
         
         // Args must start with a left bracket
         if(start < expr.length() && expr[start]->getType() != neda::ObjType::L_BRACKET) {
-            return DynamicArray<Token*>();
+            return util::DynamicArray<Token*>();
         }
         uint16_t nesting = 0;
         for(end = start; end < expr.length(); end ++) {
@@ -1342,10 +1342,10 @@ convertToDoubleAndOperate:
 		
         if(nesting != 0) {
             // Mismatched brackets
-            return DynamicArray<Token*>();
+            return util::DynamicArray<Token*>();
         }
 		
-        DynamicArray<Token*> args;
+        util::DynamicArray<Token*> args;
         // Increment to skip the first left bracket
         start ++;
         uint16_t argEnd = start;
@@ -1363,7 +1363,7 @@ convertToDoubleAndOperate:
                     // Thus if nesting ever reaches a level less than zero, there are mismatched parentheses
                     if(!nesting) {
                         freeTokens(args);
-                        return DynamicArray<Token*>();
+                        return util::DynamicArray<Token*>();
                     }
                     // Decrease nesting since we now know it's nonzero
                     --nesting;
@@ -1377,13 +1377,13 @@ convertToDoubleAndOperate:
             }
 
             // Isolate the argument's contents
-            const DynamicArray<neda::NEDAObj*> argContents = 
-                    DynamicArray<neda::NEDAObj*>::createConstRef(expr.begin() + start, expr.begin() + argEnd);
+            const util::DynamicArray<neda::NEDAObj*> argContents = 
+                    util::DynamicArray<neda::NEDAObj*>::createConstRef(expr.begin() + start, expr.begin() + argEnd);
             Token *arg = evaluate(argContents, varc, vars, funcc, funcs);
             // Syntax error
             if(!arg) {
                 freeTokens(args);
-                return DynamicArray<Token*>();
+                return util::DynamicArray<Token*>();
             }
             args.add(arg);
 
@@ -1397,7 +1397,7 @@ convertToDoubleAndOperate:
     }
 
 	// Overloaded instance of the other evaluate() for convenience. Works directly on neda::Containers.
-	Token* evaluate(const neda::Container *expr, const DynamicArray<Variable> &vars, const DynamicArray<UserDefinedFunction> &funcs) {
+	Token* evaluate(const neda::Container *expr, const util::DynamicArray<Variable> &vars, const util::DynamicArray<UserDefinedFunction> &funcs) {
 		return evaluate(expr->contents, vars.length(), vars.asArray(), funcs.length(), funcs.asArray());
 	}
 	/*
@@ -1405,11 +1405,11 @@ convertToDoubleAndOperate:
 	 * Returns nullptr on syntax errors
 	 * 
 	 * Parameters:
-	 * expr - a reference to a DynamicArray of neda::NEDAObjs representing an expression
-	 * vars - a reference to a DynamicArray of Variables representing all user-defined variables
-     * funcs - a reference to a DynamicArray of UserDefinedFunctions representing all user-defined functions
+	 * expr - a reference to a util::DynamicArray of neda::NEDAObjs representing an expression
+	 * vars - a reference to a util::DynamicArray of Variables representing all user-defined variables
+     * funcs - a reference to a util::DynamicArray of UserDefinedFunctions representing all user-defined functions
 	 */
-    Token* evaluate(const DynamicArray<neda::NEDAObj*> &expr, const DynamicArray<Variable> &vars, const DynamicArray<UserDefinedFunction> &funcs) {
+    Token* evaluate(const util::DynamicArray<neda::NEDAObj*> &expr, const util::DynamicArray<Variable> &vars, const util::DynamicArray<UserDefinedFunction> &funcs) {
         return evaluate(expr, vars.length(), vars.asArray(), funcs.length(), funcs.asArray());
     }
     // Overloaded instance of the other evaluate() for convenience. Works directly on neda::Containers.
@@ -1425,13 +1425,13 @@ convertToDoubleAndOperate:
 	 * Returns nullptr on syntax errors
 	 * 
 	 * Parameters:
-	 * exprs - a reference to a DynamicArray of neda::NEDAObjs representing an expression
+	 * exprs - a reference to a util::DynamicArray of neda::NEDAObjs representing an expression
      * varc - the number of user-defined variables
 	 * vars - an array containing all user-defined variables
      * funcc - the number of user-defined functions
      * funcs - an array containing all user-defined functions
 	 */
-	Token* evaluate(const DynamicArray<neda::NEDAObj*> &exprs, uint16_t varc, const Variable *vars, uint16_t funcc, const UserDefinedFunction *funcs) {
+	Token* evaluate(const util::DynamicArray<neda::NEDAObj*> &exprs, uint16_t varc, const Variable *vars, uint16_t funcc, const UserDefinedFunction *funcs) {
 		// This function first parses the NEDA expression to convert it into eval tokens
 		// It then converts the infix notation to postfix with shunting-yard
 		// And finally evaluates it and returns the result
@@ -1442,7 +1442,7 @@ convertToDoubleAndOperate:
         }
 
 		// This dynamic array holds the result of the first stage (basic parsing)
-		DynamicArray<Token*> arr;
+		util::DynamicArray<Token*> arr;
 		uint16_t index = 0;
 		// This variable keeps track of whether the last token was an operator
 		bool lastTokenOperator = true;
@@ -1481,8 +1481,8 @@ convertToDoubleAndOperate:
 					return nullptr;
 				}
 				// Construct a new array of NEDA objects that includes all object inside the brackets (but not the brackets themselves!)
-				const DynamicArray<neda::NEDAObj*> inside = 
-                        DynamicArray<neda::NEDAObj*>::createConstRef(exprs.begin() + index + 1, exprs.begin() + endIndex);
+				const util::DynamicArray<neda::NEDAObj*> inside = 
+                        util::DynamicArray<neda::NEDAObj*>::createConstRef(exprs.begin() + index + 1, exprs.begin() + endIndex);
 				// Recursively calculate the content inside
 				Token *insideResult = evaluate(inside, varc, vars, funcc, funcs);
 				// If syntax error inside bracket, clean up and return null
@@ -1696,7 +1696,7 @@ convertToDoubleAndOperate:
                     Token *res = evaluate(static_cast<neda::Container*>(static_cast<neda::Superscript*>(exprs[end])->contents), varc, vars, funcc, funcs);
                     // Check for syntax errors, noninteger result, and out of bounds
                     double n;
-                    if(!res || res->getType() == TokenType::MATRIX || (n = extractDouble(res), !isInt(n)) || n <= 0 || n > 255) {
+                    if(!res || res->getType() == TokenType::MATRIX || (n = extractDouble(res), !util::isInt(n)) || n <= 0 || n > 255) {
                         delete res;
                         delete[] str;
                         freeTokens(arr);
@@ -1970,8 +1970,8 @@ evaluateFunc:
 					return nullptr;
 				}
 				// Attempt to evaluate the starting condition assign value
-				const DynamicArray<neda::NEDAObj*> startVal = 
-                        DynamicArray<neda::NEDAObj*>::createConstRef(startContents.begin() + equalsIndex + 1, startContents.end());
+				const util::DynamicArray<neda::NEDAObj*> startVal = 
+                        util::DynamicArray<neda::NEDAObj*>::createConstRef(startContents.begin() + equalsIndex + 1, startContents.end());
 				Token *start = evaluate(startVal, varc, vars, funcc, funcs);
 				// Check for syntax error
 				if(!start) {
@@ -2241,14 +2241,14 @@ constructMatrixFromVectors:
                 if(commaIndex == contents.length()) {
                     Token *t = evaluate(contents, varc, vars, funcc, funcs);
                     // Check for syntax errors in expression, or noninteger result
-                    if(!t || t->getType() == TokenType::MATRIX || !isInt(extractDouble(t))) {
+                    if(!t || t->getType() == TokenType::MATRIX || !util::isInt(extractDouble(t))) {
                         delete t;
                         freeTokens(arr);
                         return nullptr;
                     }
 
                     double d = extractDouble(t);
-                    if(!canCastProperly<double, uint8_t>(d - 1)) {
+                    if(!util::canCastProperly<double, uint8_t>(d - 1)) {
                         freeTokens(arr);
                         delete t;
                         return nullptr;
@@ -2276,14 +2276,14 @@ constructMatrixFromVectors:
                     }
                 }
                 else {
-                    const DynamicArray<neda::NEDAObj*> rowExpr = 
-                            DynamicArray<neda::NEDAObj*>::createConstRef(contents.begin(), contents.begin() + commaIndex);
-                    const DynamicArray<neda::NEDAObj*> colExpr = 
-                            DynamicArray<neda::NEDAObj*>::createConstRef(contents.begin() + commaIndex + 1, contents.end());
+                    const util::DynamicArray<neda::NEDAObj*> rowExpr = 
+                            util::DynamicArray<neda::NEDAObj*>::createConstRef(contents.begin(), contents.begin() + commaIndex);
+                    const util::DynamicArray<neda::NEDAObj*> colExpr = 
+                            util::DynamicArray<neda::NEDAObj*>::createConstRef(contents.begin() + commaIndex + 1, contents.end());
                     
                     Token *row = evaluate(rowExpr, varc, vars, funcc, funcs);
                     // Check for syntax errors in expression, or noninteger result
-                    if(!row || row->getType() == TokenType::MATRIX || !isInt(extractDouble(row))) {
+                    if(!row || row->getType() == TokenType::MATRIX || !util::isInt(extractDouble(row))) {
                         // Wildcard syntax
                         if(rowExpr.length() == 1 && extractChar(rowExpr[0]) == '*') {
                             row = nullptr;
@@ -2295,7 +2295,7 @@ constructMatrixFromVectors:
                         }
                     }
                     Token *col = evaluate(colExpr, varc, vars, funcc, funcs);
-                    if(!col || col->getType() == TokenType::MATRIX || !isInt(extractDouble(col))) {
+                    if(!col || col->getType() == TokenType::MATRIX || !util::isInt(extractDouble(col))) {
                         // Wildcard syntax
                         if(colExpr.length() == 1 && extractChar(colExpr[0]) == '*') {
                             col = nullptr;
@@ -2313,7 +2313,7 @@ constructMatrixFromVectors:
                     if(row && !col) {
                         // Verify cast into uint8_t
                         double drow = extractDouble(row);
-                        if(!canCastProperly<double, uint8_t>(drow - 1)) {
+                        if(!util::canCastProperly<double, uint8_t>(drow - 1)) {
                             delete row;
                             freeTokens(arr);
                             return nullptr;
@@ -2332,7 +2332,7 @@ constructMatrixFromVectors:
                     // Take column vector
                     else if(col && !row) {
                         double dcol = extractDouble(col);
-                        if(!canCastProperly<double, uint8_t>(dcol - 1)) {
+                        if(!util::canCastProperly<double, uint8_t>(dcol - 1)) {
                             delete col;
                             freeTokens(arr);
                             return nullptr;
@@ -2355,7 +2355,7 @@ constructMatrixFromVectors:
                         double drow = extractDouble(row);
                         double dcol = extractDouble(col);
                         // Verify that the indices can be properly casted into uint8_ts
-                        if(!canCastProperly<double, uint8_t>(drow - 1) || !canCastProperly<double, uint8_t>(dcol - 1)) {
+                        if(!util::canCastProperly<double, uint8_t>(drow - 1) || !util::canCastProperly<double, uint8_t>(dcol - 1)) {
                             delete row;
                             delete col;
                             freeTokens(arr);
@@ -2403,11 +2403,11 @@ constructMatrixFromVectors:
                 }
 
                 if(t->getType() == TokenType::NUMBER) {
-                    static_cast<Number*>(t)->value = abs(static_cast<Number*>(t)->value);
+                    static_cast<Number*>(t)->value = util::abs(static_cast<Number*>(t)->value);
                     arr.add(t);
                 }
                 else if(t->getType() == TokenType::FRACTION) {
-                    static_cast<Fraction*>(t)->num = abs(static_cast<Fraction*>(t)->num);
+                    static_cast<Fraction*>(t)->num = util::abs(static_cast<Fraction*>(t)->num);
                     arr.add(t);
                 }
                 else {
@@ -2426,8 +2426,8 @@ constructMatrixFromVectors:
 
 		// After that, we should be left with an expression with nothing but numbers, fractions and basic operators
 		// Use shunting yard
-		Deque<Token*> output(arr.length());
-		Deque<Token*> stack;
+		util::Deque<Token*> output(arr.length());
+		util::Deque<Token*> stack;
 		for(Token *t : arr) {
 			// If token is a number, fraction or matrix, put it in the queue
 			if(t->getType() == TokenType::NUMBER || t->getType() == TokenType::FRACTION || t->getType() == TokenType::MATRIX) {

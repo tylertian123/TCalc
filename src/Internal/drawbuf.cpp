@@ -43,8 +43,8 @@ namespace lcd {
 		}
 
         // Calculate the byte and the offset the image starts in
-		int16_t baseByte = floorDiv(x, static_cast<int16_t>(8));
-		int8_t offset = positiveMod(x, static_cast<int16_t>(8));
+		int16_t baseByte = util::floorDiv(x, static_cast<int16_t>(8));
+		int8_t offset = util::positiveMod(x, static_cast<int16_t>(8));
 		for(int16_t row = 0; row < img.height; row ++) {
 			// If the byte we're drawing into is out of bounds vertically then break this outer loop
 			if(row + y >= 64) {
@@ -165,7 +165,7 @@ namespace lcd {
 	}
 
     void DrawBuf::drawLine(int16_t x1, int16_t y1, int16_t x2, int16_t y2, bool invert) {
-		if (abs(y2 - y1) <= abs(x2 - x1)) {
+		if (util::abs(y2 - y1) <= util::abs(x2 - x1)) {
 			if (x2 > x1) {
 				drawLineLow(x1, y1, x2, y2, invert);
 			}
@@ -193,7 +193,7 @@ namespace lcd {
 		for(uint16_t index = 0; str[index] != '\0'; ++index) {
 			const Image &img = getChar(str[index]);
 			width += img.width + 1;
-			height = max(height, img.height);
+			height = util::max(height, img.height);
 		}
 		// Subtract away one extra spacing
 		--width;
@@ -243,8 +243,8 @@ namespace lcd {
 			return;
 		}
 
-		int8_t baseByte = floorDiv(x, static_cast<int16_t>(8));
-		int8_t offset = positiveMod(x, static_cast<int16_t>(8));
+		int8_t baseByte = util::floorDiv(x, static_cast<int16_t>(8));
+		int8_t offset = util::positiveMod(x, static_cast<int16_t>(8));
 		// Special handling if the area to fill is all in one byte
 		if(offset + width < 8) {
 			// Check for out of bounds
