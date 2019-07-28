@@ -166,9 +166,16 @@ namespace neda {
 		}
 	}
 	void Container::recomputeHeights() {
+        // Do superscripts and subscripts first and then brackets
+        // This is because the height of superscript and subscripts is a constant added to the height of the element before them
+        // So if brackets were before them, this might cause an endless loop of increasing heights
 		for(NEDAObj *ex : contents) {
-			if(ex->getType() == ObjType::L_BRACKET || ex->getType() == ObjType::R_BRACKET || ex->getType() == ObjType::SUPERSCRIPT
-					|| ex->getType() == ObjType::SUBSCRIPT) {
+			if(ex->getType() == ObjType::SUPERSCRIPT || ex->getType() == ObjType::SUBSCRIPT) {
+				((Expr*) ex)->computeDimensions();
+			}
+		}
+        for(NEDAObj *ex : contents) {
+			if(ex->getType() == ObjType::L_BRACKET || ex->getType() == ObjType::R_BRACKET) {
 				((Expr*) ex)->computeDimensions();
 			}
 		}
