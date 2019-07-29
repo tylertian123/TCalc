@@ -55,7 +55,7 @@ namespace util {
 
 		// Now that the denominator is positive, we can make sure the result we get is also positive
 		int64_t divisor = util::abs(util::gcd(num.i, denom.i));
-		if(divisor == 1) {
+		if(divisor == 1 || divisor == 0) {
 			return;
 		}
 		num.i /= divisor;
@@ -114,7 +114,7 @@ namespace util {
         }
         // Otherwise add fractions
         else {
-            int64_t nd = lcm(num.i, frac.num);
+            int64_t nd = lcm(denom.i, frac.denom);
             int64_t numA = num.i * (nd / denom.i);
             int64_t numB = frac.num * (nd / frac.denom);
             
@@ -154,7 +154,7 @@ namespace util {
         }
         // Otherwise subtract fractions
         else {
-            int64_t nd = lcm(num.i, frac.num);
+            int64_t nd = lcm(denom.i, frac.denom);
             int64_t numA = num.i * (nd / denom.i);
             int64_t numB = frac.num * (nd / frac.denom);
             

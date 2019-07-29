@@ -5,6 +5,7 @@
 #include "dynamarr.hpp"
 #include "deque.hpp"
 #include "util.hpp"
+#include "numerical.hpp"
 #include "lcd12864_charset.hpp"
 #include <math.h>
 
@@ -164,14 +165,13 @@ namespace eval {
 	class Matrix : public Token {
 	public:
 		Matrix(uint8_t m, uint8_t n) : m(m), n(n) {
-			contents = new double[m * n];
-			memset(contents, 0, sizeof(double) * m * n);
+			contents = new util::Numerical[m * n];
 		}
 
 		// Copy constructor
 		Matrix(const Matrix &mat) : m(mat.m), n(mat.n) {
-			contents = new double[m * n];
-			memcpy(contents, mat.contents, sizeof(double) * m * n);
+			contents = new util::Numerical[m * n];
+			memcpy(contents, mat.contents, sizeof(util::Numerical) * m * n);
 		}
 
 		~Matrix() {
@@ -181,37 +181,37 @@ namespace eval {
 		const uint8_t m;
 		const uint8_t n;
 		
-		double *contents;
+		util::Numerical *contents;
 
 		// Maps zero-based indexing to index in contents array
 		inline uint16_t index_0(uint8_t x, uint8_t y) const {
 			return x + y * n;
 		}
 		// Sets an entry
-		inline void setEntry(uint8_t row, uint8_t col, double entry) {
+		inline void setEntry(uint8_t row, uint8_t col, util::Numerical entry) {
 			contents[index_0(col, row)] = entry;
 		}
-		inline double& getEntry(uint8_t row, uint8_t col) {
+		inline util::Numerical& getEntry(uint8_t row, uint8_t col) {
 			return contents[index_0(col, row)];
 		}
-		inline const double& getEntry(uint8_t row, uint8_t col) const {
+		inline const util::Numerical& getEntry(uint8_t row, uint8_t col) const {
 			return contents[index_0(col, row)];
 		}
-		inline double& operator[](const int index) {
+		inline util::Numerical& operator[](const int index) {
 			return contents[index];
 		}
-		inline const double& operator[](const int index) const {
+		inline const util::Numerical& operator[](const int index) const {
 			return contents[index];
 		}
 
 		static Matrix* add(const Matrix&, const Matrix&);
 		static Matrix* subtract(const Matrix&, const Matrix&);
-		static Matrix* multiply(const Matrix&, double);
+		static Matrix* multiply(const Matrix&, util::Numerical);
 		static Matrix* multiply(const Matrix&, const Matrix&);
-		static double dot(const Matrix&, const Matrix&);
+		static util::Numerical dot(const Matrix&, const Matrix&);
         // Note: This will modify the matrix
-		double det();
-		double len() const;
+		util::Numerical det();
+		util::Numerical len() const;
 		static Matrix* cross(const Matrix&, const Matrix&);
 		Matrix* transpose() const;
 		Matrix* inv() const;
@@ -231,12 +231,12 @@ namespace eval {
 				util::swap(getEntry(a, i), getEntry(b, i));
 			}
 		}
-		inline void rowMult(uint8_t row, double scalar) {
+		inline void rowMult(uint8_t row, util::Numerical scalar) {
 			for(uint8_t i = 0; i < n; i ++) {
 				getEntry(row, i) *= scalar;
 			}
 		}
-		inline void rowAdd(uint8_t a, uint8_t b, double scalar = 1) {
+		inline void rowAdd(uint8_t a, uint8_t b, util::Numerical scalar = 1) {
 			for(uint8_t i = 0; i < n; i ++) {
 				getEntry(a, i) += getEntry(b, i) * scalar;
 			}
@@ -265,6 +265,7 @@ namespace eval {
         Token *value;
     };
 
+    Token *tokenFromNumerical(const util::Numerical &n);
 	// This will delete the collection of tokens properly. It will destory all tokens in the array.
 	void freeTokens(util::Deque<Token*> &q);
     // This will delete the collection of tokens properly. It will destory all tokens in the array.

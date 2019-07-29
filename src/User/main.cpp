@@ -20,7 +20,7 @@
 #include "exprentry.hpp"
 #include <stdlib.h>
 
-#define VERSION_STR "V1.2.12"
+#define VERSION_STR "V1.3.0"
 
 /********** GPIO Pins and other pin defs **********/
 GPIOPin RS(GPIOC, GPIO_Pin_10), RW(GPIOC, GPIO_Pin_11), E(GPIOC, GPIO_Pin_12),
@@ -602,20 +602,28 @@ void evaluateExpr(neda::Container *expr) {
         }
         else if(result->getType() == eval::TokenType::FRACTION) {
             char buf[64];
-            neda::Container *num = new neda::Container();
-            neda::Container *denom = new neda::Container();
-
-            // Display negative fractions with the minus sign in front
-            if(((eval::Fraction*) result)->num < 0) {
-                calcResults[0]->add(new neda::Character('-'));
+            // Fractions with 1 in the denominator get treated as normal numbers
+            if(static_cast<eval::Fraction*>(result)->denom == 1) {
+                // Convert the result and store it
+                util::ftoa(static_cast<eval::Fraction*>(result)->num, buf, mainExprEntry.resultSignificantDigits, LCD_CHAR_EE);
+                calcResults[0]->addString(buf);
             }
+            else {
+                neda::Container *num = new neda::Container();
+                neda::Container *denom = new neda::Container();
 
-            util::ltoa(labs(((eval::Fraction*) result)->num), buf);
-            num->addString(buf);
-            util::ltoa(((eval::Fraction*) result)->denom, buf);
-            denom->addString(buf);
+                // Display negative fractions with the minus sign in front
+                if(((eval::Fraction*) result)->num < 0) {
+                    calcResults[0]->add(new neda::Character('-'));
+                }
 
-            calcResults[0]->add(new neda::Fraction(num, denom));
+                util::ltoa(labs(((eval::Fraction*) result)->num), buf);
+                num->addString(buf);
+                util::ltoa(((eval::Fraction*) result)->denom, buf);
+                denom->addString(buf);
+
+                calcResults[0]->add(new neda::Fraction(num, denom));
+            }
         }
         // Matrix
         else {
@@ -628,9 +636,31 @@ void evaluateExpr(neda::Container *expr) {
                 // Create a container for the entry
                 neda::Container *cont = new neda::Container();
                 nMat->contents[i] = cont;
-                // Convert the number
-                util::ftoa(mat->contents[i], buf, mainExprEntry.resultSignificantDigits, LCD_CHAR_EE);
-                cont->addString(buf);
+
+                // Find the type of the entry
+                // Floating-point numbers and whole numbers (denominator of 1) are treated the same
+                if(mat->contents[i].isNumber() || mat->contents[i].asFraction().denom == 1) {
+                    // Convert the number directly
+                    util::ftoa(mat->contents[i].asDouble(), buf, mainExprEntry.resultSignificantDigits, LCD_CHAR_EE);
+                    cont->addString(buf);
+                }
+                else {
+                    // Make a fraction instead
+                    neda::Container *num = new neda::Container();
+                    neda::Container *denom = new neda::Container();
+
+                    // Display negative fractions with the minus sign in front
+                    util::Fraction frac = mat->contents[i].asFraction();
+                    if(frac.num < 0) {
+                        cont->add(new neda::Character('-'));
+                    }
+                    cont->add(new neda::Fraction(num, denom));
+                    // Convert numerator and denominator
+                    util::ltoa(labs(frac.num), buf);
+                    num->addString(buf);
+                    util::ltoa(frac.denom, buf);
+                    denom->addString(buf);
+                }
             }
             nMat->computeDimensions();
 

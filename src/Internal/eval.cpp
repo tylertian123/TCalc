@@ -154,7 +154,7 @@ namespace eval {
 		for(uint8_t row = 0; row < a.m; row ++) {
 			for(uint8_t col = 0; col < b.n; col ++) {
 				// Take the dot product
-				double sum = 0;
+				util::Numerical sum = 0;
 				for(uint8_t i = 0; i < a.n; i ++) {
 					sum += a.getEntry(row, i) * b.getEntry(i, col);
 				}
@@ -163,16 +163,16 @@ namespace eval {
 		}
 		return result;
 	}
-	Matrix* Matrix::multiply(const Matrix &a, double scalar) {
+	Matrix* Matrix::multiply(const Matrix &a, util::Numerical scalar) {
 		Matrix *result = new Matrix(a.m, a.n);
 		for(uint16_t i = 0; i < a.m * a.n; i ++) {
 			(*result)[i] = a[i] * scalar;
 		}
 		return result;
 	}
-	double Matrix::dot(const Matrix &a, const Matrix &b) {
+	util::Numerical Matrix::dot(const Matrix &a, const Matrix &b) {
 		if(a.n == 1 && b.n == 1 && a.m == b.m) {
-			double sum = 0;
+			util::Numerical sum = 0;
 			for(uint8_t i = 0; i < a.m; i ++) {
 				sum += a[i] * b[i];
 			}
@@ -182,7 +182,7 @@ namespace eval {
 			return NAN;
 		}
 	}
-	double Matrix::det() {
+	util::Numerical Matrix::det() {
 		// No determinant for nonsquare matrices
 		if(m != n) {
 			return NAN;
@@ -211,7 +211,7 @@ namespace eval {
                 }
             }
 
-            double pivot = getEntry(i, i);
+            util::Numerical pivot = getEntry(i, i);
 
             // Eliminate this column in all rows below
             // Adding to one row a scalar multiple of another does not change the determinant
@@ -222,22 +222,23 @@ namespace eval {
 
         // Now the matrix should be upper-triangular
         // Take the product of the main diagonal to get the determinant
-        double d = 1;
+        util::Numerical d = 1;
         for(uint8_t i = 0; i < m; i ++) {
             d *= getEntry(i, i);
         }
 
         return neg ? -d : d;
 	}
-	double Matrix::len() const {
+	util::Numerical Matrix::len() const {
 		if(n != 1) {
 			return NAN;
 		}
-		double sum = 0;
+		util::Numerical sum = 0;
 		for(uint8_t i = 0; i < m; i ++) {
 			sum += contents[i] * contents[i];
 		}
-		return sqrt(sum);
+        sum.sqrt();
+		return sum;
 	}
 	Matrix* Matrix::cross(const Matrix &a, const Matrix &b) {
 		// Only supported for 3d vectors
@@ -734,7 +735,7 @@ convertToDoubleAndOperate:
 				if(!result) {
 					// If regular multiplication is not possible, see if the dot product can be computed
 					// Since if the dot product isn't possible, dot will return NAN, we can directly return the result of the call
-					result = new Number(Matrix::dot(*lMat, *rMat));
+					result = tokenFromNumerical(Matrix::dot(*lMat, *rMat));
 				}
 				break;
 			case Type::CROSS:
@@ -751,7 +752,7 @@ convertToDoubleAndOperate:
                 }
                 bool equal = true;
                 for(uint16_t i = 0; i < lMat->m * lMat->n; i ++) {
-                    if(!util::floatEq((*lMat)[i], (*rMat)[i])) {
+                    if(!(*lMat)[i].feq((*rMat)[i])) {
                         equal = false;
                         break;
                     }
@@ -767,7 +768,7 @@ convertToDoubleAndOperate:
                 }
                 bool equal = true;
                 for(uint16_t i = 0; i < lMat->m * lMat->n; i ++) {
-                    if(!util::floatEq((*lMat)[i], (*rMat)[i])) {
+                    if(!(*lMat)[i].feq((*rMat)[i])) {
                         equal = false;
                         break;
                     }
@@ -814,7 +815,12 @@ convertToDoubleAndOperate:
 				result = Matrix::multiply(*lMat, rDouble);
 				break;
 			case Type::DIVIDE:
-				result = Matrix::multiply(*lMat, 1.0 / rDouble);
+                if(util::isInt(rDouble)) {
+                    result = Matrix::multiply(*lMat, util::Numerical(1, static_cast<int64_t>(rDouble)));
+                }
+                else {
+				    result = Matrix::multiply(*lMat, 1.0 / rDouble);
+                }
 				break;
             case Type::EQUALITY:
                 result = new Number(0);
@@ -1060,7 +1066,7 @@ convertToDoubleAndOperate:
 			}
 			Matrix *mat = (Matrix*) args[0];
 			
-			return new Number(mat->det());
+			return tokenFromNumerical(mat->det());
 		}
 		case Type::LINSOLVE:
 		{
@@ -1159,6 +1165,15 @@ convertToDoubleAndOperate:
 	}
 
 	/******************** Other Functions ********************/
+    Token* tokenFromNumerical(const util::Numerical &n) {
+        if(n.isNumber()) {
+            return new Number(n.asDouble());
+        }
+        else {
+            auto frac = n.asFraction();
+            return new Fraction(frac.num, frac.denom);
+        }
+    }
 	bool isDigit(char ch) {
 		return (ch >= '0' && ch <= '9') || ch == '.' || ch == LCD_CHAR_EE;
 	}
@@ -2087,8 +2102,13 @@ evaluateFunc:
                             freeTokens(arr);
                             return nullptr;
                         }
-                        // Ignore fractions and just use their numerical values
-                        mat->contents[i] = extractDouble(n);
+                        
+                        if(n->getType() == TokenType::NUMBER) {
+                            mat->contents[i] = static_cast<Number*>(n)->value;
+                        }
+                        else {
+                            mat->contents[i] = util::Numerical(static_cast<Fraction*>(n)->num, static_cast<Fraction*>(n)->denom);
+                        }
                     }
                     else {
                         // Check that the vector only has 1 column and the rows are as expected
@@ -2242,7 +2262,7 @@ constructMatrixFromVectors:
                     // For vectors, just take the number
                     if(mat->n == 1) {
                         if(index < mat->m) {
-                            result = new Number((*mat)[index]);
+                            result = tokenFromNumerical((*mat)[index]);
                         }
                         else {
                             freeTokens(arr);
@@ -2354,7 +2374,7 @@ constructMatrixFromVectors:
                             return nullptr;
                         }
                         else {
-                            result = new Number(mat->getEntry(rowInt, colInt));
+                            result = tokenFromNumerical(mat->getEntry(rowInt, colInt));
                         }
                     }
                     delete row;
@@ -2394,7 +2414,7 @@ constructMatrixFromVectors:
                     arr.add(t);
                 }
                 else {
-                    arr.add(new Number(static_cast<Matrix*>(t)->len()));
+                    arr.add(tokenFromNumerical(static_cast<Matrix*>(t)->len()));
                     delete t;
                 }
 
