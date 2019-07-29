@@ -61,6 +61,20 @@ namespace util {
 		denom.i /= divisor;
     }
 
+    void Numerical::toDouble() {
+        if(!isNumber()) {
+            num.d = static_cast<double>(num.i) / denom.i;
+            denom.i = IS_NUMBER_FLAG;
+        }
+    }
+
+    void Numerical::toFraction() {
+        if(isNumber() && isInt(num.d)) {
+            num.i = num.d;
+            denom.i = 1;
+        }
+    }
+
     Numerical& Numerical::operator=(double n) {
         num.d = n;
         // Mark as number
@@ -74,5 +88,85 @@ namespace util {
         _reduce();
 
         return *this;
+    }
+
+    Numerical& Numerical::operator+=(double n) {
+        // If n is an integer and this is a fraction, call the fraction += operator
+        if(isInt(n) && (toFraction(), !isNumber())) {
+            this->operator+=(Fraction(static_cast<int64_t>(n), 1));
+        }
+        // Otherwise convert to double and add normally
+        else {
+            toDouble();
+            num.d += n;
+        }
+
+        return *this;
+    }
+
+    Numerical& Numerical::operator+=(const Fraction &frac) {
+        // Try to convert to fraction first
+        toFraction();
+        // If not possible, convert arg to double and add normally
+        if(isNumber()) {
+            num.d += static_cast<double>(frac);
+        }
+        // Otherwise add fractions
+        else {
+            int64_t nd = lcm(num.i, frac.num);
+            int64_t numA = num.i * (nd / denom.i);
+            int64_t numB = frac.num * (nd / frac.denom);
+            
+            num.i = numA + numB;
+            denom.i = nd;
+
+            _reduce();
+        }
+
+		return *this;
+    }
+
+    Numerical& Numerical::operator+=(const Numerical &other) {
+        return other.isNumber() ? this->operator+=(other.num.d) : this->operator+=(other.asFraction());
+    }
+
+    Numerical& Numerical::operator-=(double n) {
+        // If n is an integer and this is a fraction, call the fraction -= operator
+        if(isInt(n) && (toFraction(), !isNumber())) {
+            this->operator-=(Fraction(static_cast<int64_t>(n), 1));
+        }
+        // Otherwise convert to double and add normally
+        else {
+            toDouble();
+            num.d -= n;
+        }
+
+        return *this;
+    }
+
+    Numerical& Numerical::operator-=(const Fraction &frac) {
+        // Try to convert to fraction first
+        toFraction();
+        // If not possible, convert arg to double and add normally
+        if(isNumber()) {
+            num.d -= static_cast<double>(frac);
+        }
+        // Otherwise add fractions
+        else {
+            int64_t nd = lcm(num.i, frac.num);
+            int64_t numA = num.i * (nd / denom.i);
+            int64_t numB = frac.num * (nd / frac.denom);
+            
+            num.i = numA - numB;
+            denom.i = nd;
+
+            _reduce();
+        }
+
+		return *this;
+    }
+
+    Numerical& Numerical::operator-=(const Numerical &other) {
+        return other.isNumber() ? this->operator-=(other.num.d) : this->operator-=(other.asFraction());
     }
 }

@@ -9,8 +9,14 @@ namespace util {
      * Represents a fraction.
      */
     struct Fraction {
+        constexpr Fraction(int64_t num, int64_t denom) : num(num), denom(denom) {}
+
         int64_t num;
         int64_t denom;
+
+        inline operator double() const {
+            return static_cast<double>(num) / denom;
+        }
     };
 
     /*
@@ -60,6 +66,19 @@ namespace util {
          * If this numerical does not represent a fraction, this method will have no effect.
          */
         void reduce();
+
+        /*
+         * Converts this Numerical to a double representation, no matter its contents.
+         * If this numerical is already representing a double, this method will have no effect.
+         */
+        void toDouble();
+
+        /*
+         * Converts this Numerical to a fraction representation.
+         * If this numerical is already representing a fraction, this method will have no effect.
+         * If this numerical does not represent an integer, this method will also have no effect.
+         */
+        void toFraction();
 
         Numerical& operator=(const Numerical &other) = default;
         Numerical& operator=(double n);
