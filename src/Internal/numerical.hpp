@@ -126,6 +126,8 @@ namespace util {
         friend Numerical operator/(double n, const Numerical &num);
         friend Numerical operator/(const Fraction &frac, const Numerical &num);
 
+        void sqrt();
+
     protected:
         /*
          * This union represents either a double or a 64-bit signed integer.

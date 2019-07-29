@@ -1,5 +1,6 @@
 #include "numerical.hpp"
 #include "util.hpp"
+#include <cmath>
 
 namespace util {
 
@@ -385,5 +386,27 @@ namespace util {
 
     Numerical operator/(const Fraction &frac, const Numerical &num) {
         return Numerical(frac) / num;
+    }
+
+    void Numerical::sqrt() {
+        if(!isNumber()) {
+            // Try to take the square root of the numerator and denominator
+            double rootN = std::sqrt(static_cast<double>(num.i));
+            // Continue if the numerator turned out to be an integer
+            if(isInt(rootN)) {
+                double rootD = std::sqrt(static_cast<double>(denom.i));
+                if(isInt(rootD)) {
+                    // The square root of a reduced fraction is always reduced
+                    num.i = static_cast<int64_t>(rootN);
+                    denom.i = static_cast<int64_t>(rootD);
+                    // Return here
+                    return;
+                }
+            }
+        }
+        // If the function didn't already return, then taking the square root as a fraction failed
+        // Take the square root normally as a number
+        toDouble();
+        num.d = std::sqrt(num.d);
     }
 }
