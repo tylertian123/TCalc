@@ -138,6 +138,9 @@ namespace util {
         friend bool operator!=(double n, const Numerical &num);
         friend bool operator!=(const Fraction &frac, const Numerical &num);
 
+        explicit operator double() const;
+        explicit operator Fraction() const;
+
         void sqrt();
 
         bool feq(const Numerical &other) const;

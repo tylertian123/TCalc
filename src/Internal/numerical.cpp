@@ -435,6 +435,14 @@ namespace util {
         return !(num == frac);
     }
 
+    Numerical::operator double() const {
+        return asDouble();
+    }
+
+    Numerical::operator util::Fraction() const {
+        return asFraction();
+    }
+
     void Numerical::sqrt() {
         if(!isNumber()) {
             // Try to take the square root of the numerator and denominator
