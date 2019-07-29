@@ -126,6 +126,18 @@ namespace util {
         friend Numerical operator/(double n, const Numerical &num);
         friend Numerical operator/(const Fraction &frac, const Numerical &num);
 
+        bool operator==(const Numerical &other) const;
+        bool operator==(double n) const;
+        bool operator==(const Fraction &frac) const;
+        friend bool operator==(double n, const Numerical &num);
+        friend bool operator==(const Fraction &frac, const Numerical &num);
+
+        bool operator!=(const Numerical &other) const;
+        bool operator!=(double n) const;
+        bool operator!=(const Fraction &frac) const;
+        friend bool operator!=(double n, const Numerical &num);
+        friend bool operator!=(const Fraction &frac, const Numerical &num);
+
         void sqrt();
 
     protected:

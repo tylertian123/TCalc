@@ -388,6 +388,53 @@ namespace util {
         return Numerical(frac) / num;
     }
 
+    bool Numerical::operator==(double n) const {
+        return n == asDouble();
+    }
+
+    bool Numerical::operator==(const Fraction &frac) const {
+        if(isNumber()) {
+            return static_cast<double>(frac) == num.d;
+        }
+        else {
+            Numerical n(frac);
+            n._reduce();
+            return n.num.i == num.i && n.denom.i == denom.i;
+        }
+    }
+
+    bool Numerical::operator==(const Numerical &other) const {
+        return other.isNumber() ? this->operator==(other.num.d) : this->operator==(other.asFraction());
+    }
+
+    bool operator==(double n, const Numerical &num) {
+        return num == n;
+    }
+
+    bool operator==(const Fraction &frac, const Numerical &num) {
+        return num == frac;
+    }
+
+    bool Numerical::operator!=(double d) const {
+        return !this->operator==(d);
+    }
+
+    bool Numerical::operator!=(const Fraction &frac) const {
+        return !this->operator==(frac);
+    }
+
+    bool Numerical::operator!=(const Numerical &other) const {
+        return !this->operator==(other);
+    }
+
+    bool operator!=(double n, const Numerical &num) {
+        return !(num == n);
+    }
+
+    bool operator!=(const Fraction &frac, const Numerical &num) {
+        return !(num == frac);
+    }
+
     void Numerical::sqrt() {
         if(!isNumber()) {
             // Try to take the square root of the numerator and denominator
