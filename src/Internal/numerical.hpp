@@ -140,6 +140,10 @@ namespace util {
 
         void sqrt();
 
+        bool feq(const Numerical &other) const;
+        bool feq(double n) const;
+        bool feq(const Fraction &frac) const;
+
     protected:
         /*
          * This union represents either a double or a 64-bit signed integer.

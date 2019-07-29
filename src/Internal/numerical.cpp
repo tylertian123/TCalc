@@ -456,4 +456,23 @@ namespace util {
         toDouble();
         num.d = std::sqrt(num.d);
     }
+
+    bool Numerical::feq(double n) const {
+        return floatEq(n, asDouble());
+    }
+
+    bool Numerical::feq(const Fraction &frac) const {
+        if(isNumber()) {
+            return floatEq(static_cast<double>(frac), num.d);
+        }
+        else {
+            Numerical n(frac);
+            n._reduce();
+            return n.num.i == num.i && n.denom.i == denom.i;
+        }
+    }
+
+    bool Numerical::feq(const Numerical &other) const {
+        return other.isNumber() ? feq(other.asDouble()) : feq(other.asFraction());
+    }
 }
