@@ -100,27 +100,29 @@ namespace util {
         Numerical& operator/=(double n);
         Numerical& operator/=(const Fraction &frac);
 
-        Numerical operator+(const Numerical &other);
-        Numerical operator+(double n);
-        Numerical operator+(const Fraction &frac);
+        Numerical operator-() const;
+
+        Numerical operator+(const Numerical &other) const;
+        Numerical operator+(double n) const;
+        Numerical operator+(const Fraction &frac) const;
         friend Numerical operator+(double n, const Numerical &num);
         friend Numerical operator+(const Fraction &frac, const Numerical &num);
 
-        Numerical operator-(const Numerical &other);
-        Numerical operator-(double n);
-        Numerical operator-(const Fraction &frac);
+        Numerical operator-(const Numerical &other) const;
+        Numerical operator-(double n) const;
+        Numerical operator-(const Fraction &frac) const;
         friend Numerical operator-(double n, const Numerical &num);
         friend Numerical operator-(const Fraction &frac, const Numerical &num);
 
-        Numerical operator*(const Numerical &other);
-        Numerical operator*(double n);
-        Numerical operator*(const Fraction &frac);
+        Numerical operator*(const Numerical &other) const;
+        Numerical operator*(double n) const;
+        Numerical operator*(const Fraction &frac) const;
         friend Numerical operator*(double n, const Numerical &num);
         friend Numerical operator*(const Fraction &frac, const Numerical &num);
 
-        Numerical operator/(const Numerical &other);
-        Numerical operator/(double n);
-        Numerical operator/(const Fraction &frac);
+        Numerical operator/(const Numerical &other) const;
+        Numerical operator/(double n) const;
+        Numerical operator/(const Fraction &frac) const;
         friend Numerical operator/(double n, const Numerical &num);
         friend Numerical operator/(const Fraction &frac, const Numerical &num);
 

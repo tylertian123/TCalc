@@ -258,4 +258,132 @@ namespace util {
     Numerical& Numerical::operator/=(const Numerical &other) {
         return other.isNumber() ? this->operator/=(other.num.d) : this->operator/=(other.asFraction());
     }
+
+    Numerical Numerical::operator-() const {
+        Numerical n(*this);
+        if(n.isNumber()) {
+            n.num.d = -n.num.d;
+        }
+        else {
+            n.num.i = -n.num.i;
+        }
+        
+        return n;
+    }
+
+    Numerical Numerical::operator+(double n) const {
+        Numerical numerical(*this);
+        numerical += n;
+        
+        return numerical;
+    }
+
+    Numerical Numerical::operator+(const Fraction &frac) const {
+        Numerical n(*this);
+        n += frac;
+
+        return n;
+    }
+
+    Numerical Numerical::operator+(const Numerical &other) const {
+        Numerical n(*this);
+        n += other;
+
+        return n;
+    }
+
+    Numerical operator+(double n, const Numerical &num) {
+        return num + n;
+    }
+
+    Numerical operator+(const Fraction &frac, const Numerical &num) {
+        return num + frac;
+    }
+
+    Numerical Numerical::operator-(double n) const {
+        Numerical numerical(*this);
+        numerical -= n;
+        
+        return numerical;
+    }
+
+    Numerical Numerical::operator-(const Fraction &frac) const {
+        Numerical n(*this);
+        n -= frac;
+
+        return n;
+    }
+
+    Numerical Numerical::operator-(const Numerical &other) const {
+        Numerical n(*this);
+        n -= other;
+
+        return n;
+    }
+
+    Numerical operator-(double n, const Numerical &num) {
+        return -(num - n);
+    }
+
+    Numerical operator-(const Fraction &frac, const Numerical &num) {
+        return -(num - frac);
+    }
+
+    Numerical Numerical::operator*(double n) const {
+        Numerical numerical(*this);
+        numerical *= n;
+        
+        return numerical;
+    }
+
+    Numerical Numerical::operator*(const Fraction &frac) const {
+        Numerical n(*this);
+        n *= frac;
+
+        return n;
+    }
+
+    Numerical Numerical::operator*(const Numerical &other) const {
+        Numerical n(*this);
+        n *= other;
+
+        return n;
+    }
+
+    Numerical operator*(double n, const Numerical &num) {
+        return num * n;
+    }
+
+    Numerical operator*(const Fraction &frac, const Numerical &num) {
+        return num * frac;
+    }
+
+    Numerical Numerical::operator/(double n) const {
+        Numerical numerical(*this);
+        numerical /= n;
+        
+        return numerical;
+    }
+
+    Numerical Numerical::operator/(const Fraction &frac) const {
+        Numerical n(*this);
+        n /= frac;
+
+        return n;
+    }
+
+    Numerical Numerical::operator/(const Numerical &other) const {
+        Numerical n(*this);
+        n /= other;
+
+        return n;
+    }
+
+    Numerical operator/(double n, const Numerical &num) {
+        return Numerical(n) / num;
+    }
+
+    Numerical operator/(const Fraction &frac, const Numerical &num) {
+        return Numerical(frac) / num;
+    }
 }
