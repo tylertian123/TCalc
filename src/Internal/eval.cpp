@@ -476,7 +476,16 @@ namespace eval {
         case Type::DIVIDE:
         {
             if(lhs->getType() == TokenType::NUMERICAL && rhs->getType() == TokenType::NUMERICAL) {
-                result = new Numerical(static_cast<Numerical*>(lhs)->value / static_cast<Numerical*>(rhs)->value);
+                // If auto fractions is off, the division of integers must not create a fraction
+                // So if both operands are integers, convert them to doubles and use the builtin double / operator
+                if(!autoFractions && util::isInt(static_cast<Numerical*>(lhs)->value.asDouble()) &&
+                        util::isInt(static_cast<Numerical*>(rhs)->value.asDouble())) {
+                    result = new Numerical(static_cast<Numerical*>(lhs)->value.asDouble() 
+                            / static_cast<Numerical*>(rhs)->value.asDouble());
+                }
+                else {
+                    result = new Numerical(static_cast<Numerical*>(lhs)->value / static_cast<Numerical*>(rhs)->value);
+                }
             }
             // Only matrix divided by scalar is allowed
             else if(lhs->getType() == TokenType::MATRIX && rhs->getType() == TokenType::NUMERICAL) {
