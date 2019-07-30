@@ -6,13 +6,6 @@
 #include <string.h>
 #include <math.h>
 
-#define CONST_PI 3.14159265358979323846
-#define CONST_E 2.71828182845904523536
-#define CONST_AVOGADRO 6.022140758e23
-#define CONST_ELEMCHG 1.60217662e-19
-#define CONST_VLIGHT 299792458
-#define CONST_AGRAV 9.80665
-
 #define DEG_TO_RAD(deg) ((deg) * CONST_PI / 180.0)
 #define RAD_TO_DEG(rad) ((rad) * 180.0 / CONST_PI)
 #define TRIG_FUNC_INPUT(x) (useRadians ? (x) : DEG_TO_RAD(x))
@@ -23,100 +16,36 @@ namespace eval {
 	bool useRadians = true;
     bool autoFractions = true;
 
-	/******************** Number ********************/
-	Number* Number::constFromString(const char* str) {
+    constexpr double CONST_PI = 3.14159265358979323846;
+    constexpr double CONST_E = 2.71828182845904523536;
+    constexpr double CONST_AVOGADRO = 6.022140758e23;
+    constexpr double CONST_ELEMCHG = 1.60217662e-19;
+    constexpr double CONST_VLIGHT = 299792458;
+    constexpr double CONST_AGRAV = 9.80665;
+
+	/******************** Numerical ********************/
+	Numerical* Numerical::constFromString(const char* str) {
 		if(strcmp(str, LCD_STR_PI) == 0) {
-			return new Number(CONST_PI);
+			return new Numerical(CONST_PI);
 		}
 		else if(strcmp(str, LCD_STR_EULR) == 0) {
-			return new Number(CONST_E);
+			return new Numerical(CONST_E);
 		}
 		else if(strcmp(str, LCD_STR_AVGO) == 0) {
-			return new Number(CONST_AVOGADRO);
+			return new Numerical(CONST_AVOGADRO);
 		}
 		else if(strcmp(str, LCD_STR_ECHG) == 0) {
-			return new Number(CONST_ELEMCHG);
+			return new Numerical(CONST_ELEMCHG);
 		}
 		else if(strcmp(str, LCD_STR_VLIG) == 0) {
-			return new Number(CONST_VLIGHT);
+			return new Numerical(CONST_VLIGHT);
 		}
 		else if(strcmp(str, LCD_STR_AGV) == 0) {
-			return new Number(CONST_AGRAV);
+			return new Numerical(CONST_AGRAV);
 		}
 		else {
 			return nullptr;
 		}
-	}
-
-	/******************** Fraction ********************/
-	double Fraction::doubleVal() const {
-		// Make sure they're cast to doubles first to avoid integer division
-		return static_cast<double>(num) / static_cast<double>(denom);
-	}
-	bool Fraction::isInteger() const {
-		return num % denom == 0;
-	}
-	void Fraction::reduce() {
-		// Make sure the denominator is always positive
-		if(denom < 0) {
-			num *= -1;
-			denom *= -1;
-		}
-
-		// Now that the denominator is positive, we can make sure the result we get is also positive
-		int64_t divisor = labs(util::gcd(num, denom));
-		if(divisor == 1) {
-			return;
-		}
-		num /= divisor;
-		denom /= divisor;
-	}
-	Fraction& Fraction::operator+=(const Fraction &frac) {
-		int64_t newDenom = util::lcm(denom, frac.denom);
-		int64_t numA = num * (newDenom / denom);
-		int64_t numB = frac.num * (newDenom / frac.denom);
-		num = numA + numB;
-		denom = newDenom;
-		reduce();
-		return *this;
-	}
-	Fraction& Fraction::operator-=(const Fraction &frac) {
-		int64_t newDenom = util::lcm(denom, frac.denom);
-		int64_t numA = num * (newDenom / denom);
-		int64_t numB = frac.num * (newDenom / frac.denom);
-		num = numA - numB;
-		denom = newDenom;
-		reduce();
-		return *this;
-	}
-	Fraction& Fraction::operator*=(const Fraction &frac) {
-		num *= frac.num;
-		denom *= frac.denom;
-		reduce();
-		return *this;
-	}
-	Fraction& Fraction::operator/=(const Fraction &frac) {
-		num *= frac.denom;
-		denom *= frac.num;
-		reduce();
-		return *this;
-	}
-	bool Fraction::pow(const Fraction &other) {
-		double e = other.doubleVal();
-		double n = ::pow(num, e);
-		// Check if the numerator and denominator are still ints
-		if(!util::isInt(n)) {
-			return false;
-		}
-		double d = ::pow(denom, e);
-		if(!util::isInt(d)) {
-			return false;
-		}
-
-		num = static_cast<int64_t>(n);
-		denom = static_cast<int64_t>(d);
-		reduce();
-		return true;
 	}
 
 	/******************** Matrix ********************/
@@ -182,6 +111,19 @@ namespace eval {
 			return NAN;
 		}
 	}
+    bool Matrix::equality(const Matrix &a, const Matrix &b) {
+        if(a.m != b.m || a.n != b.n) {
+            return false;
+        }
+        bool equal = true;
+        for(uint16_t i = 0; i < a.m * a.n; i ++) {
+            if(a[i].feq(b[i])) {
+                equal = false;
+                break;
+            }
+        }
+        return equal;
+    }
 	util::Numerical Matrix::det() {
 		// No determinant for nonsquare matrices
 		if(m != n) {
@@ -476,312 +418,211 @@ namespace eval {
 		default: return nullptr;
 		}
 	}
-	double Operator::operate(double lhs, double rhs) const {
-		switch(type) {
-		case Type::PLUS:
-			return lhs + rhs;
-
-		case Type::MINUS:
-			return lhs - rhs;
-
-		case Type::SP_MULT:
-		case Type::MULTIPLY:
-		// In the case of two scalars, just use it as if it's a normal multiplication
-		case Type::CROSS:
-			return lhs * rhs;
-
-		case Type::SP_DIV:
-		case Type::DIVIDE:
-			return lhs / rhs;
-
-		case Type::EXPONENT:
-			return pow(lhs, rhs);
-
-		case Type::EQUALITY:
-			return util::floatEq(lhs, rhs);
-        
+	Token* Operator::operator()(Token *lhs, Token *rhs) const {
+        Token *result = nullptr;
+        switch(type) {
+        case Type::PLUS:
+        {
+            if(lhs->getType() == TokenType::NUMERICAL && rhs->getType() == TokenType::NUMERICAL) {
+                result = new Numerical(static_cast<Numerical*>(lhs)->value + static_cast<Numerical*>(rhs)->value);
+            }
+            else if(lhs->getType() == TokenType::MATRIX && rhs->getType() == TokenType::MATRIX) {
+                result = Matrix::add(*static_cast<Matrix*>(lhs), *static_cast<Matrix*>(rhs));
+            }
+            break;
+        }
+        case Type::MINUS:
+        {
+            if(lhs->getType() == TokenType::NUMERICAL && rhs->getType() == TokenType::NUMERICAL) {
+                result = new Numerical(static_cast<Numerical*>(lhs)->value - static_cast<Numerical*>(rhs)->value);
+            }
+            else if(lhs->getType() == TokenType::MATRIX && rhs->getType() == TokenType::MATRIX) {
+                result = Matrix::subtract(*static_cast<Matrix*>(lhs), *static_cast<Matrix*>(rhs));
+            }
+            break;
+        }
+        // Cross product symbol is treated like regular multiplication when not on vectors
+        case Type::CROSS:
+        case Type::SP_MULT:
+        case Type::MULTIPLY:
+        {
+            if(lhs->getType() == TokenType::NUMERICAL && rhs->getType() == TokenType::NUMERICAL) {
+                result = new Numerical(static_cast<Numerical*>(lhs)->value * static_cast<Numerical*>(rhs)->value);
+            }
+            else if(lhs->getType() == TokenType::MATRIX && rhs->getType() == TokenType::MATRIX) {
+                if(type == Type::MULTIPLY) {
+                    result = Matrix::multiply(*static_cast<Matrix*>(lhs), *static_cast<Matrix*>(rhs));
+                    // If matrix multiplication is not possible, try to take the dot product
+                    if(!result) {
+                        auto n = Matrix::dot(*static_cast<Matrix*>(lhs), *static_cast<Matrix*>(rhs));
+                        if(!isnan(static_cast<double>(n))) {
+                            result = new Numerical(n);
+                        }
+                    }
+                }
+                else {
+                    result = Matrix::cross(*static_cast<Matrix*>(lhs), *static_cast<Matrix*>(rhs));
+                }
+            }
+            else if(lhs->getType() == TokenType::NUMERICAL && rhs->getType() == TokenType::MATRIX) {
+                result = Matrix::multiply(*static_cast<Matrix*>(rhs), static_cast<Numerical*>(lhs)->value);
+            }
+            else {
+                result = Matrix::multiply(*static_cast<Matrix*>(lhs), static_cast<Numerical*>(rhs)->value);
+            }
+            break;
+        }
+        case Type::SP_DIV:
+        case Type::DIVIDE:
+        {
+            if(lhs->getType() == TokenType::NUMERICAL && rhs->getType() == TokenType::NUMERICAL) {
+                result = new Numerical(static_cast<Numerical*>(lhs)->value / static_cast<Numerical*>(rhs)->value);
+            }
+            // Only matrix divided by scalar is allowed
+            else if(lhs->getType() == TokenType::MATRIX && rhs->getType() == TokenType::NUMERICAL) {
+                result = Matrix::multiply(*static_cast<Matrix*>(lhs), 1 / static_cast<Numerical*>(rhs)->value);
+            }
+            break;
+        }
+        case Type::EXPONENT:
+        {
+            // Currently only scalar exponentiation is supported
+            if(lhs->getType() == TokenType::NUMERICAL && rhs->getType() == TokenType::NUMERICAL) {
+                static_cast<Numerical*>(lhs)->value.pow(static_cast<Numerical*>(rhs)->value);
+                result = new Numerical(static_cast<Numerical*>(lhs)->value);
+            }
+            break;
+        }
+        case Type::EQUALITY:
+        {
+            // Different types is always not equal
+            if(lhs->getType() != rhs->getType()) {
+                result = new Numerical(false);
+            }
+            else if(lhs->getType() == TokenType::NUMERICAL) {
+                result = new Numerical(static_cast<Numerical*>(lhs)->value.feq(static_cast<Numerical*>(rhs)->value));
+            }
+            else {
+                result = new Numerical(Matrix::equality(*static_cast<Matrix*>(lhs), *static_cast<Matrix*>(rhs)));
+            }
+            break;
+        }
         case Type::NOT_EQUAL:
-            return !util::floatEq(lhs, rhs);
-
+        {
+            // Different types is always not equal
+            if(lhs->getType() != rhs->getType()) {
+                result = new Numerical(true);
+            }
+            else if(lhs->getType() == TokenType::NUMERICAL) {
+                result = new Numerical(!static_cast<Numerical*>(lhs)->value.feq(static_cast<Numerical*>(rhs)->value));
+            }
+            else {
+                result = new Numerical(!Matrix::equality(*static_cast<Matrix*>(lhs), *static_cast<Matrix*>(rhs)));
+            }
+            break;
+        }
         case Type::GT:
-            return lhs > rhs;
-
+        {
+            // Matrices cannot be involved in any way
+            if(lhs->getType() == TokenType::MATRIX || rhs->getType() == TokenType::MATRIX) {
+                result = nullptr;
+            }
+            // If neither are matrices then both must be numbers
+            else {
+                result = new Numerical(static_cast<Numerical*>(lhs)->value > static_cast<Numerical*>(rhs)->value);
+            }
+            break;
+        }
         case Type::LT:
-            return lhs < rhs;
-
+        {
+            // Matrices cannot be involved in any way
+            if(lhs->getType() == TokenType::MATRIX || rhs->getType() == TokenType::MATRIX) {
+                result = nullptr;
+            }
+            // If neither are matrices then both must be numbers
+            else {
+                result = new Numerical(static_cast<Numerical*>(lhs)->value < static_cast<Numerical*>(rhs)->value);
+            }
+            break;
+        }
         case Type::GTEQ:
-            return lhs > rhs || util::floatEq(lhs, rhs);
-
+        {
+            // Matrices cannot be involved in any way
+            if(lhs->getType() == TokenType::MATRIX || rhs->getType() == TokenType::MATRIX) {
+                result = nullptr;
+            }
+            // If neither are matrices then both must be numbers
+            else {
+                result = new Numerical(static_cast<Numerical*>(lhs)->value > static_cast<Numerical*>(rhs)->value
+                        || static_cast<Numerical*>(lhs)->value.feq(static_cast<Numerical*>(rhs)->value));
+            }
+            break;
+        }
         case Type::LTEQ:
-            return lhs < rhs || util::floatEq(lhs, rhs);
-
+        {
+            // Matrices cannot be involved in any way
+            if(lhs->getType() == TokenType::MATRIX || rhs->getType() == TokenType::MATRIX) {
+                result = nullptr;
+            }
+            // If neither are matrices then both must be numbers
+            else {
+                result = new Numerical(static_cast<Numerical*>(lhs)->value < static_cast<Numerical*>(rhs)->value
+                        || static_cast<Numerical*>(lhs)->value.feq(static_cast<Numerical*>(rhs)->value));
+            }
+            break;
+        }
         case Type::AND:
         {
-            Number l(lhs);
-            Number r(rhs);
-            int8_t lTruthy = isTruthy(&l);
-            int8_t rTruthy = isTruthy(&r);
-            // If the truthiness of either operand is undefined, the expression is undefined
-            if(lTruthy == -1 || rTruthy == -1) {
-                return NAN;
-            } 
-            // Now we know they can only be 0 or 1, we can use regular logical operators
-            return lTruthy && rTruthy;
+            int8_t l = isTruthy(lhs);
+            int8_t r = isTruthy(rhs);
+            
+            if(l == -1 || r == -1) {
+                result = new Numerical(NAN);
+            }
+            else {
+                result = new Numerical(l && r);
+            }
+            break;
         }
-
         case Type::OR:
         {
-            Number l(lhs);
-            Number r(rhs);
-            int8_t lTruthy = isTruthy(&l);
-            int8_t rTruthy = isTruthy(&r);
-            // If the truthiness of either operand is undefined, the expression is undefined
-            if(lTruthy == -1 || rTruthy == -1) {
-                return NAN;
-            } 
-
-            return lTruthy || rTruthy;
+            int8_t l = isTruthy(lhs);
+            int8_t r = isTruthy(rhs);
+            
+            if(l == -1 || r == -1) {
+                result = new Numerical(NAN);
+            }
+            else {
+                result = new Numerical(l || r);
+            }
+            break;
         }
-
         case Type::XOR:
         {
-            Number l(lhs);
-            Number r(rhs);
-            int8_t lTruthy = isTruthy(&l);
-            int8_t rTruthy = isTruthy(&r);
-            // If the truthiness of either operand is undefined, the expression is undefined
-            if(lTruthy == -1 || rTruthy == -1) {
-                return NAN;
+            int8_t l = isTruthy(lhs);
+            int8_t r = isTruthy(rhs);
+            
+            if(l == -1 || r == -1) {
+                result = new Numerical(NAN);
             }
-
-            return lTruthy ^ rTruthy;
+            else {
+                result = new Numerical(l ^ r);
+            }
+            break;
         }
-
-		default: return NAN;
-		}
-	}
-	bool Operator::operateOn(Fraction *frac, Fraction *rhs) const {
-		switch(type) {
-		case Type::PLUS:
-			*frac += *rhs;
-			break;
-
-		case Type::MINUS:
-			*frac -= *rhs;
-			break;
-		
-		case Type::SP_MULT:
-		case Type::MULTIPLY:
-		case Type::CROSS:
-			*frac *= *rhs;
-			break;
-		
-		case Type::SP_DIV:
-		case Type::DIVIDE:
-			*frac /= *rhs;
-			break;
-		
-		case Type::EXPONENT:
-			return frac->pow(*rhs);
-    
-		default: return false;
-		}
-		return true;
-	}
-	// Operates on two tokens and returns the result
-	// Note: This also deletes the operands!
-	Token* Operator::operator()(Token *lhs, Token *rhs) const {
-		// TODO: Matrix processing
-		TokenType lType = lhs->getType();
-		TokenType rType = rhs->getType();
-		Token *result = nullptr;
-		// Two numbers: normal operation
-		if(lType == TokenType::NUMBER && rType == TokenType::NUMBER) {
-			// Special case for division: if the operands are whole numbers, create a fraction if auto fractions is on
-			if(autoFractions && (type == Operator::Type::DIVIDE || type == Operator::Type::SP_DIV) && 
-                    util::isInt(((Number*) lhs)->value) && util::isInt(((Number*) rhs)->value)) {
-				auto n = static_cast<int64_t>(((Number*) lhs)->value);
-				auto d = static_cast<int64_t>(((Number*) rhs)->value);
-				// See if the division yields a whole number
-				// Watch out for division by zero!
-				if(d == 0) {
-					if(n == 0) {
-						result = new Number(NAN);
-					}
-					else {
-						result = new Number(n > 0 ? INFINITY : -INFINITY);
-					}
-				}
-				else if(n % d == 0) {
-					// If the result is an integer, just push the integer instead
-					result = new Number(n / d);
-				}
-				else {
-					// Otherwise create a fraction
-					result = new Fraction(n, d);
-				}
-			}
-			else {
-				result = new Number(operate(((Number*) lhs)->value, ((Number*) rhs)->value));
-			}
-			delete lhs;
-			delete rhs;
-		}
-		// Two fractions: fraction operation
-		else if(lType == TokenType::FRACTION && rType == TokenType::FRACTION) {
-			// Record if action was successful
-			bool success = operateOn((Fraction*) lhs, (Fraction*) rhs);
-			if(success) {
-				// See if result is an integer
-				if(((Fraction*) lhs)->isInteger()) {
-					// If yes then directly insert a number
-					result = new Number(((Fraction*) lhs)->doubleVal());
-					delete lhs;
-				}
-				else {
-					result = lhs;
-				}
-				delete rhs;
-			}
-			// If the operation was not possible, convert to double and operate normally
-			else {
-				result = new Number(operate(((Fraction*) lhs)->doubleVal(), ((Fraction*) rhs)->doubleVal()));
-				delete lhs;
-				delete rhs;
-			}
-		}
-		// One fraction: fraction operation if the other one is integer, normal operation if not
-		else if(lType == TokenType::FRACTION && rType == TokenType::NUMBER) {
-			// Test if rhs is integer
-			if(util::isInt(((Number*) rhs)->value)) {
-                // This operation is not guaranteed to succeed
-				Fraction rhsFrac((int64_t) ((Number*) rhs)->value, 1);
-				bool success = operateOn((Fraction*) lhs, &rhsFrac);
-				if(success) {
-					if(static_cast<Fraction*>(lhs)->isInteger()) {
-						result = new Number(static_cast<Fraction*>(lhs)->doubleVal());
-                        delete lhs;
-					}
-					else {
-						result = lhs;
-					}
-					delete rhs;
-				}
-				else {
-					// My code is terrible, indeed.
-					goto convertToDoubleAndOperate;
-				}
-			}
-			// Otherwise convert to doubles
-			else {
-				result = new Number(operate(((Fraction*) lhs)->doubleVal(), ((Number*) rhs)->value));
-				delete lhs;
-				delete rhs;
-			}
-		}
-		// One fraction: fraction operation if the other one is integer, normal operation if not
-		else if(lType == TokenType::NUMBER && rType == TokenType::FRACTION) {
-			if(util::isInt(((Number*) lhs)->value)) {
-				// This operation is not guaranteed to succeed
-				// Construct fraction since it's not going to be temporary if this operation succeeds
-				Fraction *lhsFrac = new Fraction((int64_t) ((Number*) lhs)->value, 1);
-				bool success = operateOn(lhsFrac, (Fraction*) rhs);
-				if(success) {
-					if(lhsFrac->isInteger()) {
-						result = new Number(lhsFrac->doubleVal());
-						delete lhsFrac;
-					}
-					else {
-						result = lhsFrac;
-					}
-					delete lhs;
-					delete rhs;
-				}
-				else {
-					delete lhsFrac;
-					// My code is terrible, indeed.
-					goto convertToDoubleAndOperate;
-				}
-			}
-			else {
-convertToDoubleAndOperate:
-				result = new Number(operate(((Number*) lhs)->value, ((Fraction*) rhs)->doubleVal()));
-				delete lhs;
-				delete rhs;
-			}
-		}
-		// Two matrices
-		else if(lType == TokenType::MATRIX && rType == TokenType::MATRIX) {
-			Matrix *lMat = (Matrix*) lhs;
-			Matrix *rMat = (Matrix*) rhs;
-			
-			switch(type) {
-			case Type::PLUS:
-				result = Matrix::add(*lMat, *rMat);
-				// If not possible return NAN
-				if(!result) {
-					result = new Number(NAN);
-				}
-				break;
-			case Type::MINUS:
-				result = Matrix::subtract(*lMat, *rMat);
-				// If not possible return NAN
-				if(!result) {
-					result = new Number(NAN);
-				}
-				break;
-			case Type::MULTIPLY:
-				result = Matrix::multiply(*lMat, *rMat);
-				if(!result) {
-					// If regular multiplication is not possible, see if the dot product can be computed
-					// Since if the dot product isn't possible, dot will return NAN, we can directly return the result of the call
-					result = tokenFromNumerical(Matrix::dot(*lMat, *rMat));
-				}
-				break;
-			case Type::CROSS:
-				result = Matrix::cross(*lMat, *rMat);
-				if(!result) {
-					result = new Number(NAN);
-				}
-				break;
-            case Type::EQUALITY:
-            {
-                if(lMat->m != rMat->m || lMat->n != rMat->n) {
-                    result = new Number(0);
-                    break;
-                }
-                bool equal = true;
-                for(uint16_t i = 0; i < lMat->m * lMat->n; i ++) {
-                    if(!(*lMat)[i].feq((*rMat)[i])) {
-                        equal = false;
-                        break;
-                    }
-                }
-                result = new Number(equal);
+        case Type::AUGMENT:
+        {
+            if(lhs->getType() != TokenType::MATRIX || rhs->getType() != TokenType::MATRIX) {
+                result = nullptr;
                 break;
             }
-            case Type::NOT_EQUAL:
-            {
-                if(lMat->m != rMat->m || lMat->n != rMat->n) {
-                    result = new Number(1);
-                    break;
-                }
-                bool equal = true;
-                for(uint16_t i = 0; i < lMat->m * lMat->n; i ++) {
-                    if(!(*lMat)[i].feq((*rMat)[i])) {
-                        equal = false;
-                        break;
-                    }
-                }
-                result = new Number(!equal);
-                break;
+            Matrix *lMat = static_cast<Matrix*>(lhs);
+            Matrix *rMat = static_cast<Matrix*>(rhs);
+
+            if(lMat->m != rMat->m) {
+                result = new Numerical(NAN);
             }
-            case Type::AUGMENT:
-            {
-                if(lMat->m != rMat->m) {
-                    result = new Number(NAN);
-                    break;
-                }
+            else {
                 Matrix *mat = new Matrix(lMat->m, lMat->n + rMat->n);
                 for(uint8_t i = 0; i < mat->m; i ++) {
                     for(uint8_t j = 0; j < mat->n; j ++) {
@@ -794,76 +635,16 @@ convertToDoubleAndOperate:
                     }
                 }
                 result = mat;
-                break;
             }
-			default:
-				result = new Number(NAN);
-				break;
-			}
+            break;
+        }
+        default:
+            break;
+        }
 
-			delete lhs;
-			delete rhs;
-		}
-		// Matrix and scalar
-		else if(lType == TokenType::MATRIX && rType == TokenType::NUMBER || rType == TokenType::FRACTION) {
-			Matrix *lMat = (Matrix*) lhs;
-			double rDouble = extractDouble(rhs);
-			
-			switch(type) {
-			case Type::MULTIPLY:
-			case Type::CROSS:
-				result = Matrix::multiply(*lMat, rDouble);
-				break;
-			case Type::DIVIDE:
-                if(util::isInt(rDouble)) {
-                    result = Matrix::multiply(*lMat, util::Numerical(1, static_cast<int64_t>(rDouble)));
-                }
-                else {
-				    result = Matrix::multiply(*lMat, 1.0 / rDouble);
-                }
-				break;
-            case Type::EQUALITY:
-                result = new Number(0);
-                break;
-            case Type::NOT_EQUAL:
-                result = new Number(1);
-                break;
-			default:
-				result = new Number(NAN);
-				break;
-			}
-
-			delete lhs;
-			delete rhs;
-		}
-		else if((lType == TokenType::NUMBER || lType == TokenType::FRACTION) && TokenType::MATRIX) {
-			double lDouble = extractDouble(lhs);
-			Matrix *rMat = (Matrix*) rhs;
-			
-			switch(type) {
-			case Type::MULTIPLY:
-			case Type::CROSS:
-				result = Matrix::multiply(*rMat, lDouble);
-				break;
-            case Type::EQUALITY:
-                result = new Number(0);
-                break;
-            case Type::NOT_EQUAL:
-                result = new Number(1);
-                break;
-			default:
-				result = new Number(NAN);
-				break;
-			}
-
-			delete lhs;
-			delete rhs;
-		}
-		else {
-			delete lhs;
-			delete rhs;
-		}
-		return result;
+        delete lhs;
+        delete rhs;
+        return result;
 	}
     Token* Operator::operator()(Token *t) const {
         switch(type) {
@@ -873,29 +654,26 @@ convertToDoubleAndOperate:
             delete t;
 
             if(truthy == 1) {
-                return new Number(0);
+                return new Numerical(false);
             }
             else if(truthy == 0) {
-                return new Number(1);
+                return new Numerical(true);
             }
             // Undefined
             else {
-                return new Number(NAN);
+                return new Numerical(NAN);
             }
         }
         case Type::NEGATE:
         {
-            if(t->getType() == TokenType::NUMBER) {
-                static_cast<Number*>(t)->value *= -1;
-            }
-            else if(t->getType() == TokenType::FRACTION) {
-                static_cast<Fraction*>(t)->num *= -1;
+            if(t->getType() == TokenType::NUMERICAL) {
+                static_cast<Numerical*>(t)->value = -static_cast<Numerical*>(t)->value;
             }
             // Matrix
             else {
                 for(uint16_t i = 0; i < static_cast<Matrix*>(t)->m * static_cast<Matrix*>(t)->n; i ++) {
                     // Negate every entry
-                    (*static_cast<Matrix*>(t))[i] *= -1;
+                    (*static_cast<Matrix*>(t))[i] = -(*static_cast<Matrix*>(t))[i];
                 }
             }
             return t;
@@ -905,14 +683,14 @@ convertToDoubleAndOperate:
             double x = extractDouble(t);
             delete t;
 			if(!util::isInt(x) || x < 0) {
-				return new Number(NAN);
+				return new Numerical(NAN);
 			}
 			double d = 1;
 			while(x > 0) {
 				d *= x;
 				--x;
 			}
-			return new Number(d);
+			return new Numerical(d);
         }
         case Type::TRANSPOSE:
 		{
@@ -933,7 +711,7 @@ convertToDoubleAndOperate:
 			Matrix *result = mat->inv();
             delete t;
 			
-			return result ? (Token*) result : (Token*) new Number(NAN);
+			return result ? static_cast<Token*>(result) : static_cast<Token*>(new Numerical(NAN));
 		}
         default: 
             return nullptr;
@@ -983,80 +761,98 @@ convertToDoubleAndOperate:
 		switch(type) {
 		case Type::SIN:
 		{
-			return new Number(sin(TRIG_FUNC_INPUT(extractDouble(args[0]))));
+			return new Numerical(sin(TRIG_FUNC_INPUT(extractDouble(args[0]))));
 		}
 		case Type::COS:
 		{
-			return new Number(cos(TRIG_FUNC_INPUT(extractDouble(args[0]))));
+			return new Numerical(cos(TRIG_FUNC_INPUT(extractDouble(args[0]))));
 		}
 		case Type::TAN:
 		{
-			return new Number(tan(TRIG_FUNC_INPUT(extractDouble(args[0]))));
+			return new Numerical(tan(TRIG_FUNC_INPUT(extractDouble(args[0]))));
 		}
 		case Type::ASIN:
 		{
-			return new Number(TRIG_FUNC_OUTPUT(asin(extractDouble(args[0]))));
+			return new Numerical(TRIG_FUNC_OUTPUT(asin(extractDouble(args[0]))));
 		}
 		case Type::ACOS:
 		{
-			return new Number(TRIG_FUNC_OUTPUT(acos(extractDouble(args[0]))));
+			return new Numerical(TRIG_FUNC_OUTPUT(acos(extractDouble(args[0]))));
 		}
 		case Type::ATAN:
 		{
-			return new Number(TRIG_FUNC_OUTPUT(atan(extractDouble(args[0]))));
+			return new Numerical(TRIG_FUNC_OUTPUT(atan(extractDouble(args[0]))));
 		}
 		case Type::LN:
 		{
-			return new Number(log(extractDouble(args[0])));
+			return new Numerical(log(extractDouble(args[0])));
 		}
 		case Type::LOG10:
 		{
-			return new Number(log10(extractDouble(args[0])));
+			return new Numerical(log10(extractDouble(args[0])));
 		}
 		case Type::LOG2:
 		{
-			return new Number(log2(extractDouble(args[0])));
+			return new Numerical(log2(extractDouble(args[0])));
 		}
 		case Type::SINH:
 		{
-			return new Number(sinh(TRIG_FUNC_INPUT(extractDouble(args[0]))));
+			return new Numerical(sinh(TRIG_FUNC_INPUT(extractDouble(args[0]))));
 		}
 		case Type::COSH:
 		{
-			return new Number(cosh(TRIG_FUNC_INPUT(extractDouble(args[0]))));
+			return new Numerical(cosh(TRIG_FUNC_INPUT(extractDouble(args[0]))));
 		}
 		case Type::TANH:
 		{
-			return new Number(tanh(TRIG_FUNC_INPUT(extractDouble(args[0]))));
+			return new Numerical(tanh(TRIG_FUNC_INPUT(extractDouble(args[0]))));
 		}
 		case Type::ASINH:
 		{
-			return new Number(TRIG_FUNC_OUTPUT(asinh(extractDouble(args[0]))));
+			return new Numerical(TRIG_FUNC_OUTPUT(asinh(extractDouble(args[0]))));
 		}
 		case Type::ACOSH:
 		{
-			return new Number(TRIG_FUNC_OUTPUT(acosh(extractDouble(args[0]))));
+			return new Numerical(TRIG_FUNC_OUTPUT(acosh(extractDouble(args[0]))));
 		}
 		case Type::ATANH:
 		{
-			return new Number(TRIG_FUNC_OUTPUT(atanh(extractDouble(args[0]))));
+			return new Numerical(TRIG_FUNC_OUTPUT(atanh(extractDouble(args[0]))));
 		}
 		case Type::QUADROOT_A:
 		{
-			double a = extractDouble(args[0]), b = extractDouble(args[1]), c = extractDouble(args[2]);
-			return new Number((-b + sqrt(b * b - 4 * a * c)) / (2 * a));
+            if(args[0]->getType() == TokenType::MATRIX || args[1]->getType() == TokenType::MATRIX || args[2]->getType() == TokenType::MATRIX) {
+                return nullptr;
+            }
+            auto &a = static_cast<Numerical*>(args[0])->value, 
+                 &b = static_cast<Numerical*>(args[1])->value, 
+                 &c = static_cast<Numerical*>(args[2])->value;
+            auto disc = b * b - 4 * a * c;
+            disc.sqrt();
+			return new Numerical((-b + disc) / (2 * a));
 		}
 		case Type::QUADROOT_B:
 		{
-			double a = extractDouble(args[0]), b = extractDouble(args[1]), c = extractDouble(args[2]);
-			return new Number((-b - sqrt(b * b - 4 * a * c)) / (2 * a));
+			if(args[0]->getType() == TokenType::MATRIX || args[1]->getType() == TokenType::MATRIX || args[2]->getType() == TokenType::MATRIX) {
+                return nullptr;
+            }
+            auto &a = static_cast<Numerical*>(args[0])->value, 
+                 &b = static_cast<Numerical*>(args[1])->value, 
+                 &c = static_cast<Numerical*>(args[2])->value;
+            auto disc = b * b - 4 * a * c;
+            disc.sqrt();
+			return new Numerical((-b - disc) / (2 * a));
 		}
 		case Type::ROUND:
 		{
-			if(!util::isInt(extractDouble(args[1]))) {
-				return new Number(NAN);
+            if(args[0]->getType() == TokenType::MATRIX || args[1]->getType() == TokenType::MATRIX) {
+                return nullptr;
+            }
+			if(!util::isInt(static_cast<Numerical*>(args[1])->value.asDouble())) {
+				return new Numerical(NAN);
 			}
-			return new Number(util::round(extractDouble(args[0]), extractDouble(args[1])));
+			return new Numerical(util::round(static_cast<Numerical*>(args[1])->value.asDouble(), 
+                    static_cast<Numerical*>(args[1])->value.asDouble()));
 		}
 		case Type::DET:
 		{
@@ -1064,9 +860,9 @@ convertToDoubleAndOperate:
 			if(args[0]->getType() != TokenType::MATRIX) {
 				return nullptr;
 			}
-			Matrix *mat = (Matrix*) args[0];
+			Matrix *mat = static_cast<Matrix*>(args[0]);
 			
-			return tokenFromNumerical(mat->det());
+			return new Numerical(mat->det());
 		}
 		case Type::LINSOLVE:
 		{
@@ -1074,9 +870,9 @@ convertToDoubleAndOperate:
 			if(args[0]->getType() != TokenType::MATRIX || ((Matrix*) args[0])->n != ((Matrix*) args[0])->m + 1) {
 				return nullptr;
 			}
-			Matrix *mat = (Matrix*) args[0];
+			Matrix *mat = static_cast<Matrix*>(args[0]);
 			if(!mat->eliminate(false)) {
-				return new Number(NAN);
+				return new Numerical(NAN);
 			}
 			// Construct solution as vector
 			Matrix *solution = new Matrix(mat->m, 1);
@@ -1104,22 +900,11 @@ convertToDoubleAndOperate:
                 return nullptr;
             }
             // a is greater than b
-            if(compareTokens(args[0], args[1]) > 0) {
-                // Make a copy of b
-                if(args[1]->getType() == TokenType::NUMBER) {
-                    return new Number(*static_cast<Number*>(args[1]));
-                }
-                else {
-                    return new Fraction(*static_cast<Fraction*>(args[1]));
-                }
+            if(static_cast<Numerical*>(args[0])->value > static_cast<Numerical*>(args[1])->value) {
+                return new Numerical(static_cast<Numerical*>(args[1])->value);
             }
             else {
-                if(args[0]->getType() == TokenType::NUMBER) {
-                    return new Number(*static_cast<Number*>(args[0]));
-                }
-                else {
-                    return new Fraction(*static_cast<Fraction*>(args[0]));
-                }
+                return new Numerical(static_cast<Numerical*>(args[0])->value);
             }
         }
         case Type::MAX:
@@ -1127,23 +912,12 @@ convertToDoubleAndOperate:
             if(args[0]->getType() == TokenType::MATRIX || args[1]->getType() == TokenType::MATRIX) {
                 return nullptr;
             }
-            // a is less than b
-            if(compareTokens(args[0], args[1]) < 0) {
-                // Make a copy of b
-                if(args[1]->getType() == TokenType::NUMBER) {
-                    return new Number(*static_cast<Number*>(args[1]));
-                }
-                else {
-                    return new Fraction(*static_cast<Fraction*>(args[1]));
-                }
+            // a is greater than b
+            if(static_cast<Numerical*>(args[0])->value < static_cast<Numerical*>(args[1])->value) {
+                return new Numerical(static_cast<Numerical*>(args[1])->value);
             }
             else {
-                if(args[0]->getType() == TokenType::NUMBER) {
-                    return new Number(*static_cast<Number*>(args[0]));
-                }
-                else {
-                    return new Fraction(*static_cast<Fraction*>(args[0]));
-                }
+                return new Numerical(static_cast<Numerical*>(args[0])->value);
             }
         }
         case Type::FLOOR:
@@ -1151,29 +925,20 @@ convertToDoubleAndOperate:
             if(args[0]->getType() == TokenType::MATRIX) {
                 return nullptr;
             }
-            return new Number(floor(extractDouble(args[0])));
+            return new Numerical(floor(extractDouble(args[0])));
         }
         case Type::CEIL:
         {
             if(args[0]->getType() == TokenType::MATRIX) {
                 return nullptr;
             }
-            return new Number(ceil(extractDouble(args[0])));
+            return new Numerical(ceil(extractDouble(args[0])));
         }
-		default: return new Number(NAN);
+		default: return new Numerical(NAN);
 		}
 	}
 
 	/******************** Other Functions ********************/
-    Token* tokenFromNumerical(const util::Numerical &n) {
-        if(n.isNumber()) {
-            return new Number(n.asDouble());
-        }
-        else {
-            auto frac = n.asFraction();
-            return new Fraction(frac.num, frac.denom);
-        }
-    }
 	bool isDigit(char ch) {
 		return (ch >= '0' && ch <= '9') || ch == '.' || ch == LCD_CHAR_EE;
 	}
@@ -1217,14 +982,7 @@ convertToDoubleAndOperate:
 	// Returns the double value of a Token
 	// The token must be a number or fraction. Otherwise NaN will be returned.
 	double extractDouble(const Token *t) {
-		return t->getType() == TokenType::NUMBER ? ((Number*) t)->value 
-				: (t->getType() == TokenType::FRACTION ? ((Fraction*) t)->doubleVal() : NAN);
-	}
-	// Returns positive if a > b, zero if equal, and negative if a < b
-	int8_t compareTokens(const Token *a, const Token *b) {
-		double aVal = extractDouble(a);
-		double bVal = extractDouble(b);
-		return aVal > bVal ? 1 : bVal > aVal ? -1 : 0;
+		return t->getType() == TokenType::NUMERICAL ? static_cast<const Numerical*>(t)->value.asDouble() : NAN;
 	}
 	uint16_t findEquals(const util::DynamicArray<neda::NEDAObj*> &arr, bool forceVarName) {
 		uint16_t equalsIndex = 0;
@@ -1277,8 +1035,8 @@ convertToDoubleAndOperate:
         if(token->getType() == TokenType::MATRIX) {
             return 1;
         }
-        double v = token->getType() == TokenType::NUMBER ? static_cast<const Number*>(token)->value 
-                : static_cast<const Fraction*>(token)->doubleVal();
+        
+        double v = static_cast<const Numerical*>(token)->value.asDouble();
         
         // Infinite or NaN
         if(!isfinite(v)) {
@@ -1291,7 +1049,7 @@ convertToDoubleAndOperate:
 	void freeTokens(util::Deque<Token*> &q) {
 		while (!q.isEmpty()) {
 			Token *t = q.dequeue();
-			if (t->getType() == TokenType::MATRIX || t->getType() == TokenType::NUMBER || t->getType() == TokenType::FRACTION || t->getType() == TokenType::FUNCTION) {
+			if (t->getType() == TokenType::MATRIX || t->getType() == TokenType::NUMERICAL || t->getType() == TokenType::FUNCTION) {
 				delete t;
 			}
 		}
@@ -1299,7 +1057,7 @@ convertToDoubleAndOperate:
     // This will delete the collection of tokens properly. It will destory all tokens in the array.
 	void freeTokens(util::DynamicArray<Token*> &q) {
 		for(Token *t : q) {
-			if (t->getType() == TokenType::MATRIX || t->getType() == TokenType::NUMBER || t->getType() == TokenType::FRACTION || t->getType() == TokenType::FUNCTION) {
+			if (t->getType() == TokenType::MATRIX || t->getType() == TokenType::NUMERICAL || t->getType() == TokenType::FUNCTION) {
 				delete t;
 			}
 		}
@@ -1570,7 +1328,7 @@ convertToDoubleAndOperate:
 				if(exponent->getType() == TokenType::MATRIX) {
 					delete exponent;
 					freeTokens(arr);
-					return new Number(NAN);
+					return new Numerical(NAN);
 				}
 				// Otherwise, turn it into an exponentiation operator and the value of the exponent
 				arr.add(const_cast<Operator*>(&OP_EXPONENT));
@@ -1596,12 +1354,12 @@ convertToDoubleAndOperate:
 				}
 				// No base - implied square root
 				else {
-					n = new Number(2);
+					n = new Numerical(2);
 				}
 				// Recursively evaluate the contents of the radical
 				Token *contents = evaluate((neda::Container*) ((neda::Radical*) exprs[index])->contents, varc, vars, funcc, funcs);
 				// If an error occurs, clean up and return null
-				if(!n || !contents) {
+				if(!n || !contents || n->getType() == TokenType::MATRIX) {
 					// nullptr deletion allowed; no need for checking
 					delete n;
 					delete contents;
@@ -1609,23 +1367,7 @@ convertToDoubleAndOperate:
 					return nullptr;
 				}
 				// Convert the radical into an exponentiation operation
-				// Separate processing for numbers vs fractions
-				if(n->getType() == TokenType::NUMBER) {
-					((Number*) n)->value = 1 / ((Number*) n)->value;
-				}
-				else if(n->getType() == TokenType::FRACTION) {
-					int64_t temp = ((Fraction*) n)->num;
-					((Fraction*) n)->num = ((Fraction*) n)->denom;
-					((Fraction*) n)->denom = temp;
-				}
-				// If it's neither a number nor a fraction, then it's a matrix...
-				// Don't even bother
-				else {
-					delete n;
-					delete contents;
-					freeTokens(arr);
-					return new Number(NAN);
-				}
+                static_cast<Numerical*>(n)->value = 1 / static_cast<Numerical*>(n)->value;
 				// Evaluate the radical and add the result to the tokens array
 				arr.add(OP_EXPONENT(contents, n));
 				// Move on to the next object
@@ -1751,7 +1493,7 @@ convertToDoubleAndOperate:
                         return nullptr;
                     }
                     // Add the result
-                    arr.add(new Number(result));
+                    arr.add(new Numerical(result));
 
                     freeTokens(args);
                     delete[] unit;
@@ -1782,7 +1524,7 @@ convertToDoubleAndOperate:
 							delete sub;
 							double multiplier = 1 / log2(base);
 							// Convert it to a multiplication with a base 2 log
-							arr.add(new Number(multiplier));
+							arr.add(new Numerical(multiplier));
 							// Use special multiply to ensure the order of operations do not mess it up
 							arr.add(const_cast<Operator*>(&OP_SP_MULT));
 							// The function is base 2 log
@@ -1898,7 +1640,7 @@ evaluateFunc:
 								arr.add(const_cast<Operator*>(&OP_MULTIPLY));
 							}
 							// If n is nonnull it must be added, so no need for cleanup for this dynamically allocated variable
-							Number *n = Number::constFromString(str);
+							Numerical *n = Numerical::constFromString(str);
 							// Add if it's a valid constant
 							if(n) {
 								arr.add(n);
@@ -1911,16 +1653,12 @@ evaluateFunc:
 									// Compare with each variable name
 									if(strcmp(str, vars[i].name) == 0) {
 										// We found a match!
-										if(vars[i].value->getType() == TokenType::NUMBER) {
-											arr.add(new Number(((Number*) vars[i].value)->value));
-										}
-										else if(vars[i].value->getType() == TokenType::FRACTION) {
-											arr.add(new Fraction(((Fraction*) vars[i].value)->num, ((Fraction*) vars[i].value)->denom));
-										}
-										// Matrices
-										else {
-											arr.add(new Matrix(*((Matrix*) vars[i].value)));
-										}
+                                        if(vars[i].value->getType() == TokenType::NUMERICAL) {
+                                            arr.add(new Numerical(static_cast<Numerical*>(vars[i].value)->value));
+                                        }
+                                        else {
+                                            arr.add(new Matrix(*static_cast<Matrix*>(vars[i].value)));
+                                        }
 										break;
 									}
 								}
@@ -1937,7 +1675,7 @@ evaluateFunc:
 				}
 				// If it's a number, parse it with atof and add its value
 				else {
-					arr.add(new Number(atof(str)));
+					arr.add(new Numerical(atof(str)));
 					index = end;
 					lastTokenOperator = false;
 				}
@@ -1978,7 +1716,7 @@ evaluateFunc:
 					return nullptr;
 				}
 				// Matrices are not allowed as counters
-				if(start->getType() == TokenType::MATRIX) {
+				if(start->getType() == TokenType::MATRIX || end->getType() == TokenType::MATRIX) {
 					delete end;
 					delete start;
 					freeTokens(arr);
@@ -2010,7 +1748,8 @@ evaluateFunc:
 				// The accumulated value
 				Token *val = nullptr;
 				// While the start is still less than or equal to the end
-				while(compareTokens(start, end) <= 0) {
+				while(static_cast<Numerical*>(start)->value < static_cast<Numerical*>(end)->value
+                        || static_cast<Numerical*>(start)->value.feq(static_cast<Numerical*>(end)->value)) {
 					// Evaluate the inside expression
 					Token *n = evaluate((neda::Container*) ((neda::SigmaPi*) exprs[index])->contents, varc + 1, newVars, funcc, funcs);
 
@@ -2033,20 +1772,15 @@ evaluateFunc:
 					else {
 						val = n;
 					}
+                    
 					// Add one to the counter variable
-					if(start->getType() == TokenType::NUMBER) {
-						++((Number*) start)->value;
-					}
-					// Since counter cannot be a matrix, if it's not a number then it must be a fraction
-					else {
-						((Fraction*) start)->num += ((Fraction*) start)->denom;
-					}
+                    static_cast<Numerical*>(start)->value += 1;
 				}
 				// If val was not set, then there were no iterations
 				// Set it to a default value instead
 				// For summation this is 0, for product it is 1
 				if(!val) {
-					val = new Number(type.data == lcd::CHAR_SUMMATION.data ? 0 : 1);
+					val = new Numerical(type.data == lcd::CHAR_SUMMATION.data ? 0 : 1);
 				}
 
 				// Insert the value
@@ -2102,13 +1836,7 @@ evaluateFunc:
                             freeTokens(arr);
                             return nullptr;
                         }
-                        
-                        if(n->getType() == TokenType::NUMBER) {
-                            mat->contents[i] = static_cast<Number*>(n)->value;
-                        }
-                        else {
-                            mat->contents[i] = util::Numerical(static_cast<Fraction*>(n)->num, static_cast<Fraction*>(n)->denom);
-                        }
+                        mat->contents[i] = static_cast<Numerical*>(n)->value;
                     }
                     else {
                         // Check that the vector only has 1 column and the rows are as expected
@@ -2172,7 +1900,7 @@ constructMatrixFromVectors:
                     // Then the entire expression is undefined
                     if(condition == -1) {
                         freeTokens(arr);
-                        return new Number(NAN);
+                        return new Numerical(NAN);
                     }
                     // Condition is true
                     else if(condition == 1) {
@@ -2191,7 +1919,7 @@ constructMatrixFromVectors:
                 // No condition was true - value is undefined
                 if(!val) {
                     freeTokens(arr);
-                    return new Number(NAN);
+                    return new Numerical(NAN);
                 }
 
                 arr.add(val);
@@ -2262,7 +1990,7 @@ constructMatrixFromVectors:
                     // For vectors, just take the number
                     if(mat->n == 1) {
                         if(index < mat->m) {
-                            result = tokenFromNumerical((*mat)[index]);
+                            result = new Numerical((*mat)[index]);
                         }
                         else {
                             freeTokens(arr);
@@ -2374,7 +2102,7 @@ constructMatrixFromVectors:
                             return nullptr;
                         }
                         else {
-                            result = tokenFromNumerical(mat->getEntry(rowInt, colInt));
+                            result = new Numerical(mat->getEntry(rowInt, colInt));
                         }
                     }
                     delete row;
@@ -2405,16 +2133,20 @@ constructMatrixFromVectors:
                     return nullptr;
                 }
 
-                if(t->getType() == TokenType::NUMBER) {
-                    static_cast<Number*>(t)->value = util::abs(static_cast<Number*>(t)->value);
-                    arr.add(t);
-                }
-                else if(t->getType() == TokenType::FRACTION) {
-                    static_cast<Fraction*>(t)->num = util::abs(static_cast<Fraction*>(t)->num);
-                    arr.add(t);
+                // Take the absolute value
+                if(t->getType() == TokenType::NUMERICAL) {
+                    auto &num = static_cast<Numerical*>(t)->value;
+                    if(num.isNumber()) {
+                        num = util::abs(num.asDouble());
+                    }
+                    else {
+                        auto frac = num.asFraction();
+                        frac.num = util::abs(frac.num);
+                        num = frac;
+                    }
                 }
                 else {
-                    arr.add(tokenFromNumerical(static_cast<Matrix*>(t)->len()));
+                    arr.add(new Numerical(static_cast<Matrix*>(t)->len()));
                     delete t;
                 }
 
@@ -2433,7 +2165,7 @@ constructMatrixFromVectors:
 		util::Deque<Token*> stack;
 		for(Token *t : arr) {
 			// If token is a number, fraction or matrix, put it in the queue
-			if(t->getType() == TokenType::NUMBER || t->getType() == TokenType::FRACTION || t->getType() == TokenType::MATRIX) {
+			if(t->getType() == TokenType::NUMERICAL || t->getType() == TokenType::MATRIX) {
 				output.enqueue(t);
 			}
 			else {
@@ -2456,8 +2188,8 @@ constructMatrixFromVectors:
 		while(!output.isEmpty()) {
 			// Read a token
 			Token *t = output.dequeue();
-			// If token is a number, fraction or matrix, push onto sta
-			if(t->getType() == TokenType::NUMBER || t->getType() == TokenType::FRACTION || t->getType() == TokenType::MATRIX) {
+			// If token is a number, fraction or matrix, push onto stack
+			if(t->getType() == NUMERICAL || t->getType() == TokenType::MATRIX) {
 				stack.push(t);
 			}
 			// Operator

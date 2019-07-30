@@ -243,8 +243,8 @@ void drawResult(uint8_t id, bool resetLocation = true) {
 		// Evaluate the fraction lazily by calling evaluate
         // Since the result cannot contain any symbols no need to pass in variables and functions
 		eval::Token *evalResult = eval::evaluate(calcResults[id], 0, nullptr, 0, nullptr);
-		// Guaranteed to be a fraction
-		double decimalResult = ((eval::Fraction*) evalResult)->doubleVal();
+		// Guaranteed to be a numerical
+		double decimalResult = static_cast<eval::Numerical*>(evalResult)->value.asDouble();
 		delete evalResult;
 		char buf[64];
 		util::ftoa(decimalResult, buf, mainExprEntry.resultSignificantDigits, LCD_CHAR_EE);
@@ -546,7 +546,7 @@ void evaluateExpr(neda::Container *expr) {
                         // Finally add the damn thing
                         expr::updateFunc(vName, funcExpr, argc, const_cast<const char**>(argn));
                         // Update the result to 1 to signify the operation succeeded
-                        result = new eval::Number(1);
+                        result = new eval::Numerical(1);
                     }
                 }
             }
@@ -559,14 +559,11 @@ void evaluateExpr(neda::Container *expr) {
                 if(result) {
                     // Create a copy since the result is shared between the history and the variable values
                     eval::Token *value;
-                    if(result->getType() == eval::TokenType::NUMBER) {
-                        value = new eval::Number(((eval::Number*) result)->value);
-                    }
-                    else if(result->getType() == eval::TokenType::FRACTION) {
-                        value = new eval::Fraction(((eval::Fraction*) result)->num, ((eval::Fraction*) result)->denom);
+                    if(result->getType() == eval::TokenType::NUMERICAL) {
+                        value = new eval::Numerical(static_cast<eval::Numerical*>(result)->value);
                     }
                     else {
-                        value = new eval::Matrix(*((eval::Matrix*) result));
+                        value = new eval::Matrix(*static_cast<eval::Matrix*>(result));
                     }
                     // Add it
                     expr::updateVar(vName, value);
@@ -588,38 +585,35 @@ void evaluateExpr(neda::Container *expr) {
     }
     else {
         // Note: result is not deleted since updateVar needs it
-        if(result->getType() == eval::TokenType::NUMBER) {
-            if(isnan(((eval::Number*) result)->value)) {
-                // No complex numbers allowed!!
-                calcResults[0]->add(new neda::Character('\xff'));
+        if(result->getType() == eval::TokenType::NUMERICAL) {
+            const auto &resultNum = static_cast<eval::Numerical*>(result)->value;
+            // For numbers or fractions with 1 in the denominator
+            if(resultNum.isNumber() || resultNum.asFraction().denom == 1) {
+                if(isnan(resultNum.asDouble())) {
+                    // No complex numbers allowed!!
+                    calcResults[0]->add(new neda::Character('\xff'));
+                }
+                else {
+                    char buf[64];
+                    // Convert the result and store it
+                    util::ftoa(resultNum.asDouble(), buf, mainExprEntry.resultSignificantDigits, LCD_CHAR_EE);
+                    calcResults[0]->addString(buf);
+                }
             }
             else {
                 char buf[64];
-                // Convert the result and store it
-                util::ftoa(((eval::Number*) result)->value, buf, mainExprEntry.resultSignificantDigits, LCD_CHAR_EE);
-                calcResults[0]->addString(buf);
-            }
-        }
-        else if(result->getType() == eval::TokenType::FRACTION) {
-            char buf[64];
-            // Fractions with 1 in the denominator get treated as normal numbers
-            if(static_cast<eval::Fraction*>(result)->denom == 1) {
-                // Convert the result and store it
-                util::ftoa(static_cast<eval::Fraction*>(result)->num, buf, mainExprEntry.resultSignificantDigits, LCD_CHAR_EE);
-                calcResults[0]->addString(buf);
-            }
-            else {
+                auto frac = resultNum.asFraction();
                 neda::Container *num = new neda::Container();
                 neda::Container *denom = new neda::Container();
 
                 // Display negative fractions with the minus sign in front
-                if(((eval::Fraction*) result)->num < 0) {
+                if(frac.num < 0) {
                     calcResults[0]->add(new neda::Character('-'));
                 }
 
-                util::ltoa(labs(((eval::Fraction*) result)->num), buf);
+                util::ltoa(util::abs(frac.num), buf);
                 num->addString(buf);
-                util::ltoa(((eval::Fraction*) result)->denom, buf);
+                util::ltoa(frac.denom, buf);
                 denom->addString(buf);
 
                 calcResults[0]->add(new neda::Fraction(num, denom));
@@ -656,7 +650,7 @@ void evaluateExpr(neda::Container *expr) {
                     }
                     cont->add(new neda::Fraction(num, denom));
                     // Convert numerator and denominator
-                    util::ltoa(labs(frac.num), buf);
+                    util::ltoa(util::abs(frac.num), buf);
                     num->addString(buf);
                     util::ltoa(frac.denom, buf);
                     denom->addString(buf);

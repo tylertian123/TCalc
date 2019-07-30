@@ -1408,7 +1408,7 @@ toggleEditOption:
                 // Construct a environment that can be reused later since all graphable functions only have 1 argument x
                 eval::Variable *newVars = constructFunctionGraphingEnvironment();
 
-                eval::Number arg(0);
+                eval::Numerical arg(0);
                 newVars[0].value = &arg;
 
                 uint16_t counter = 0;
@@ -1685,7 +1685,7 @@ functionCheckLoopEnd:
         // Construct a environment that can be reused later since all graphable functions only have 1 argument x
         eval::Variable *newVars = constructFunctionGraphingEnvironment();
 
-        eval::Number arg(0);
+        eval::Numerical arg(0);
         newVars[0].value = &arg;
 
         // The y value of the previous pixel (in the real coordinate system)

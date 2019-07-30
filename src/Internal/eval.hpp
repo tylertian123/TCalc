@@ -18,53 +18,112 @@ namespace eval {
 	 * Base Token class and type enum
 	 */
 	enum TokenType : uint8_t {
-		NUMBER,
-		FRACTION,
+        NUMERICAL,
 		OPERATOR,
         FUNCTION,
 		MATRIX,
 	};
+
 	class Token {
 	public:
 		virtual TokenType getType() const = 0;
 	};
 
-	class Number : public Token {
-	public:
-		Number(double value) : value(value) {}
-        Number(const Number &other) : value(other.value) {}
-		double value;
+    class Numerical : public Token {
+    public:
+        Numerical(const util::Numerical &value) : value(value) {}
+        Numerical(double n) : value(n) {}
+        Numerical(const util::Fraction &f) : value(f) {}
 
-		virtual TokenType getType() const override {
-			return TokenType::NUMBER;
+        util::Numerical value;
+
+        virtual TokenType getType() const override {
+            return TokenType::NUMERICAL;
+        }
+
+        static Numerical* constFromString(const char*);
+    };
+    
+	class Matrix : public Token {
+	public:
+		Matrix(uint8_t m, uint8_t n) : m(m), n(n) {
+			contents = new util::Numerical[m * n];
 		}
+
+		// Copy constructor
+		Matrix(const Matrix &mat) : m(mat.m), n(mat.n) {
+			contents = new util::Numerical[m * n];
+			memcpy(contents, mat.contents, sizeof(util::Numerical) * m * n);
+		}
+
+		~Matrix() {
+			delete[] contents;
+		}
+
+		const uint8_t m;
+		const uint8_t n;
 		
-		static Number* constFromString(const char*);
-	};
-	
-	class Fraction : public Token {
-	public:
-		Fraction(int64_t num, int64_t denom) : num(num), denom(denom) {
-			reduce();
+		util::Numerical *contents;
+
+		// Maps zero-based indexing to index in contents array
+		inline uint16_t index_0(uint8_t x, uint8_t y) const {
+			return x + y * n;
 		}
-        Fraction(const Fraction &other) : num(other.num), denom(other.denom) {}
-		int64_t num;
-		int64_t denom;
+		// Sets an entry
+		inline void setEntry(uint8_t row, uint8_t col, util::Numerical entry) {
+			contents[index_0(col, row)] = entry;
+		}
+		inline util::Numerical& getEntry(uint8_t row, uint8_t col) {
+			return contents[index_0(col, row)];
+		}
+		inline const util::Numerical& getEntry(uint8_t row, uint8_t col) const {
+			return contents[index_0(col, row)];
+		}
+		inline util::Numerical& operator[](const int index) {
+			return contents[index];
+		}
+		inline const util::Numerical& operator[](const int index) const {
+			return contents[index];
+		}
+
+		static Matrix* add(const Matrix&, const Matrix&);
+		static Matrix* subtract(const Matrix&, const Matrix&);
+		static Matrix* multiply(const Matrix&, util::Numerical);
+		static Matrix* multiply(const Matrix&, const Matrix&);
+		static util::Numerical dot(const Matrix&, const Matrix&);
+        static bool equality(const Matrix&, const Matrix&);
+        // Note: This will modify the matrix
+		util::Numerical det();
+		util::Numerical len() const;
+		static Matrix* cross(const Matrix&, const Matrix&);
+		Matrix* transpose() const;
+		Matrix* inv() const;
+
+        Matrix* getRowVector(uint8_t row) const;
+        Matrix* getColVector(uint8_t col) const;
+
+		bool eliminate(bool allowSingular = true);
 
 		virtual TokenType getType() const override {
-			return TokenType::FRACTION;
+			return TokenType::MATRIX;
 		}
-
-		double doubleVal() const;
-		bool isInteger() const;
-		void reduce();
-
-		Fraction& operator+=(const Fraction&);
-		Fraction& operator-=(const Fraction&);
-		Fraction& operator*=(const Fraction&);
-		Fraction& operator/=(const Fraction&);
-
-		bool pow(const Fraction&);
+	
+	protected:
+		inline void rowSwap(uint8_t a, uint8_t b) {
+			for(uint8_t i = 0; i < n; i ++) {
+				util::swap(getEntry(a, i), getEntry(b, i));
+			}
+		}
+		inline void rowMult(uint8_t row, util::Numerical scalar) {
+			for(uint8_t i = 0; i < n; i ++) {
+				getEntry(row, i) *= scalar;
+			}
+		}
+		inline void rowAdd(uint8_t a, uint8_t b, util::Numerical scalar = 1) {
+			for(uint8_t i = 0; i < n; i ++) {
+				getEntry(a, i) += getEntry(b, i) * scalar;
+			}
+		}
 	};
 
 	class Operator : public Token {
@@ -87,11 +146,6 @@ namespace eval {
 		}
 
 		static const Operator* fromChar(char);
-
-		double operate(double, double) const;
-		// Returns whether the operation was successful (in the case of fractional exponentiation)
-		// Ugly, I know.
-		bool operateOn(Fraction*, Fraction*) const;
 
 		// Operates on two numericals, taking into account fractions and everything
 		// The returned numerical is allocated on the heap and needs to be freed
@@ -159,88 +213,10 @@ namespace eval {
 
 		static Function* fromString(const char*);
 		uint8_t getNumArgs() const;
+
+        // Evaluates the function. Assumes the input has the correct number of elements.
+        // Note: This function might modify the input.
 		Token* operator()(Token**) const;
-	};
-
-	class Matrix : public Token {
-	public:
-		Matrix(uint8_t m, uint8_t n) : m(m), n(n) {
-			contents = new util::Numerical[m * n];
-		}
-
-		// Copy constructor
-		Matrix(const Matrix &mat) : m(mat.m), n(mat.n) {
-			contents = new util::Numerical[m * n];
-			memcpy(contents, mat.contents, sizeof(util::Numerical) * m * n);
-		}
-
-		~Matrix() {
-			delete[] contents;
-		}
-
-		const uint8_t m;
-		const uint8_t n;
-		
-		util::Numerical *contents;
-
-		// Maps zero-based indexing to index in contents array
-		inline uint16_t index_0(uint8_t x, uint8_t y) const {
-			return x + y * n;
-		}
-		// Sets an entry
-		inline void setEntry(uint8_t row, uint8_t col, util::Numerical entry) {
-			contents[index_0(col, row)] = entry;
-		}
-		inline util::Numerical& getEntry(uint8_t row, uint8_t col) {
-			return contents[index_0(col, row)];
-		}
-		inline const util::Numerical& getEntry(uint8_t row, uint8_t col) const {
-			return contents[index_0(col, row)];
-		}
-		inline util::Numerical& operator[](const int index) {
-			return contents[index];
-		}
-		inline const util::Numerical& operator[](const int index) const {
-			return contents[index];
-		}
-
-		static Matrix* add(const Matrix&, const Matrix&);
-		static Matrix* subtract(const Matrix&, const Matrix&);
-		static Matrix* multiply(const Matrix&, util::Numerical);
-		static Matrix* multiply(const Matrix&, const Matrix&);
-		static util::Numerical dot(const Matrix&, const Matrix&);
-        // Note: This will modify the matrix
-		util::Numerical det();
-		util::Numerical len() const;
-		static Matrix* cross(const Matrix&, const Matrix&);
-		Matrix* transpose() const;
-		Matrix* inv() const;
-
-        Matrix* getRowVector(uint8_t row) const;
-        Matrix* getColVector(uint8_t col) const;
-
-		bool eliminate(bool allowSingular = true);
-
-		virtual TokenType getType() const override {
-			return TokenType::MATRIX;
-		}
-	
-	protected:
-		inline void rowSwap(uint8_t a, uint8_t b) {
-			for(uint8_t i = 0; i < n; i ++) {
-				util::swap(getEntry(a, i), getEntry(b, i));
-			}
-		}
-		inline void rowMult(uint8_t row, util::Numerical scalar) {
-			for(uint8_t i = 0; i < n; i ++) {
-				getEntry(row, i) *= scalar;
-			}
-		}
-		inline void rowAdd(uint8_t a, uint8_t b, util::Numerical scalar = 1) {
-			for(uint8_t i = 0; i < n; i ++) {
-				getEntry(a, i) += getEntry(b, i) * scalar;
-			}
-		}
 	};
 
 	struct UserDefinedFunction {
@@ -265,7 +241,6 @@ namespace eval {
         Token *value;
     };
 
-    Token *tokenFromNumerical(const util::Numerical &n);
 	// This will delete the collection of tokens properly. It will destory all tokens in the array.
 	void freeTokens(util::Deque<Token*> &q);
     // This will delete the collection of tokens properly. It will destory all tokens in the array.
@@ -274,7 +249,6 @@ namespace eval {
 	bool isNameChar(char);
 	char extractChar(const neda::NEDAObj*);
 	double extractDouble(const Token*);
-	int8_t compareTokens(const Token*, const Token*);
 	uint16_t findEquals(const util::DynamicArray<neda::NEDAObj*>&, bool forceVarName = true);
     int8_t isTruthy(const Token*);
     util::DynamicArray<Token*> evaluateArgs(const util::DynamicArray<neda::NEDAObj*>& expr, 
