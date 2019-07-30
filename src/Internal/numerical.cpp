@@ -435,6 +435,46 @@ namespace util {
         return !(num == frac);
     }
 
+    bool Numerical::operator>(double d) const {
+        return asDouble() > d;
+    }
+
+    bool Numerical::operator>(const Fraction &frac) const {
+        return asDouble() > static_cast<double>(frac);
+    }
+
+    bool Numerical::operator>(const Numerical &other) const {
+        return asDouble() > other.asDouble();
+    }
+
+    bool operator>(double d, const Numerical &n) {
+        return d > n.asDouble();
+    }
+
+    bool operator>(const Fraction &frac, const Numerical &n) {
+        return static_cast<double>(frac) > n.asDouble();
+    }
+
+    bool Numerical::operator<(double d) const {
+        return asDouble() < d;
+    }
+
+    bool Numerical::operator<(const Fraction &frac) const {
+        return asDouble() < static_cast<double>(frac);
+    }
+
+    bool Numerical::operator<(const Numerical &other) const {
+        return asDouble() < other.asDouble();
+    }
+
+    bool operator<(double d, const Numerical &n) {
+        return d < n.asDouble();
+    }
+
+    bool operator<(const Fraction &frac, const Numerical &n) {
+        return static_cast<double>(frac) < n.asDouble();
+    }
+
     Numerical::operator double() const {
         return asDouble();
     }
@@ -463,6 +503,33 @@ namespace util {
         // Take the square root normally as a number
         toDouble();
         num.d = std::sqrt(num.d);
+    }
+
+    void Numerical::pow(double n) {
+        if(!isNumber()) {
+            // Try to take the power of the numerator and the denominator
+            double powN = std::pow(static_cast<double>(num.i), n);
+            if(isInt(powN)) {
+                double powD = std::pow(static_cast<double>(denom.i), n);
+                if(isInt(powD)) {
+                    num.i = static_cast<int64_t>(powN);
+                    denom.i = static_cast<int64_t>(powD);
+                    // Return here
+                    return;
+                }
+            }
+        }
+        
+        toDouble();
+        num.d = std::pow(num.d, n);
+    }
+
+    void Numerical::pow(const Fraction &frac) {
+        pow(static_cast<double>(frac));
+    }
+
+    void Numerical::pow(const Numerical &other) {
+        pow(other.asDouble());
     }
 
     bool Numerical::feq(double n) const {
