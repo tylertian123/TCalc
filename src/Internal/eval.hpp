@@ -241,9 +241,16 @@ namespace eval {
         Token *value;
     };
 
-    // Converts a token into a suitable NEDA representation.
-    // t can be nullptr to represent a syntax error.
-    void toNEDAObjs(neda::Container *cont, Token *t, uint8_t significantDigits, bool forceDecimal = false);
+    /*
+     * Converts t into a suitable NEDA representation, which is then added to cont.
+     * 
+     * cont - A pointer to a neda::Container to put the objects in
+     * t - The Token to convert
+     * significantDigits - The number of significant digits when converting floating-point values
+     * forceDecimal - If set to true, all fractions will be displayed in decimal format; has precedence over asMixedNumber
+     * asMixedNumber - If set to true, improper fractions will be displayed as mixed numbers
+     */
+    void toNEDAObjs(neda::Container *cont, Token *t, uint8_t significantDigits, bool forceDecimal = false, bool asMixedNumber = false);
     Token* copyToken(Token *t);
 	// This will delete the collection of tokens properly. It will destory all tokens in the array.
 	void freeTokens(util::Deque<Token*> &q);

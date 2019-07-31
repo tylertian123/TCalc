@@ -949,7 +949,7 @@ namespace eval {
 	}
 
 	/******************** Other Functions ********************/
-    void toNEDAObjs(neda::Container *cont, Token *t, uint8_t significantDigits, bool forceDecimal) {
+    void toNEDAObjs(neda::Container *cont, Token *t, uint8_t significantDigits, bool forceDecimal, bool asMixedNumber) {
         if(!t) {
             cont->add(new neda::Character(LCD_CHAR_SERR));
             return;
@@ -979,9 +979,19 @@ namespace eval {
                 // Display negative fractions with the minus sign in front
                 if(frac.num < 0) {
                     cont->add(new neda::Character('-'));
+                    frac.num = util::abs(frac.num);
+                }
+                // At this point the numerator should always be positive
+                if(asMixedNumber && frac.num / frac.denom > 0) {
+                    // Convert the improper fraction to a mixed number...
+                    int64_t i = frac.num / frac.denom;
+                    frac.num = frac.num % frac.denom;
+
+                    util::ltoa(i, buf);
+                    cont->addString(buf);
                 }
 
-                util::ltoa(util::abs(frac.num), buf);
+                util::ltoa(frac.num, buf);
                 num->addString(buf);
                 util::ltoa(frac.denom, buf);
                 denom->addString(buf);
@@ -998,7 +1008,7 @@ namespace eval {
                     neda::Container *c = new neda::Container();
                     Numerical n(mat->getEntry(i, j));
 
-                    toNEDAObjs(c, &n, significantDigits, forceDecimal);
+                    toNEDAObjs(c, &n, significantDigits, forceDecimal, asMixedNumber);
 
                     nMat->setEntry(i, j, c);
                 }

@@ -20,7 +20,7 @@
 #include "exprentry.hpp"
 #include <stdlib.h>
 
-#define VERSION_STR "V1.3.0"
+#define VERSION_STR "V1.3.1"
 
 /********** GPIO Pins and other pin defs **********/
 GPIOPin RS(GPIOC, GPIO_Pin_10), RW(GPIOC, GPIO_Pin_11), E(GPIOC, GPIO_Pin_12),
@@ -233,6 +233,7 @@ neda::Container *expressions[RESULT_STORE_COUNT] = { nullptr };
 int16_t resultX, resultY;
 uint16_t resultWidth = 0, resultHeight = 0;
 bool asDecimal = false;
+bool asMixedNumber = false;
 void drawResult(uint8_t id, bool resetLocation = true) {
 	// Display the expression
 	display.clearDrawingBuffer();
@@ -240,7 +241,7 @@ void drawResult(uint8_t id, bool resetLocation = true) {
 
 	// Display the result
 	neda::Container *result = new neda::Container();
-    eval::toNEDAObjs(result, calcResults[id], mainExprEntry.resultSignificantDigits, asDecimal);
+    eval::toNEDAObjs(result, calcResults[id], mainExprEntry.resultSignificantDigits, asDecimal, asMixedNumber);
 
 	// Set the location of the result
 	if(resetLocation) {
@@ -306,6 +307,7 @@ void normalKeyPressHandler(uint16_t key) {
             if(currentExpr < RESULT_STORE_COUNT - 1 && expressions[currentExpr + 1]) {
 				++currentExpr;
 				asDecimal = false;
+                asMixedNumber = false;
 				drawResult(currentExpr);
 			}
             break;
@@ -314,12 +316,24 @@ void normalKeyPressHandler(uint16_t key) {
             if(currentExpr >= 1) {
 				--currentExpr;
 				asDecimal = false;
+                asMixedNumber = false;
 				drawResult(currentExpr);
 			}
             break;
         // Display the current result with a different method
         case KEY_APPROX:
             asDecimal = !asDecimal;
+            if(asDecimal) {
+                asMixedNumber = false;
+            }
+            drawResult(currentExpr);
+            break;
+        case KEY_FRACFMT:
+            asMixedNumber = !asMixedNumber;
+            // Since decimal takes precedence over mixed number, set it to false
+            if(asMixedNumber) {
+                asDecimal = false;
+            }
             drawResult(currentExpr);
             break;
         case KEY_DUMMY:
@@ -419,11 +433,13 @@ void normalKeyPressHandler(uint16_t key) {
             case KEY_ENTER:
                 evaluateExpr(static_cast<neda::Container*>(mainExprEntry.cursor->expr->getTopLevel()));
                 asDecimal = false;
+                asMixedNumber = false;
                 drawResult(0, true);
                 break;
             case KEY_APPROX:
                 evaluateExpr(static_cast<neda::Container*>(mainExprEntry.cursor->expr->getTopLevel()));
                 asDecimal = true;
+                asMixedNumber = false;
                 drawResult(0, true);
                 break;
             // Forward others to handleKeyPress()
