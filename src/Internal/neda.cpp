@@ -180,11 +180,14 @@ namespace neda {
 			}
 		}
 	}
+    void Container::_add(NEDAObj *obj) {
+        if(obj->getType() != ObjType::CHAR_TYPE) {
+            static_cast<Expr*>(obj)->parent = this;
+        }
+        contents.add(obj);
+    }
 	void Container::add(NEDAObj *expr) {
-		if(expr->getType() != ObjType::CHAR_TYPE) {
-			((Expr*) expr)->parent = this;
-		}
-		contents.add(expr);
+		_add(expr);
 
 		recomputeHeights();
         computeDimensions();
@@ -386,12 +389,16 @@ namespace neda {
 			dest.setPixel(info.x + 1, info.y + i, true);
 		}
 	}
+    void Container::_addAtCursor(NEDAObj *obj, Cursor &cursor) {
+        contents.insert(obj, cursor.index);
+        ++cursor.index;
+        if(obj->getType() != ObjType::CHAR_TYPE) {
+            static_cast<Expr*>(obj)->parent = this;
+        }
+    }
 	void Container::addAtCursor(NEDAObj *expr, Cursor &cursor) {
-		contents.insert(expr, cursor.index);
-		++cursor.index;
-		if(expr->getType() != ObjType::CHAR_TYPE) {
-			((Expr*) expr)->parent = this;
-		}
+		_addAtCursor(expr, cursor);
+        
 		recomputeHeights();
 		computeDimensions();
 	}
@@ -418,15 +425,19 @@ namespace neda {
 	Container* Container::copy() {
 		Container *c = new Container();
 		for(NEDAObj *ex : contents) {
-			c->add(ex->copy());
+			c->_add(ex->copy());
 		}
+        c->recomputeHeights();
+        c->computeDimensions();
 		
 		return c;
 	}
 	void Container::addString(const char *str) {
 		while(*str != '\0') {
-			add(new Character(*(str++)));
+			_add(new Character(*(str++)));
 		}
+        recomputeHeights();
+        computeDimensions();
 	}
 
 	// *************************** Fraction ***************************************
@@ -1598,8 +1609,10 @@ loopEnd:
 	}
     void Cursor::addStr(const char *str) {
         while(*str != '\0') {
-            add(new neda::Character(*str++));
+            expr->_addAtCursor(new neda::Character(*str++), *this);
         }
+        expr->recomputeHeights();
+        expr->computeDimensions();
     }
 
 	// *************************** Misc ***************************************

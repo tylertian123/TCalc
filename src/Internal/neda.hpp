@@ -191,6 +191,12 @@ namespace neda {
 		virtual Container* copy() override;
 
 		void addString(const char*);
+
+        friend class Cursor;
+
+    protected:
+        void _add(NEDAObj *obj);
+        void _addAtCursor(NEDAObj *obj, Cursor &cursor);
 	};
 	
 	// Fraction

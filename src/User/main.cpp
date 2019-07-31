@@ -226,33 +226,22 @@ extern "C" void TIM3_IRQHandler() {
 }
 
 #define RESULT_STORE_COUNT 5
-// Previous expressions and their results
-neda::Container *calcResults[RESULT_STORE_COUNT] = { nullptr };
+// Results of previous computations
+eval::Token *calcResults[RESULT_STORE_COUNT] = { nullptr };
+// The expressions from previous computations
 neda::Container *expressions[RESULT_STORE_COUNT] = { nullptr };
 int16_t resultX, resultY;
 uint16_t resultWidth = 0, resultHeight = 0;
 bool asDecimal = false;
 void drawResult(uint8_t id, bool resetLocation = true) {
-	// Display the result
+	// Display the expression
 	display.clearDrawingBuffer();
 	expressions[id]->Expr::draw(display);
-	// Convert to decimal if necessary
-	neda::Container *result;
-	if(asDecimal && calcResults[id]->contents[0]->getType() == neda::ObjType::FRACTION) {
-		result = new neda::Container();
-		// Evaluate the fraction lazily by calling evaluate
-        // Since the result cannot contain any symbols no need to pass in variables and functions
-		eval::Token *evalResult = eval::evaluate(calcResults[id], 0, nullptr, 0, nullptr);
-		// Guaranteed to be a numerical
-		double decimalResult = static_cast<eval::Numerical*>(evalResult)->value.asDouble();
-		delete evalResult;
-		char buf[64];
-		util::ftoa(decimalResult, buf, mainExprEntry.resultSignificantDigits, LCD_CHAR_EE);
-		result->addString(buf);
-	}
-	else {
-		result = calcResults[id];
-	}
+
+	// Display the result
+	neda::Container *result = new neda::Container();
+    eval::toNEDAObjs(result, calcResults[id], mainExprEntry.resultSignificantDigits, asDecimal);
+
 	// Set the location of the result
 	if(resetLocation) {
 		resultX = 128 - CURSOR_HORIZ_SPACING - 1 - result->exprWidth;
@@ -264,10 +253,10 @@ void drawResult(uint8_t id, bool resetLocation = true) {
 	result->draw(display, resultX, resultY);
 	resultWidth = result->exprWidth;
 	resultHeight = result->exprHeight;
+
 	// Clean up
-	if(result != calcResults[id]) {
-		delete result;
-	}
+	delete result;
+
 	display.updateDrawing();
 }
 
@@ -353,13 +342,15 @@ void normalKeyPressHandler(uint16_t key) {
                 delete calcResults[RESULT_STORE_COUNT - 1];
                 delete expressions[RESULT_STORE_COUNT - 1];
                 // Set to null pointers
-                calcResults[RESULT_STORE_COUNT - 1] = expressions[RESULT_STORE_COUNT - 1] = nullptr;
+                calcResults[RESULT_STORE_COUNT - 1] = nullptr;
+                expressions[RESULT_STORE_COUNT - 1] = nullptr;
             }
             for(uint8_t i = RESULT_STORE_COUNT - 1; i > 0; --i) {
                 calcResults[i] = calcResults[i - 1];
                 expressions[i] = expressions[i - 1];
             }
-            calcResults[0] = expressions[0] = nullptr;
+            calcResults[0] = nullptr;
+            expressions[0] = nullptr;
 
             newExpr->getCursor(*mainExprEntry.cursor, neda::CURSORLOCATION_END);
             newExpr->x = CURSOR_HORIZ_SPACING + 1;
@@ -578,89 +569,17 @@ void evaluateExpr(neda::Container *expr) {
     else {
         result = eval::evaluate(expr, expr::variables, expr::functions);
     }
-    // Create the container that will hold the result
-    calcResults[0] = new neda::Container();
-    if(!result) {
-        calcResults[0]->add(new neda::Character(LCD_CHAR_SERR));
+    
+    // If result is nonnull, store a copy of it
+    // This is because a copy is also needed by updateVar()
+    if(result) {
+        calcResults[0] = eval::copyToken(result);
     }
     else {
-        // Note: result is not deleted since updateVar needs it
-        if(result->getType() == eval::TokenType::NUMERICAL) {
-            const auto &resultNum = static_cast<eval::Numerical*>(result)->value;
-            // For numbers or fractions with 1 in the denominator
-            if(resultNum.isNumber() || resultNum.asFraction().denom == 1) {
-                if(isnan(resultNum.asDouble())) {
-                    // No complex numbers allowed!!
-                    calcResults[0]->add(new neda::Character('\xff'));
-                }
-                else {
-                    char buf[64];
-                    // Convert the result and store it
-                    util::ftoa(resultNum.asDouble(), buf, mainExprEntry.resultSignificantDigits, LCD_CHAR_EE);
-                    calcResults[0]->addString(buf);
-                }
-            }
-            else {
-                char buf[64];
-                auto frac = resultNum.asFraction();
-                neda::Container *num = new neda::Container();
-                neda::Container *denom = new neda::Container();
-
-                // Display negative fractions with the minus sign in front
-                if(frac.num < 0) {
-                    calcResults[0]->add(new neda::Character('-'));
-                }
-
-                util::ltoa(util::abs(frac.num), buf);
-                num->addString(buf);
-                util::ltoa(frac.denom, buf);
-                denom->addString(buf);
-
-                calcResults[0]->add(new neda::Fraction(num, denom));
-            }
-        }
-        // Matrix
-        else {
-            char buf[64];
-            eval::Matrix *mat = (eval::Matrix*) result;
-            // Create NEDA matrix
-            neda::Matrix *nMat = new neda::Matrix(mat->m, mat->n);
-            // Go through every entry
-            for(uint16_t i = 0; i < mat->m * mat->n; i ++) {
-                // Create a container for the entry
-                neda::Container *cont = new neda::Container();
-                nMat->contents[i] = cont;
-
-                // Find the type of the entry
-                // Floating-point numbers and whole numbers (denominator of 1) are treated the same
-                if(mat->contents[i].isNumber() || mat->contents[i].asFraction().denom == 1) {
-                    // Convert the number directly
-                    util::ftoa(mat->contents[i].asDouble(), buf, mainExprEntry.resultSignificantDigits, LCD_CHAR_EE);
-                    cont->addString(buf);
-                }
-                else {
-                    // Make a fraction instead
-                    neda::Container *num = new neda::Container();
-                    neda::Container *denom = new neda::Container();
-
-                    // Display negative fractions with the minus sign in front
-                    util::Fraction frac = mat->contents[i].asFraction();
-                    if(frac.num < 0) {
-                        cont->add(new neda::Character('-'));
-                    }
-                    cont->add(new neda::Fraction(num, denom));
-                    // Convert numerator and denominator
-                    util::ltoa(util::abs(frac.num), buf);
-                    num->addString(buf);
-                    util::ltoa(frac.denom, buf);
-                    denom->addString(buf);
-                }
-            }
-            nMat->computeDimensions();
-
-            calcResults[0]->add(nMat);
-        }
-
+        calcResults[0] = nullptr;
+    }
+    
+    if(result) {
         // Now update the value of the Ans variable
         // Var names must be allocated on the heap
         char *name = new char[4];

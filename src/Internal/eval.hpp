@@ -241,6 +241,10 @@ namespace eval {
         Token *value;
     };
 
+    // Converts a token into a suitable NEDA representation.
+    // t can be nullptr to represent a syntax error.
+    void toNEDAObjs(neda::Container *cont, Token *t, uint8_t significantDigits, bool forceDecimal = false);
+    Token* copyToken(Token *t);
 	// This will delete the collection of tokens properly. It will destory all tokens in the array.
 	void freeTokens(util::Deque<Token*> &q);
     // This will delete the collection of tokens properly. It will destory all tokens in the array.

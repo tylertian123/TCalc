@@ -2,6 +2,7 @@
 #include "lcd12864_charset.hpp"
 #include "unitconv.hpp"
 #include "usart.hpp"
+#include "ntoa.hpp"
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -948,6 +949,79 @@ namespace eval {
 	}
 
 	/******************** Other Functions ********************/
+    void toNEDAObjs(neda::Container *cont, Token *t, uint8_t significantDigits, bool forceDecimal) {
+        if(!t) {
+            cont->add(new neda::Character(LCD_CHAR_SERR));
+            return;
+        }
+        if(t->getType() == TokenType::NUMERICAL) {
+            const auto &num = static_cast<Numerical*>(t)->value;
+            
+            if(forceDecimal || num.isNumber() || num.asFraction().denom == 1) {
+                double n = num.asDouble();
+
+                if(isnan(n)) {
+                    cont->add(new neda::Character(LCD_CHAR_MERR));
+                }
+                else {
+                    char buf[64];
+                    util::ftoa(n, buf, significantDigits, LCD_CHAR_EE);
+                    cont->addString(buf);
+                }
+            }
+            else {
+                char buf[64];
+                auto frac = num.asFraction();
+
+                neda::Container *num = new neda::Container();
+                neda::Container *denom = new neda::Container();
+
+                // Display negative fractions with the minus sign in front
+                if(frac.num < 0) {
+                    cont->add(new neda::Character('-'));
+                }
+
+                util::ltoa(util::abs(frac.num), buf);
+                num->addString(buf);
+                util::ltoa(frac.denom, buf);
+                denom->addString(buf);
+
+                cont->add(new neda::Fraction(num, denom));
+            }
+        }
+        else {
+            Matrix *mat = static_cast<Matrix*>(t);
+            neda::Matrix *nMat = new neda::Matrix(mat->m, mat->n);
+
+            for(uint8_t i = 0; i < mat->m; i ++) {
+                for(uint8_t j = 0; j < mat->n; j ++) {
+                    neda::Container *c = new neda::Container();
+                    Numerical n(mat->getEntry(i, j));
+
+                    toNEDAObjs(c, &n, significantDigits, forceDecimal);
+
+                    nMat->setEntry(i, j, c);
+                }
+            }
+            nMat->computeDimensions();
+            cont->add(nMat);
+        }
+    }
+    Token* copyToken(Token *t) {
+        if(t->getType() == TokenType::NUMERICAL) {
+            return new Numerical(static_cast<Numerical*>(t)->value);
+        }
+        else if(t->getType() == TokenType::MATRIX) {
+            return new Matrix(*static_cast<Matrix*>(t));
+        }
+        else if(t->getType() == TokenType::FUNCTION) {
+            return new Function(static_cast<Function*>(t)->type);
+        }
+        else {
+            // Operators
+            return t;
+        }
+    }
 	bool isDigit(char ch) {
 		return (ch >= '0' && ch <= '9') || ch == '.' || ch == LCD_CHAR_EE;
 	}

@@ -63,6 +63,8 @@
 #define LCD_STR_MUL "\x1e"
 // The character for the division sign in a string.
 #define LCD_STR_DIV "\x1f"
+// The character for math error in a string.
+#define LCD_STR_MERR "\xff"
 
 // The greek letter mu character.
 #define LCD_CHAR_MU '\x0a'
@@ -108,6 +110,8 @@
 #define LCD_CHAR_MUL '\x1e'
 // The character for the division sign.
 #define LCD_CHAR_DIV '\x1f'
+// The character for math error.
+#define LCD_CHAR_MERR '\xff'
 
 // Verify that plain char is unsigned
 // This must be true for the small charset to work

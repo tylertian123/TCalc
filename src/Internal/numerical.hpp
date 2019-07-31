@@ -9,6 +9,7 @@ namespace util {
      * Represents a fraction.
      */
     struct Fraction {
+        constexpr Fraction() : num(0), denom(0) {}
         constexpr Fraction(int64_t num, int64_t denom) : num(num), denom(denom) {}
 
         int64_t num;
