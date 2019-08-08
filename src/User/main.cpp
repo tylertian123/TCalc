@@ -65,6 +65,51 @@ extern "C" void HardFault_Handler() {
         display.writeString("reset TCalc.");
 
         for(uint64_t i = 0; i < 7000000; i ++);
+
+        display.clear();
+        display.setCursor(0, 0);
+        display.writeString("Type:");
+        display.setCursor(1, 0);
+        display.writeString("HardFault");
+
+        for(uint64_t i = 0; i < 7000000; i ++);
+    }
+}
+
+extern "C" void UsageFault_Handler() {
+    display.endDraw();
+    display.useBasic();
+
+    while(1) {
+        display.clear();
+        display.setCursor(0, 0);
+        display.writeString("ERROR: A fatal");
+        display.setCursor(1, 0);
+        display.writeString("exception has");
+        display.setCursor(2, 0);
+        display.writeString("occurred.");
+
+        for(uint64_t i = 0; i < 7000000; i ++);
+
+        display.clear();
+        display.setCursor(0, 0);
+        display.writeString("Attach debugger");
+        display.setCursor(1, 0);
+        display.writeString("or press the");
+        display.setCursor(2, 0);
+        display.writeString("reset button to");
+        display.setCursor(3, 0);
+        display.writeString("reset TCalc.");
+
+        for(uint64_t i = 0; i < 7000000; i ++);
+
+        display.clear();
+        display.setCursor(0, 0);
+        display.writeString("Type:");
+        display.setCursor(1, 0);
+        display.writeString("UsageFault");
+
+        for(uint64_t i = 0; i < 7000000; i ++);
     }
 }
 
