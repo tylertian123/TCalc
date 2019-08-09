@@ -166,19 +166,54 @@ namespace neda {
 		}
 	}
 	void Container::recomputeHeights() {
-        // Do superscripts and subscripts first and then brackets
-        // This is because the height of superscript and subscripts is a constant added to the height of the element before them
-        // So if brackets were before them, this might cause an endless loop of increasing heights
-		for(NEDAObj *ex : contents) {
-			if(ex->getType() == ObjType::SUPERSCRIPT || ex->getType() == ObjType::SUBSCRIPT) {
-				((Expr*) ex)->computeDimensions();
-			}
-		}
-        for(NEDAObj *ex : contents) {
-			if(ex->getType() == ObjType::L_BRACKET || ex->getType() == ObjType::R_BRACKET) {
-				((Expr*) ex)->computeDimensions();
-			}
-		}
+        recomputeHeights(contents.begin(), contents.end());
+    }
+	void Container::recomputeHeights(util::DynamicArray<NEDAObj*>::iterator start, util::DynamicArray<NEDAObj*>::iterator end) {
+        // Go over every element
+        for(; start != end; ++start) {
+            auto *elem = *start;
+            // Compute dimensions for superscripts and subscripts
+            // Handle lone right brackets as well
+            if(elem->getType() == ObjType::SUPERSCRIPT || elem->getType() == ObjType::SUBSCRIPT || elem->getType() == ObjType::R_BRACKET) {
+                static_cast<neda::Expr*>(elem)->computeDimensions();
+            }
+            // For left brackets, first recurse on its contents, and then call computeDimensions for the brackets
+            else if(elem->getType() == ObjType::L_BRACKET) {
+                // Find the correct closing bracket
+                uint16_t nesting = 1;
+                util::DynamicArray<NEDAObj*>::iterator it;
+                for(it = start + 1; it != end; ++it) {
+                    auto *e = *it;
+                    // For left brackets, increase the nesting depth
+                    if(e->getType() == ObjType::L_BRACKET) {
+                        ++nesting;
+                    }
+                    // For right brackets, decrease the nesting depth
+                    else if(e->getType() == ObjType::R_BRACKET) {
+                        --nesting;
+                        if(!nesting) {
+                            break;
+                        }
+                    }
+                }
+
+                // Now it should either be the end or a right bracket
+                // Recurse
+                recomputeHeights(start + 1, it);
+                // Compute dimensions for the brackets themselves
+                static_cast<Expr*>(elem)->computeDimensions();
+                // If nesting is 0, then it landed on a right bracket
+                if(nesting == 0) {
+                    static_cast<Expr*>(*it)->computeDimensions();
+                    // The for loop will increment start, thereby skipping the right bracket
+                    start = it;
+                }
+                // Otherwise it's the end
+                else {
+                    break;
+                }
+            }
+        }
 	}
     void Container::_add(NEDAObj *obj) {
         if(obj->getType() != ObjType::CHAR_TYPE) {

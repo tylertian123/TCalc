@@ -187,6 +187,7 @@ namespace neda {
 		// Recomputes the heights of all expressions that have heights dependent on others
         // E.g. Brackets
 		void recomputeHeights();
+        void recomputeHeights(util::DynamicArray<NEDAObj*>::iterator start, util::DynamicArray<NEDAObj*>::iterator end);
 
 		virtual Container* copy() override;
 
