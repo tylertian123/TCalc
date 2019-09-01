@@ -739,13 +739,14 @@ namespace eval {
 		// log10 and log2 cannot be directly entered with a string
 		"\xff", "\xff",
 
-		"qdRts", "round", "min", "max", "floor", "ceil", "det", "linSolve", "rref",
+		"qdRts", "round", "min", "max", "floor", "ceil", "det", "linSolve", "leastSquares",
+        "rref",
 	};
     const char * const Function::FUNC_FULLNAMES[TYPE_COUNT_DISPLAYABLE] = {
         "sin(angle)", "cos(angle)", "tan(angle)", "asin(x)", "acos(x)", "atan(x)", 
         "sinh(angle)", "cosh(angle)", "tanh(angle)", "asinh(x)", "acosh(x)", "atanh(x)",
         "ln(x)", "qdRts(a,b,c)", "round(n,decimals)", "min(a,b)", "max(a,b)", "floor(x)",
-        "ceil(x)", "det(A)", "linSolve(A)", "rref(A)"
+        "ceil(x)", "det(A)", "linSolve(A)", "leastSquares(A, b)", "rref(A)"
     };
 	Function* Function::fromString(const char *str) {
 		for(uint8_t i = 0; i < TYPE_COUNT; i ++) {
@@ -762,6 +763,7 @@ namespace eval {
 		case Type::ROUND:
         case Type::MAX:
         case Type::MIN:
+        case Type::LEASTSQUARES:
 			return 2;
 		default: 
 			return 1;
@@ -887,6 +889,51 @@ namespace eval {
 			}
 			return solution;
 		}
+        case Type::LEASTSQUARES:
+        {
+            // Matrix
+            Matrix *a = static_cast<Matrix*>(args[0]);
+            // Vector
+            // Syntax error: can't solve a scalar or a matrix of the wrong dimensions
+            Matrix *b = static_cast<Matrix*>(args[1]);
+            if(args[0]->getType() != TokenType::MATRIX || args[1]->getType() != TokenType::MATRIX
+                    || b->n != 1 || a->m != b->m) {
+                return nullptr;
+            }
+            
+            // Matrix
+            Matrix *aTranspose = a->transpose();
+            // Matrix
+            Matrix *aTransposeA = Matrix::multiply(*aTranspose, *a);
+            // Vector
+            Matrix *aTransposeB = Matrix::multiply(*aTranspose, *b);
+
+            delete aTranspose;
+            // Matrix
+            Matrix *augmented = new Matrix(aTransposeA->m, aTransposeA->n + 1);
+            for(uint8_t i = 0; i < aTransposeA->m; i ++) {
+                for(uint8_t j = 0; j < aTransposeA->n; j ++) {
+                    augmented->setEntry(i, j, aTransposeA->getEntry(i, j));
+                }
+            }
+            for(uint8_t i = 0; i < aTransposeA->m; i ++) {
+                augmented->setEntry(i, aTransposeA->n, (*aTransposeB)[i]);
+            }
+            delete aTransposeA;
+            delete aTransposeB;
+
+            if(!augmented->eliminate(false)) {
+                delete augmented;
+                return new Numerical(NAN);
+            }
+            // Construct solution as vector
+			Matrix *solution = new Matrix(augmented->m, 1);
+			for(uint8_t i = 0; i < augmented->m; i ++) {
+				(*solution)[i] = augmented->getEntry(i, augmented->m);
+			}
+            delete augmented;
+			return solution;
+        }
         case Type::RREF:
         {
             // Syntax error: rref of a scalar
