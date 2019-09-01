@@ -508,6 +508,12 @@ namespace expr {
                 break;
             }
             /* OTHER */
+            case KEY_HOME:
+                cursor->expr->getTopLevel()->getCursor(*cursor, neda::CURSORLOCATION_START);
+                break;
+            case KEY_END:
+                cursor->expr->getTopLevel()->getCursor(*cursor, neda::CURSORLOCATION_END);
+                break;
             case KEY_DELETE:
             {
                 // Simple case: There is still stuff left before the cursor
@@ -1323,6 +1329,16 @@ toggleEditOption:
                 }
             }
             break;
+        case KEY_HOME:
+            if(editOption) {
+                cursorIndex = 0;
+            }
+            break;
+        case KEY_END:
+            if(editOption) {
+                cursorIndex = editorContents.length() - 1;
+            }
+            break;
         // These are not handled by keyCodeToChar()
         case KEY_LBRACKET:
             editorContents.insert('(', cursorIndex);
@@ -1603,6 +1619,22 @@ functionCheckLoopEnd:
             else {
                 graphCursorY = 0;
             }
+            selectorIndex = 0;
+            break;
+        case KEY_HOME:
+            graphCursorX = 0;
+            selectorIndex = 0;
+            break;
+        case KEY_END:
+            graphCursorX = lcd::SIZE_WIDTH - 1;
+            selectorIndex = 0;
+            break;
+        case KEY_TOP:
+            graphCursorY = 0;
+            selectorIndex = 0;
+            break;
+        case KEY_BOTTOM:
+            graphCursorY = lcd::SIZE_HEIGHT - 1;
             selectorIndex = 0;
             break;
         

@@ -136,7 +136,15 @@ void main(void) {
 		// Check if the value is below the min threshold, and that the last time we checked it was above
 		if(result < MIN_THRESH) {
 			// First send the key
-			sendKey(KEY_LEFT);
+            if(ctrl) {
+                sendKey(KEY_HOME);
+                ctrl = 0;
+                delay(50);
+                sendKey(KEY_CTRLOFF);
+            }
+            else {
+			    sendKey(KEY_LEFT);
+            }
 			// Then check if the stick is held down
 			while(ADC_SyncConv(CHANNEL_X_AXIS) < MIN_THRESH) {
 				// While holding down and the counter does not exceed the max, increment the counter and delay
@@ -153,7 +161,15 @@ void main(void) {
 			holdCounter = 0;
 		}
 		else if(result > MAX_THRESH) {
-			sendKey(KEY_RIGHT);
+            if(ctrl) {
+                sendKey(KEY_END);
+                ctrl = 0;
+                delay(50);
+                sendKey(KEY_CTRLOFF);
+            }
+            else {
+			    sendKey(KEY_RIGHT);
+            }
 			while(ADC_SyncConv(CHANNEL_X_AXIS) > MAX_THRESH) {
 				if(holdCounter <= HOLD_COUNTER_MAX) {
 					holdCounter ++;
@@ -170,7 +186,16 @@ void main(void) {
 		// Check for up and down
 		result = ADC_SyncConv(CHANNEL_Y_AXIS);
 		if(result < MIN_THRESH) {
-			sendKey(KEY_UP);
+			// First send the key
+            if(ctrl) {
+                sendKey(KEY_TOP);
+                ctrl = 0;
+                delay(50);
+                sendKey(KEY_CTRLOFF);
+            }
+            else {
+			    sendKey(KEY_UP);
+            }
 			while(ADC_SyncConv(CHANNEL_Y_AXIS) < MIN_THRESH) {
 				if(holdCounter <= HOLD_COUNTER_MAX) {
 					holdCounter ++;
@@ -184,7 +209,16 @@ void main(void) {
 			holdCounter = 0;
 		}
 		else if(result > MAX_THRESH) {
-			sendKey(KEY_DOWN);
+			// First send the key
+            if(ctrl) {
+                sendKey(KEY_BOTTOM);
+                ctrl = 0;
+                delay(50);
+                sendKey(KEY_CTRLOFF);
+            }
+            else {
+			    sendKey(KEY_DOWN);
+            }
 			while(ADC_SyncConv(CHANNEL_Y_AXIS) > MAX_THRESH) {
 				if(holdCounter <= HOLD_COUNTER_MAX) {
 					holdCounter ++;

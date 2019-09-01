@@ -387,9 +387,9 @@ void normalKeyPressHandler(uint16_t key) {
         default:
         {
             neda::Container *newExpr;
-            // If the key is a left or right, make a copy of the expression on display
+            // If the key is a left, right, home or end, make a copy of the expression on display
             // Otherwise just insert a new expression
-            if(key == KEY_LEFT || key == KEY_RIGHT) {
+            if(key == KEY_LEFT || key == KEY_RIGHT || key == KEY_HOME || key == KEY_END) {
                 newExpr = expressions[currentExpr]->copy();
             }
             else {
@@ -448,8 +448,8 @@ void normalKeyPressHandler(uint16_t key) {
             // Verify that the expression is cut off
             if(resultX + resultWidth > 127) {
                 resultX -= EXPR_SCROLL_SPEED;
+                drawResult(currentExpr, false);
             }
-            drawResult(currentExpr, false);
             break;
         case KEY_UP:
             // Verify that the result is cut off
@@ -462,8 +462,32 @@ void normalKeyPressHandler(uint16_t key) {
             // Verify that the expression is cut off
             if(resultY + resultHeight > 63) {
                 resultY -= EXPR_SCROLL_SPEED;
+                drawResult(currentExpr, false);
             }
-            drawResult(currentExpr, false);
+            break;
+        case KEY_HOME:
+            if(resultX < 1) {
+                resultX = 1;
+                drawResult(currentExpr, false);
+            }
+            break;
+        case KEY_END:
+            if(resultX + resultWidth > 127) {
+                resultX = 126 - resultWidth;
+                drawResult(currentExpr, false);
+            }
+            break;
+        case KEY_TOP:
+            if(resultY < 1) {
+                resultY = 1;
+                drawResult(currentExpr, false);
+            }
+            break;
+        case KEY_BOTTOM:
+            if(resultY + resultHeight > 63) {
+                resultY = 62 - resultHeight;
+                drawResult(currentExpr, false);
+            }
             break;
         // Ignore all other keys
         default: 

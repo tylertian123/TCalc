@@ -134,6 +134,10 @@ sub
 abs
 asterisk
 augment
+home
+end
+top
+bottom
 
 EK_RESTART_NUM 0xFFFF
 dummy

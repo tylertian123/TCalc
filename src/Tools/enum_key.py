@@ -68,6 +68,7 @@ for key in keys:
         continue
     elif key.startswith('EK_KEY_PREFIX'):
         key_prefix = key.split()[1]
+        continue
 
     eq = key.find('=')
     key = key.upper()
