@@ -294,7 +294,6 @@ namespace lcd {
     // Unused
 	extern const Image CHAR_RSQB;
     // Caret (^)
-    // Unused
 	extern const Image CHAR_CART;
     // Underscore (_)
     // Unused

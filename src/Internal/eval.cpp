@@ -142,7 +142,7 @@ namespace eval {
                     if(getEntry(k, i) != 0) {
                         rowSwap(i, k);
                         // Swapping two rows negates the determinant
-                        neg = -neg;
+                        neg = !neg;
                         break;
                     }
                 }
@@ -382,6 +382,9 @@ namespace eval {
 		case LCD_CHAR_DIV:
 		case '/':
 			return &OP_DIVIDE;
+        
+        case '^':
+            return &OP_EXPONENT;
         
 		case LCD_CHAR_CRS:
 			return &OP_CROSS;

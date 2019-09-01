@@ -1329,6 +1329,10 @@ toggleEditOption:
             editorContents.insert(')', cursorIndex);
             cursorIndex ++;
             break;
+        case KEY_EXPONENT:
+            editorContents.insert('^', cursorIndex);
+            cursorIndex ++;
+            break;
         default: 
         {   
             // Try to translate the key to a character
