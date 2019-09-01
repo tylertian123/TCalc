@@ -189,7 +189,7 @@ namespace eval {
 	class Function : public Token {
 	public:
 		enum class Type : uint8_t {
-			SIN, COS, TAN, ASIN, ACOS, ATAN, SINH, COSH, TANH, ASINH, ACOSH, ATANH, LN, LOG10, LOG2, QUADROOT_A, QUADROOT_B,
+			SIN, COS, TAN, ASIN, ACOS, ATAN, SINH, COSH, TANH, ASINH, ACOSH, ATANH, LN, LOG10, LOG2, QUADROOTS,
 			ROUND, MIN, MAX, FLOOR, CEIL, DET, LINSOLVE, RREF,
 
             // Cast this into an unit8_t for the total function count
@@ -201,7 +201,7 @@ namespace eval {
         // Used for displaying, doesn't have to contain all functions
         static const char * const FUNC_FULLNAMES[];
         // Length of FUNC_FULLNAMES
-        static constexpr uint8_t TYPE_COUNT_DISPLAYABLE = 23;
+        static constexpr uint8_t TYPE_COUNT_DISPLAYABLE = 22;
 		
 		Function(Type type) : type(type) {}
 

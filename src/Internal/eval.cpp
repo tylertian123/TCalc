@@ -739,13 +739,13 @@ namespace eval {
 		// log10 and log2 cannot be directly entered with a string
 		"\xff", "\xff",
 
-		"qdRtA", "qdRtB", "round", "min", "max", "floor", "ceil", "det", "linSolve", "rref",
+		"qdRts", "round", "min", "max", "floor", "ceil", "det", "linSolve", "rref",
 	};
     const char * const Function::FUNC_FULLNAMES[TYPE_COUNT_DISPLAYABLE] = {
         "sin(angle)", "cos(angle)", "tan(angle)", "asin(x)", "acos(x)", "atan(x)", 
         "sinh(angle)", "cosh(angle)", "tanh(angle)", "asinh(x)", "acosh(x)", "atanh(x)",
-        "ln(x)", "qdRtA(a,b,c)", "qdRtB(a,b,c)", "round(n,decimals)", "min(a,b)",
-        "max(a,b)", "floor(x)", "ceil(x)", "det(A)", "linSolve(A)", "rref(A)"
+        "ln(x)", "qdRts(a,b,c)", "round(n,decimals)", "min(a,b)", "max(a,b)", "floor(x)",
+        "ceil(x)", "det(A)", "linSolve(A)", "rref(A)"
     };
 	Function* Function::fromString(const char *str) {
 		for(uint8_t i = 0; i < TYPE_COUNT; i ++) {
@@ -757,8 +757,7 @@ namespace eval {
 	}
 	uint8_t Function::getNumArgs() const {
 		switch(type) {
-		case Type::QUADROOT_A:
-		case Type::QUADROOT_B:
+		case Type::QUADROOTS:
 			return 3;
 		case Type::ROUND:
         case Type::MAX:
@@ -832,7 +831,7 @@ namespace eval {
 		{
 			return new Numerical(TRIG_FUNC_OUTPUT(atanh(extractDouble(args[0]))));
 		}
-		case Type::QUADROOT_A:
+		case Type::QUADROOTS:
 		{
             if(args[0]->getType() == TokenType::MATRIX || args[1]->getType() == TokenType::MATRIX || args[2]->getType() == TokenType::MATRIX) {
                 return nullptr;
@@ -841,20 +840,14 @@ namespace eval {
                  &b = static_cast<Numerical*>(args[1])->value, 
                  &c = static_cast<Numerical*>(args[2])->value;
             auto disc = b * b - 4 * a * c;
-            disc.sqrt();
-			return new Numerical((-b + disc) / (2 * a));
-		}
-		case Type::QUADROOT_B:
-		{
-			if(args[0]->getType() == TokenType::MATRIX || args[1]->getType() == TokenType::MATRIX || args[2]->getType() == TokenType::MATRIX) {
-                return nullptr;
+            if(disc < 0) {
+                return new Numerical(NAN);
             }
-            auto &a = static_cast<Numerical*>(args[0])->value, 
-                 &b = static_cast<Numerical*>(args[1])->value, 
-                 &c = static_cast<Numerical*>(args[2])->value;
-            auto disc = b * b - 4 * a * c;
             disc.sqrt();
-			return new Numerical((-b - disc) / (2 * a));
+            Matrix *result = new Matrix(2, 1);
+            (*result)[0] = (-b + disc) / (2 * a);
+            (*result)[1] = (-b - disc) / (2 * a);
+			return result;
 		}
 		case Type::ROUND:
 		{
