@@ -20,7 +20,7 @@
 #include "exprentry.hpp"
 #include <stdlib.h>
 
-#define VERSION_STR "V1.3.1"
+#define VERSION_STR "V1.3.2"
 
 /********** GPIO Pins and other pin defs **********/
 GPIOPin RS(GPIOC, GPIO_Pin_10), RW(GPIOC, GPIO_Pin_11), E(GPIOC, GPIO_Pin_12),

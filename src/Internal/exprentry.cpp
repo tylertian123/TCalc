@@ -619,7 +619,8 @@ namespace expr {
             case KEY_GRAPH:
                 mode = DisplayMode::GRAPH_VIEWER;
                 prevMode = DisplayMode::NORMAL;
-                graphCursorX = graphCursorY = graphCursorOn = selectorIndex = 0;
+                selectorIndex = 0;
+                graphCursorMode = GraphCursorMode::OFF;
                 // Before we draw the graph, first update the list of graphable functions
                 // This is so that if any of the graphable functions get deleted, they would not be graphed
                 updateGraphableFunctions();
@@ -1145,7 +1146,8 @@ namespace expr {
             mode = prevMode;
             if(prevMode == DisplayMode::GRAPH_VIEWER) {
                 prevMode = DisplayMode::NORMAL;
-                graphCursorX = graphCursorY = graphCursorOn = selectorIndex = 0;
+                selectorIndex = 0;
+                graphCursorMode = GraphCursorMode::OFF;
                 redrawGraph();
                 drawInterfaceGraphViewer();
             }
@@ -1275,7 +1277,8 @@ toggleEditOption:
                 mode = prevMode;
                 if(prevMode == DisplayMode::GRAPH_VIEWER) {
                     prevMode = DisplayMode::NORMAL;
-                    graphCursorX = graphCursorY = graphCursorOn = selectorIndex = 0;
+                    selectorIndex = 0;
+                    graphCursorMode = GraphCursorMode::OFF;
                     redrawGraph();
                     drawInterfaceGraphViewer();
                 }
@@ -1413,7 +1416,7 @@ toggleEditOption:
         // Center should turn on the graph cursor if off
         // And toggle function if on
         case KEY_CENTER:
-            if(graphCursorOn) {
+            if(graphCursorMode == GraphCursorMode::ON) {
                 // Determine what function(s) occupy this pixel
 
                 // Graph each function
@@ -1525,8 +1528,29 @@ functionCheckLoopEnd:
 
                 delete[] newVars;
             }
+            else if(graphCursorMode == GraphCursorMode::AREA_ZOOM) {
+                // First make sure that the area isn't zero
+                if(graphCursorX != graphZoomX && graphCursorY != graphZoomY) {
+                    // Change bounds
+                    double x1 = unmapX(graphCursorX);
+                    double x2 = unmapX(graphZoomX);
+                    double y1 = unmapY(graphCursorY);
+                    double y2 = unmapY(graphZoomY);
+
+                    xMin = util::min(x1, x2);
+                    xMax = util::max(x1, x2);
+                    yMin = util::min(y1, y2);
+                    yMax = util::max(y1, y2);
+
+                    graphCursorX = SCREEN_CENTER_X;
+                    graphCursorY = SCREEN_CENTER_Y;
+
+                    redrawGraph();
+                }
+                graphCursorMode = GraphCursorMode::ON;
+            }
             else {
-                graphCursorOn = true;
+                graphCursorMode = GraphCursorMode::ON;
                 graphCursorX = SCREEN_CENTER_X;
                 graphCursorY = SCREEN_CENTER_Y;
             }
@@ -1535,12 +1559,12 @@ functionCheckLoopEnd:
         // Otherwise they will fall through and exit this mode
         case KEY_ENTER:
         case KEY_DELETE:
-            if(graphCursorOn) {
-                graphCursorOn = false;
+            if(graphCursorMode != GraphCursorMode::OFF) {
+                graphCursorMode = GraphCursorMode::OFF;
                 break;
             }
         case KEY_GRAPH:
-            graphCursorOn = false;
+            graphCursorMode = GraphCursorMode::OFF;
             mode = prevMode;
             drawInterfaceNormal();
             return;
@@ -1582,6 +1606,20 @@ functionCheckLoopEnd:
             selectorIndex = 0;
             break;
         
+        // Pressing z turns on area zoom
+        case KEY_LCZ:
+        {
+            if(graphCursorMode == GraphCursorMode::ON) {
+                graphCursorMode = GraphCursorMode::AREA_ZOOM;
+                graphZoomX = graphCursorX;
+                graphZoomY = graphCursorY;
+                selectorIndex = 0;
+            }
+            else if(graphCursorMode == GraphCursorMode::AREA_ZOOM) {
+                graphCursorMode = GraphCursorMode::ON;
+            }
+            break;
+        }
         // Pressing h "homes" the cursor
         case KEY_LCH:
             graphCursorX = SCREEN_CENTER_X;
@@ -1645,7 +1683,7 @@ functionCheckLoopEnd:
         }
 
         case KEY_GSETTINGS:
-            graphCursorOn = false;
+            graphCursorMode = GraphCursorMode::OFF;
             selectorIndex = 0;
             editOption = false;
             mode = DisplayMode::GRAPH_SETTINGS_MENU;
@@ -1653,7 +1691,7 @@ functionCheckLoopEnd:
             drawInterfaceGraphSettings();
             return;
         case KEY_GFUNCS:
-            graphCursorOn = false;
+            graphCursorMode = GraphCursorMode::OFF;
             selectorIndex = 0;
             scrollingIndex = 0;
             mode = DisplayMode::GRAPH_SELECT_MENU;
@@ -1841,8 +1879,7 @@ functionCheckLoopEnd:
         display.copyBuffer(graphBuf);
 
         // Draw the graph cursor if on
-        if(graphCursorOn) {
-
+        if(graphCursorMode != GraphCursorMode::OFF) {
             // Display the location of the cursor
             double x = unmapX(graphCursorX);
             double y = unmapY(graphCursorY);
@@ -1895,6 +1932,35 @@ functionCheckLoopEnd:
             display.drawString(HORIZ_MARGIN, lcd::SIZE_HEIGHT - VERT_MARGIN - 5, buf);
 
             maxWidth = util::max(maxWidth, width);
+
+            // Draw the zoom box
+            if(graphCursorMode == GraphCursorMode::AREA_ZOOM) {
+                if(graphCursorX >= graphZoomX) {
+                    for(int16_t x = graphZoomX; x <= graphCursorX; x ++) {
+                        display.setPixel(x, graphZoomY);
+                        display.setPixel(x, graphCursorY);
+                    }
+                }
+                else {
+                    for(int16_t x = graphCursorX; x <= graphZoomX; x ++) {
+                        display.setPixel(x, graphZoomY);
+                        display.setPixel(x, graphCursorY);
+                    }
+                }
+
+                if(graphCursorY >= graphZoomY) {
+                    for(int16_t y = graphZoomY; y <= graphCursorY; y ++) {
+                        display.setPixel(graphZoomX, y);
+                        display.setPixel(graphCursorX, y);
+                    }
+                }
+                else {
+                    for(int16_t y = graphCursorY; y <= graphZoomY; y ++) {
+                        display.setPixel(graphZoomX, y);
+                        display.setPixel(graphCursorX, y);
+                    }
+                }
+            }
 
             // Draw the function name
             if(selectorIndex != 0) {

@@ -181,7 +181,7 @@ namespace expr {
         uint16_t selectorIndex = 0;
         // The index of scrolling.
         uint16_t scrollingIndex = 0;
-        
+        // Graph settings
         double graphSettings[6] = {
             -10, // xMin
             10,  // xMax
@@ -214,8 +214,14 @@ namespace expr {
         int16_t graphCursorX;
         // The y coordinate of the graph cursor.
         int16_t graphCursorY;
-        // Whether the graph cursor is on.
-        bool graphCursorOn;
+        // Graph cursor mode.
+        enum class GraphCursorMode : uint8_t {
+            OFF, ON, AREA_ZOOM
+        } graphCursorMode;
+        // X of the upper left corner of the area zoom box
+        int16_t graphZoomX;
+        // Y of the upper left corner of the area zoom box
+        int16_t graphZoomY;
         // The function whose name to display in graphing mode.
         const eval::UserDefinedFunction *graphDispFunc;
         // Whether the key pressed was a clear variables key or all clear key.
