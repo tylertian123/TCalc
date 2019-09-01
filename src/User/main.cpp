@@ -39,6 +39,54 @@ GPIOPin ctrlLED(GPIOA, GPIO_Pin_2);
 GPIOPin shiftLED(GPIOA, GPIO_Pin_3);
 
 /********** Fault Handlers **********/
+#pragma import(__use_no_semihosting)
+extern "C" {
+	// Redefine _sys_exit to allow loading of library
+	void _sys_exit(int code) {
+		// According to specifications this function should never return
+        display.endDraw();
+        display.useBasic();
+		while(1) {
+            display.clear();
+            display.setCursor(0, 0);
+            display.writeString("ERROR: A fatal");
+            display.setCursor(1, 0);
+            display.writeString("exception has");
+            display.setCursor(2, 0);
+            display.writeString("occurred.");
+
+            for(uint64_t i = 0; i < 7000000; i ++);
+
+            display.clear();
+            display.setCursor(0, 0);
+            display.writeString("Attach debugger");
+            display.setCursor(1, 0);
+            display.writeString("or press the");
+            display.setCursor(2, 0);
+            display.writeString("reset button to");
+            display.setCursor(3, 0);
+            display.writeString("reset TCalc.");
+
+            for(uint64_t i = 0; i < 7000000; i ++);
+
+            display.clear();
+            display.setCursor(0, 0);
+            display.writeString("Type:");
+            display.setCursor(1, 0);
+            display.writeString("_sys_exit called");
+            display.setCursor(2, 0);
+            display.writeString("Code:");
+            char buf[16];
+            util::ltoa(code, buf);
+            display.setCursor(3, 0);
+            display.writeString(buf);
+
+            for(uint64_t i = 0; i < 7000000; i ++);
+        }
+	}
+	void _ttywrch(int ch) {}
+}
+
 extern "C" void HardFault_Handler() {
     display.endDraw();
     display.useBasic();

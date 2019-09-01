@@ -3,16 +3,6 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-#pragma import(__use_no_semihosting)
-extern "C" {
-	// Redefine _sys_exit to allow loading of library
-	void _sys_exit(int code) {
-		// According to specifications this function should never return
-		while(1);
-	}
-	void _ttywrch(int ch) {}
-}
-
 namespace usart {
 	void init(uint32_t baudrate) {
 		// Clock the USART and GPIO
