@@ -1399,7 +1399,15 @@ toggleEditOption:
         display.updateDrawing();
     }
 
+    constexpr int16_t SCREEN_CENTER_X = lcd::SIZE_WIDTH / 2 - 1;
+    constexpr int16_t SCREEN_CENTER_Y = lcd::SIZE_HEIGHT / 2 - 1;
+    constexpr double GRAPH_ZOOM_FACTOR = 0.7;
+
     eval::Variable* constructFunctionGraphingEnvironment();
+    int16_t mapX(double x);
+    int16_t mapY(double y);
+    double unmapX(int16_t x);
+    double unmapY(int16_t y);
     void ExprEntry::graphViewerKeyPressHandler(uint16_t key) {
         switch(key) {
         // Center should turn on the graph cursor if off
@@ -1519,8 +1527,8 @@ functionCheckLoopEnd:
             }
             else {
                 graphCursorOn = true;
-                graphCursorX = lcd::SIZE_WIDTH / 2 - 1;
-                graphCursorY = lcd::SIZE_HEIGHT / 2 - 1;
+                graphCursorX = SCREEN_CENTER_X;
+                graphCursorY = SCREEN_CENTER_Y;
             }
             break;
         // Enter and delete turn off the graph cursor if on
@@ -1573,6 +1581,68 @@ functionCheckLoopEnd:
             }
             selectorIndex = 0;
             break;
+        
+        // Pressing h "homes" the cursor
+        case KEY_LCH:
+            graphCursorX = SCREEN_CENTER_X;
+            graphCursorY = SCREEN_CENTER_Y;
+            break;
+        // Pressing c moves the display window such that the cursor is centered
+        case KEY_LCC:
+        {
+            // Determine how much translation is needed
+            double currentX = unmapX(SCREEN_CENTER_X);
+            double currentY = unmapY(SCREEN_CENTER_Y);
+            double correctX = unmapX(graphCursorX);
+            double correctY = unmapY(graphCursorY);
+            double xShift = correctX - currentX;
+            double yShift = correctY - currentY;
+            
+            xMin += xShift;
+            xMax += xShift;
+            yMin += yShift;
+            yMax += yShift;
+
+            graphCursorX = SCREEN_CENTER_X;
+            graphCursorY = SCREEN_CENTER_Y;
+            
+            redrawGraph();
+            break;
+        }
+        // Pressing + zooms in around the cursor
+        case KEY_PLUS:
+        {
+            double newWidth = (xMax - xMin) * GRAPH_ZOOM_FACTOR;
+            double newHeight = (yMax - yMin) * GRAPH_ZOOM_FACTOR;
+
+            double xShift = (unmapX(graphCursorX) - xMin) * (1 - GRAPH_ZOOM_FACTOR);
+            double yShift = (unmapY(graphCursorY) - yMin) * (1 - GRAPH_ZOOM_FACTOR);
+
+            xMin += xShift;
+            xMax = xMin + newWidth;
+            yMin += yShift;
+            yMax = yMin + newHeight;
+
+            redrawGraph();
+            break;
+        }
+        // Pressing - zooms out around the cursor
+        case KEY_MINUS:
+        {
+            double newWidth = (xMax - xMin) / GRAPH_ZOOM_FACTOR;
+            double newHeight = (yMax - yMin) / GRAPH_ZOOM_FACTOR;
+
+            double xShift = (unmapX(graphCursorX) - xMin) * (1 - 1 / GRAPH_ZOOM_FACTOR);
+            double yShift = (unmapY(graphCursorY) - yMin) * (1 - 1 / GRAPH_ZOOM_FACTOR);
+
+            xMin += xShift;
+            xMax = xMin + newWidth;
+            yMin += yShift;
+            yMax = yMin + newHeight;
+
+            redrawGraph();
+            break;
+        }
 
         case KEY_GSETTINGS:
             graphCursorOn = false;
@@ -1659,6 +1729,11 @@ functionCheckLoopEnd:
     }
 
     void ExprEntry::redrawGraph() {
+        // Display loading message
+        display.clearDrawingBuffer();
+        display.drawString(40, 27, "Loading...");
+        display.updateDrawing();
+
         graphBuf.clear();
 
         // First graph the axes if they're in range
