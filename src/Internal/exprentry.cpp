@@ -1620,6 +1620,35 @@ functionCheckLoopEnd:
             }
             break;
         }
+        // wasd moves the cursor by 10 pixels
+        case KEY_LCW:
+            graphCursorY -= 10;
+            if(graphCursorY < 0) {
+                graphCursorY += lcd::SIZE_HEIGHT;
+            }
+            selectorIndex = 0;
+            break;
+        case KEY_LCA:
+            graphCursorX -= 10;
+            if(graphCursorX < 0) {
+                graphCursorX += lcd::SIZE_WIDTH;
+            }
+            selectorIndex = 0;
+            break;
+        case KEY_LCS:
+            graphCursorY += 10;
+            if(graphCursorY >= lcd::SIZE_HEIGHT) {
+                graphCursorY -= lcd::SIZE_HEIGHT;
+            }
+            selectorIndex = 0;
+            break;
+        case KEY_LCD:
+            graphCursorX += 10;
+            if(graphCursorX >= lcd::SIZE_WIDTH) {
+                graphCursorX -= lcd::SIZE_WIDTH;
+            }
+            selectorIndex = 0;
+            break;
         // Pressing h "homes" the cursor
         case KEY_LCH:
             graphCursorX = SCREEN_CENTER_X;
