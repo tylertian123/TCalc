@@ -181,133 +181,19 @@ namespace expr {
     }
 
     char ExprEntry::keyCodeToChar(uint16_t key) {
+        // Uppercase letters
+        if(key >= KEY_A && key <= KEY_Z) {
+            return key - KEY_A + 'A';
+        }
+        // Lowercase letters
+        if(key >= KEY_LCA && key <= KEY_LCZ) {
+            return key - KEY_LCA + 'a';
+        }
+        // Numbers
+        if(key >= KEY_0 && key <= KEY_9) {
+            return key - KEY_0 + '0';
+        }
         switch(key) {
-        /* LETTER KEYS */
-        case KEY_A:
-            return 'A';
-        case KEY_B:
-            return 'B';
-        case KEY_C:
-            return 'C';
-        case KEY_D:
-            return 'D';
-        case KEY_E:
-            return 'E';
-        case KEY_F:
-            return 'F';
-        case KEY_G:
-            return 'G';
-        case KEY_H:
-            return 'H';
-        case KEY_I:
-            return 'I';
-        case KEY_J:
-            return 'J';
-        case KEY_K:
-            return 'K';
-        case KEY_L:
-            return 'L';
-        case KEY_M:
-            return 'M';
-        case KEY_N:
-            return 'N';
-        case KEY_O:
-            return 'O';
-        case KEY_P:
-            return 'P';
-        case KEY_Q:
-            return 'Q';
-        case KEY_R:
-            return 'R';
-        case KEY_S:
-            return 'S';
-        case KEY_T:
-            return 'T';
-        case KEY_U:
-            return 'U';
-        case KEY_V:
-            return 'V';
-        case KEY_W:
-            return 'W';
-        case KEY_X:
-            return 'X';
-        case KEY_Y:
-            return 'Y';
-        case KEY_Z:
-            return 'Z';
-        case KEY_LCA:
-            return 'a';
-        case KEY_LCB:
-            return 'b';
-        case KEY_LCC:
-            return 'c';
-        case KEY_LCD:
-            return 'd';
-        case KEY_LCE:
-            return 'e';
-        case KEY_LCF:
-            return 'f';
-        case KEY_LCG:
-            return 'g';
-        case KEY_LCH:
-            return 'h';
-        case KEY_LCI:
-            return 'i';
-        case KEY_LCJ:
-            return 'j';
-        case KEY_LCK:
-            return 'k';
-        case KEY_LCL:
-            return 'l';
-        case KEY_LCM:
-            return 'm';
-        case KEY_LCN:
-            return 'n';
-        case KEY_LCO:
-            return 'o';
-        case KEY_LCP:
-            return 'p';
-        case KEY_LCQ:
-            return 'q';
-        case KEY_LCR:
-            return 'r';
-        case KEY_LCS:
-            return 's';
-        case KEY_LCT:
-            return 't';
-        case KEY_LCU:
-            return 'u';
-        case KEY_LCV:
-            return 'v';
-        case KEY_LCW:
-            return 'w';
-        case KEY_LCX:
-            return 'x';
-        case KEY_LCY:
-            return 'y';
-        case KEY_LCZ:
-            return 'z';
-        /* OTHER KEYS WITH NO SPECIAL HANDLING */
-        case KEY_0:
-            return '0';
-        case KEY_1:
-            return '1';
-        case KEY_2:
-            return '2';
-        case KEY_3:
-            return '3';
-        case KEY_4:
-            return '4';
-        case KEY_5:
-            return '5';
-        case KEY_6:
-            return '6';
-        case KEY_7:
-            return '7';
-        case KEY_8:
-            return '8';
-        case KEY_9:
-            return '9';
         case KEY_SPACE:
             return ' ';
         case KEY_COMMA:

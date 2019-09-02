@@ -8,7 +8,6 @@ EK_KEY_PREFIX KEY_
 EK_RESTART_NUM 0x0000
 null
 
-EK_RANDOM_NUM
 up
 down
 left
