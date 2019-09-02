@@ -16,21 +16,21 @@ namespace sbdi {
 	class Receiver {
 	public:
 		typedef void (*Callback)(uint32_t);
-		Receiver(GPIOPin EN, GPIOPin DATA, GPIOPin CLK) : EN(EN), DATA(DATA), CLK(CLK), callback(nullptr), buffer(0) {}
+		Receiver(GPIOPin EN, GPIOPin DATA, GPIOPin CLK) : EN(EN), DATA(DATA), CLK(CLK) {}
 		
 		void init();
-		uint32_t getLast();
-		void onReceive(Callback);
-			
-		friend void Receiver_CLK_Callback();
+
+        bool receivePending = false;
+		uint32_t buffer = 0;
+
+        void receive();
+		
 		friend void Receiver_EN_Callback();
 	
 	protected:
 		EXTIPin EN;
 		GPIOPin DATA;
-		EXTIPin CLK;
-		Callback callback;
-		uint32_t buffer;
+		GPIOPin CLK;
 	};
 }
 

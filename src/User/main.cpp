@@ -20,7 +20,7 @@
 #include "exprentry.hpp"
 #include <stdlib.h>
 
-#define VERSION_STR "V1.3.2"
+#define VERSION_STR "V1.3.3"
 
 /********** GPIO Pins and other pin defs **********/
 GPIOPin RS(GPIOC, GPIO_Pin_10), RW(GPIOC, GPIO_Pin_11), E(GPIOC, GPIO_Pin_12),
@@ -747,27 +747,6 @@ int main() {
 	// Set up SBDI receiver
 	sbdi::Receiver receiver(SBDI_EN, SBDI_DATA, SBDI_CLK);
 	receiver.init();
-	
-	receiver.onReceive([](uint32_t data) {
-		// Store keystroke into buffer
-		// If there is already data in the buffer then shift that data left to make room
-		if(data == KEY_SHIFTON) {
-			shiftLED = true;
-		}
-		else if(data == KEY_SHIFTOFF) {
-			shiftLED = false;
-		}
-		else if(data == KEY_CTRLON) {
-			ctrlLED = true;
-		}
-		else if(data == KEY_CTRLOFF) {
-			ctrlLED = false;
-		}
-		else {
-			putKey(data);
-		}
-		statusLED = !statusLED;
-	});
 
 	// Startup delay
 	delay::ms(100);
@@ -822,5 +801,27 @@ int main() {
                 break;
             }
 		}
+        else if(receiver.receivePending) {
+            receiver.receive();
+            usart::printf("0x%08x\n", receiver.buffer);
+            // Store keystroke into buffer
+            if(receiver.buffer == KEY_SHIFTON) {
+                shiftLED = true;
+            }
+            else if(receiver.buffer == KEY_SHIFTOFF) {
+                shiftLED = false;
+            }
+            else if(receiver.buffer == KEY_CTRLON) {
+                ctrlLED = true;
+            }
+            else if(receiver.buffer == KEY_CTRLOFF) {
+                ctrlLED = false;
+            }
+            else {
+                putKey(receiver.buffer);
+            }
+            receiver.buffer = 0;
+            statusLED = !statusLED;
+        }
 	}
 }

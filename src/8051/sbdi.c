@@ -1,9 +1,6 @@
 #include "SBDI.h"
 #include <stc/STC12C5630AD.h>
 
-#define SBDI_CLK_DELAY 1200
-#define SBDI_EN_DELAY 3000
-
 sbit EN = P1 ^ 6;
 sbit CLK = P1 ^ 5;
 sbit DAT = P1 ^ 4;
@@ -13,24 +10,13 @@ void delay_cycles(unsigned int a) {
 }
 
 void SBDI_BeginTransmission() {
-	CLK = 1;
 	DAT = 1;
 	EN = 0;
-    delay_cycles(SBDI_EN_DELAY);
 }
 
 void SBDI_EndTransmission() {
 	EN = 1;
-	CLK = 1;
 	DAT = 1;
-}
-
-void SBDI_SendSingleBit(bit b) {
-	DAT = b;
-	CLK = 0;
-	delay_cycles(SBDI_CLK_DELAY);
-	CLK = 1;
-	delay_cycles(SBDI_CLK_DELAY);
 }
 
 void SBDI_SendByte(unsigned char b) {
@@ -40,8 +26,16 @@ void SBDI_SendByte(unsigned char b) {
 	bit dat;
 	do {
 		dat = b & mask;
-		SBDI_SendSingleBit(dat);
+        // Clock is active low
+        // Wait until clock is low
+		while(CLK);
+        DAT = dat;
+        // Wait until clock is high again
+        while(!CLK);
 		parity ^= dat;
 	} while(mask >>= 1);
-	SBDI_SendSingleBit(parity);
+    // Send parity bit
+	while(CLK);
+    DAT = parity;
+    while(!CLK);
 }
