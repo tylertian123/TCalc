@@ -1575,6 +1575,9 @@ functionCheckLoopEnd:
         // Pressing c moves the display window such that the cursor is centered
         case KEY_LCC:
         {
+            if(graphCursorMode != GraphCursorMode::ON) {
+                break;
+            }
             // Determine how much translation is needed
             double currentX = unmapX(SCREEN_CENTER_X);
             double currentY = unmapY(SCREEN_CENTER_Y);
@@ -1597,6 +1600,9 @@ functionCheckLoopEnd:
         // Pressing + zooms in around the cursor
         case KEY_PLUS:
         {
+            if(graphCursorMode != GraphCursorMode::ON) {
+                break;
+            }
             double newWidth = (xMax - xMin) * GRAPH_ZOOM_FACTOR;
             double newHeight = (yMax - yMin) * GRAPH_ZOOM_FACTOR;
 
@@ -1614,6 +1620,9 @@ functionCheckLoopEnd:
         // Pressing - zooms out around the cursor
         case KEY_MINUS:
         {
+            if(graphCursorMode != GraphCursorMode::ON) {
+                break;
+            }
             double newWidth = (xMax - xMin) / GRAPH_ZOOM_FACTOR;
             double newHeight = (yMax - yMin) / GRAPH_ZOOM_FACTOR;
 
