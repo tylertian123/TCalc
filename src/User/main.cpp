@@ -724,6 +724,28 @@ void evaluateExpr(neda::Container *expr) {
     currentExpr = 0;
 }
 
+void receiveKey(sbdi::Receiver &receiver) {
+    receiver.receive();
+    // Store keystroke into buffer
+    if(receiver.buffer == KEY_SHIFTON) {
+        shiftLED = true;
+    }
+    else if(receiver.buffer == KEY_SHIFTOFF) {
+        shiftLED = false;
+    }
+    else if(receiver.buffer == KEY_CTRLON) {
+        ctrlLED = true;
+    }
+    else if(receiver.buffer == KEY_CTRLOFF) {
+        ctrlLED = false;
+    }
+    else {
+        putKey(receiver.buffer);
+    }
+    receiver.buffer = 0;
+    statusLED = !statusLED;
+}
+
 int main() {
 	// Init system
 	sys::initRCC();
@@ -772,6 +794,10 @@ int main() {
 	// Title screen delay
 	delay::ms(1500);
 
+    if(receiver.receivePending) {
+        receiveKey(receiver);
+    }
+
 	if(fetchKey() == KEY_LCT) {
 		dispMode = DispMode::GAME;
 		respawn();
@@ -802,26 +828,7 @@ int main() {
             }
 		}
         else if(receiver.receivePending) {
-            receiver.receive();
-            usart::printf("0x%08x\n", receiver.buffer);
-            // Store keystroke into buffer
-            if(receiver.buffer == KEY_SHIFTON) {
-                shiftLED = true;
-            }
-            else if(receiver.buffer == KEY_SHIFTOFF) {
-                shiftLED = false;
-            }
-            else if(receiver.buffer == KEY_CTRLON) {
-                ctrlLED = true;
-            }
-            else if(receiver.buffer == KEY_CTRLOFF) {
-                ctrlLED = false;
-            }
-            else {
-                putKey(receiver.buffer);
-            }
-            receiver.buffer = 0;
-            statusLED = !statusLED;
+            receiveKey(receiver);
         }
 	}
 }
