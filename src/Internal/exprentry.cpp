@@ -1637,7 +1637,7 @@ functionCheckLoopEnd:
             redrawGraph();
             break;
         }
-
+        case KEY_CONFIG:
         case KEY_GSETTINGS:
             graphCursorMode = GraphCursorMode::OFF;
             selectorIndex = 0;
