@@ -322,7 +322,8 @@ namespace neda {
 				cursor.expr = this;
 			}
 		}
-		else {
+        // Else if the cursor is in this container
+		else if(ex == nullptr || cursor.expr == this) {
 			// Find the nearest superscript
 			for(auto it = contents.begin() + cursor.index; it != contents.end(); ++it) {
 				NEDAObj *ex = *it;
@@ -343,6 +344,9 @@ namespace neda {
 			// If none found then pass the call up
 			SAFE_EXEC(parent, up, this, cursor);
 		}
+        else {
+            SAFE_EXEC(parent, up, this, cursor);
+        }
 	}
 	void Container::down(Expr *ex, Cursor &cursor) {
 		if(ex != nullptr && ex->getType() == ObjType::SUPERSCRIPT) {
@@ -353,7 +357,8 @@ namespace neda {
 				cursor.expr = this;
 			}
 		}
-		else {
+        // Else if the cursor is in this container
+		else if(ex == nullptr || cursor.expr == this) {
 			// Find the nearest subscript
 			for(auto it = contents.begin() + cursor.index; it != contents.end(); ++it) {
 				NEDAObj *ex = *it;
@@ -373,6 +378,9 @@ namespace neda {
 
 			SAFE_EXEC(parent, down, this, cursor);
 		}
+        else {
+            SAFE_EXEC(parent, down, this, cursor);
+        }
 	}
 	void Container::getCursor(Cursor &cursor, CursorLocation location) {
 		cursor.expr = this;
