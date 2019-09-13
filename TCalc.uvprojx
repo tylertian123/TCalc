@@ -486,6 +486,16 @@
               <FileType>8</FileType>
               <FilePath>.\src\Internal\numerical.cpp</FilePath>
             </File>
+            <File>
+              <FileName>ptable.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\src\Internal\ptable.cpp</FilePath>
+            </File>
+            <File>
+              <FileName>ptable_data.cpp</FileName>
+              <FileType>8</FileType>
+              <FilePath>.\src\Internal\ptable_data.cpp</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
