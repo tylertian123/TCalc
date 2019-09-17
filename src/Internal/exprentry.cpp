@@ -1738,7 +1738,8 @@ functionCheckLoopEnd:
         }
         // Draw the "ticks" on the y axis if they're visible
         if(xAxis >= 1) {
-            for(double x = xMin; x <= xMax; x += xScale) {
+            // Make sure that the ticks line up with the origin
+            for(double x = xMin - fmod(xMin, xScale); x <= xMax; x += xScale) {
                 graphBuf.setPixel(mapX(x), xAxis - 1);
             }
         }
@@ -1749,7 +1750,7 @@ functionCheckLoopEnd:
         }
         // Draw the ticks
         if(yAxis <= lcd::SIZE_WIDTH - 2) {
-            for(double y = yMin; y <= yMax; y += yScale) {
+            for(double y = yMin - fmod(yMin, yScale); y <= yMax; y += yScale) {
                 graphBuf.setPixel(yAxis + 1, mapY(y));
             }
         }
