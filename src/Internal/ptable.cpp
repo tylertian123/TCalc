@@ -36,9 +36,9 @@ namespace pt {
 
     const Element* rightOf(Location &locationIO) {
         // Last element in the period
-        if(locationIO.x == ELEMENTS_LENGTHS[locationIO.y - 1]) {
+        if(locationIO.x == ELEMENTS[locationIO.y - 1][ELEMENTS_LENGTHS[locationIO.y - 1] - 1].group) {
             // Wrap around
-            locationIO.x = 1;
+            locationIO.x = ELEMENTS[locationIO.y - 1][0].group;
         }
         else {
             locationIO.x ++;
@@ -46,7 +46,7 @@ namespace pt {
 
         const Element *elem;
         // Keep on increasing the value of x until there's a matching element, or we reach the end
-        while((elem = elemWithLocation(locationIO)) == nullptr && locationIO.x <= ELEMENTS_LENGTHS[locationIO.y - 1]) {
+        while((elem = elemWithLocation(locationIO)) == nullptr && locationIO.x < ELEMENTS_LENGTHS[locationIO.y - 1]) {
             locationIO.x ++;
         }
         // Return whatever we found (or nullptr)
@@ -55,9 +55,9 @@ namespace pt {
 
     const Element* leftOf(Location &locationIO) {
         // First element in the period
-        if(locationIO.x == 1) {
+        if(locationIO.x == ELEMENTS[locationIO.y - 1][0].group) {
             // Wrap around
-            locationIO.x = ELEMENTS_LENGTHS[locationIO.y - 1];
+            locationIO.x = ELEMENTS[locationIO.y - 1][ELEMENTS_LENGTHS[locationIO.y - 1] - 1].group;
         }
         else {
             locationIO.x --;
@@ -65,7 +65,7 @@ namespace pt {
 
         // See rightOf()
         const Element *elem;
-        while((elem = elemWithLocation(locationIO)) == nullptr && locationIO.x >= 1) {
+        while((elem = elemWithLocation(locationIO)) == nullptr && locationIO.x > 1) {
             locationIO.x --;
         }
         return elem;
@@ -84,20 +84,12 @@ namespace pt {
         }
 
         // Try to retrieve the element
-        const Element *elem = elemWithLocation(locationIO);
-        // No element there
-        if(!elem) {
-            // Special case for elements before the start of the lanthanides and actinides
-            if((locationIO.y - 1 == PERIOD_LANTHANIDES || locationIO.y - 1 == PERIOD_ACTINIDES) || locationIO.x <= 2) {
-                locationIO.x = 3;
-
-                return &ELEMENTS[locationIO.y - 1][0];
-            }
-            else {
-                do {
-                    locationIO.x --;
-                } while((elem = elemWithLocation(locationIO)) == nullptr && locationIO.x >= 1);
-                return elem;
+        const Element *elem;
+        while((elem = elemWithLocation(locationIO)) == nullptr) {
+            locationIO.y ++;
+            
+            if(locationIO.y > PERIOD_COUNT) {
+                locationIO.y = 1;
             }
         }
         return elem;
@@ -117,20 +109,12 @@ namespace pt {
         }
 
         // Try to retrieve the element
-        const Element *elem = elemWithLocation(locationIO);
-        // No element there
-        if(!elem) {
-            // Special case for elements before the start of the lanthanides and actinides
-            if((locationIO.y - 1 == PERIOD_LANTHANIDES || locationIO.y - 1 == PERIOD_ACTINIDES) || locationIO.x <= 2) {
-                locationIO.x = 3;
-
-                return &ELEMENTS[locationIO.y - 1][0];
-            }
-            else {
-                do {
-                    locationIO.x --;
-                } while((elem = elemWithLocation(locationIO)) == nullptr && locationIO.x >= 1);
-                return elem;
+        const Element *elem;
+        while((elem = elemWithLocation(locationIO)) == nullptr) {
+            locationIO.y --;
+            
+            if(locationIO.y < 1) {
+                locationIO.y = PERIOD_COUNT;
             }
         }
         return elem;

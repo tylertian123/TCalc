@@ -1,5 +1,6 @@
 #include "exprentry.hpp"
 #include "ntoa.hpp"
+#include "ptable.hpp"
 #include <limits.h>
 
 namespace expr {
@@ -2085,6 +2086,39 @@ functionCheckLoopEnd:
             mode = prevMode;
             drawInterfaceNormal();
             return;
+        
+        case KEY_LEFT:
+        {
+            pt::Location l = { static_cast<uint8_t>(cursorX), static_cast<uint8_t>(cursorY) };
+            pt::leftOf(l);
+            cursorX = l.x;
+            cursorY = l.y;
+            break;
+        }
+        case KEY_RIGHT:
+        {
+            pt::Location l = { static_cast<uint8_t>(cursorX), static_cast<uint8_t>(cursorY) };
+            pt::rightOf(l);
+            cursorX = l.x;
+            cursorY = l.y;
+            break;
+        }
+        case KEY_UP:
+        {
+            pt::Location l = { static_cast<uint8_t>(cursorX), static_cast<uint8_t>(cursorY) };
+            pt::above(l);
+            cursorX = l.x;
+            cursorY = l.y;
+            break;
+        }
+        case KEY_DOWN:
+        {
+            pt::Location l = { static_cast<uint8_t>(cursorX), static_cast<uint8_t>(cursorY) };
+            pt::below(l);
+            cursorX = l.x;
+            cursorY = l.y;
+            break;
+        }
         }
 
         drawInterfacePeriodicTable();
@@ -2092,7 +2126,12 @@ functionCheckLoopEnd:
 
     void ExprEntry::drawInterfacePeriodicTable() {
         display.clearDrawingBuffer();
-        display.drawImage((lcd::SIZE_WIDTH - lcd::IMG_PTABLE.width) / 2, (lcd::SIZE_HEIGHT - lcd::IMG_PTABLE.height) / 2, lcd::IMG_PTABLE);
+        display.drawImage((lcd::SIZE_WIDTH - lcd::IMG_PTABLE.width) / 2, 10, lcd::IMG_PTABLE);
+
+        // Draw the cursor
+        int16_t elemX = (cursorX - 1) * 5 + (lcd::SIZE_WIDTH - lcd::IMG_PTABLE.width) / 2 + 1;
+        int16_t elemY = (cursorY - 1) * 5 + 10 + 1;
+        display.fill(elemX, elemY, 4, 4);
         display.updateDrawing();
     }
 
