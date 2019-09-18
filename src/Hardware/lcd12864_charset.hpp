@@ -454,6 +454,8 @@ namespace lcd {
     extern const Image CHAR_SMALL_EE;
     // Minus sign (-)
     extern const Image CHAR_SMALL_MINUS;
+    // Periodic table outline
+    extern const Image IMG_PTABLE;
 
     extern const Image * const CHAR_SMALL[];
 

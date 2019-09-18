@@ -137,6 +137,7 @@ home
 end
 top
 bottom
+ptable
 
 EK_RESTART_NUM 0xFFFF
 dummy

@@ -48,6 +48,7 @@ namespace expr {
             GRAPH_VIEWER = 10,
             LOGIC_MENU = 11,
             CLEAR_VAR_MENU = 12,
+            PERIODIC_TABLE = 13,
         };
 
         neda::Cursor *cursor;
@@ -68,6 +69,7 @@ namespace expr {
         // Toggles the cursor and displays it.
         void blinkCursor();
 
+    private:
         // Updates the list of functions that are "graphable".
         void updateGraphableFunctions();
 
@@ -85,7 +87,7 @@ namespace expr {
         // Redraws the graph of all functions marked to graph.
         void redrawGraph();
         
-    protected:
+        // The previous display mode
         DisplayMode prevMode = DisplayMode::NORMAL;
 
         // Converts a key code to a character.
@@ -122,6 +124,8 @@ namespace expr {
         void logicKeyPressHandler(uint16_t key);
         // Handles key presses in the clear variables confirmation menu.
         void clearVarKeyPressHandler(uint16_t key);
+        // Handles key presses in the periodic table menu
+        void periodicTableKeyPressHandler(uint16_t key);
 
         // A key press handler handles key press events.
         typedef void (ExprEntry::*KeyPressHandler)(uint16_t);
@@ -167,6 +171,8 @@ namespace expr {
         void drawInterfaceLogic();
         // Draws the interface for the clear variables confirmation menu.
         void drawInterfaceClearVar();
+        // Draws the interface for the periodic table menu.
+        void drawInterfacePeriodicTable();
 
         /*
          * These variables are kept between two key presses and thus have to be global.
@@ -210,10 +216,10 @@ namespace expr {
         uint16_t cursorIndex;
         // Buffer storing the graph.
         lcd::DrawBuf graphBuf;
-        // The x coordinate of the graph cursor.
-        int16_t graphCursorX;
-        // The y coordinate of the graph cursor.
-        int16_t graphCursorY;
+        // The x coordinate of the cursor.
+        int16_t cursorX;
+        // The y coordinate of the cursor.
+        int16_t cursorY;
         // Graph cursor mode.
         enum class GraphCursorMode : uint8_t {
             OFF, ON, AREA_ZOOM

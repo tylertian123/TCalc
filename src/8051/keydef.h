@@ -132,6 +132,7 @@
 #define KEY_END         0x007F
 #define KEY_TOP         0x0080
 #define KEY_BOTTOM      0x0081
+#define KEY_PTABLE      0x0082
 
 #define KEY_DUMMY       0xFFFF
 

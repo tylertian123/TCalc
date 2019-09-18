@@ -247,6 +247,7 @@ namespace expr {
         &ExprEntry::graphViewerKeyPressHandler,
         &ExprEntry::logicKeyPressHandler,
         &ExprEntry::clearVarKeyPressHandler,
+        &ExprEntry::periodicTableKeyPressHandler,
     };
 
     void ExprEntry::handleKeyPress(uint16_t key) {
@@ -540,6 +541,12 @@ namespace expr {
                 // Select "No" by default
                 selectorIndex = 1;
                 drawInterfaceClearVar();
+                return;
+            case KEY_PTABLE:
+                mode = DisplayMode::PERIODIC_TABLE;
+                cursorX = 1;
+                cursorY = 1;
+                drawInterfacePeriodicTable();
                 return;
             default: break;
             }
@@ -1341,7 +1348,7 @@ toggleEditOption:
                         const eval::UserDefinedFunction &func = *gfunc.func;
 
                         // Evaluate for x coordinates surrounding the cursor
-                        for(int16_t currentXLCD = graphCursorX - 1; currentXLCD <= graphCursorX + 1; currentXLCD ++) {
+                        for(int16_t currentXLCD = cursorX - 1; currentXLCD <= cursorX + 1; currentXLCD ++) {
                             // Get the x value in real coordinate space
                             double currentXReal = unmapX(currentXLCD);
                             // Set the value of the argument
@@ -1359,7 +1366,7 @@ toggleEditOption:
                                 int16_t currentYLCD = mapY(currentYReal);
                                 int16_t prevXLCD = currentXLCD - 1;
 
-                                if(currentXLCD == graphCursorX && currentYLCD == graphCursorY) {
+                                if(currentXLCD == cursorX && currentYLCD == cursorY) {
                                     counter ++;
                                     if(counter == selectorIndex + 1) {
                                         selectorIndex ++;
@@ -1386,7 +1393,7 @@ toggleEditOption:
                                             if(currentYReal > prevYReal) {
                                                 for(int16_t dispY = prevYLCD - 1; dispY > currentYLCD; dispY --) {
                                                     double realXDiff = (unmapY(dispY) - prevYReal) * slope;
-                                                    if(mapX(realXDiff + prevXReal) == graphCursorX && dispY == graphCursorY) {
+                                                    if(mapX(realXDiff + prevXReal) == cursorX && dispY == cursorY) {
                                                         counter ++;
                                                         if(counter == selectorIndex + 1) {
                                                             selectorIndex ++;
@@ -1401,7 +1408,7 @@ toggleEditOption:
                                             else {
                                                 for(int16_t dispY = prevYLCD + 1; dispY < currentYLCD; dispY ++) {
                                                     double realXDiff = (unmapY(dispY) - prevYReal) * slope;
-                                                    if(mapX(realXDiff + prevXReal) == graphCursorX && dispY == graphCursorY) {
+                                                    if(mapX(realXDiff + prevXReal) == cursorX && dispY == cursorY) {
                                                         counter ++;
                                                         if(counter == selectorIndex + 1) {
                                                             selectorIndex ++;
@@ -1432,11 +1439,11 @@ functionCheckLoopEnd:
             }
             else if(graphCursorMode == GraphCursorMode::AREA_ZOOM) {
                 // First make sure that the area isn't zero
-                if(graphCursorX != graphZoomX && graphCursorY != graphZoomY) {
+                if(cursorX != graphZoomX && cursorY != graphZoomY) {
                     // Change bounds
-                    double x1 = unmapX(graphCursorX);
+                    double x1 = unmapX(cursorX);
                     double x2 = unmapX(graphZoomX);
-                    double y1 = unmapY(graphCursorY);
+                    double y1 = unmapY(cursorY);
                     double y2 = unmapY(graphZoomY);
 
                     xMin = util::min(x1, x2);
@@ -1444,8 +1451,8 @@ functionCheckLoopEnd:
                     yMin = util::min(y1, y2);
                     yMax = util::max(y1, y2);
 
-                    graphCursorX = SCREEN_CENTER_X;
-                    graphCursorY = SCREEN_CENTER_Y;
+                    cursorX = SCREEN_CENTER_X;
+                    cursorY = SCREEN_CENTER_Y;
 
                     redrawGraph();
                 }
@@ -1453,8 +1460,8 @@ functionCheckLoopEnd:
             }
             else {
                 graphCursorMode = GraphCursorMode::ON;
-                graphCursorX = SCREEN_CENTER_X;
-                graphCursorY = SCREEN_CENTER_Y;
+                cursorX = SCREEN_CENTER_X;
+                cursorY = SCREEN_CENTER_Y;
             }
             break;
         // Enter and delete turn off the graph cursor if on
@@ -1472,55 +1479,55 @@ functionCheckLoopEnd:
             return;
 
         case KEY_LEFT:
-            if(graphCursorX > 0) {
-                graphCursorX --;
+            if(cursorX > 0) {
+                cursorX --;
             }
             else {
-                graphCursorX = lcd::SIZE_WIDTH - 1;
+                cursorX = lcd::SIZE_WIDTH - 1;
             }
             selectorIndex = 0;
             break;
         case KEY_RIGHT:
-            if(graphCursorX < lcd::SIZE_WIDTH - 1) {
-                graphCursorX ++;
+            if(cursorX < lcd::SIZE_WIDTH - 1) {
+                cursorX ++;
             }
             else {
-                graphCursorX = 0;
+                cursorX = 0;
             }
             selectorIndex = 0;
             break;
         case KEY_UP:
-            if(graphCursorY > 0) {
-                graphCursorY --;
+            if(cursorY > 0) {
+                cursorY --;
             }
             else {
-                graphCursorY = lcd::SIZE_HEIGHT - 1;
+                cursorY = lcd::SIZE_HEIGHT - 1;
             }
             selectorIndex = 0;
             break;
         case KEY_DOWN:
-            if(graphCursorY < lcd::SIZE_HEIGHT - 1) {
-                graphCursorY ++;
+            if(cursorY < lcd::SIZE_HEIGHT - 1) {
+                cursorY ++;
             }
             else {
-                graphCursorY = 0;
+                cursorY = 0;
             }
             selectorIndex = 0;
             break;
         case KEY_HOME:
-            graphCursorX = 0;
+            cursorX = 0;
             selectorIndex = 0;
             break;
         case KEY_END:
-            graphCursorX = lcd::SIZE_WIDTH - 1;
+            cursorX = lcd::SIZE_WIDTH - 1;
             selectorIndex = 0;
             break;
         case KEY_TOP:
-            graphCursorY = 0;
+            cursorY = 0;
             selectorIndex = 0;
             break;
         case KEY_BOTTOM:
-            graphCursorY = lcd::SIZE_HEIGHT - 1;
+            cursorY = lcd::SIZE_HEIGHT - 1;
             selectorIndex = 0;
             break;
         
@@ -1529,8 +1536,8 @@ functionCheckLoopEnd:
         {
             if(graphCursorMode == GraphCursorMode::ON) {
                 graphCursorMode = GraphCursorMode::AREA_ZOOM;
-                graphZoomX = graphCursorX;
-                graphZoomY = graphCursorY;
+                graphZoomX = cursorX;
+                graphZoomY = cursorY;
                 selectorIndex = 0;
             }
             else if(graphCursorMode == GraphCursorMode::AREA_ZOOM) {
@@ -1540,37 +1547,37 @@ functionCheckLoopEnd:
         }
         // wasd moves the cursor by 10 pixels
         case KEY_LCW:
-            graphCursorY -= 10;
-            if(graphCursorY < 0) {
-                graphCursorY += lcd::SIZE_HEIGHT;
+            cursorY -= 10;
+            if(cursorY < 0) {
+                cursorY += lcd::SIZE_HEIGHT;
             }
             selectorIndex = 0;
             break;
         case KEY_LCA:
-            graphCursorX -= 10;
-            if(graphCursorX < 0) {
-                graphCursorX += lcd::SIZE_WIDTH;
+            cursorX -= 10;
+            if(cursorX < 0) {
+                cursorX += lcd::SIZE_WIDTH;
             }
             selectorIndex = 0;
             break;
         case KEY_LCS:
-            graphCursorY += 10;
-            if(graphCursorY >= lcd::SIZE_HEIGHT) {
-                graphCursorY -= lcd::SIZE_HEIGHT;
+            cursorY += 10;
+            if(cursorY >= lcd::SIZE_HEIGHT) {
+                cursorY -= lcd::SIZE_HEIGHT;
             }
             selectorIndex = 0;
             break;
         case KEY_LCD:
-            graphCursorX += 10;
-            if(graphCursorX >= lcd::SIZE_WIDTH) {
-                graphCursorX -= lcd::SIZE_WIDTH;
+            cursorX += 10;
+            if(cursorX >= lcd::SIZE_WIDTH) {
+                cursorX -= lcd::SIZE_WIDTH;
             }
             selectorIndex = 0;
             break;
         // Pressing h "homes" the cursor
         case KEY_LCH:
-            graphCursorX = SCREEN_CENTER_X;
-            graphCursorY = SCREEN_CENTER_Y;
+            cursorX = SCREEN_CENTER_X;
+            cursorY = SCREEN_CENTER_Y;
             break;
         // Pressing c moves the display window such that the cursor is centered
         case KEY_LCC:
@@ -1581,8 +1588,8 @@ functionCheckLoopEnd:
             // Determine how much translation is needed
             double currentX = unmapX(SCREEN_CENTER_X);
             double currentY = unmapY(SCREEN_CENTER_Y);
-            double correctX = unmapX(graphCursorX);
-            double correctY = unmapY(graphCursorY);
+            double correctX = unmapX(cursorX);
+            double correctY = unmapY(cursorY);
             double xShift = correctX - currentX;
             double yShift = correctY - currentY;
             
@@ -1591,8 +1598,8 @@ functionCheckLoopEnd:
             yMin += yShift;
             yMax += yShift;
 
-            graphCursorX = SCREEN_CENTER_X;
-            graphCursorY = SCREEN_CENTER_Y;
+            cursorX = SCREEN_CENTER_X;
+            cursorY = SCREEN_CENTER_Y;
             
             redrawGraph();
             break;
@@ -1606,8 +1613,8 @@ functionCheckLoopEnd:
             double newWidth = (xMax - xMin) * GRAPH_ZOOM_FACTOR;
             double newHeight = (yMax - yMin) * GRAPH_ZOOM_FACTOR;
 
-            double xShift = (unmapX(graphCursorX) - xMin) * (1 - GRAPH_ZOOM_FACTOR);
-            double yShift = (unmapY(graphCursorY) - yMin) * (1 - GRAPH_ZOOM_FACTOR);
+            double xShift = (unmapX(cursorX) - xMin) * (1 - GRAPH_ZOOM_FACTOR);
+            double yShift = (unmapY(cursorY) - yMin) * (1 - GRAPH_ZOOM_FACTOR);
 
             xMin += xShift;
             xMax = xMin + newWidth;
@@ -1626,8 +1633,8 @@ functionCheckLoopEnd:
             double newWidth = (xMax - xMin) / GRAPH_ZOOM_FACTOR;
             double newHeight = (yMax - yMin) / GRAPH_ZOOM_FACTOR;
 
-            double xShift = (unmapX(graphCursorX) - xMin) * (1 - 1 / GRAPH_ZOOM_FACTOR);
-            double yShift = (unmapY(graphCursorY) - yMin) * (1 - 1 / GRAPH_ZOOM_FACTOR);
+            double xShift = (unmapX(cursorX) - xMin) * (1 - 1 / GRAPH_ZOOM_FACTOR);
+            double yShift = (unmapY(cursorY) - yMin) * (1 - 1 / GRAPH_ZOOM_FACTOR);
 
             xMin += xShift;
             xMax = xMin + newWidth;
@@ -1838,8 +1845,8 @@ functionCheckLoopEnd:
         // Draw the graph cursor if on
         if(graphCursorMode != GraphCursorMode::OFF) {
             // Display the location of the cursor
-            double x = unmapX(graphCursorX);
-            double y = unmapY(graphCursorY);
+            double x = unmapX(cursorX);
+            double y = unmapY(cursorY);
 
             char buf[64];
             // "X="
@@ -1892,29 +1899,29 @@ functionCheckLoopEnd:
 
             // Draw the zoom box
             if(graphCursorMode == GraphCursorMode::AREA_ZOOM) {
-                if(graphCursorX >= graphZoomX) {
-                    for(int16_t x = graphZoomX; x <= graphCursorX; x ++) {
+                if(cursorX >= graphZoomX) {
+                    for(int16_t x = graphZoomX; x <= cursorX; x ++) {
                         display.setPixel(x, graphZoomY);
-                        display.setPixel(x, graphCursorY);
+                        display.setPixel(x, cursorY);
                     }
                 }
                 else {
-                    for(int16_t x = graphCursorX; x <= graphZoomX; x ++) {
+                    for(int16_t x = cursorX; x <= graphZoomX; x ++) {
                         display.setPixel(x, graphZoomY);
-                        display.setPixel(x, graphCursorY);
+                        display.setPixel(x, cursorY);
                     }
                 }
 
-                if(graphCursorY >= graphZoomY) {
-                    for(int16_t y = graphZoomY; y <= graphCursorY; y ++) {
+                if(cursorY >= graphZoomY) {
+                    for(int16_t y = graphZoomY; y <= cursorY; y ++) {
                         display.setPixel(graphZoomX, y);
-                        display.setPixel(graphCursorX, y);
+                        display.setPixel(cursorX, y);
                     }
                 }
                 else {
-                    for(int16_t y = graphCursorY; y <= graphZoomY; y ++) {
+                    for(int16_t y = cursorY; y <= graphZoomY; y ++) {
                         display.setPixel(graphZoomX, y);
-                        display.setPixel(graphCursorX, y);
+                        display.setPixel(cursorX, y);
                     }
                 }
             }
@@ -1926,17 +1933,17 @@ functionCheckLoopEnd:
                 display.drawString(HORIZ_MARGIN + maxWidth + 5, lcd::SIZE_HEIGHT - VERT_MARGIN - 9, graphDispFunc->fullname);
             }
 
-            display.setPixel(graphCursorX, graphCursorY - 2);
-            display.setPixel(graphCursorX, graphCursorY - 1);
+            display.setPixel(cursorX, cursorY - 2);
+            display.setPixel(cursorX, cursorY - 1);
 
-            display.setPixel(graphCursorX - 2, graphCursorY);
-            display.setPixel(graphCursorX - 1, graphCursorY);
-            display.setPixel(graphCursorX, graphCursorY, false);
-            display.setPixel(graphCursorX + 1, graphCursorY);
-            display.setPixel(graphCursorX + 2, graphCursorY);
+            display.setPixel(cursorX - 2, cursorY);
+            display.setPixel(cursorX - 1, cursorY);
+            display.setPixel(cursorX, cursorY, false);
+            display.setPixel(cursorX + 1, cursorY);
+            display.setPixel(cursorX + 2, cursorY);
 
-            display.setPixel(graphCursorX, graphCursorY + 1);
-            display.setPixel(graphCursorX, graphCursorY + 2);
+            display.setPixel(cursorX, cursorY + 1);
+            display.setPixel(cursorX, cursorY + 2);
         }
 
         display.updateDrawing();
@@ -2069,6 +2076,23 @@ functionCheckLoopEnd:
 
         display.drawString(32, 32, "Yes", selectorIndex == 0);
         display.drawString(85, 32, "No", selectorIndex == 1);
+        display.updateDrawing();
+    }
+
+    void ExprEntry::periodicTableKeyPressHandler(uint16_t key) {
+        switch(key) {
+        case KEY_DELETE:
+            mode = prevMode;
+            drawInterfaceNormal();
+            return;
+        }
+
+        drawInterfacePeriodicTable();
+    }
+
+    void ExprEntry::drawInterfacePeriodicTable() {
+        display.clearDrawingBuffer();
+        display.drawImage((lcd::SIZE_WIDTH - lcd::IMG_PTABLE.width) / 2, (lcd::SIZE_HEIGHT - lcd::IMG_PTABLE.height) / 2, lcd::IMG_PTABLE);
         display.updateDrawing();
     }
 
