@@ -1231,14 +1231,16 @@ namespace eval {
      * funcs - An array of all user-defined functions
      * start - Where to start evaluating. This should be the index of the left bracket marking the beginning of the arguments list.
      * end *(out)* - A uint16_t reference which will be set to the index of the right bracket marking the end of the arguments list.
+     * err *(out)* - A boolean that will be set to true if an error occurs
      * 
-     * If there is a syntax error in the arguments list, this function will return an empty util::DynamicArray<Token*>.
+     * If there is a syntax error in the arguments list, this function will set the output bool to true.
      */
     util::DynamicArray<Token*> evaluateArgs(const util::DynamicArray<neda::NEDAObj*>& expr, 
-            uint16_t varc, const Variable *vars, uint16_t funcc, const UserDefinedFunction *funcs, uint16_t start, uint16_t &end) {
+            uint16_t varc, const Variable *vars, uint16_t funcc, const UserDefinedFunction *funcs, uint16_t start, uint16_t &end, bool &err) {
         
         // Args must start with a left bracket
         if(start < expr.length() && expr[start]->getType() != neda::ObjType::L_BRACKET) {
+            err = true;
             return util::DynamicArray<Token*>();
         }
         uint16_t nesting = 0;
@@ -1257,6 +1259,7 @@ namespace eval {
 		
         if(nesting != 0) {
             // Mismatched brackets
+            err = true;
             return util::DynamicArray<Token*>();
         }
 		
@@ -1277,6 +1280,7 @@ namespace eval {
                     // Arguments can only end by a comma
                     // Thus if nesting ever reaches a level less than zero, there are mismatched parentheses
                     if(!nesting) {
+                        err = true;
                         freeTokens(args);
                         return util::DynamicArray<Token*>();
                     }
@@ -1298,6 +1302,7 @@ namespace eval {
             // Syntax error
             if(!arg) {
                 freeTokens(args);
+                err = true;
                 return util::DynamicArray<Token*>();
             }
             args.add(arg);
@@ -1632,8 +1637,9 @@ namespace eval {
                     unit[end - index] = '\0';
 
                     // Evaluate its arguments
-                    auto args = evaluateArgs(exprs, varc, vars, funcc, funcs, end, end);
-                    if(args.length() != 1 || args[0]->getType() == TokenType::MATRIX) {
+                    bool err = false;
+                    auto args = evaluateArgs(exprs, varc, vars, funcc, funcs, end, end, err);
+                    if(err || args.length() != 1 || args[0]->getType() == TokenType::MATRIX) {
                         // Syntax error
                         freeTokens(args);
                         freeTokens(arr);
@@ -1721,10 +1727,11 @@ evaluateFunc:
 							if(!lastTokenOperator) {
 								arr.add(const_cast<Operator*>(&OP_MULTIPLY));
 							}
-                            auto args = evaluateArgs(exprs, varc, vars, funcc, funcs, end, end);
+                            bool err = false;
+                            auto args = evaluateArgs(exprs, varc, vars, funcc, funcs, end, end, err);
 							// Verify that the number of arguments is correct
 							// Make sure to handle user-defined functions as well
-							if((func && func->getNumArgs() != args.length()) || (uFunc && uFunc->argc != args.length())) {
+							if(err || (func && func->getNumArgs() != args.length()) || (uFunc && uFunc->argc != args.length())) {
 								freeTokens(arr);
 								freeTokens(args);
 								delete[] str;

@@ -263,7 +263,7 @@ namespace eval {
 	uint16_t findEquals(const util::DynamicArray<neda::NEDAObj*>&, bool forceVarName = true);
     int8_t isTruthy(const Token*);
     util::DynamicArray<Token*> evaluateArgs(const util::DynamicArray<neda::NEDAObj*>& expr, 
-            uint16_t varc, const Variable *vars, uint16_t funcc, const UserDefinedFunction *funcs, uint16_t start, uint16_t &end);
+            uint16_t varc, const Variable *vars, uint16_t funcc, const UserDefinedFunction *funcs, uint16_t start, uint16_t &end, bool &err);
 
 	uint16_t findTokenEnd(const util::DynamicArray<neda::NEDAObj*> &arr, uint16_t start, int8_t direction, bool &isNum);
 	
