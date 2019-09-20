@@ -213,10 +213,11 @@ namespace eval {
 
 		static Function* fromString(const char*);
 		uint8_t getNumArgs() const;
+        bool isVarArgs() const;
 
-        // Evaluates the function. Assumes the input has the correct number of elements.
+        // Evaluates the function. Assumes the input has the correct number of elements, and uses argc if the function is varargs.
         // Note: This function might modify the input.
-		Token* operator()(Token**) const;
+		Token* operator()(Token** args, uint8_t argc) const;
 	};
 
 	struct UserDefinedFunction {

@@ -769,7 +769,10 @@ namespace eval {
 			return 1;
 		}
 	}
-	Token* Function::operator()(Token **args) const {
+    bool Function::isVarArgs() const {
+        return false;
+    }
+	Token* Function::operator()(Token **args, uint8_t argc) const {
 		// Since extractDouble returns NAN if the input is a matrix, functions that don't support matrices
 		// will simply return NAN
 		switch(type) {
@@ -859,7 +862,7 @@ namespace eval {
 			if(!util::isInt(static_cast<Numerical*>(args[1])->value.asDouble())) {
 				return new Numerical(NAN);
 			}
-			return new Numerical(util::round(static_cast<Numerical*>(args[1])->value.asDouble(), 
+			return new Numerical(util::round(static_cast<Numerical*>(args[0])->value.asDouble(), 
                     static_cast<Numerical*>(args[1])->value.asDouble()));
 		}
 		case Type::DET:
@@ -1731,7 +1734,8 @@ evaluateFunc:
                             auto args = evaluateArgs(exprs, varc, vars, funcc, funcs, end, end, err);
 							// Verify that the number of arguments is correct
 							// Make sure to handle user-defined functions as well
-							if(err || (func && func->getNumArgs() != args.length()) || (uFunc && uFunc->argc != args.length())) {
+							if(err || (func && (func->isVarArgs() ? args.length() < func->getNumArgs() : args.length() != func->getNumArgs()))
+                                    || (uFunc && uFunc->argc != args.length())) {
 								freeTokens(arr);
 								freeTokens(args);
 								delete[] str;
@@ -1742,7 +1746,7 @@ evaluateFunc:
 							Token *result;
 							// Regular function - cast and call to evaluate
 							if(func) {
-								result = (*func)(args.asArray());
+								result = (*func)(args.asArray(), args.length());
 								// If result cannot be computed, syntax error
 								if(!result) {
 									freeTokens(arr);
