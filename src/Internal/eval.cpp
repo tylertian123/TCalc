@@ -740,13 +740,13 @@ namespace eval {
 		"\xff", "\xff",
 
 		"qdRts", "round", "min", "max", "floor", "ceil", "det", "linSolve", "leastSquares",
-        "rref",
+        "rref", "mean",
 	};
     const char * const Function::FUNC_FULLNAMES[TYPE_COUNT_DISPLAYABLE] = {
         "sin(angle)", "cos(angle)", "tan(angle)", "asin(x)", "acos(x)", "atan(x)", 
         "sinh(angle)", "cosh(angle)", "tanh(angle)", "asinh(x)", "acosh(x)", "atanh(x)",
         "ln(x)", "qdRts(a,b,c)", "round(n,decimals)", "min(a,b)", "max(a,b)", "floor(x)",
-        "ceil(x)", "det(A)", "linSolve(A)", "leastSquares(A, b)", "rref(A)"
+        "ceil(x)", "det(A)", "linSolve(A)", "leastSquares(A, b)", "rref(A)", "mean(values...)",
     };
 	Function* Function::fromString(const char *str) {
 		for(uint8_t i = 0; i < TYPE_COUNT; i ++) {
@@ -770,9 +770,12 @@ namespace eval {
 		}
 	}
     bool Function::isVarArgs() const {
+        if(type == Type::MEAN) {
+            return true;
+        }
         return false;
     }
-	Token* Function::operator()(Token **args, uint8_t argc) const {
+	Token* Function::operator()(Token **args, uint16_t argc) const {
 		// Since extractDouble returns NAN if the input is a matrix, functions that don't support matrices
 		// will simply return NAN
 		switch(type) {
@@ -989,6 +992,17 @@ namespace eval {
                 return nullptr;
             }
             return new Numerical(ceil(extractDouble(args[0])));
+        }
+        case Type::MEAN:
+        {
+            util::Numerical avg(0);
+            for(uint16_t i = 0; i < argc; i ++) {
+                if(args[i]->getType() != TokenType::NUMERICAL) {
+                    return nullptr;
+                }
+                avg += (static_cast<Numerical*>(args[i])->value - avg) / (i + 1);
+            }
+            return new Numerical(avg);
         }
 		default: return new Numerical(NAN);
 		}

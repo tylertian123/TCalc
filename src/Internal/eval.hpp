@@ -190,7 +190,7 @@ namespace eval {
 	public:
 		enum class Type : uint8_t {
 			SIN, COS, TAN, ASIN, ACOS, ATAN, SINH, COSH, TANH, ASINH, ACOSH, ATANH, LN, LOG10, LOG2, QUADROOTS,
-			ROUND, MIN, MAX, FLOOR, CEIL, DET, LINSOLVE, LEASTSQUARES, RREF,
+			ROUND, MIN, MAX, FLOOR, CEIL, DET, LINSOLVE, LEASTSQUARES, RREF, MEAN,
 
             // Cast this into an unit8_t for the total function count
             TOTAL_TYPE_COUNT
@@ -201,7 +201,7 @@ namespace eval {
         // Used for displaying, doesn't have to contain all functions
         static const char * const FUNC_FULLNAMES[];
         // Length of FUNC_FULLNAMES
-        static constexpr uint8_t TYPE_COUNT_DISPLAYABLE = 23;
+        static constexpr uint8_t TYPE_COUNT_DISPLAYABLE = 24;
 		
 		Function(Type type) : type(type) {}
 
@@ -217,7 +217,7 @@ namespace eval {
 
         // Evaluates the function. Assumes the input has the correct number of elements, and uses argc if the function is varargs.
         // Note: This function might modify the input.
-		Token* operator()(Token** args, uint8_t argc) const;
+		Token* operator()(Token** args, uint16_t argc) const;
 	};
 
 	struct UserDefinedFunction {
