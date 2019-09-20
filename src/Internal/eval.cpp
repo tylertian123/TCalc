@@ -745,7 +745,7 @@ namespace eval {
     const char * const Function::FUNC_FULLNAMES[TYPE_COUNT_DISPLAYABLE] = {
         "sin(angle)", "cos(angle)", "tan(angle)", "asin(x)", "acos(x)", "atan(x)", 
         "sinh(angle)", "cosh(angle)", "tanh(angle)", "asinh(x)", "acosh(x)", "atanh(x)",
-        "ln(x)", "qdRts(a,b,c)", "round(n,decimals)", "min(a,b)", "max(a,b)", "floor(x)",
+        "ln(x)", "qdRts(a,b,c)", "round(n,decimals)", "min(values...)", "max(values...)", "floor(x)",
         "ceil(x)", "det(A)", "linSolve(A)", "leastSquares(A, b)", "rref(A)", "mean(values...)",
     };
 	Function* Function::fromString(const char *str) {
@@ -761,8 +761,6 @@ namespace eval {
 		case Type::QUADROOTS:
 			return 3;
 		case Type::ROUND:
-        case Type::MAX:
-        case Type::MIN:
         case Type::LEASTSQUARES:
 			return 2;
 		default: 
@@ -770,10 +768,14 @@ namespace eval {
 		}
 	}
     bool Function::isVarArgs() const {
-        if(type == Type::MEAN) {
+        switch(type) {
+        case Type::MIN:
+        case Type::MAX:
+        case Type::MEAN:
             return true;
+        default:
+            return false;
         }
-        return false;
     }
 	Token* Function::operator()(Token **args, uint16_t argc) const {
 		// Since extractDouble returns NAN if the input is a matrix, functions that don't support matrices
@@ -955,29 +957,37 @@ namespace eval {
         }
         case Type::MIN:
         {
-            if(args[0]->getType() == TokenType::MATRIX || args[1]->getType() == TokenType::MATRIX) {
+            if(args[0]->getType() != TokenType::NUMERICAL) {
                 return nullptr;
             }
-            // a is greater than b
-            if(static_cast<Numerical*>(args[0])->value > static_cast<Numerical*>(args[1])->value) {
-                return new Numerical(static_cast<Numerical*>(args[1])->value);
+            util::Numerical *maxVal = &static_cast<Numerical*>(args[0])->value;
+            for(uint16_t i = 1; i < argc; i ++) {
+                if(args[i]->getType() != TokenType::NUMERICAL) {
+                    return nullptr;
+                }
+
+                if(static_cast<Numerical*>(args[i])->value < *maxVal) {
+                    maxVal = &static_cast<Numerical*>(args[i])->value;
+                }
             }
-            else {
-                return new Numerical(static_cast<Numerical*>(args[0])->value);
-            }
+            return new Numerical(*maxVal);
         }
         case Type::MAX:
         {
-            if(args[0]->getType() == TokenType::MATRIX || args[1]->getType() == TokenType::MATRIX) {
+            if(args[0]->getType() != TokenType::NUMERICAL) {
                 return nullptr;
             }
-            // a is greater than b
-            if(static_cast<Numerical*>(args[0])->value < static_cast<Numerical*>(args[1])->value) {
-                return new Numerical(static_cast<Numerical*>(args[1])->value);
+            util::Numerical *maxVal = &static_cast<Numerical*>(args[0])->value;
+            for(uint16_t i = 1; i < argc; i ++) {
+                if(args[i]->getType() != TokenType::NUMERICAL) {
+                    return nullptr;
+                }
+
+                if(static_cast<Numerical*>(args[i])->value > *maxVal) {
+                    maxVal = &static_cast<Numerical*>(args[i])->value;
+                }
             }
-            else {
-                return new Numerical(static_cast<Numerical*>(args[0])->value);
-            }
+            return new Numerical(*maxVal);
         }
         case Type::FLOOR:
         {
