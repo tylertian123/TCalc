@@ -183,7 +183,7 @@ namespace lcd {
 		}
 	}
 
-    void DrawBuf::drawString(int16_t x, int16_t y, const char *str, bool invert) {
+    void DrawBuf::drawString(int16_t x, int16_t y, const char *str, bool invert, Charset charset) {
         // Empty string
 		if(*str == '\0') {
 			return;
@@ -191,7 +191,7 @@ namespace lcd {
 		uint16_t width = 0;
 		uint16_t height = 0;
 		for(uint16_t index = 0; str[index] != '\0'; ++index) {
-			const Image &img = getChar(str[index]);
+			const Image &img = charset(str[index]);
 			width += img.width + 1;
 			height = util::max(height, img.height);
 		}
@@ -208,7 +208,7 @@ namespace lcd {
 			if(x >= 128 || y >= 64) {
 				continue;
 			}
-			const Image &img = getChar(*str);
+			const Image &img = charset(*str);
 			// Out of bounds check #2
 			if(x + img.width < 0 || y + img.height < 0) {
 				continue;
@@ -219,14 +219,14 @@ namespace lcd {
 		}
     }
 
-    uint16_t DrawBuf::getDrawnStringWidth(const char *str) {
+    uint16_t DrawBuf::getDrawnStringWidth(const char *str, Charset charset) {
         // Empty string
 		if(*str == '\0') {
 			return 0;
 		}
 		uint16_t width = 0;
 		for(uint16_t index = 0; str[index] != '\0'; ++index) {
-			const Image &img = getChar(str[index]);
+			const Image &img = charset(str[index]);
 			width += img.width + 1;
 		}
 		// Subtract away one extra spacing

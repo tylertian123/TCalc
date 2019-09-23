@@ -121,25 +121,6 @@ namespace lcd {
 		&CHAR_UNKNOWN,//&CHAR_TLDE,
 		&CHAR_UNKNOWN,
 	};
-
-    const Image * const CHAR_SMALL[] {
-        &CHAR_SMALL_0,
-        &CHAR_SMALL_1,
-        &CHAR_SMALL_2,
-        &CHAR_SMALL_3,
-        &CHAR_SMALL_4,
-        &CHAR_SMALL_5,
-        &CHAR_SMALL_6,
-        &CHAR_SMALL_7,
-        &CHAR_SMALL_8,
-        &CHAR_SMALL_9,
-        &CHAR_SMALL_DOT,
-        &CHAR_SMALL_X,
-        &CHAR_SMALL_Y,
-        &CHAR_SMALL_EQL,
-        &CHAR_SMALL_EE,
-        &CHAR_SMALL_MINUS,
-    };
 	
 	uint8_t asciiToIndex(char c) {
 		// If char is outside the range, return 0x7F (CHAR_UNKNOWN) minus the offset
@@ -151,12 +132,78 @@ namespace lcd {
 	}
 	const Image& getChar(char c) {
         // Special processing for small charset
-        if(c >= LCD_SMALL_CHARSET_LOWBOUND && c <= LCD_SMALL_CHARSET_HIGHBOUND) {
-            return *CHAR_SMALL[c - LCD_SMALL_CHARSET_LOWBOUND];
-        }
 		return *CHAR_ASCII[asciiToIndex(c)];
 	}
+
+    const Image * const CHAR_SMALL_NUMS[] = {
+        &CHAR_SMALL_0,
+        &CHAR_SMALL_1,
+        &CHAR_SMALL_2,
+        &CHAR_SMALL_3,
+        &CHAR_SMALL_4,
+        &CHAR_SMALL_5,
+        &CHAR_SMALL_6,
+        &CHAR_SMALL_7,
+        &CHAR_SMALL_8,
+        &CHAR_SMALL_9,
+    };
+
+    const Image * const CHAR_SMALL_LETTERS[] = {
+        &CHAR_SMALL_A,
+        &CHAR_SMALL_B,
+        &CHAR_SMALL_C,
+        &CHAR_SMALL_D,
+        &CHAR_SMALL_E,
+        &CHAR_SMALL_F,
+        &CHAR_SMALL_G,
+        &CHAR_SMALL_H,
+        &CHAR_SMALL_I,
+        &CHAR_SMALL_J,
+        &CHAR_SMALL_K,
+        &CHAR_SMALL_L,
+        &CHAR_SMALL_M,
+        &CHAR_SMALL_N,
+        &CHAR_SMALL_O,
+        &CHAR_SMALL_P,
+        &CHAR_SMALL_Q,
+        &CHAR_SMALL_R,
+        &CHAR_SMALL_S,
+        &CHAR_SMALL_T,
+        &CHAR_SMALL_U,
+        &CHAR_SMALL_V,
+        &CHAR_SMALL_W,
+        &CHAR_SMALL_X,
+        &CHAR_SMALL_Y,
+        &CHAR_SMALL_Z,
+    };
+
     const Image& getSmallNumber(uint8_t digit) {
-        return *CHAR_SMALL[LCD_SMALL_CHARSET_NUMBER_LOWBOUND + digit];
+        return *CHAR_SMALL_NUMS[digit];
+    }
+
+    const Image& getSmallChar(char c) {
+        if(c >= '0' && c <= '9') {
+            return *CHAR_SMALL_NUMS[c - '0'];
+        }
+        else if(c >= 'a' && c <= 'z') {
+            return *CHAR_SMALL_LETTERS[c - 'a'];
+        }
+        else if(c >= 'A' && c <= 'Z') {
+            return *CHAR_SMALL_LETTERS[c - 'A'];
+        }
+        else {
+            switch(c) {
+            case '=':
+                return CHAR_SMALL_EQL;
+            case '.':
+                return CHAR_SMALL_DOT;
+            case '-':
+                return CHAR_SMALL_MINUS;
+            case LCD_CHAR_EE:
+                return CHAR_SMALL_EE;
+            default:
+                return CHAR_UNKNOWN;
+            }
+        }
     }
 }

@@ -1,9 +1,9 @@
 #ifndef __LCD12864_H__
 #define __LCD12864_H__
-#include "stm32f10x.h"
+
 #include "lcdbase.hpp"
 #include "drawbuf.hpp"
-#include <cstring>
+#include <string.h>
 
 namespace lcd {
 
@@ -80,11 +80,11 @@ namespace lcd {
 		void setPixel(int16_t, int16_t, bool state = true);
 		void drawImage(int16_t, int16_t, const Image&, bool invert = false);
 		void drawLine(int16_t, int16_t, int16_t, int16_t, bool invert = false);
-		void drawString(int16_t, int16_t, const char*, bool invert = false);
+		void drawString(int16_t, int16_t, const char*, bool invert = false, DrawBuf::Charset charset = DrawBuf::CHARSET_NORMAL);
 		void fill(int16_t, int16_t, uint16_t, uint16_t, bool invert = false);
         void copyBuffer(const DrawBuf&);
 
-        static uint16_t getDrawnStringWidth(const char*);
+        static uint16_t getDrawnStringWidth(const char*, DrawBuf::Charset charset = DrawBuf::CHARSET_NORMAL);
 	
 	protected:
 		bool extendedCmd = false;

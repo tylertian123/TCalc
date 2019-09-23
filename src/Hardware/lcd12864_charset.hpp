@@ -12,7 +12,7 @@
  * Characters marked with "Unused" can be left unimplemented.
  */
 
-#include "lcd12864.hpp"
+#include <stdint.h>
 
 // The lower bound of the "special" (non-ASCII) charset (inclusive).
 #define LCD_CHARSET_LOWBOUND 0x0a
@@ -113,50 +113,18 @@
 // The character for math error.
 #define LCD_CHAR_MERR '\xff'
 
+/* This part not needed right now
 // Verify that plain char is unsigned
 // This must be true for the small charset to work
 #include <limits.h>
 #if CHAR_MIN < 0
     #error "Plain char must be unsigned!"
 #endif
-
-// The lower bound of the small charset (inclusive)
-#define LCD_SMALL_CHARSET_LOWBOUND 0x80
-// The upper bound of the small charset (inclusive)
-#define LCD_SMALL_CHARSET_HIGHBOUND 0x8f
-
-// The lower bound of the small charset's numbers (inclusive)
-#define LCD_SMALL_CHARSET_NUMBER_LOWBOUND 0x80
-// The upper bound of the small charset's numbers (inclusive)
-#define LCD_SMALL_CHARSET_NUMBER_HIGHBOUND 0x89
-
-// The dot (.) character in the small charset, in a string.
-#define LCD_SMALL_STR_DOT "\x8a"
-// The x character in the small charset, in a string.
-#define LCD_SMALL_STR_X "\x8b"
-// The y character in the small charset, in a string.
-#define LCD_SMALL_STR_Y "\x8c"
-// The equals character (=) in the small charset, in a string.
-#define LCD_SMALL_STR_EQL "\x8d"
-// The "10 to the power of" character in the small charset, in a string.
-#define LCD_SMALL_STR_EE "\x8e"
-// The minus (-) character in the small charset, in a string.
-#define LCD_SMALL_STR_MINUS "\x8f"
-
-// The dot (.) character in the small charset.
-#define LCD_SMALL_CHAR_DOT '\x8a'
-// The x character in the small charset.
-#define LCD_SMALL_CHAR_X '\x8b'
-// The y character in the small charset.
-#define LCD_SMALL_CHAR_Y '\x8c'
-// The equals character (=) in the small charset.
-#define LCD_SMALL_CHAR_EQL '\x8d'
-// The "10 to the power of" character in the small charset.
-#define LCD_SMALL_CHAR_EE '\x8e'
-// The minus (-) character in the small charset.
-#define LCD_SMALL_CHAR_MINUS '\x8f'
+*/
 
 namespace lcd {
+
+    class Image;
 
     // Space ( )
 	extern const Image CHAR_SPC;
@@ -442,24 +410,77 @@ namespace lcd {
     extern const Image CHAR_SMALL_8;
     // 9
     extern const Image CHAR_SMALL_9;
-    // Dot (.)
-    extern const Image CHAR_SMALL_DOT;
+
+    // A
+    extern const Image CHAR_SMALL_A;
+    // B
+    extern const Image CHAR_SMALL_B;
+    // C
+    extern const Image CHAR_SMALL_C;
+    // D
+    extern const Image CHAR_SMALL_D;
+    // E
+    extern const Image CHAR_SMALL_E;
+    // F
+    extern const Image CHAR_SMALL_F;
+    // G
+    extern const Image CHAR_SMALL_G;
+    // H
+    extern const Image CHAR_SMALL_H;
+    // I
+    extern const Image CHAR_SMALL_I;
+    // J
+    extern const Image CHAR_SMALL_J;
+    // K
+    extern const Image CHAR_SMALL_K;
+    // L
+    extern const Image CHAR_SMALL_L;
+    // M
+    extern const Image CHAR_SMALL_M;
+    // N
+    extern const Image CHAR_SMALL_N;
+    // O
+    extern const Image CHAR_SMALL_O;
+    // P
+    extern const Image CHAR_SMALL_P;
+    // Q
+    extern const Image CHAR_SMALL_Q;
+    // R
+    extern const Image CHAR_SMALL_R;
+    // S
+    extern const Image CHAR_SMALL_S;
+    // T
+    extern const Image CHAR_SMALL_T;
+    // U
+    extern const Image CHAR_SMALL_U;
+    // V
+    extern const Image CHAR_SMALL_V;
+    // W
+    extern const Image CHAR_SMALL_W;
     // X
     extern const Image CHAR_SMALL_X;
     // Y
     extern const Image CHAR_SMALL_Y;
+    // Z
+    extern const Image CHAR_SMALL_Z;
+
+    // Dot (.)
+    extern const Image CHAR_SMALL_DOT;
     // Equals sign (=)
     extern const Image CHAR_SMALL_EQL;
     // "10 to the power of" symbol
     extern const Image CHAR_SMALL_EE;
     // Minus sign (-)
     extern const Image CHAR_SMALL_MINUS;
-    // Periodic table outline
-    extern const Image IMG_PTABLE;
 
-    extern const Image * const CHAR_SMALL[];
+    extern const Image * const CHAR_SMALL_NUMS[];
+    extern const Image * const CHAR_SMALL_LETTERS[];
 
     const Image& getSmallNumber(uint8_t);
+    const Image& getSmallChar(char);
+
+    // Periodic table outline
+    extern const Image IMG_PTABLE;
 }
 
 #endif

@@ -1851,50 +1851,23 @@ functionCheckLoopEnd:
 
             char buf[64];
             // "X="
-            buf[0] = LCD_SMALL_CHAR_X;
-            buf[1] = LCD_SMALL_CHAR_EQL;
+            buf[0] = 'x';
+            buf[1] = '=';
             // Convert the number
-            util::ftoa(x, buf + 2, graphingSignificantDigits, LCD_SMALL_CHAR_EE);
-            // Now convert normal characters to the small charset's characters
-            for(uint8_t i = 2; buf[i] != '\0'; i ++) {
-                // Numbers
-                if(buf[i] >= '0' && buf[i] <= '9') {
-                    buf[i] -= '0';
-                    buf[i] += LCD_SMALL_CHARSET_NUMBER_LOWBOUND;
-                }
-                else if(buf[i] == '.') {
-                    buf[i] = LCD_SMALL_CHAR_DOT;
-                }
-                else if(buf[i] == '-') {
-                    buf[i] = LCD_SMALL_CHAR_MINUS;
-                }
-            }
+            util::ftoa(x, buf + 2, graphingSignificantDigits, LCD_CHAR_EE);
             // Find the string's width so we can clear the background
-            uint16_t width = lcd::DrawBuf::getDrawnStringWidth(buf);
+            uint16_t width = lcd::DrawBuf::getDrawnStringWidth(buf, lcd::DrawBuf::CHARSET_SMALL);
             // Used later
             uint16_t maxWidth = width;
             display.fill(HORIZ_MARGIN - 1, lcd::SIZE_HEIGHT - VERT_MARGIN - 5 - 5 - 1 - 1, width + 2, 7, true);
-            display.drawString(HORIZ_MARGIN, lcd::SIZE_HEIGHT - VERT_MARGIN - 5 - 5 - 1, buf);
+            display.drawString(HORIZ_MARGIN, lcd::SIZE_HEIGHT - VERT_MARGIN - 5 - 5 - 1, buf, false, lcd::DrawBuf::CHARSET_SMALL);
 
             // Do the same with the y coordinate
-            buf[0] = LCD_SMALL_CHAR_Y;
-            util::ftoa(y, buf + 2, graphingSignificantDigits, LCD_SMALL_CHAR_EE);
-            for(uint8_t i = 2; buf[i] != '\0'; i ++) {
-                // Numbers
-                if(buf[i] >= '0' && buf[i] <= '9') {
-                    buf[i] -= '0';
-                    buf[i] += LCD_SMALL_CHARSET_NUMBER_LOWBOUND;
-                }
-                else if(buf[i] == '.') {
-                    buf[i] = LCD_SMALL_CHAR_DOT;
-                }
-                else if(buf[i] == '-') {
-                    buf[i] = LCD_SMALL_CHAR_MINUS;
-                }
-            }
-            width = lcd::DrawBuf::getDrawnStringWidth(buf);
+            buf[0] = 'y';
+            util::ftoa(y, buf + 2, graphingSignificantDigits, LCD_CHAR_EE);
+            width = lcd::DrawBuf::getDrawnStringWidth(buf, lcd::DrawBuf::CHARSET_SMALL);
             display.fill(HORIZ_MARGIN - 1, lcd::SIZE_HEIGHT - VERT_MARGIN - 5 - 1, width + 2, 7, true);
-            display.drawString(HORIZ_MARGIN, lcd::SIZE_HEIGHT - VERT_MARGIN - 5, buf);
+            display.drawString(HORIZ_MARGIN, lcd::SIZE_HEIGHT - VERT_MARGIN - 5, buf, false, lcd::DrawBuf::CHARSET_SMALL);
 
             maxWidth = util::max(maxWidth, width);
 

@@ -1,7 +1,8 @@
 #ifndef __DRAWBUF_H__
 #define __DRAWBUF_H__
 
-#include "stm32f10x.h"
+#include <stdint.h>
+#include "lcd12864_charset.hpp"
 
 namespace lcd {
 
@@ -21,6 +22,10 @@ namespace lcd {
     public:
         DrawBuf() {}
 
+        typedef const Image& (*Charset)(char);
+        static constexpr Charset CHARSET_NORMAL = &getChar;
+        static constexpr Charset CHARSET_SMALL = &getSmallChar;
+
         // Clears the contents; sets every pixel to 0.
         void clear();
         // Sets a single pixel.
@@ -30,11 +35,11 @@ namespace lcd {
         // Draws a line
 		void drawLine(int16_t, int16_t, int16_t, int16_t, bool invert = false);
         // Draws a string
-		void drawString(int16_t, int16_t, const char*, bool invert = false);
+		void drawString(int16_t, int16_t, const char*, bool invert = false, Charset charset = CHARSET_NORMAL);
         // Fills an area
 		void fill(int16_t, int16_t, uint16_t, uint16_t, bool invert = false);
         // Gets the width of a string when drawn
-        static uint16_t getDrawnStringWidth(const char*);
+        static uint16_t getDrawnStringWidth(const char*, Charset charset = CHARSET_NORMAL);
         // Used internally by the LCD classes
         uint16_t getLCDWord(uint8_t row, uint8_t col);
         // Copies the content of another DrawBuf

@@ -157,8 +157,8 @@ namespace lcd {
 		drawBuf.drawLine(x1, y1, x2, y2, invert);
 	}
 
-	void LCD12864::drawString(int16_t x, int16_t y, const char *str, bool invert) {
-		drawBuf.drawString(x, y, str, invert);
+	void LCD12864::drawString(int16_t x, int16_t y, const char *str, bool invert, DrawBuf::Charset charset) {
+		drawBuf.drawString(x, y, str, invert, charset);
 	}
 
 	void LCD12864::fill(int16_t x, int16_t y, uint16_t width, uint16_t height, bool invert) {
@@ -169,7 +169,7 @@ namespace lcd {
         drawBuf.copy(buf);
     }
 
-    uint16_t LCD12864::getDrawnStringWidth(const char *str) {
-        return DrawBuf::getDrawnStringWidth(str);
+    uint16_t LCD12864::getDrawnStringWidth(const char *str, DrawBuf::Charset charset) {
+        return DrawBuf::getDrawnStringWidth(str, charset);
     }
 }

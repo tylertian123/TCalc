@@ -1,4 +1,5 @@
 #include "lcd12864_charset.hpp"
+#include "drawbuf.hpp"
 
 namespace lcd {
 	/* NUMBERS */
@@ -1541,14 +1542,191 @@ namespace lcd {
 		0xc0, // 11000000
 	};
 	const Image CHAR_SMALL_9(CHAR_SMALL_9_DATA, 1, 3, 5);
-    const uint8_t CHAR_SMALL_DOT_DATA[] = {
-		0x00, // 00000000
-		0x00, // 00000000
-		0x00, // 00000000
-		0x00, // 00000000
+
+    const uint8_t CHAR_SMALL_A_DATA[] = {
+		0x40, // 01000000
+		0xa0, // 10100000
+		0xe0, // 11100000
+		0xa0, // 10100000
+		0xa0, // 10100000
+	};
+	const Image CHAR_SMALL_A(CHAR_SMALL_A_DATA, 1, 3, 5);
+    const uint8_t CHAR_SMALL_B_DATA[] = {
+		0xc0, // 11000000
+		0xa0, // 10100000
+		0xc0, // 11000000
+		0xa0, // 10100000
+		0xc0, // 11000000
+	};
+	const Image CHAR_SMALL_B(CHAR_SMALL_B_DATA, 1, 3, 5);
+    const uint8_t CHAR_SMALL_C_DATA[] = {
+		0x60, // 01100000
+		0x80, // 10000000
+		0x80, // 10000000
+		0x80, // 10000000
+		0x60, // 01100000
+	};
+	const Image CHAR_SMALL_C(CHAR_SMALL_C_DATA, 1, 3, 5);
+    const uint8_t CHAR_SMALL_D_DATA[] = {
+		0xc0, // 11000000
+		0xa0, // 10100000
+		0xa0, // 10100000
+		0xa0, // 10100000
+		0xc0, // 11000000
+	};
+	const Image CHAR_SMALL_D(CHAR_SMALL_D_DATA, 1, 3, 5);
+    const uint8_t CHAR_SMALL_E_DATA[] = {
+		0xe0, // 11100000
+		0x80, // 10000000
+		0xc0, // 11000000
+		0x80, // 10000000
+		0xe0, // 11100000
+	};
+	const Image CHAR_SMALL_E(CHAR_SMALL_E_DATA, 1, 3, 5);
+    const uint8_t CHAR_SMALL_F_DATA[] = {
+		0xe0, // 11100000
+		0x80, // 10000000
+		0xc0, // 11000000
+		0x80, // 10000000
 		0x80, // 10000000
 	};
-	const Image CHAR_SMALL_DOT(CHAR_SMALL_DOT_DATA, 1, 1, 5);
+	const Image CHAR_SMALL_F(CHAR_SMALL_F_DATA, 1, 3, 5);
+    const uint8_t CHAR_SMALL_G_DATA[] = {
+		0x70, // 01110000
+		0x80, // 10000000
+		0xb0, // 10110000
+		0x90, // 10010000
+		0x70, // 01110000
+	};
+	const Image CHAR_SMALL_G(CHAR_SMALL_G_DATA, 1, 4, 5);
+    const uint8_t CHAR_SMALL_H_DATA[] = {
+		0xa0, // 10100000
+		0xa0, // 10100000
+		0xe0, // 11100000
+		0xa0, // 10100000
+		0xa0, // 10100000
+	};
+	const Image CHAR_SMALL_H(CHAR_SMALL_H_DATA, 1, 3, 5);
+    const uint8_t CHAR_SMALL_I_DATA[] = {
+		0xe0, // 11100000
+		0x40, // 01000000
+		0x40, // 01000000
+		0x40, // 01000000
+		0xe0, // 11100000
+	};
+	const Image CHAR_SMALL_I(CHAR_SMALL_I_DATA, 1, 3, 5);
+    const uint8_t CHAR_SMALL_J_DATA[] = {
+		0x60, // 01100000
+		0x20, // 00100000
+		0x20, // 00100000
+		0xa0, // 10100000
+		0x40, // 01000000
+	};
+	const Image CHAR_SMALL_J(CHAR_SMALL_J_DATA, 1, 3, 5);
+    const uint8_t CHAR_SMALL_K_DATA[] = {
+		0xa0, // 10100000
+		0xa0, // 10100000
+		0xc0, // 11000000
+		0xa0, // 10100000
+		0xa0, // 10100000
+	};
+	const Image CHAR_SMALL_K(CHAR_SMALL_K_DATA, 1, 3, 5);
+    const uint8_t CHAR_SMALL_L_DATA[] = {
+		0x80, // 10000000
+		0x80, // 10000000
+		0x80, // 10000000
+		0x80, // 10000000
+		0xe0, // 11100000
+	};
+	const Image CHAR_SMALL_L(CHAR_SMALL_L_DATA, 1, 3, 5);
+    const uint8_t CHAR_SMALL_M_DATA[] = {
+		0x88, // 10001000
+		0xd8, // 11011000
+		0xa8, // 10101000
+		0x88, // 10001000
+		0x88, // 10001000
+	};
+	const Image CHAR_SMALL_M(CHAR_SMALL_M_DATA, 1, 5, 5);
+    const uint8_t CHAR_SMALL_N_DATA[] = {
+		0x90, // 10010000
+		0xd0, // 11010000
+		0xb0, // 10110000
+		0xb0, // 10110000
+		0x90, // 10010000
+	};
+	const Image CHAR_SMALL_N(CHAR_SMALL_N_DATA, 1, 4, 5);
+    const uint8_t CHAR_SMALL_O_DATA[] = {
+		0xe0, // 11100000
+		0xa0, // 10100000
+		0xa0, // 10100000
+		0xa0, // 10100000
+		0xe0, // 11100000
+	};
+	const Image CHAR_SMALL_O(CHAR_SMALL_O_DATA, 1, 3, 5);
+    const uint8_t CHAR_SMALL_P_DATA[] = {
+		0xe0, // 11100000
+		0xa0, // 10100000
+		0xe0, // 11100000
+		0x80, // 10000000
+		0x80, // 10000000
+	};
+	const Image CHAR_SMALL_P(CHAR_SMALL_P_DATA, 1, 3, 5);
+    const uint8_t CHAR_SMALL_Q_DATA[] = {
+		0xf0, // 11110000
+		0x90, // 10010000
+		0x90, // 10010000
+		0xb0, // 10110000
+		0xf0, // 11110000
+	};
+	const Image CHAR_SMALL_Q(CHAR_SMALL_Q_DATA, 1, 4, 5);
+    const uint8_t CHAR_SMALL_R_DATA[] = {
+		0xe0, // 11100000
+		0xa0, // 10100000
+		0xe0, // 11100000
+		0xc0, // 11000000
+		0xa0, // 10100000
+	};
+	const Image CHAR_SMALL_R(CHAR_SMALL_R_DATA, 1, 3, 5);
+    const uint8_t CHAR_SMALL_S_DATA[] = {
+		0xe0, // 11100000
+		0x80, // 10000000
+		0xe0, // 11100000
+		0x20, // 00100000
+		0xe0, // 11100000
+	};
+	const Image CHAR_SMALL_S(CHAR_SMALL_S_DATA, 1, 3, 5);
+    const uint8_t CHAR_SMALL_T_DATA[] = {
+		0xe0, // 11100000
+		0x40, // 01000000
+		0x40, // 01000000
+		0x40, // 01000000
+		0x40, // 01000000
+	};
+	const Image CHAR_SMALL_T(CHAR_SMALL_T_DATA, 1, 3, 5);
+    const uint8_t CHAR_SMALL_U_DATA[] = {
+		0xa0, // 10100000
+		0xa0, // 10100000
+		0xa0, // 10100000
+		0xa0, // 10100000
+		0xe0, // 11100000
+	};
+	const Image CHAR_SMALL_U(CHAR_SMALL_U_DATA, 1, 3, 5);
+    const uint8_t CHAR_SMALL_V_DATA[] = {
+		0xa0, // 10100000
+		0xa0, // 10100000
+		0xa0, // 10100000
+		0xa0, // 10100000
+		0x40, // 01000000
+	};
+	const Image CHAR_SMALL_V(CHAR_SMALL_V_DATA, 1, 3, 5);
+    const uint8_t CHAR_SMALL_W_DATA[] = {
+		0x88, // 10001000
+		0xa8, // 10101000
+		0xa8, // 10101000
+		0xa8, // 10101000
+		0x50, // 01010000
+	};
+	const Image CHAR_SMALL_W(CHAR_SMALL_W_DATA, 1, 5, 5);
     const uint8_t CHAR_SMALL_X_DATA[] = {
 		0xa0, // 10100000
 		0xa0, // 10100000
@@ -1565,6 +1743,23 @@ namespace lcd {
 		0x40, // 01000000
 	};
 	const Image CHAR_SMALL_Y(CHAR_SMALL_Y_DATA, 1, 3, 5);
+    const uint8_t CHAR_SMALL_Z_DATA[] = {
+		0xe0, // 11100000
+		0x20, // 00100000
+		0x40, // 01000000
+		0x80, // 10000000
+		0xe0, // 11100000
+	};
+	const Image CHAR_SMALL_Z(CHAR_SMALL_Z_DATA, 1, 3, 5);
+
+    const uint8_t CHAR_SMALL_DOT_DATA[] = {
+		0x00, // 00000000
+		0x00, // 00000000
+		0x00, // 00000000
+		0x00, // 00000000
+		0x80, // 10000000
+	};
+	const Image CHAR_SMALL_DOT(CHAR_SMALL_DOT_DATA, 1, 1, 5);
     const uint8_t CHAR_SMALL_EQL_DATA[] = {
 		0x00, // 00000000
 		0xe0, // 11100000
@@ -1589,6 +1784,8 @@ namespace lcd {
 		0x00, // 00000000
 	};
 	const Image CHAR_SMALL_MINUS(CHAR_SMALL_MINUS_DATA, 1, 3, 5);
+
+    /* Other Images */
     const uint8_t IMG_PTABLE_DATA[] = {
 		0xfc, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x07, 0xe0, // 11111100 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000111 11100000
 		0x84, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x04, 0x20, // 10000100 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000100 00100000
