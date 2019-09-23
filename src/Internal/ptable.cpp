@@ -46,7 +46,8 @@ namespace pt {
 
         const Element *elem;
         // Keep on increasing the value of x until there's a matching element, or we reach the end
-        while((elem = elemWithLocation(locationIO)) == nullptr && locationIO.x < ELEMENTS_LENGTHS[locationIO.y - 1]) {
+        while((elem = elemWithLocation(locationIO)) == nullptr 
+                && locationIO.x < ELEMENTS[locationIO.y - 1][ELEMENTS_LENGTHS[locationIO.y - 1] - 1].group) {
             locationIO.x ++;
         }
         // Return whatever we found (or nullptr)

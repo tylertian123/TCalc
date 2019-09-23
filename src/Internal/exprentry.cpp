@@ -1,6 +1,5 @@
 #include "exprentry.hpp"
 #include "ntoa.hpp"
-#include "ptable.hpp"
 #include <limits.h>
 
 namespace expr {
@@ -549,7 +548,7 @@ namespace expr {
                 drawInterfaceLogic();
                 return;
             case KEY_CLEARVAR:
-                isAllClear = false;
+                scrollingIndex = 0;
                 mode = DisplayMode::CLEAR_VAR_MENU;
                 prevMode = DisplayMode::NORMAL;
                 // Select "No" by default
@@ -557,7 +556,7 @@ namespace expr {
                 drawInterfaceClearVar();
                 return;
             case KEY_ALLCLEAR:
-                isAllClear = true;
+                scrollingIndex = 1;
                 mode = DisplayMode::CLEAR_VAR_MENU;
                 prevMode = DisplayMode::NORMAL;
                 // Select "No" by default
@@ -568,6 +567,7 @@ namespace expr {
                 mode = DisplayMode::PERIODIC_TABLE;
                 cursorX = 1;
                 cursorY = 1;
+                selectorIndex = 0;
                 drawInterfacePeriodicTable();
                 return;
             default: break;
@@ -2038,7 +2038,8 @@ functionCheckLoopEnd:
         case KEY_CENTER:
             if(selectorIndex == 0) {
                 expr::clearAll();
-                if(isAllClear) {
+                // scrollingIndex is set to 1 if the all clear key is pressed
+                if(scrollingIndex) {
                     display.clearDrawing();
                     // Keep pointer of original
                     neda::Expr *original = cursor->expr->getTopLevel();
@@ -2078,43 +2079,59 @@ functionCheckLoopEnd:
 
     void ExprEntry::periodicTableKeyPressHandler(uint16_t key) {
         switch(key) {
-        case KEY_DELETE:
+        case KEY_CENTER:
+        case KEY_ENTER:
+            // Zoomed out view
+            if(selectorIndex == 0) {
+                selectorIndex = 1;
+                dispElement = pt::elemWithLocation({ static_cast<uint8_t>(cursorX), static_cast<uint8_t>(cursorY) });
+            }
+            break;
+        
+        case KEY_PTABLE:
             mode = prevMode;
             paintInterface();
             return;
         
+        case KEY_DELETE:
+            if(selectorIndex == 0) {
+                mode = prevMode;
+                paintInterface();
+                return;
+            }
+            else if(selectorIndex == 1) {
+                dispElement = nullptr;
+                selectorIndex = 0;
+            }
+            break;
+        
         case KEY_LEFT:
-        {
-            pt::Location l = { static_cast<uint8_t>(cursorX), static_cast<uint8_t>(cursorY) };
-            pt::leftOf(l);
-            cursorX = l.x;
-            cursorY = l.y;
-            break;
-        }
         case KEY_RIGHT:
-        {
-            pt::Location l = { static_cast<uint8_t>(cursorX), static_cast<uint8_t>(cursorY) };
-            pt::rightOf(l);
-            cursorX = l.x;
-            cursorY = l.y;
-            break;
-        }
         case KEY_UP:
-        {
-            pt::Location l = { static_cast<uint8_t>(cursorX), static_cast<uint8_t>(cursorY) };
-            pt::above(l);
-            cursorX = l.x;
-            cursorY = l.y;
-            break;
-        }
         case KEY_DOWN:
         {
             pt::Location l = { static_cast<uint8_t>(cursorX), static_cast<uint8_t>(cursorY) };
-            pt::below(l);
+            if(key == KEY_LEFT) {
+                pt::leftOf(l);
+            }
+            else if(key == KEY_RIGHT) {
+                pt::rightOf(l);
+            }
+            else if(key == KEY_UP) {
+                pt::above(l);
+            }
+            else {
+                pt::below(l);
+            }
             cursorX = l.x;
             cursorY = l.y;
+            if(selectorIndex == 1) {
+                dispElement = pt::elemWithLocation(l);
+            }
             break;
         }
+        default:
+            break;
         }
 
         drawInterfacePeriodicTable();
@@ -2122,12 +2139,26 @@ functionCheckLoopEnd:
 
     void ExprEntry::drawInterfacePeriodicTable() {
         display.clearDrawingBuffer();
-        display.drawImage((lcd::SIZE_WIDTH - lcd::IMG_PTABLE.width) / 2, 10, lcd::IMG_PTABLE);
 
-        // Draw the cursor
-        int16_t elemX = (cursorX - 1) * 5 + (lcd::SIZE_WIDTH - lcd::IMG_PTABLE.width) / 2 + 1;
-        int16_t elemY = (cursorY - 1) * 5 + 10 + 1;
-        display.fill(elemX, elemY, 4, 4);
+        if(selectorIndex == 0) {
+            display.drawImage((lcd::SIZE_WIDTH - lcd::IMG_PTABLE.width) / 2, 10, lcd::IMG_PTABLE);
+
+            // Draw the cursor
+            int16_t elemX = (cursorX - 1) * 5 + (lcd::SIZE_WIDTH - lcd::IMG_PTABLE.width) / 2 + 1;
+            int16_t elemY = (cursorY - 1) * 5 + 10 + 1;
+            display.fill(elemX, elemY, 4, 4);
+        }
+        else if(selectorIndex == 1) {
+            uint16_t width = lcd::LCD12864::getDrawnStringWidth(dispElement->symbol);
+            display.drawString((lcd::SIZE_WIDTH - width) / 2, 7, dispElement->symbol);
+            width = lcd::LCD12864::getDrawnStringWidth(dispElement->name, lcd::DrawBuf::CHARSET_SMALL);
+            display.drawString((lcd::SIZE_WIDTH - width) / 2, 17, dispElement->name, false, lcd::DrawBuf::CHARSET_SMALL);
+            char buf[16];
+            util::ltoa(dispElement->protons, buf);
+            display.drawString((lcd::SIZE_WIDTH - width) / 2, 1, buf, false, lcd::DrawBuf::CHARSET_SMALL);
+            util::ftoa(dispElement->mass, buf, 9);
+            display.drawString((lcd::SIZE_WIDTH - width) / 2, 23, buf, false, lcd::DrawBuf::CHARSET_SMALL);
+        }
         display.updateDrawing();
     }
 

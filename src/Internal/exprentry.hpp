@@ -5,6 +5,7 @@
 #include "eval.hpp"
 #include "lcd12864.hpp"
 #include "keydef.h"
+#include "ptable.hpp"
 
 namespace expr {
 
@@ -239,8 +240,8 @@ namespace expr {
         int16_t graphZoomY;
         // The function whose name to display in graphing mode.
         const eval::UserDefinedFunction *graphDispFunc;
-        // Whether the key pressed was a clear variables key or all clear key.
-        bool isAllClear;
+        // The element to display in periodic table mode
+        const pt::Element *dispElement;
 
         void scrollUp(uint16_t);
         void scrollDown(uint16_t);
