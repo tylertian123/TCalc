@@ -2,6 +2,7 @@
 #define __PTABLE_H__
 
 #include <stdint.h>
+#include "lcd12864.hpp"
 
 namespace pt {
 
@@ -54,6 +55,8 @@ namespace pt {
     const Element* leftOf(Location &locationIO);
     const Element* above(Location &locationIO);
     const Element* below(Location &locationIO);
+    
+    void drawElement(int16_t x, int16_t y, const Element *elem, lcd::LCD12864 &disp);
 }
 
 #endif

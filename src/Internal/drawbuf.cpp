@@ -204,13 +204,15 @@ namespace lcd {
 		}
 
 		for(; *str != '\0'; ++str) {
+			const Image &img = charset(*str);
 			// Out of bounds check #1
 			if(x >= 128 || y >= 64) {
+                x += img.width + 1;
 				continue;
 			}
-			const Image &img = charset(*str);
 			// Out of bounds check #2
 			if(x + img.width < 0 || y + img.height < 0) {
+                x += img.width + 1;
 				continue;
 			}
 			// Make sure everything is bottom-aligned

@@ -1,4 +1,5 @@
 #include "ptable.hpp"
+#include "ntoa.hpp"
 
 namespace pt {
 
@@ -119,5 +120,26 @@ namespace pt {
             }
         }
         return elem;
+    }
+
+    void drawElement(int16_t x, int16_t y, const Element *elem, lcd::LCD12864 &disp) {
+        uint16_t width = lcd::LCD12864::getDrawnStringWidth(elem->symbol);
+        disp.drawString(x + (60 - width) / 2, y + 8, elem->symbol);
+        width = lcd::LCD12864::getDrawnStringWidth(elem->name, lcd::DrawBuf::CHARSET_SMALL);
+        disp.drawString(x + (60 - width) / 2, y + 18, elem->name, false, lcd::DrawBuf::CHARSET_SMALL);
+        char buf[16];
+        util::ltoa(elem->protons, buf);
+        disp.drawString(x + 2, y + 2, buf, false, lcd::DrawBuf::CHARSET_SMALL);
+        util::ftoa(elem->mass, buf, 9);
+        disp.drawString(x + 2, y + 24, buf, false, lcd::DrawBuf::CHARSET_SMALL);
+
+        for(int16_t i = x; i <= x + 60; i ++) {
+            disp.setPixel(i, y);
+            disp.setPixel(i, y + 30);
+        }
+        for(int16_t i = y + 1; i <= y + 30; i ++) {
+            disp.setPixel(x, i);
+            disp.setPixel(x + 60, i);
+        }
     }
 }

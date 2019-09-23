@@ -2149,15 +2149,14 @@ functionCheckLoopEnd:
             display.fill(elemX, elemY, 4, 4);
         }
         else if(selectorIndex == 1) {
-            uint16_t width = lcd::LCD12864::getDrawnStringWidth(dispElement->symbol);
-            display.drawString((lcd::SIZE_WIDTH - width) / 2, 7, dispElement->symbol);
-            width = lcd::LCD12864::getDrawnStringWidth(dispElement->name, lcd::DrawBuf::CHARSET_SMALL);
-            display.drawString((lcd::SIZE_WIDTH - width) / 2, 17, dispElement->name, false, lcd::DrawBuf::CHARSET_SMALL);
-            char buf[16];
-            util::ltoa(dispElement->protons, buf);
-            display.drawString((lcd::SIZE_WIDTH - width) / 2, 1, buf, false, lcd::DrawBuf::CHARSET_SMALL);
-            util::ftoa(dispElement->mass, buf, 9);
-            display.drawString((lcd::SIZE_WIDTH - width) / 2, 23, buf, false, lcd::DrawBuf::CHARSET_SMALL);
+            for(int8_t i = -1; i <= 1; i ++) {
+                for(int8_t j = -1; j <= 1; j ++) {
+                    const pt::Element *elem = pt::elemWithLocation({ static_cast<uint8_t>(cursorX + i), static_cast<uint8_t>(cursorY + j) });
+                    if(elem) {
+                        pt::drawElement(34 + i * 60, 17 + j * 30, elem, display);
+                    }
+                }
+            }
         }
         display.updateDrawing();
     }
