@@ -64,6 +64,8 @@ namespace expr {
         void adjustExpr();
         // Handles a key press.
         void handleKeyPress(uint16_t key);
+        // Draws the interface for the mode.
+        void paintInterface();
         
         bool cursorOn = true;
         // Toggles the cursor and displays it.
@@ -127,24 +129,12 @@ namespace expr {
         // Handles key presses in the periodic table menu
         void periodicTableKeyPressHandler(uint16_t key);
 
-        // A key press handler handles key press events.
-        typedef void (ExprEntry::*KeyPressHandler)(uint16_t);
-        static const KeyPressHandler KEY_PRESS_HANDLERS[];
-
-        struct GraphableFunction {
-            GraphableFunction(const eval::UserDefinedFunction *func, bool graph) : func(func), graph(graph) {}
-            GraphableFunction(const GraphableFunction &other) : func(other.func), graph(other.graph) {}
-
-            const eval::UserDefinedFunction *func;
-            bool graph = false;
-        };
-        // A list of graphable functions.
-        util::DynamicArray<GraphableFunction> graphableFunctions;
-
         /* 
          * These functions draw the interface for a given mode. 
          * They're called automatically by the correct key handler. 
          */
+        // A wrapper for drawInterfaceNormal(bool) to make it fit the InterfacePainter definition.
+        void drawInterfaceNormalWrapper();
         // Draws the interface for normal mode.
         void drawInterfaceNormal(bool drawCursor = true);
         // Draws the interface for the trig functions menu.
@@ -163,6 +153,8 @@ namespace expr {
         void drawInterfacePiecewise();
         // Draws the interface for the graphing functions selection menu.
         void drawInterfaceGraphSelect();
+        // A wrapper for drawInterfaceGraphSettings(bool) to make it fit the InterfacePainter definition.
+        void drawInterfaceGraphSettingsWrapper();
         // Draws the interface for the graph settings menu.
         void drawInterfaceGraphSettings(bool drawCursor = true);
         // Draws the interface for the graph viewer.
@@ -173,6 +165,23 @@ namespace expr {
         void drawInterfaceClearVar();
         // Draws the interface for the periodic table menu.
         void drawInterfacePeriodicTable();
+
+        // A key press handler handles key press events.
+        typedef void (ExprEntry::*KeyPressHandler)(uint16_t);
+        // An interface painter draws the interface for a particular mode.
+        typedef void (ExprEntry::*InterfacePainter)(void);
+        static const KeyPressHandler KEY_PRESS_HANDLERS[];
+        static const InterfacePainter INTERFACE_PAINTERS[];
+
+        struct GraphableFunction {
+            GraphableFunction(const eval::UserDefinedFunction *func, bool graph) : func(func), graph(graph) {}
+            GraphableFunction(const GraphableFunction &other) : func(other.func), graph(other.graph) {}
+
+            const eval::UserDefinedFunction *func;
+            bool graph = false;
+        };
+        // A list of graphable functions.
+        util::DynamicArray<GraphableFunction> graphableFunctions;
 
         /*
          * These variables are kept between two key presses and thus have to be global.

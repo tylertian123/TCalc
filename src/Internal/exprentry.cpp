@@ -251,9 +251,30 @@ namespace expr {
         &ExprEntry::periodicTableKeyPressHandler,
     };
 
+    const ExprEntry::InterfacePainter ExprEntry::INTERFACE_PAINTERS[] = {
+        &ExprEntry::drawInterfaceNormalWrapper,
+        &ExprEntry::drawInterfaceTrig,
+        &ExprEntry::drawInterfaceConst,
+        &ExprEntry::drawInterfaceConfig,
+        &ExprEntry::drawInterfaceFunc,
+        &ExprEntry::drawInterfaceRecall,
+        &ExprEntry::drawInterfaceMatrix,
+        &ExprEntry::drawInterfacePiecewise,
+        &ExprEntry::drawInterfaceGraphSelect,
+        &ExprEntry::drawInterfaceGraphSettingsWrapper,
+        &ExprEntry::drawInterfaceGraphViewer,
+        &ExprEntry::drawInterfaceLogic,
+        &ExprEntry::drawInterfaceClearVar,
+        &ExprEntry::drawInterfacePeriodicTable,
+    };
+
     void ExprEntry::handleKeyPress(uint16_t key) {
         // tf is this syntax
         (this->*KEY_PRESS_HANDLERS[static_cast<uint8_t>(mode)])(key);
+    }
+
+    void ExprEntry::paintInterface() {
+        (this->*INTERFACE_PAINTERS[static_cast<uint8_t>(mode)])();
     }
 
     void ExprEntry::normalKeyPressHandler(uint16_t key) {
@@ -557,6 +578,10 @@ namespace expr {
         drawInterfaceNormal();
     }
 
+    void ExprEntry::drawInterfaceNormalWrapper() {
+        drawInterfaceNormal();
+    }
+
     void ExprEntry::drawInterfaceNormal(bool drawCursor) {
         // Call draw once before everything so that the locations are all updated
         neda::Expr *top = cursor->expr->getTopLevel();
@@ -594,7 +619,7 @@ namespace expr {
         case KEY_TRIG:
         case KEY_DELETE:
             mode = prevMode;
-            drawInterfaceNormal();
+            paintInterface();
             return;
         case KEY_UP:
             if(selectorIndex > 0) {
@@ -664,7 +689,7 @@ namespace expr {
         case KEY_CONST:
         case KEY_DELETE:
             mode = prevMode;
-            drawInterfaceNormal();
+            paintInterface();
             return;
         case KEY_LEFT:
             if(selectorIndex > 0) {
@@ -722,7 +747,7 @@ namespace expr {
         case KEY_CAT:
         case KEY_DELETE:
             mode = prevMode;
-            drawInterfaceNormal();
+            paintInterface();
             return;
         case KEY_UP:
             scrollUp(funcCount);
@@ -774,7 +799,7 @@ namespace expr {
         case KEY_CAT:
         case KEY_DELETE:
             mode = prevMode;
-            drawInterfaceNormal();
+            paintInterface();
             return;
         case KEY_UP:
             scrollUp(expr::functions.length());
@@ -815,7 +840,7 @@ namespace expr {
         case KEY_CONFIG:
         case KEY_DELETE:
             mode = prevMode;
-            drawInterfaceNormal();
+            paintInterface();
             return;
         case KEY_LEFT:
             if(selectorIndex == 0) {
@@ -911,7 +936,7 @@ namespace expr {
         case KEY_MATRIX:
         case KEY_DELETE:
             mode = prevMode;
-            drawInterfaceNormal();
+            paintInterface();
             return;
         case KEY_LEFT:
         case KEY_RIGHT:
@@ -978,7 +1003,7 @@ namespace expr {
         case KEY_PIECEWISE:
         case KEY_DELETE:
             mode = prevMode;
-            drawInterfaceNormal();
+            paintInterface();
             return;
         case KEY_UP:
             if(piecewisePieces < 255) {
@@ -1049,11 +1074,8 @@ namespace expr {
                 selectorIndex = 0;
                 graphCursorMode = GraphCursorMode::OFF;
                 redrawGraph();
-                drawInterfaceGraphViewer();
             }
-            else {
-                drawInterfaceNormal();
-            }
+            paintInterface();
             return;
         case KEY_UP:
             scrollUp(graphableFunctions.length());
@@ -1180,11 +1202,8 @@ toggleEditOption:
                     selectorIndex = 0;
                     graphCursorMode = GraphCursorMode::OFF;
                     redrawGraph();
-                    drawInterfaceGraphViewer();
                 }
-                else {
-                    drawInterfaceNormal();
-                }
+                paintInterface();
                 return;
             }
             break;
@@ -1260,6 +1279,10 @@ toggleEditOption:
         drawInterfaceGraphSettings();
     }
 
+    void ExprEntry::drawInterfaceGraphSettingsWrapper() {
+        drawInterfaceGraphSettings();
+    }
+    
     void ExprEntry::drawInterfaceGraphSettings(bool drawCursor) {
         display.clearDrawingBuffer();
 
@@ -1476,7 +1499,7 @@ functionCheckLoopEnd:
         case KEY_GRAPH:
             graphCursorMode = GraphCursorMode::OFF;
             mode = prevMode;
-            drawInterfaceNormal();
+            paintInterface();
             return;
 
         case KEY_LEFT:
@@ -1943,7 +1966,7 @@ functionCheckLoopEnd:
         case KEY_LOGIC:
         case KEY_CAT:
             mode = prevMode;
-            drawInterfaceNormal();
+            paintInterface();
             return;
         case KEY_LEFT:
             if(selectorIndex > 0) {
@@ -2032,7 +2055,7 @@ functionCheckLoopEnd:
         case KEY_CLEARVAR:
         case KEY_DELETE:
             mode = prevMode;
-            drawInterfaceNormal();
+            paintInterface();
             return;
         case KEY_LEFT:
         case KEY_RIGHT:
@@ -2057,7 +2080,7 @@ functionCheckLoopEnd:
         switch(key) {
         case KEY_DELETE:
             mode = prevMode;
-            drawInterfaceNormal();
+            paintInterface();
             return;
         
         case KEY_LEFT:
