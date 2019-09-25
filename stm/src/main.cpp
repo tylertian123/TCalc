@@ -467,6 +467,11 @@ void normalKeyPressHandler(uint16_t key) {
             mainExprEntry.cursor->draw(display);
             display.updateDrawing();
 
+            // If any of these keys, insert "Ans" first and then process the key
+            if(key == KEY_PLUS || key == KEY_MINUS || key == KEY_MUL || key == KEY_DIV || key == KEY_FRAC || key == KEY_EQUAL) {
+                mainExprEntry.cursor->addStr("Ans");
+            }
+
             // Call the key handler again so the key gets processed
             // Unless the key is enter, in which case only the new expression is created
             if(key != KEY_ENTER) {
