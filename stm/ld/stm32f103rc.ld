@@ -14,6 +14,8 @@ _estack = 0x2000c000;    /* end of RAM */
 _Min_Heap_Size = 0x8400;      /* required amount of heap  */
 _Min_Stack_Size = 0x1600;     /* required amount of stack */
 
+__stack_limit = _estack - _Min_Stack_Size;  /* end of stack */
+
 /* Specify the memory areas */
 MEMORY
 {
@@ -126,7 +128,6 @@ SECTIONS
     . = . + _Min_Heap_Size;
     . = . + _Min_Stack_Size;
     . = ALIGN(4);
-	PROVIDE ( __stack_limit = _estack - _Min_Stack_Size );
   } >RAM
 
   
