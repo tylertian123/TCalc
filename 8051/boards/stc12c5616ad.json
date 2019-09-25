@@ -1,0 +1,24 @@
+{
+  "build": {
+    "f_cpu": "45000000",
+    "size_iram": 256,
+    "size_xram": 512,
+    "size_code": 16384,
+    "size_heap": 64,
+    "mcu": "stc12c5616ad",
+    "cpu": "mcs51"
+  },
+  "frameworks": [],
+  "upload": {
+    "maximum_ram_size": 512,
+    "maximum_size": 16384,
+    "protocol": "stcgal",
+    "stcgal_protocol": "stc12",
+    "protocols": [
+      "stcgal"
+    ]
+  },
+  "name": "Generic STC12C5616AD",
+  "url": "https://www.stcmicro.com/STC/STC12C5616AD.html",
+  "vendor": "STC"
+}
