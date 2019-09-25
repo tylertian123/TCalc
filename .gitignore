@@ -57,14 +57,6 @@ PeriodicTableJSON.json
 *.__i
 *._ii
 
-# Generated output files
-/Listings/*
-/Objects/*
-
-# Debugger files
-# define exception below if needed
-*.ini
-
 # Other files
 *.build_log.htm
 *.cdb
