@@ -24,6 +24,10 @@ namespace pt {
     const uint8_t PERIOD_COUNT = sizeof(ELEMENTS_LENGTHS) / sizeof(ELEMENTS_LENGTHS[0]);
 
     const Element* elemWithLocation(const Location &location) {
+        
+        if(location.y < 1 || location.y > PERIOD_COUNT){
+            return nullptr;
+        }
         const Element *elements = ELEMENTS[location.y - 1];
         uint8_t elementsCount = ELEMENTS_LENGTHS[location.y - 1];
 

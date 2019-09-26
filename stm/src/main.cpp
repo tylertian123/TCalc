@@ -54,7 +54,7 @@ extern "C" {
             display.setCursor(2, 0);
             display.writeString("occurred.");
 
-            for(uint64_t i = 0; i < 7000000; i ++);
+            for(volatile uint64_t i = 0; i < 7000000; i ++);
 
             display.clear();
             display.setCursor(0, 0);
@@ -66,7 +66,7 @@ extern "C" {
             display.setCursor(3, 0);
             display.writeString("reset TCalc.");
 
-            for(uint64_t i = 0; i < 7000000; i ++);
+            for(volatile uint64_t i = 0; i < 7000000; i ++);
 
             display.clear();
             display.setCursor(0, 0);
@@ -75,7 +75,7 @@ extern "C" {
             display.writeString("_fini called");
             display.setCursor(2, 0);
 
-            for(uint64_t i = 0; i < 7000000; i ++);
+            for(volatile uint64_t i = 0; i < 7000000; i ++);
         }
 	}
 
@@ -96,7 +96,7 @@ extern "C" void HardFault_Handler() {
         display.setCursor(2, 0);
         display.writeString("occurred.");
 
-        for(uint64_t i = 0; i < 7000000; i ++);
+        for(volatile uint64_t i = 0; i < 7000000; i ++);
 
         display.clear();
         display.setCursor(0, 0);
@@ -108,7 +108,7 @@ extern "C" void HardFault_Handler() {
         display.setCursor(3, 0);
         display.writeString("reset TCalc.");
 
-        for(uint64_t i = 0; i < 7000000; i ++);
+        for(volatile uint64_t i = 0; i < 7000000; i ++);
 
         display.clear();
         display.setCursor(0, 0);
@@ -116,7 +116,7 @@ extern "C" void HardFault_Handler() {
         display.setCursor(1, 0);
         display.writeString("HardFault");
 
-        for(uint64_t i = 0; i < 7000000; i ++);
+        for(volatile uint64_t i = 0; i < 7000000; i ++);
     }
 }
 
@@ -133,7 +133,7 @@ extern "C" void UsageFault_Handler() {
         display.setCursor(2, 0);
         display.writeString("occurred.");
 
-        for(uint64_t i = 0; i < 7000000; i ++);
+        for(volatile uint64_t i = 0; i < 7000000; i ++);
 
         display.clear();
         display.setCursor(0, 0);
@@ -145,7 +145,7 @@ extern "C" void UsageFault_Handler() {
         display.setCursor(3, 0);
         display.writeString("reset TCalc.");
 
-        for(uint64_t i = 0; i < 7000000; i ++);
+        for(volatile uint64_t i = 0; i < 7000000; i ++);
 
         display.clear();
         display.setCursor(0, 0);
@@ -153,7 +153,7 @@ extern "C" void UsageFault_Handler() {
         display.setCursor(1, 0);
         display.writeString("UsageFault");
 
-        for(uint64_t i = 0; i < 7000000; i ++);
+        for(volatile uint64_t i = 0; i < 7000000; i ++);
     }
 }
 
@@ -270,9 +270,12 @@ extern "C" void TIM3_IRQHandler() {
 				// See if the snake ran into itself or is out of bounds
 				if((nextCoords.x == 0xFF && nextCoords.y == 0xFF) || game::inSnake(nextCoords, head)) {
 					// Game over
-					do {
-						delete head;
-					} while((head = head->next) != nullptr);
+                    game::SnakeBody *tmp = head->next;
+                    while(head) {
+                        delete head;
+                        head = tmp;
+                        tmp = head->next;
+                    }
 					respawn();
 				}
 				// Movement - eating food
