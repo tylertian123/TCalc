@@ -5,8 +5,7 @@
 *.swp
 
 # VS Code folder
-/.vscode/
-!/.vscode/c_cpp_properties.json
+.vscode/
 
 # Event Recorder
 *.scvd

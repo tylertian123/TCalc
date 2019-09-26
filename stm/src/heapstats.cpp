@@ -22,7 +22,11 @@ namespace hs {
     }
 
     void printStats() {
+#ifdef __GNUC__
 		// doesn't do anything in GCC
-        //__heapstats((__heapprt)heapStatsHelper, NULL);
+		usart::printf("Error: Operation not supported.");
+#else
+        __heapstats((__heapprt)heapStatsHelper, NULL);
+#endif
     }
 }
