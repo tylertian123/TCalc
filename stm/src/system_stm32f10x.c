@@ -129,6 +129,9 @@
                                   This value must be a multiple of 0x200. */
 
 
+	extern void (*__init_array_start [])(void);
+	extern void (*__init_array_end [])(void);
+
 /**
   * @}
   */
@@ -266,8 +269,14 @@ void SystemInit (void)
 #else
   SCB->VTOR = FLASH_BASE | VECT_TAB_OFFSET; /* Vector Table Relocation in Internal FLASH. */
 #endif 
-}
 
+  // call constructors
+  int cpp_size = &(__init_array_end[0]) - &(__init_array_start[0]);
+  for (int cpp_count = 0; cpp_count < cpp_size; ++cpp_count) {
+    __init_array_start[cpp_count]();
+  } 
+  //
+}
 /**
   * @brief  Update SystemCoreClock variable according to Clock Register Values.
   *         The SystemCoreClock variable contains the core clock (HCLK), it can
@@ -882,6 +891,8 @@ static void SetSysClockTo48(void)
   * @param  None
   * @retval None
   */
+
+
 static void SetSysClockTo56(void)
 {
   __IO uint32_t StartUpCounter = 0, HSEStatus = 0;
