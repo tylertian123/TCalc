@@ -1104,3 +1104,5 @@ static void SetSysClockTo72(void)
   */    
 /******************* (C) COPYRIGHT 2011 STMicroelectronics *****END OF FILE****/
 void * __dso_handle = 0;
+void __cxa_pure_virtual() { while(1); }
+void d_print_comp() {}
