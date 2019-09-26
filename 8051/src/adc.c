@@ -34,7 +34,7 @@ unsigned short ADC_GetResult() {
 	return result;
 }
 
-__sbit ADC_FinConv() {
+__bit ADC_FinConv() {
 	return ADC_CONTR & 0x10;
 }
 
