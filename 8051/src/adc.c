@@ -34,12 +34,12 @@ unsigned short ADC_GetResult() {
 	return result;
 }
 
-__bit ADC_FinConv() {
+__bit ADC_ConvFin() {
 	return ADC_CONTR & 0x10;
 }
 
 unsigned short ADC_SyncConv(unsigned char channel) {
 	ADC_StartConv(channel);
-	while(!ADC_FinConv()) {}
+	while(!ADC_ConvFin()) {}
 	return ADC_GetResult();
 }
