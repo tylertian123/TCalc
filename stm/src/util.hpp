@@ -10,8 +10,7 @@
 //Access field of obj if obj is not null, otherwise results in 0
 #define SAFE_ACCESS_0(obj, field) ((obj) ? ((obj)->field) : 0)
 
-#include "stm32f10x.h"
-#include "core_cm3.h"
+#include <stdint.h>
 // VS Code does not recognize these since they're intrisincs in the Keil compiler
 // Define them here so IntelliSense is happy
 #ifdef __VSCODE
