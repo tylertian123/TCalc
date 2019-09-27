@@ -4,7 +4,9 @@
 #include "keydef.h"
 #include "bmat.h"
 
-__sbit __at(0x90) BUTTON;
+SBIT(BUTTON, 0x90);
+SBIT(STATUS, 0x93);
+
 #define CHANNEL_X_AXIS 1
 #define CHANNEL_Y_AXIS 2
 
@@ -22,7 +24,7 @@ void delay (unsigned int a){
 }
 
 // Keymaps
-__code const unsigned short KEYMAP_NORMAL[6][10] = {
+code const unsigned short KEYMAP_NORMAL[6][10] = {
 	{ KEY_LCQ, KEY_LCW, KEY_LCE, KEY_LCR, KEY_LCT, KEY_LCY, KEY_LCU, KEY_LCI, KEY_LCO, KEY_LCP },
 	{ KEY_LCA, KEY_LCS, KEY_LCD, KEY_LCF, KEY_LCG, KEY_LCH, KEY_LCJ, KEY_LCK, KEY_LCL, KEY_CONFIG },
 	{ KEY_SHIFT, KEY_LCZ, KEY_LCX, KEY_LCC, KEY_LCV, KEY_LCB, KEY_LCN, KEY_LCM, KEY_COMMA, KEY_CTRL },
@@ -30,7 +32,7 @@ __code const unsigned short KEYMAP_NORMAL[6][10] = {
 	{ KEY_TRIG, KEY_CAT, KEY_4, KEY_5, KEY_6, KEY_DOT, KEY_MUL, KEY_DIV, KEY_SQUARE, KEY_EXPONENT },
 	{ KEY_EXP, KEY_LOG10, KEY_1, KEY_2, KEY_3, KEY_EE, KEY_ANS, KEY_ENTER, KEY_ROOT, KEY_PI },
 };
-__code const unsigned short KEYMAP_SHIFT[6][10] = {
+code const unsigned short KEYMAP_SHIFT[6][10] = {
 	{ KEY_Q, KEY_W, KEY_E, KEY_R, KEY_T, KEY_Y, KEY_U, KEY_I, KEY_O, KEY_P },
 	{ KEY_A, KEY_S, KEY_D, KEY_F, KEY_G, KEY_H, KEY_J, KEY_K, KEY_L, KEY_SPACE },
 	{ KEY_SHIFT, KEY_Z, KEY_X, KEY_C, KEY_V, KEY_B, KEY_N, KEY_M, KEY_FACT, KEY_CTRL },
@@ -38,7 +40,7 @@ __code const unsigned short KEYMAP_SHIFT[6][10] = {
 	{ KEY_LOGIC, KEY_RECALL, KEY_4, KEY_5, KEY_6, KEY_DOT, KEY_PRODUCT, KEY_FRAC, KEY_CUBE, KEY_SUB },
 	{ KEY_LN, KEY_LOGN, KEY_1, KEY_2, KEY_3, KEY_EE, KEY_ANS, KEY_APPROX, KEY_NTHROOT, KEY_EULER },
 };
-__code const unsigned short KEYMAP_CTRL[6][10] = {
+code const unsigned short KEYMAP_CTRL[6][10] = {
 	{ KEY_LCQ, KEY_LCW, KEY_LCE, KEY_LCR, KEY_PTABLE, KEY_LCY, KEY_MU, KEY_LCI, KEY_LCO, KEY_PIECEWISE },
 	{ KEY_LCA, KEY_LCS, KEY_LCD, KEY_GFUNCS, KEY_GRAPH, KEY_GSETTINGS, KEY_LCJ, KEY_LCK, KEY_LCL, KEY_CONFIG },
 	{ KEY_SHIFT, KEY_LCZ, KEY_LCX, KEY_LCC, KEY_LCV, KEY_LCB, KEY_LCN, KEY_MATRIX, KEY_COMMA, KEY_CTRL },
@@ -47,10 +49,8 @@ __code const unsigned short KEYMAP_CTRL[6][10] = {
 	{ KEY_EXP, KEY_LOG10, KEY_1, KEY_2, KEY_3, KEY_EE, KEY_ANS, KEY_EQUAL, KEY_ROOT, KEY_CONST },
 };
 
-__bit shift = 0;
-__bit ctrl = 0;
-
-__sbit __at(0x93) STATUS;
+bit shift = 0;
+bit ctrl = 0;
 
 void sendKey(unsigned short key) {
 	STATUS = !STATUS;

@@ -9,21 +9,21 @@ void resetRows(void);
 void resetCols(void);
 unsigned char checkCols(void);
 
-__sbit __at(0x97) ROW1;
-__sbit __at(0xA0) ROW2;
-__sbit __at(0xA1) ROW3;
-__sbit __at(0xA6) ROW4;
-__sbit __at(0xA7) ROW5;
-__sbit __at(0xB7) ROW6;
-__sbit __at(0xA2) COL1;
-__sbit __at(0xA3) COL2;
-__sbit __at(0xB0) COL3;
-__sbit __at(0xB1) COL4;
-__sbit __at(0xB2) COL5;
-__sbit __at(0xB3) COL6;
-__sbit __at(0xB4) COL7;
-__sbit __at(0xB5) COL8;
-__sbit __at(0xA4) COL9;
-__sbit __at(0xA5) COL10;
+SBIT(ROW1, 0x97);
+SBIT(ROW2, 0xA0);
+SBIT(ROW3, 0xA1);
+SBIT(ROW4, 0xA6);
+SBIT(ROW5, 0xA7);
+SBIT(ROW6, 0xB7);
+SBIT(COL1, 0xA2);
+SBIT(COL2, 0xA3);
+SBIT(COL3, 0xB0);
+SBIT(COL4, 0xB1);
+SBIT(COL5, 0xB2);
+SBIT(COL6, 0xB3);
+SBIT(COL7, 0xB4);
+SBIT(COL8, 0xB5);
+SBIT(COL9, 0xA4);
+SBIT(COL10, 0xA5);
 
 #endif

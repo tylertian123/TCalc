@@ -12,10 +12,10 @@ void ADC_StartConv(unsigned char channel) {
 	// Start conversion
 	ADC_CONTR |= 0x08;
 	// Delay 4 clock cycles
-	__asm nop __endasm;
-	__asm nop __endasm;
-	__asm nop __endasm;
-	__asm nop __endasm;
+	ASM(nop);
+	ASM(nop);
+	ASM(nop);
+	ASM(nop);
 }
 
 	
@@ -34,7 +34,7 @@ unsigned short ADC_GetResult() {
 	return result;
 }
 
-__bit ADC_ConvFin() {
+bit ADC_ConvFin() {
 	return ADC_CONTR & 0x10;
 }
 

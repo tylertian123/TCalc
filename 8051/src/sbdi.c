@@ -1,9 +1,9 @@
 #include "sbdi.h"
 #include <stc/STC12C5630AD.h>
 
-__sbit __at(0x96) EN;
-__sbit __at(0x95) CLK;
-__sbit __at(0x94) DAT;
+SBIT(EN, 0x96);
+SBIT(CLK, 0x95);
+SBIT(DAT, 0x94);
 
 void delay_cycles(unsigned int a) {
 	while(a--);
@@ -22,8 +22,8 @@ void SBDI_EndTransmission() {
 void SBDI_SendByte(unsigned char b) {
 	unsigned char mask = 0x80;
     // Use even parity
-	__bit parity = 0;
-	__bit dat;
+	bit parity = 0;
+	bit dat;
 	do {
 		dat = b & mask;
         // Clock is active low
