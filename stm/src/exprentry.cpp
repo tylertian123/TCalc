@@ -332,7 +332,11 @@ namespace expr {
                 neda::Fraction *frac;
                 // If there's a token in front of the cursor, enclose that in the fraction
                 char ch;
-                if(cursor->index != 0 && (cursor->expr->contents[cursor->index - 1]->getType() == neda::ObjType::MATRIX 
+                neda::ObjType prevType;
+                if(cursor->index != 0 && 
+                        ((prevType = cursor->expr->contents[cursor->index - 1]->getType(),
+                        prevType == neda::ObjType::ABS || prevType == neda::ObjType::MATRIX || prevType == neda::ObjType::PIECEWISE
+                        || prevType == neda::ObjType::RADICAL || prevType == neda::ObjType::SIGMA_PI || prevType == neda::ObjType::FRACTION) 
                         || (ch = eval::extractChar(cursor->expr->contents[cursor->index - 1]), eval::isDigit(ch) || eval::isNameChar(ch)))) {
                     bool isNum;
                     uint16_t end = eval::findTokenEnd(cursor->expr->contents, cursor->index - 1, -1, isNum) + 1;

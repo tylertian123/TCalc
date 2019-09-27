@@ -2334,6 +2334,7 @@ constructMatrixFromVectors:
                         frac.num = util::abs(frac.num);
                         num = frac;
                     }
+                    arr.add(t);
                 }
                 else {
                     arr.add(new Numerical(static_cast<Matrix*>(t)->len()));
