@@ -5,8 +5,7 @@
 *.swp
 
 # VS Code folder
-/.vscode/
-!/.vscode/c_cpp_properties.json
+.vscode/
 
 # Event Recorder
 *.scvd
@@ -56,14 +55,6 @@ PeriodicTableJSON.json
 *._ia
 *.__i
 *._ii
-
-# Generated output files
-/Listings/*
-/Objects/*
-
-# Debugger files
-# define exception below if needed
-*.ini
 
 # Other files
 *.build_log.htm
