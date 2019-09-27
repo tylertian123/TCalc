@@ -438,7 +438,7 @@ namespace neda {
 		Matrix(uint8_t m, uint8_t n) : m(m), n(n) {
 			// Allocate array and set all entries to null
 			contents = new Expr*[m * n];
-			memset(contents, NULL, m * n * sizeof(Expr*));
+			memset(contents, 0, m * n * sizeof(Expr*));
 		}
 
 		virtual ~Matrix();
@@ -494,8 +494,8 @@ namespace neda {
         Piecewise(uint8_t pieces) : pieces(pieces) {
             values = new Expr*[pieces];
             conditions = new Expr*[pieces];
-            memset(values, NULL, pieces * sizeof(Expr*));
-            memset(values, NULL, pieces * sizeof(Expr*));
+            memset(values, 0, pieces * sizeof(Expr*));
+            memset(values, 0, pieces * sizeof(Expr*));
         }
         
         virtual ~Piecewise();

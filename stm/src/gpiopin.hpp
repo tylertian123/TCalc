@@ -18,8 +18,8 @@ public:
 	GPIOPin(GPIO_TypeDef *port, uint16_t pin) : port(port), pin(pin) {}
 	GPIOPin() : port(0), pin(0) {}
 	
-	virtual void set(const bool &val);
-	virtual bool get(void) const;
+	void set(const bool &val);
+	bool get(void) const;
 
 	GPIOPin& operator=(const bool&);
 	

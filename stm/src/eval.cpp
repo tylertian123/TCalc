@@ -364,8 +364,9 @@ namespace eval {
         case Type::TRANSPOSE:
         case Type::INVERSE:
             return true;
+        default:
+            return false;
         }
-        return false;
     }
 	const Operator* Operator::fromChar(char ch) {
 		switch(ch) {
@@ -1241,7 +1242,7 @@ namespace eval {
 				bool inc = isNameChar(ch);
 				bool id = isDigit(ch);
 				if ((!inc && !id && !((ch == '+' || ch == '-') && extractChar(arr[end - direction]) == LCD_CHAR_EE))
-					|| isNum && inc) {
+					|| (isNum && inc)) {
 					break;
 				}
 			}

@@ -204,6 +204,7 @@ namespace eval {
         static constexpr uint8_t TYPE_COUNT_DISPLAYABLE = 24;
 		
 		Function(Type type) : type(type) {}
+		~Function() {}
 
 		Type type;
 
