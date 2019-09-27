@@ -27,6 +27,7 @@ namespace eval {
 	class Token {
 	public:
 		virtual TokenType getType() const = 0;
+		virtual ~Token() {};
 	};
 
     class Numerical : public Token {
@@ -136,6 +137,8 @@ namespace eval {
 			SP_MULT, SP_DIV,
 		};
 
+		Operator(Type type) : type(type) {}
+
 		Type type;
 
 		uint8_t getPrecedence() const;
@@ -156,33 +159,7 @@ namespace eval {
 		// The returned numerical is allocated on the heap and needs to be freed
 		// The input is deleted
         Token* operator()(Token*) const;
-	
-		constexpr Operator(Type type) : type(type) {}
 	};
-
-    constexpr Operator OP_PLUS(Operator::Type::PLUS),
-                       OP_MINUS(Operator::Type::MINUS),
-                       OP_MULTIPLY(Operator::Type::MULTIPLY),
-                       OP_DIVIDE(Operator::Type::DIVIDE),
-                       OP_EXPONENT(Operator::Type::EXPONENT),
-                       OP_SP_MULT(Operator::Type::SP_MULT),
-                       OP_SP_DIV(Operator::Type::SP_DIV),
-                       OP_EQUALITY(Operator::Type::EQUALITY),
-                       OP_CROSS(Operator::Type::CROSS),
-                       OP_GT(Operator::Type::GT),
-                       OP_LT(Operator::Type::LT),
-                       OP_GTEQ(Operator::Type::GTEQ),
-                       OP_LTEQ(Operator::Type::LTEQ),
-                       OP_AND(Operator::Type::AND),
-                       OP_OR(Operator::Type::OR),
-                       OP_XOR(Operator::Type::XOR),
-                       OP_NOT(Operator::Type::NOT),
-                       OP_NEGATE(Operator::Type::NEGATE),
-                       OP_FACT(Operator::Type::FACT),
-                       OP_TRANSPOSE(Operator::Type::TRANSPOSE),
-                       OP_INVERSE(Operator::Type::INVERSE),
-                       OP_NOT_EQUAL(Operator::Type::NOT_EQUAL),
-                       OP_AUGMENT(Operator::Type::AUGMENT);
 
 	// Even though only one instance of each type of function is needed, because there are a lot of functions, it is not worth it
 	// to make it a singleton
@@ -204,7 +181,6 @@ namespace eval {
         static constexpr uint8_t TYPE_COUNT_DISPLAYABLE = 24;
 		
 		Function(Type type) : type(type) {}
-		~Function() {}
 
 		Type type;
 

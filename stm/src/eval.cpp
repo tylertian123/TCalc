@@ -371,54 +371,54 @@ namespace eval {
 	const Operator* Operator::fromChar(char ch) {
 		switch(ch) {
 		case '+':
-			return &OP_PLUS;
+			return new Operator(Operator::Type::PLUS);
 			
 		case '-':
-			return &OP_MINUS;
+			return new Operator(Operator::Type::MINUS);
 
 		case LCD_CHAR_MUL:
 		case '*':
-			return &OP_MULTIPLY;
+			return new Operator(Operator::Type::MULTIPLY);
 
 		case LCD_CHAR_DIV:
 		case '/':
-			return &OP_DIVIDE;
+			return new Operator(Operator::Type::DIVIDE);
         
         case '^':
-            return &OP_EXPONENT;
+            return new Operator(Operator::Type::EXPONENT);
         
 		case LCD_CHAR_CRS:
-			return &OP_CROSS;
+			return new Operator(Operator::Type::CROSS);
         
         case '>':
-            return &OP_GT;
+            return new Operator(Operator::Type::GT);
         
         case '<':
-            return &OP_LT;
+            return new Operator(Operator::Type::LT);
 
         case LCD_CHAR_GEQ:
-            return &OP_GTEQ;
+            return new Operator(Operator::Type::GTEQ);
         
         case LCD_CHAR_LEQ:
-            return &OP_LTEQ;
+            return new Operator(Operator::Type::LTEQ);
         
         case LCD_CHAR_LAND:
-            return &OP_AND;
+            return new Operator(Operator::Type::AND);
 
         case LCD_CHAR_LOR:
-            return &OP_OR;
+            return new Operator(Operator::Type::OR);
         
         case LCD_CHAR_LXOR:
-            return &OP_XOR;
+            return new Operator(Operator::Type::XOR);
         
         case LCD_CHAR_LNOT:
-            return &OP_NOT;
+            return new Operator(Operator::Type::NOT);
         
         case '!':
-            return &OP_FACT;
+            return new Operator(Operator::Type::FACT);
         
         case '|':
-            return &OP_AUGMENT;
+            return new Operator(Operator::Type::AUGMENT);
 
 		default: return nullptr;
 		}
@@ -1212,18 +1212,13 @@ namespace eval {
     // This will delete the collection of tokens properly. It will destory all tokens in the array.
 	void freeTokens(util::Deque<Token*> &q) {
 		while (!q.isEmpty()) {
-			Token *t = q.dequeue();
-			if (t->getType() == TokenType::MATRIX || t->getType() == TokenType::NUMERICAL || t->getType() == TokenType::FUNCTION) {
-				delete t;
-			}
+            delete q.dequeue();
 		}
 	}
     // This will delete the collection of tokens properly. It will destory all tokens in the array.
 	void freeTokens(util::DynamicArray<Token*> &q) {
 		for(Token *t : q) {
-			if (t->getType() == TokenType::MATRIX || t->getType() == TokenType::NUMERICAL || t->getType() == TokenType::FUNCTION) {
-				delete t;
-			}
+			delete t;
 		}
 	}
     uint16_t findTokenEnd(const util::DynamicArray<neda::NEDAObj*> &arr, uint16_t start, int8_t direction, bool &isNum) {
@@ -1404,7 +1399,7 @@ namespace eval {
 				// If the last token was not an operator, then it must be an implied multiplication
 				if(!lastTokenOperator) {
                     // This looks very dangerous but in reality all methods of Operator are const
-					arr.add(const_cast<Operator*>(&OP_MULTIPLY));
+					arr.add(new Operator(Operator::Type::MULTIPLY));
 				}
 				
 				// Look for the matching right bracket
@@ -1475,7 +1470,7 @@ namespace eval {
                 // Temporarily set autoFractions to true so a fraction is created no matter what
                 bool tmp = autoFractions;
                 autoFractions = true;
-				arr.add(OP_DIVIDE(num, denom));
+				arr.add(Operator(Operator::Type::DIVIDE)(num, denom));
                 autoFractions = tmp;
 
 				// Move on to the next object
@@ -1493,7 +1488,7 @@ namespace eval {
 
                     // Transpose
                     if(c.length() == 1 && extractChar(c[0]) == 'T') {
-                        arr.add(const_cast<Operator*>(&OP_TRANSPOSE));
+                        arr.add(new Operator(Operator::Type::TRANSPOSE));
                         // Break here so the rest of the code isn't executed
                         ++index;
                         lastTokenOperator = false;
@@ -1501,7 +1496,7 @@ namespace eval {
                     }
                     // Inverse
                     else if(c.length() == 2 && extractChar(c[0]) == '-' && extractChar(c[1]) == '1') {
-                        arr.add(const_cast<Operator*>(&OP_INVERSE));
+                        arr.add(new Operator(Operator::Type::INVERSE));
                         // Break here so the rest of the code isn't executed
                         ++index;
                         lastTokenOperator = false;
@@ -1523,7 +1518,7 @@ namespace eval {
 					return new Numerical(NAN);
 				}
 				// Otherwise, turn it into an exponentiation operator and the value of the exponent
-				arr.add(const_cast<Operator*>(&OP_EXPONENT));
+				arr.add(new Operator(Operator::Type::EXPONENT));
 				arr.add(exponent);
 				// Move on to the next token
 				++index;
@@ -1536,7 +1531,7 @@ namespace eval {
 			{   
 				// If the last token was not an operator there must be an implied multiplication
 				if(!lastTokenOperator) {
-					arr.add(const_cast<Operator*>(&OP_MULTIPLY));
+					arr.add(new Operator(Operator::Type::MULTIPLY));
 				}
 				// Used to store the base
 				Token *n;
@@ -1561,7 +1556,7 @@ namespace eval {
 				// Convert the radical into an exponentiation operation
                 static_cast<Numerical*>(n)->value = 1 / static_cast<Numerical*>(n)->value;
 				// Evaluate the radical and add the result to the tokens array
-				arr.add(OP_EXPONENT(contents, n));
+				arr.add(Operator(Operator::Type::EXPONENT)(contents, n));
 				// Move on to the next object
 				++index;
 				lastTokenOperator = false;
@@ -1582,7 +1577,7 @@ namespace eval {
 				const Operator *op = Operator::fromChar(ch);
 				// Check for equality operator which is two characters and not handled by Operator::fromChar
 				if((ch == '=' || ch == '!') && index + 1 < exprs.length() && extractChar(exprs[index + 1]) == '=') {
-					op = ch == '=' ? &OP_EQUALITY : &OP_NOT_EQUAL;
+					op = new Operator(ch == '=' ? Operator::Type::EQUALITY : Operator::Type::NOT_EQUAL);
 					++index;
 				}
 				// Check if the character is an operator
@@ -1591,7 +1586,7 @@ namespace eval {
 					if(lastTokenOperator && (op->type == Operator::Type::PLUS || op->type == Operator::Type::MINUS)) {
 						// Allow unary pluses, but don't do anything
 						if(op->type == Operator::Type::MINUS) {
-							arr.add(const_cast<Operator*>(&OP_NEGATE));
+							arr.add(new Operator(Operator::Type::NEGATE));
 						}
 					}
 					else {
@@ -1719,7 +1714,7 @@ namespace eval {
 							// Convert it to a multiplication with a base 2 log
 							arr.add(new Numerical(multiplier));
 							// Use special multiply to ensure the order of operations do not mess it up
-							arr.add(const_cast<Operator*>(&OP_SP_MULT));
+							arr.add(new Operator(Operator::Type::SP_MULT));
 							// The function is base 2 log
 							func = new Function(Function::Type::LOG2);
 							// Increment end so the index gets set properly afterwards
@@ -1753,7 +1748,7 @@ namespace eval {
 evaluateFunc:
 							// Implied multiplication
 							if(!lastTokenOperator) {
-								arr.add(const_cast<Operator*>(&OP_MULTIPLY));
+								arr.add(new Operator(Operator::Type::MULTIPLY));
 							}
                             bool err = false;
                             auto args = evaluateArgs(exprs, varc, vars, funcc, funcs, end, end, err);
@@ -1831,8 +1826,8 @@ evaluateFunc:
 						// If not a function, check if it's a constant or a variable
 						else {
 							// Implied multiplication
-							if(!lastTokenOperator && (arr.length() != 0 && arr[arr.length() - 1] != &OP_MULTIPLY)) {
-								arr.add(const_cast<Operator*>(&OP_MULTIPLY));
+							if(!lastTokenOperator) {
+								arr.add(new Operator(Operator::Type::MULTIPLY));
 							}
 							// If n is nonnull it must be added, so no need for cleanup for this dynamically allocated variable
 							Numerical *n = Numerical::constFromString(str);
@@ -1961,7 +1956,7 @@ evaluateFunc:
 					// Add or multiply the expressions if val exists
 					// Operate takes care of deletion of operands
 					if(val) {
-						val = (type.data == lcd::CHAR_SUMMATION.data ? OP_PLUS : OP_MULTIPLY)(val, n);
+						val = Operator(type.data == lcd::CHAR_SUMMATION.data ? Operator::Type::PLUS : Operator::Type::MULTIPLY)(val, n);
 					}
 					// Set val if it doesn't exist
 					else {
@@ -1996,7 +1991,7 @@ evaluateFunc:
 			{
 				// Implied multiplication
 				if(!lastTokenOperator) {
-					arr.add(const_cast<Operator*>(&OP_MULTIPLY));
+					arr.add(new Operator(Operator::Type::MULTIPLY));
 				}
 				neda::Matrix *nMat = static_cast<neda::Matrix*>(exprs[index]);
 				// Convert to a eval::Matrix
@@ -2063,7 +2058,7 @@ constructMatrixFromVectors:
             {
                 // Implied multiplication
 				if(!lastTokenOperator) {
-					arr.add(const_cast<Operator*>(&OP_MULTIPLY));
+					arr.add(new Operator(Operator::Type::MULTIPLY));
 				}
                 neda::Piecewise *p = static_cast<neda::Piecewise*>(exprs[index]);
                 
@@ -2319,7 +2314,7 @@ constructMatrixFromVectors:
             {
                 // Implied multiplication
 				if(!lastTokenOperator) {
-					arr.add(const_cast<Operator*>(&OP_MULTIPLY));
+					arr.add(new Operator(Operator::Type::MULTIPLY));
 				}
                 Token *t = evaluate(static_cast<neda::Container*>(static_cast<neda::Abs*>(exprs[index])->contents), varc, vars, funcc, funcs);
 
@@ -2390,9 +2385,10 @@ constructMatrixFromVectors:
 			// Operator
 			else {
                 // Unary operator
-                if(static_cast<const Operator*>(t)->isUnary()) {
+                if(static_cast<Operator*>(t)->isUnary()) {
                     // If there aren't enough operators, syntax error
                     if(stack.length() < 1) {
+                        delete t;
                         freeTokens(output);
                         freeTokens(stack);
                         return nullptr;
@@ -2400,19 +2396,22 @@ constructMatrixFromVectors:
                     // Pop the operand
                     Token *operand = stack.pop();
                     // Operate and push
-                    Token *result = (*static_cast<const Operator*>(t))(operand);
+                    Token *result = (*static_cast<Operator*>(t))(operand);
+                    // Syntax error
                     if(result) {
                         stack.push(result);
                     }
                     else {
+                        delete t;
                         freeTokens(output);
                         freeTokens(stack);
                         return nullptr;
                     }
                 }
                 else {
-                    // If there aren't enough operators, syntax error
+                    // If there aren't enough operands, syntax error
                     if(stack.length() < 2) {
+                        delete t;
                         freeTokens(output);
                         freeTokens(stack);
                         return nullptr;
@@ -2421,16 +2420,19 @@ constructMatrixFromVectors:
                     Token *rhs = stack.pop();
                     Token *lhs = stack.pop();
                     // Operate and push
-                    Token *result = (*static_cast<const Operator*>(t))(lhs, rhs);
+                    Token *result = (*static_cast<Operator*>(t))(lhs, rhs);
+                    // Check syntax error
                     if(result) {
                         stack.push(result);
                     }
                     else {
+                        delete t;
                         freeTokens(output);
                         freeTokens(stack);
                         return nullptr;
                     }
                 }
+                delete t;
 			}
 		}
 
