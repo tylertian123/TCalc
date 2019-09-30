@@ -1,7 +1,7 @@
 #ifndef __8051_DEFS_H__
 #define __8051_DEFS_H__
 
-#ifndef __VSCODE
+#ifdef SDCC
 
 #define bit __bit
 #define code __code

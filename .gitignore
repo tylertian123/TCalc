@@ -7,6 +7,9 @@
 # VS Code folder
 .vscode/
 
+# VS Code workspaces
+*.code-workspace
+
 # Event Recorder
 *.scvd
 

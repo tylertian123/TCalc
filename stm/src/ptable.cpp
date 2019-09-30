@@ -1,5 +1,6 @@
 #include "ptable.hpp"
 #include "ntoa.hpp"
+#include <ctype.h>
 
 namespace pt {
 
@@ -145,5 +146,66 @@ namespace pt {
             disp.setPixel(x, i);
             disp.setPixel(x + 60, i);
         }
+    }
+
+    const Element* searchElemByNumber(uint8_t atomicNumber) {
+        if(atomicNumber == 0) {
+            return nullptr;
+        }
+        for(uint8_t i = 0; i < PERIOD_COUNT; i ++) {
+            // See how many elements are at the end of this period
+            // Check if that exceeds the number we're looking for
+            const Element &lastElem = ELEMENTS[i][ELEMENTS_LENGTHS[i] - 1];
+            if(lastElem.protons >= atomicNumber) {
+                return &ELEMENTS[i][ELEMENTS_LENGTHS[i] - 1 - (lastElem.protons - atomicNumber)];
+            }
+        }
+        // Nothing found
+        return nullptr;
+    }
+
+    const Element* searchElemByString(const char * (*field)(const Element*), const char *str, uint16_t len) {
+        // Keep track of the element we found
+        const Element *elemFound = nullptr;
+        for(uint8_t i = 0; i < PERIOD_COUNT; i ++) {
+            for(uint8_t j = 0; j < ELEMENTS_LENGTHS[i]; j ++) {
+                const Element *elem = &ELEMENTS[i][j];
+                // Compare char by char
+                bool match = true;
+                uint8_t k;
+                for(k = 0; k < len && str[k] != '\0' && field(elem)[k] != '\0'; k ++) {
+                    // Case insensitive search
+                    if(tolower(str[k]) != tolower(field(elem)[k])) {
+                        match = false;
+                    }
+                    break;
+                }
+
+                // If matching - check if perfect match
+                if(match) {
+                    // Check that the two strings both ended
+                    if(field(elem)[k] == '\0' && (k == len || str[k] == '\0')) {
+                        // If perfect match, return the match
+                        return elem;
+                    }
+                    else {
+                        // If only partial match, set the element found if it's not already set
+                        if(!elemFound) {
+                            elemFound = elem;
+                        }
+                    }
+                }
+            }
+        }
+        // Return the element we found or nullptr if not even a partial match was found
+        return elemFound;
+    }
+
+    const Element* searchElemBySymbol(const char *str, uint8_t len) {
+        return searchElemByString([](const Element *x) { return x->symbol; }, str, len);
+    }
+    
+    const Element* searchElemByName(const char *str, uint8_t len) {
+        return searchElemByString([](const Element *x) { return x->name; }, str, len);
     }
 }

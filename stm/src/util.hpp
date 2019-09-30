@@ -11,12 +11,6 @@
 #define SAFE_ACCESS_0(obj, field) ((obj) ? ((obj)->field) : 0)
 
 #include <stdint.h>
-// VS Code does not recognize these since they're intrisincs in the Keil compiler
-// Define them here so IntelliSense is happy
-#ifdef __VSCODE
-    #define __enable_irq(x)
-    #define __disable_irq(x)
-#endif
 #define __current_sp __get_MSP
 #define __NO_INTERRUPT(x) \
 		{uint32_t __no_interrupt_PRIMASK=__get_PRIMASK();__disable_irq();\
