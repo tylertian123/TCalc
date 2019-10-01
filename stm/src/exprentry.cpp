@@ -2098,6 +2098,11 @@ functionCheckLoopEnd:
             return;
         
         case KEY_DELETE:
+            if(editorContents.length() != 0) {
+                // Delete a character
+                editorContents.pop();
+                break;
+            }
             if(selectorIndex == 0) {
                 mode = prevMode;
                 paintInterface();
@@ -2132,10 +2137,22 @@ functionCheckLoopEnd:
             if(selectorIndex == 1) {
                 dispElement = pt::elemWithLocation(l);
             }
+            // Clear the contents of the search bar if there is anything
+            if(editorContents.length() != 0) {
+                editorContents.empty();
+            }
             break;
         }
         default:
+        {
+            // See if the key pressed is a valid char
+            char ch = keyCodeToChar(key);
+            // Add the char if in modes 0 or 1
+            if(ch != 0xFF && (selectorIndex == 0 || selectorIndex == 1) && editorContents.length() < 16) {
+                editorContents.add(ch);
+            }
             break;
+        }
         }
 
         drawInterfacePeriodicTable();
@@ -2144,12 +2161,60 @@ functionCheckLoopEnd:
     void ExprEntry::drawInterfacePeriodicTable() {
         display.clearDrawingBuffer();
 
+        bool found = false;
+        if(editorContents.length() != 0) {
+            // Search for the element
+            // First append null terminator
+            editorContents.add('\0');
+            // Search by atomic number if the first character is a digit
+            if(editorContents[0] >= '0' && editorContents[0] <= '9') {
+                // Convert to number
+                int number = atoi(editorContents.asArray());
+                // Cast to uint8_t
+                if(util::canCastProperly<int, uint8_t>(number)) {
+                    uint8_t atomicNumber = number;
+                    pt::Location location;
+                    const pt::Element *elem = pt::searchElemByNumber(location, atomicNumber);
+
+                    // See if found
+                    if(elem) {
+                        found = true;
+                        dispElement = elem;
+                        cursorX = location.x;
+                        cursorY = location.y;
+                    }
+                }
+            }
+            else {
+                // Search by symbol first
+                pt::Location location;
+                const pt::Element *elem = pt::searchElemBySymbol(location, editorContents.asArray());
+                // See if found
+                if(elem) {
+                    found = true;
+                    dispElement = elem;
+                    cursorX = location.x;
+                    cursorY = location.y;
+                }
+                else {
+                    // Search by name
+                    elem = pt::searchElemByName(location, editorContents.asArray());
+                    if(elem) {
+                        found = true;
+                        dispElement = elem;
+                        cursorX = location.x;
+                        cursorY = location.y;
+                    }
+                }
+            }
+        }
+
         if(selectorIndex == 0) {
-            display.drawImage((lcd::SIZE_WIDTH - lcd::IMG_PTABLE.width) / 2, 10, lcd::IMG_PTABLE);
+            display.drawImage((lcd::SIZE_WIDTH - lcd::IMG_PTABLE.width) / 2, 11, lcd::IMG_PTABLE);
 
             // Draw the cursor
             int16_t elemX = (cursorX - 1) * 5 + (lcd::SIZE_WIDTH - lcd::IMG_PTABLE.width) / 2 + 1;
-            int16_t elemY = (cursorY - 1) * 5 + 10 + 1;
+            int16_t elemY = (cursorY - 1) * 5 + 11 + 1;
             display.fill(elemX, elemY, 4, 4);
         }
         else if(selectorIndex == 1) {
@@ -2160,6 +2225,19 @@ functionCheckLoopEnd:
                         pt::drawElement(34 + i * 60, 17 + j * 30, elem, display);
                     }
                 }
+            }
+        }
+
+        if(editorContents.length() != 0) {
+            // Draw the search bar
+            display.fill(0, 0, lcd::SIZE_WIDTH, 11, true);
+            display.drawString(1, 1, editorContents.asArray());
+            // Remove the null terminator
+            editorContents.pop();
+
+            // Show error
+            if(!found) {
+                display.drawImage(88, 1, lcd::CHAR_SERR);
             }
         }
         display.updateDrawing();

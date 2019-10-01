@@ -16,7 +16,7 @@ void operator delete(void* ptr) {
 void operator delete[](void* ptr) {
     free(ptr);
 }
- 
+
 /* Optionally you can override the 'nothrow' versions as well.
    This is useful if you want to catch failed allocs with your
    own debug code, or keep track of heap usage for example,

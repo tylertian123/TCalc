@@ -59,10 +59,11 @@ namespace pt {
     
     void drawElement(int16_t x, int16_t y, const Element *elem, lcd::LCD12864 &disp);
 
-    const Element* searchElemByNumber(uint8_t atomicNumber);
-    const Element* searchElemByString(const char * (*field)(const Element*), const char *str, uint16_t len = UINT16_MAX);
-    const Element* searchElemBySymbol(const char *str, uint16_t len = UINT16_MAX);
-    const Element* searchElemByName(const char *str, uint16_t len = UINT16_MAX);
+    const Element* searchElemByNumber(Location &locationOut, uint8_t atomicNumber);
+    const Element* searchElemByString(Location &locationOut, const char * (*field)(const Element*),
+            const char *str, uint16_t len = UINT16_MAX);
+    const Element* searchElemBySymbol(Location &locationOut, const char *str, uint16_t len = UINT16_MAX);
+    const Element* searchElemByName(Location &locationOut, const char *str, uint16_t len = UINT16_MAX);
 }
 
 #endif

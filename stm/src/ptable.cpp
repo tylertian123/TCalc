@@ -148,7 +148,7 @@ namespace pt {
         }
     }
 
-    const Element* searchElemByNumber(uint8_t atomicNumber) {
+    const Element* searchElemByNumber(Location &locationOut, uint8_t atomicNumber) {
         if(atomicNumber == 0) {
             return nullptr;
         }
@@ -157,14 +157,17 @@ namespace pt {
             // Check if that exceeds the number we're looking for
             const Element &lastElem = ELEMENTS[i][ELEMENTS_LENGTHS[i] - 1];
             if(lastElem.protons >= atomicNumber) {
-                return &ELEMENTS[i][ELEMENTS_LENGTHS[i] - 1 - (lastElem.protons - atomicNumber)];
+                const Element *result = &ELEMENTS[i][ELEMENTS_LENGTHS[i] - 1 - (lastElem.protons - atomicNumber)];
+                locationOut.x = result->group;
+                locationOut.y = i + 1;
+                return result;
             }
         }
         // Nothing found
         return nullptr;
     }
 
-    const Element* searchElemByString(const char * (*field)(const Element*), const char *str, uint16_t len) {
+    const Element* searchElemByString(Location &locationOut, const char * (*field)(const Element*), const char *str, uint16_t len) {
         // Keep track of the element we found
         const Element *elemFound = nullptr;
         for(uint8_t i = 0; i < PERIOD_COUNT; i ++) {
@@ -177,8 +180,8 @@ namespace pt {
                     // Case insensitive search
                     if(tolower(str[k]) != tolower(field(elem)[k])) {
                         match = false;
+                        break;
                     }
-                    break;
                 }
 
                 // If matching - check if perfect match
@@ -186,12 +189,16 @@ namespace pt {
                     // Check that the two strings both ended
                     if(field(elem)[k] == '\0' && (k == len || str[k] == '\0')) {
                         // If perfect match, return the match
+                        locationOut.x = elem->group;
+                        locationOut.y = i + 1;
                         return elem;
                     }
-                    else {
+                    else if(k == len || str[k] == '\0') {
                         // If only partial match, set the element found if it's not already set
                         if(!elemFound) {
                             elemFound = elem;
+                            locationOut.x = elem->group;
+                            locationOut.y = i + 1;
                         }
                     }
                 }
@@ -201,11 +208,11 @@ namespace pt {
         return elemFound;
     }
 
-    const Element* searchElemBySymbol(const char *str, uint8_t len) {
-        return searchElemByString([](const Element *x) { return x->symbol; }, str, len);
+    const Element* searchElemBySymbol(Location &locationOut, const char *str, uint16_t len) {
+        return searchElemByString(locationOut, [](const Element *x) { return x->symbol; }, str, len);
     }
     
-    const Element* searchElemByName(const char *str, uint8_t len) {
-        return searchElemByString([](const Element *x) { return x->name; }, str, len);
+    const Element* searchElemByName(Location &locationOut, const char *str, uint16_t len) {
+        return searchElemByString(locationOut, [](const Element *x) { return x->name; }, str, len);
     }
 }
