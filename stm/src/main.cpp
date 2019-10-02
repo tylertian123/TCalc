@@ -321,7 +321,7 @@ extern "C" void TIM3_IRQHandler() {
 			display.drawString(GAME_FIELD_X_MAX * 2 + 2, 12, buf);
 
 			if(gamePaused) {
-				display.drawString(45, 25, "Paused", true);
+				display.drawString(45, 25, "Paused", lcd::DrawBuf::FLAG_INVERTED);
 			}
 
 			display.updateDrawing();
@@ -804,11 +804,10 @@ int main() {
 #else
     usart::println("This version of TCalc was compiled without the USART console.");
 #endif
-    
-    uint16_t offset = (lcd::SIZE_WIDTH - lcd::LCD12864::getDrawnStringWidth("TCalc " VERSION_STR)) / 2;
-	display.drawString(offset, 25, "TCalc " VERSION_STR, true);
+
+	display.drawString(lcd::SIZE_WIDTH / 2, 25, "TCalc " VERSION_STR, lcd::DrawBuf::FLAG_INVERTED | lcd::DrawBuf::FLAG_HALIGN_CENTER);
 #ifdef _TEST_MODE
-    display.drawString((lcd::SIZE_WIDTH - lcd::LCD12864::getDrawnStringWidth("Test Mode")) / 2, 50, "Test Mode");
+    display.drawString(lcd::SIZE_WIDTH / 2, 50, "Test Mode", lcd::DrawBuf::FLAG_HALIGN_CENTER);
 #endif
 	display.updateDrawing();
 

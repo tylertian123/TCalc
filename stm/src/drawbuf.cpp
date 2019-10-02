@@ -183,7 +183,7 @@ namespace lcd {
 		}
 	}
 
-    void DrawBuf::drawString(int16_t x, int16_t y, const char *str, bool invert, Charset charset) {
+    void DrawBuf::drawString(int16_t x, int16_t y, const char *str, Flags flags, Charset charset) {
         // Empty string
 		if(*str == '\0') {
 			return;
@@ -197,7 +197,17 @@ namespace lcd {
 		}
 		// Subtract away one extra spacing
 		--width;
+		
+		// Check horizontal align flags
+		if(flags & FLAG_HALIGN_CENTER) {
+			x -= width / 2;
+		}
+		else if(flags & FLAG_HALIGN_RIGHT) {
+			x -= width;
+		}
 
+		// Check invert flag
+		bool invert = flags & FLAG_INVERTED;
 		if(invert) {
 			// Fill the zone
 			fill(x - 1, y - 1, width + 2, height + 2);

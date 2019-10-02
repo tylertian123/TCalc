@@ -22,9 +22,19 @@ namespace lcd {
     public:
         DrawBuf() {}
 
+        // Passed into drawString
         typedef const Image& (*Charset)(char);
         static constexpr Charset CHARSET_NORMAL = &getChar;
         static constexpr Charset CHARSET_SMALL = &getSmallChar;
+
+        // Passed into drawString
+        typedef int Flags;
+        static constexpr Flags FLAG_NONE = 0x00;
+        static constexpr Flags FLAG_NORMAL = 0x00;
+        static constexpr Flags FLAG_INVERTED = 0x01;
+        static constexpr Flags FLAG_HALIGN_LEFT = 0x00;
+        static constexpr Flags FLAG_HALIGN_CENTER = 0x02;
+        static constexpr Flags FLAG_HALIGN_RIGHT = 0x04;
 
         // Clears the contents; sets every pixel to 0.
         void clear();
@@ -35,7 +45,7 @@ namespace lcd {
         // Draws a line
 		void drawLine(int16_t, int16_t, int16_t, int16_t, bool invert = false);
         // Draws a string
-		void drawString(int16_t, int16_t, const char*, bool invert = false, Charset charset = CHARSET_NORMAL);
+		void drawString(int16_t, int16_t, const char*, Flags flags = FLAG_NONE, Charset charset = CHARSET_NORMAL);
         // Fills an area
 		void fill(int16_t, int16_t, uint16_t, uint16_t, bool invert = false);
         // Gets the width of a string when drawn

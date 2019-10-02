@@ -668,10 +668,10 @@ namespace expr {
             }
 
             if(i < 6) {
-                display.drawString(1, y, trigFuncs[i], selectorIndex == i);
+                display.drawString(1, y, trigFuncs[i], selectorIndex == i ? lcd::DrawBuf::FLAG_INVERTED : lcd::DrawBuf::FLAG_NONE);
             }
             else {
-                display.drawString(64, y, trigFuncs[i], selectorIndex == i);
+                display.drawString(64, y, trigFuncs[i], selectorIndex == i ? lcd::DrawBuf::FLAG_INVERTED : lcd::DrawBuf::FLAG_NONE);
             }
             // Increment y
             y += 10;
@@ -719,7 +719,7 @@ namespace expr {
         display.clearDrawingBuffer();
         int16_t x = HORIZ_MARGIN;
         for(uint8_t i = 0; i < 6; i ++) {
-            display.drawString(x, VERT_MARGIN, constantNames[i], selectorIndex == i);
+            display.drawString(x, VERT_MARGIN, constantNames[i], selectorIndex == i ? lcd::DrawBuf::FLAG_INVERTED : lcd::DrawBuf::FLAG_NONE);
             
             x += 15;
         }
@@ -772,10 +772,12 @@ namespace expr {
         // Only 6 fit at a time, so only draw from the scrolling index to scrolling index + 6
         for(uint8_t i = scrollingIndex; i < scrollingIndex + 6; i ++) {
             if(i < eval::Function::TYPE_COUNT_DISPLAYABLE) {
-                display.drawString(1, y, eval::Function::FUNC_FULLNAMES[i], selectorIndex == i);
+                display.drawString(1, y, eval::Function::FUNC_FULLNAMES[i], 
+                        selectorIndex == i ? lcd::DrawBuf::FLAG_INVERTED : lcd::DrawBuf::FLAG_NONE);
             }
             else {
-                display.drawString(1, y, expr::functions[i - eval::Function::TYPE_COUNT_DISPLAYABLE].fullname, selectorIndex == i);
+                display.drawString(1, y, expr::functions[i - eval::Function::TYPE_COUNT_DISPLAYABLE].fullname,
+                        selectorIndex == i ? lcd::DrawBuf::FLAG_INVERTED : lcd::DrawBuf::FLAG_NONE);
             }
             y += 10;
         }
@@ -826,7 +828,8 @@ namespace expr {
         else {
             int16_t y = 1;
             for(uint8_t i = scrollingIndex; i < scrollingIndex + 6 && i < expr::functions.length(); i ++) {
-                display.drawString(1, y, expr::functions[i].fullname, selectorIndex == i);
+                display.drawString(1, y, expr::functions[i].fullname, 
+                        selectorIndex == i ? lcd::DrawBuf::FLAG_INVERTED : lcd::DrawBuf::FLAG_NONE);
                 y += 10;
             }
 
@@ -900,19 +903,23 @@ namespace expr {
         display.clearDrawingBuffer();
 
         display.drawString(1, 1, "Angles:");
-        display.drawString(85, 1, eval::useRadians ? "Radians" : "Degrees", selectorIndex == 0);
+        display.drawString(85, 1, eval::useRadians ? "Radians" : "Degrees",
+                selectorIndex == 0 ? lcd::DrawBuf::FLAG_INVERTED : lcd::DrawBuf::FLAG_NONE);
 
         display.drawString(1, 11, "Result S.D.:");
         char buf[3];
         util::ltoa(resultSignificantDigits, buf);
-        display.drawString(85, 11, buf, selectorIndex == 1);
+        display.drawString(85, 11, buf, 
+                selectorIndex == 1 ? lcd::DrawBuf::FLAG_INVERTED : lcd::DrawBuf::FLAG_NONE);
 
         display.drawString(1, 21, "Graphing S.D.:");
         util::ltoa(graphingSignificantDigits, buf);
-        display.drawString(85, 21, buf, selectorIndex == 2);
+        display.drawString(85, 21, buf, 
+                selectorIndex == 2 ? lcd::DrawBuf::FLAG_INVERTED : lcd::DrawBuf::FLAG_NONE);
 
         display.drawString(1, 31, "Auto Fractions:");
-        display.drawString(85, 31, eval::autoFractions ? "On" : "Off", selectorIndex == 3);
+        display.drawString(85, 31, eval::autoFractions ? "On" : "Off",
+                selectorIndex == 3 ? lcd::DrawBuf::FLAG_INVERTED : lcd::DrawBuf::FLAG_NONE);
 
         display.updateDrawing();
     }
@@ -981,10 +988,12 @@ namespace expr {
 
         char sizeBuf[8];
         uint8_t len = util::ltoa(matRows, sizeBuf);
-        display.drawString(48, 13, sizeBuf, selectorIndex == 0);
+        display.drawString(48, 13, sizeBuf, 
+                selectorIndex == 0 ? lcd::DrawBuf::FLAG_INVERTED : lcd::DrawBuf::FLAG_NONE);
         display.drawString(48 + len * 6, 13, "x");
         util::ltoa(matCols, sizeBuf);
-        display.drawString(54 + len * 6, 13, sizeBuf, selectorIndex == 1);
+        display.drawString(54 + len * 6, 13, sizeBuf,
+                selectorIndex == 1 ? lcd::DrawBuf::FLAG_INVERTED : lcd::DrawBuf::FLAG_NONE);
 
         display.updateDrawing();
     }
@@ -1032,7 +1041,7 @@ namespace expr {
         char sizeBuf[4];
         util::ltoa(piecewisePieces , sizeBuf);
 
-        display.drawString(60, 21, sizeBuf, true);
+        display.drawString(lcd::SIZE_WIDTH / 2, 21, sizeBuf, lcd::DrawBuf::FLAG_INVERTED | lcd::DrawBuf::FLAG_HALIGN_CENTER);
         display.updateDrawing();
     }
 
@@ -1306,7 +1315,7 @@ toggleEditOption:
                 char buf[64];
                 util::ftoa(graphSettings[i], buf, graphingSignificantDigits, LCD_CHAR_EE);
 
-                display.drawString(HORIZ_MARGIN + 50, y, buf, selectorIndex == i);
+                display.drawString(HORIZ_MARGIN + 50, y, buf, selectorIndex == i ? lcd::DrawBuf::FLAG_INVERTED : lcd::DrawBuf::FLAG_NONE);
             }
             else {
                 // If this value is not being edited, draw it normally
@@ -1897,14 +1906,14 @@ functionCheckLoopEnd:
             // Used later
             uint16_t maxWidth = width;
             display.fill(HORIZ_MARGIN - 1, lcd::SIZE_HEIGHT - VERT_MARGIN - 5 - 5 - 1 - 1, width + 2, 7, true);
-            display.drawString(HORIZ_MARGIN, lcd::SIZE_HEIGHT - VERT_MARGIN - 5 - 5 - 1, buf, false, lcd::DrawBuf::CHARSET_SMALL);
+            display.drawString(HORIZ_MARGIN, lcd::SIZE_HEIGHT - VERT_MARGIN - 5 - 5 - 1, buf, lcd::DrawBuf::FLAG_NONE, lcd::DrawBuf::CHARSET_SMALL);
 
             // Do the same with the y coordinate
             buf[0] = 'y';
             util::ftoa(y, buf + 2, graphingSignificantDigits, LCD_CHAR_EE);
             width = lcd::DrawBuf::getDrawnStringWidth(buf, lcd::DrawBuf::CHARSET_SMALL);
             display.fill(HORIZ_MARGIN - 1, lcd::SIZE_HEIGHT - VERT_MARGIN - 5 - 1, width + 2, 7, true);
-            display.drawString(HORIZ_MARGIN, lcd::SIZE_HEIGHT - VERT_MARGIN - 5, buf, false, lcd::DrawBuf::CHARSET_SMALL);
+            display.drawString(HORIZ_MARGIN, lcd::SIZE_HEIGHT - VERT_MARGIN - 5, buf, lcd::DrawBuf::FLAG_NONE, lcd::DrawBuf::CHARSET_SMALL);
 
             maxWidth = util::max(maxWidth, width);
 
@@ -2030,14 +2039,14 @@ functionCheckLoopEnd:
         str[1] = '\0';
         for(uint16_t i = 0; i <= LCD_LOGIC_CHAR_LEN; i ++) {
             if(i == 0) {
-                display.drawString(x, y, "==", i == selectorIndex);
+                display.drawString(x, y, "==", selectorIndex == i ? lcd::DrawBuf::FLAG_INVERTED : lcd::DrawBuf::FLAG_NONE);
             }
             else if(i == 1) {
-                display.drawString(x, y, "!=", i == selectorIndex);
+                display.drawString(x, y, "!=", selectorIndex == i ? lcd::DrawBuf::FLAG_INVERTED : lcd::DrawBuf::FLAG_NONE);
             }
             else {
                 str[0] = LCD_LOGIC_CHARS[i];
-                display.drawString(x, y, str, i == selectorIndex);
+                display.drawString(x, y, str, selectorIndex == i ? lcd::DrawBuf::FLAG_INVERTED : lcd::DrawBuf::FLAG_NONE);
             }
             
             x += 20;
@@ -2090,8 +2099,8 @@ functionCheckLoopEnd:
         display.drawString(HORIZ_MARGIN, VERT_MARGIN, "Clear All Functions");
         display.drawString(HORIZ_MARGIN, VERT_MARGIN + 10, "and Variables?");
 
-        display.drawString(32, 32, "Yes", selectorIndex == 0);
-        display.drawString(85, 32, "No", selectorIndex == 1);
+        display.drawString(32, 32, "Yes", selectorIndex == 0 ? lcd::DrawBuf::FLAG_INVERTED : lcd::DrawBuf::FLAG_NONE);
+        display.drawString(85, 32, "No", selectorIndex == 1 ? lcd::DrawBuf::FLAG_INVERTED : lcd::DrawBuf::FLAG_NONE);
         display.updateDrawing();
     }
 

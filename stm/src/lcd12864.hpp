@@ -80,7 +80,8 @@ namespace lcd {
 		void setPixel(int16_t, int16_t, bool state = true);
 		void drawImage(int16_t, int16_t, const Image&, bool invert = false);
 		void drawLine(int16_t, int16_t, int16_t, int16_t, bool invert = false);
-		void drawString(int16_t, int16_t, const char*, bool invert = false, DrawBuf::Charset charset = DrawBuf::CHARSET_NORMAL);
+		void drawString(int16_t, int16_t, const char*, DrawBuf::Flags flags = DrawBuf::FLAG_NONE,
+				DrawBuf::Charset charset = DrawBuf::CHARSET_NORMAL);
 		void fill(int16_t, int16_t, uint16_t, uint16_t, bool invert = false);
         void copyBuffer(const DrawBuf&);
 
