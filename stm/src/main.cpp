@@ -22,6 +22,18 @@
 
 #define VERSION_STR "V1.4.0"
 
+#ifdef _USE_CONSOLE
+#pragma message("Compiling with the USART Console.")
+#else
+#pragma message("Compiling without the USART Console.")
+#endif
+
+#ifdef _TEST_MODE
+#pragma message("Compiling with Test Mode.")
+#else
+#pragma message("Compiling without Test Mode.")
+#endif
+
 /********** GPIO Pins and other pin defs **********/
 GPIOPin RS(GPIOC, GPIO_Pin_10), RW(GPIOC, GPIO_Pin_11), E(GPIOC, GPIO_Pin_12),
 			D7(GPIOC, GPIO_Pin_9), D6(GPIOC, GPIO_Pin_8), D5(GPIOC, GPIO_Pin_7), D4(GPIOC, GPIO_Pin_6),
@@ -793,6 +805,9 @@ int main() {
     
     uint16_t offset = (lcd::SIZE_WIDTH - lcd::LCD12864::getDrawnStringWidth("TCalc " VERSION_STR)) / 2;
 	display.drawString(offset, 25, "TCalc " VERSION_STR, true);
+#ifdef _TEST_MODE
+    display.drawString((lcd::SIZE_WIDTH - lcd::LCD12864::getDrawnStringWidth("Test Mode")) / 2, 50, "Test Mode");
+#endif
 	display.updateDrawing();
 
 	// Title screen delay

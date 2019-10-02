@@ -1095,6 +1095,7 @@ namespace expr {
 
     void ExprEntry::drawInterfaceGraphSelect() {
         display.clearDrawingBuffer();
+#ifndef _TEST_MODE
         if(graphableFunctions.length() == 0) {
             display.drawString(1, 1, "No Graphable Functions");
         }
@@ -1111,6 +1112,10 @@ namespace expr {
             uint16_t scrollbarHeight = 6 * 64 / graphableFunctions.length();
             display.fill(128 - FUNC_SCROLLBAR_WIDTH, scrollbarLocation, FUNC_SCROLLBAR_WIDTH, scrollbarHeight);
         }
+#else
+        display.drawString(1, 1, "Graphing is disabled");
+        display.drawString(1, 11, "in Test Mode.");
+#endif
         display.updateDrawing();
     }
 
@@ -1290,6 +1295,7 @@ toggleEditOption:
     void ExprEntry::drawInterfaceGraphSettings(bool drawCursor) {
         display.clearDrawingBuffer();
 
+#ifndef _TEST_MODE
         uint16_t y = VERT_MARGIN;
         for(uint8_t i = 0; i < 6; i ++) {
             // Draw the name of the option
@@ -1335,7 +1341,10 @@ toggleEditOption:
 
             y += 10;
         }
-
+#else
+        display.drawString(1, 1, "Graphing is disabled");
+        display.drawString(1, 11, "in Test Mode.");
+#endif
         display.updateDrawing();
     }
 
@@ -1866,6 +1875,7 @@ functionCheckLoopEnd:
     }
     
     void ExprEntry::drawInterfaceGraphViewer() {
+#ifndef _TEST_MODE
         // First copy the base graph
         // No need to clear the buffer since it will be overwritten anyways
         display.copyBuffer(graphBuf);
@@ -1946,7 +1956,11 @@ functionCheckLoopEnd:
             display.setPixel(cursorX, cursorY + 1);
             display.setPixel(cursorX, cursorY + 2);
         }
-
+#else
+        display.clearDrawingBuffer();
+        display.drawString(1, 1, "Graphing is disabled");
+        display.drawString(1, 11, "in Test Mode.");
+#endif
         display.updateDrawing();
     }
 
