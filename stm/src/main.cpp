@@ -768,6 +768,8 @@ int main() {
 	sys::initNVIC();
 	usart::init(115200);
     usart::println("******** Welcome to TCalc " VERSION_STR " ********");
+    usart::println("Git Commit Hash: " STRINGIFY(_GIT_REV));
+    usart::println("Built On: " STRINGIFY(_BUILD_TIME));
     usart::println("System Core initialization complete.");
     usart::println("Initializing Peripherals...");
 	// Init LEDs

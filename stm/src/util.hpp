@@ -24,6 +24,9 @@
     #define INT16_MIN ((int16_t) (-32767 - 1))
 #endif
 
+#define _STRINGIFY_(x) #x
+#define STRINGIFY(x) _STRINGIFY_(x)
+
 namespace util {
     template <typename T>
     inline const T& max(const T &a, const T &b) {
