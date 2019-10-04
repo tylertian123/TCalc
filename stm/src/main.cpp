@@ -20,7 +20,7 @@
 #include "exprentry.hpp"
 #include <stdlib.h>
 
-#define VERSION_STR "V1.4.0"
+#define VERSION_STR "V1.4.1"
 
 #ifdef _USE_CONSOLE
 #pragma message("Compiling with the USART Console.")

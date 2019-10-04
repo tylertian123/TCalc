@@ -58,6 +58,8 @@ namespace pt {
         uint8_t y;
     };
 
+    extern const char * const CATEGORY_NAMES[];
+
     extern const Element PERIOD_1_ELEMENTS[];
     extern const Element PERIOD_2_ELEMENTS[];
     extern const Element PERIOD_3_ELEMENTS[];
@@ -80,6 +82,7 @@ namespace pt {
     const Element* below(Location &locationIO);
     
     void drawElement(int16_t x, int16_t y, const Element *elem, lcd::LCD12864 &disp);
+    void drawElementInfo(int16_t x, int16_t y, const Element *elem, uint8_t field, lcd::LCD12864 &disp);
 
     const Element* searchElemByNumber(Location &locationOut, uint8_t atomicNumber);
     const Element* searchElemByString(Location &locationOut, const char * (*field)(const Element*),

@@ -24,6 +24,20 @@ namespace pt {
 
     const uint8_t PERIOD_COUNT = sizeof(ELEMENTS_LENGTHS) / sizeof(ELEMENTS_LENGTHS[0]);
 
+    const char * const CATEGORY_NAMES[] = {
+        "Unknown",
+        "Alkali Metal",
+        "Alkaline Earth Metal",
+        "Transition Metal",
+        "Post-transition Metal",
+        "Metalloid",
+        "Nonmetal",
+        "Halogen",
+        "Noble Gas",
+        "Lanthanide",
+        "Actinide",
+    };
+
     const Element* elemWithLocation(const Location &location) {
         
         if(location.y < 1 || location.y > PERIOD_COUNT){
@@ -144,6 +158,79 @@ namespace pt {
         for(int16_t i = y + 1; i <= y + 30; i ++) {
             disp.setPixel(x, i);
             disp.setPixel(x + 60, i);
+        }
+    }
+
+    const char * const ELEMENT_FIELD_NAMES[] = {
+        "Name:",
+        "Symbol:",
+        "Valences:",
+        "Melting Point (K):",
+        "Boiling Point (K):",
+        "Density (g" LCD_STR_DIV "cm^3):",
+        "Electronegativity:",
+        "Electron Affinity:",
+        "Mass:",
+        "Number of Protons:",
+        "Number of Neutrons:",
+        "Category:",
+    };
+
+    void drawElementInfo(int16_t x, int16_t y, const Element *elem, uint8_t field, lcd::LCD12864 &disp) {
+        char buf[16];
+        disp.drawString(x, y, ELEMENT_FIELD_NAMES[field]);
+        switch(field) {
+        case 0:
+            disp.drawString(x, y + 10, elem->name);
+            break;
+        case 1:
+            disp.drawString(x, y + 10, elem->symbol);
+            break;
+        case 2:
+            if(elem->valences[0] != '\0') {
+                disp.drawString(x, y + 10, elem->valences);
+            }
+            else {
+                disp.drawString(x, y + 10, "Unknown");
+            }
+            break;
+        case 3:
+            util::ftoa(elem->melt, buf, 7, LCD_CHAR_EE);
+            disp.drawString(x, y + 10, buf);
+            break;
+        case 4:
+            util::ftoa(elem->boil, buf, 7, LCD_CHAR_EE);
+            disp.drawString(x, y + 10, buf);
+            break;
+        case 5:
+            util::ftoa(elem->density, buf, 7, LCD_CHAR_EE);
+            disp.drawString(x, y + 10, buf);
+            break;
+        case 6:
+            util::ftoa(elem->electronegativity, buf, 7, LCD_CHAR_EE);
+            disp.drawString(x, y + 10, buf);
+            break;
+        case 7:
+            util::ftoa(elem->electronAffinity, buf, 7, LCD_CHAR_EE);
+            disp.drawString(x, y + 10, buf);
+            break;
+        case 8:
+            util::ftoa(elem->mass, buf, 7, LCD_CHAR_EE);
+            disp.drawString(x, y + 10, buf);
+            break;
+        case 9:
+            util::ltoa(elem->protons, buf);
+            disp.drawString(x, y + 10, buf);
+            break;
+        case 10:
+            util::ltoa(elem->neutrons, buf);
+            disp.drawString(x, y + 10, buf);
+            break;
+        case 11:
+            disp.drawString(x, y + 10, CATEGORY_NAMES[elem->category]);
+            break;
+        default:
+            break;
         }
     }
 
