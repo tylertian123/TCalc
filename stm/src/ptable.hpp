@@ -7,15 +7,50 @@
 
 namespace pt {
 
+    enum Period : uint8_t {
+        PERIOD_1 = 0,
+        PERIOD_2 = 1,
+        PERIOD_3 = 2,
+        PERIOD_4 = 3,
+        PERIOD_5 = 4,
+        PERIOD_6 = 5,
+        PERIOD_7 = 6,
+        PERIOD_EMPTY = 7,
+        PERIOD_LANTHANIDES = 8,
+        PERIOD_ACTINIDES = 9,
+    };
+
+    enum Category : uint8_t {
+        UNKNOWN,
+        ALKALI_METAL,
+        ALKALINE_EARTH_METAL,
+        TRANSITION_METAL,
+        POST_TRANSITION_METAL,
+        METALLOID,
+        NONMETAL,
+        HALOGEN,
+        NOBLE_GAS,
+        LANTHANIDE,
+        ACTINIDE,
+    };
+
     struct Element {
         const char *name;
         const char *symbol;
+        const char *valences;
+
+        float melt;
+        float boil;
+        float density;
+        float electronegativity;
+        float electronAffinity;
+        double mass;
 
         uint8_t protons;
         uint8_t neutrons;
-        double mass;
-
         uint8_t group;
+
+        Category category;
     };
 
     struct Location {
@@ -32,19 +67,6 @@ namespace pt {
     extern const Element PERIOD_7_ELEMENTS[];
     extern const Element LANTHANIDES[];
     extern const Element ACTINIDES[];
-
-    enum Period : uint8_t {
-        PERIOD_1 = 0,
-        PERIOD_2 = 1,
-        PERIOD_3 = 2,
-        PERIOD_4 = 3,
-        PERIOD_5 = 4,
-        PERIOD_6 = 5,
-        PERIOD_7 = 6,
-        PERIOD_EMPTY = 7,
-        PERIOD_LANTHANIDES = 8,
-        PERIOD_ACTINIDES = 9,
-    };
 
     extern const Element * const ELEMENTS[];
     extern const uint8_t ELEMENTS_LENGTHS[];
