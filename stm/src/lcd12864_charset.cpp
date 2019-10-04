@@ -199,6 +199,8 @@ namespace lcd {
                 return CHAR_SMALL_DOT;
             case '-':
                 return CHAR_SMALL_MINUS;
+			case ',':
+				return CHAR_SMALL_COMMA;
             case LCD_CHAR_EE:
                 return CHAR_SMALL_EE;
             default:

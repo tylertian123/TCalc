@@ -1784,6 +1784,14 @@ namespace lcd {
 		0x00, // 00000000
 	};
 	const Image CHAR_SMALL_MINUS(CHAR_SMALL_MINUS_DATA, 1, 3, 5);
+	const uint8_t CHAR_SMALL_COMMA_DATA[] = {
+		0x00, // 00000000
+		0x00, // 00000000
+		0x00, // 00000000
+		0x80, // 10000000
+		0x80, // 10000000
+	};
+	const Image CHAR_SMALL_COMMA(CHAR_SMALL_COMMA_DATA, 1, 1, 5);
 
     /* Other Images */
     const uint8_t IMG_PTABLE_DATA[] = {

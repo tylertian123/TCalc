@@ -133,6 +133,7 @@ namespace pt {
         char buf[16];
         util::ltoa(elem->protons, buf);
         disp.drawString(x + 2, y + 2, buf, lcd::DrawBuf::FLAG_NONE, lcd::DrawBuf::CHARSET_SMALL);
+        disp.drawString(x + 60 - 2, y + 2, elem->valences, lcd::DrawBuf::FLAG_HALIGN_RIGHT, lcd::DrawBuf::CHARSET_SMALL);
         util::ftoa(elem->mass, buf, 9);
         disp.drawString(x + 2, y + 24, buf, lcd::DrawBuf::FLAG_NONE, lcd::DrawBuf::CHARSET_SMALL);
 

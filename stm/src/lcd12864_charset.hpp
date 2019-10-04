@@ -472,6 +472,8 @@ namespace lcd {
     extern const Image CHAR_SMALL_EE;
     // Minus sign (-)
     extern const Image CHAR_SMALL_MINUS;
+    // Comma (,)
+    extern const Image CHAR_SMALL_COMMA;
 
     extern const Image * const CHAR_SMALL_NUMS[];
     extern const Image * const CHAR_SMALL_LETTERS[];
