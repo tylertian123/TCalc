@@ -38,6 +38,7 @@ namespace pt {
         const char *name;
         const char *symbol;
         const char *valences;
+        const char *electronConfiguration;
 
         float melt;
         float boil;

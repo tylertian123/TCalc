@@ -1,11 +1,12 @@
 import json
 from sys import argv
 
-def print_element(element):
+def print_element(element, table2):
     print("\t\t{")
     print("\t\t\t\"" + element["name"] + "\",")
     print("\t\t\t\"" + element["symbol"] + "\",")
     print(f"\t\t\t\"{element['valences']}\",")
+    print(f"\t\t\t\"{table2['elements'][element['number'] - 1]['electronicConfiguration']}\",")
 
     print("\t\t\t" + (str(element["melt"]) if element["melt"] != None else "NAN") + ",")
     print("\t\t\t" + (str(element["boil"]) if element["boil"] != None else "NAN") + ",")
@@ -24,8 +25,9 @@ def print_element(element):
         print("\t\t\t" + str(categories.get(element["category"], "UNKNOWN")) + ",")
     print("\t\t},")
 
-with open(argv[1], "r") as table_json:
+with open(argv[1], "r") as table_json, open(argv[2], "r") as table_json2:
     table = json.load(table_json)
+    table2 = json.load(table_json2)
 
     categories = {
         "alkali metal": "ALKALI_METAL",
@@ -44,17 +46,17 @@ with open(argv[1], "r") as table_json:
         print(f"\tconst Element PERIOD_{i}_ELEMENTS[] = {{")
         for element in table["elements"]:
             if element["ypos"] == i and element["category"] != "lanthanide" and element["category"] != "actinide":
-                print_element(element)
+                print_element(element, table2)
         print("\t};\n")
     
     print("\tconst Element LANTHANIDES[] = {")
     for element in table["elements"]:
         if element["category"] == "lanthanide":
-            print_element(element)
+            print_element(element, table2)
     print("\t};\n")
 
     print("\tconst Element ACTINIDES[] = {")
     for element in table["elements"]:
         if element["category"] == "actinide":
-            print_element(element)
+            print_element(element, table2)
     print("\t};\n")

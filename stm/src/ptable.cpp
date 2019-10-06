@@ -147,7 +147,9 @@ namespace pt {
         char buf[16];
         util::ltoa(elem->protons, buf);
         disp.drawString(x + 2, y + 2, buf, lcd::DrawBuf::FLAG_NONE, lcd::DrawBuf::CHARSET_SMALL);
-        disp.drawString(x + 60 - 2, y + 2, elem->valences, lcd::DrawBuf::FLAG_HALIGN_RIGHT, lcd::DrawBuf::CHARSET_SMALL);
+        if(elem->valences[0] != '?' && elem->valences[0] != '\0') {
+            disp.drawString(x + 60 - 2, y + 2, elem->valences, lcd::DrawBuf::FLAG_HALIGN_RIGHT, lcd::DrawBuf::CHARSET_SMALL);
+        }
         util::ftoa(elem->mass, buf, 9);
         disp.drawString(x + 2, y + 24, buf, lcd::DrawBuf::FLAG_NONE, lcd::DrawBuf::CHARSET_SMALL);
 
@@ -165,15 +167,16 @@ namespace pt {
         "Name:",
         "Symbol:",
         "Valences:",
+        "Mass:",
+        "Number of Protons:",
+        "Number of Neutrons:",
+        "Category:",
         "Melting Point (K):",
         "Boiling Point (K):",
         "Density (g" LCD_STR_DIV "cm^3):",
         "Electronegativity:",
         "Electron Affinity:",
-        "Mass:",
-        "Number of Protons:",
-        "Number of Neutrons:",
-        "Category:",
+        "Electron Configuration:"
     };
 
     void drawElementInfo(int16_t x, int16_t y, const Element *elem, uint8_t field, lcd::LCD12864 &disp) {
@@ -187,47 +190,53 @@ namespace pt {
             disp.drawString(x, y + 10, elem->symbol);
             break;
         case 2:
-            if(elem->valences[0] != '\0') {
-                disp.drawString(x, y + 10, elem->valences);
+            if(elem->valences[0] == '\0') {
+                disp.drawString(x, y + 10, "None");
+            }
+            else if(elem->valences[0] == '?') {
+                disp.drawString(x, y + 10, "Unknown");
             }
             else {
-                disp.drawString(x, y + 10, "Unknown");
+                disp.drawString(x, y + 10, elem->valences);
             }
             break;
         case 3:
-            util::ftoa(elem->melt, buf, 7, LCD_CHAR_EE);
-            disp.drawString(x, y + 10, buf);
-            break;
-        case 4:
-            util::ftoa(elem->boil, buf, 7, LCD_CHAR_EE);
-            disp.drawString(x, y + 10, buf);
-            break;
-        case 5:
-            util::ftoa(elem->density, buf, 7, LCD_CHAR_EE);
-            disp.drawString(x, y + 10, buf);
-            break;
-        case 6:
-            util::ftoa(elem->electronegativity, buf, 7, LCD_CHAR_EE);
-            disp.drawString(x, y + 10, buf);
-            break;
-        case 7:
-            util::ftoa(elem->electronAffinity, buf, 7, LCD_CHAR_EE);
-            disp.drawString(x, y + 10, buf);
-            break;
-        case 8:
             util::ftoa(elem->mass, buf, 7, LCD_CHAR_EE);
             disp.drawString(x, y + 10, buf);
             break;
-        case 9:
+        case 4:
             util::ltoa(elem->protons, buf);
             disp.drawString(x, y + 10, buf);
             break;
-        case 10:
+        case 5:
             util::ltoa(elem->neutrons, buf);
             disp.drawString(x, y + 10, buf);
             break;
-        case 11:
+        case 6:
             disp.drawString(x, y + 10, CATEGORY_NAMES[elem->category]);
+            break;
+        case 7:
+            util::ftoa(elem->melt, buf, 7, LCD_CHAR_EE);
+            disp.drawString(x, y + 10, buf);
+            break;
+        case 8:
+            util::ftoa(elem->boil, buf, 7, LCD_CHAR_EE);
+            disp.drawString(x, y + 10, buf);
+            break;
+        case 9:
+            util::ftoa(elem->density, buf, 7, LCD_CHAR_EE);
+            disp.drawString(x, y + 10, buf);
+            break;
+        case 10:
+            util::ftoa(elem->electronegativity, buf, 7, LCD_CHAR_EE);
+            disp.drawString(x, y + 10, buf);
+            break;
+        case 11:
+            util::ftoa(elem->electronAffinity, buf, 7, LCD_CHAR_EE);
+            disp.drawString(x, y + 10, buf);
+            break;
+        case 12:
+            disp.drawString(x, y + 10, elem->electronConfiguration);
             break;
         default:
             break;

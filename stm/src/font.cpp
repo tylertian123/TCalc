@@ -713,18 +713,18 @@ namespace lcd {
 		0xf8,
 	};
 	const Image CHAR_Z(CHAR_Z_DATA, 1, 5, 9);
-	// const uint8_t CHAR_LSQB_DATA[] = {
-	// 	0xe0,
-	// 	0x80,
-	// 	0x80,
-	// 	0x80,
-	// 	0x80,
-	// 	0x80,
-	// 	0x80,
-	// 	0x80,
-	// 	0xe0,
-	// };
-	// const Image CHAR_LSQB(CHAR_LSQB_DATA, 1, 3, 9);
+	const uint8_t CHAR_LSQB_DATA[] = {
+		0xe0,
+		0x80,
+		0x80,
+		0x80,
+		0x80,
+		0x80,
+		0x80,
+		0x80,
+		0xe0,
+	};
+	const Image CHAR_LSQB(CHAR_LSQB_DATA, 1, 3, 9);
 	// const uint8_t CHAR_BKSL_DATA[] = {
 	// 	0x80,
 	// 	0x80,
@@ -737,18 +737,18 @@ namespace lcd {
 	// 	0x08,
 	// };
 	// const Image CHAR_BKSL(CHAR_BKSL_DATA, 1, 5, 9);
-	// const uint8_t CHAR_RSQB_DATA[] = {
-	// 	0xe0,
-	// 	0x20,
-	// 	0x20,
-	// 	0x20,
-	// 	0x20,
-	// 	0x20,
-	// 	0x20,
-	// 	0x20,
-	// 	0xe0,
-	// };
-	// const Image CHAR_RSQB(CHAR_RSQB_DATA, 1, 3, 9);
+	const uint8_t CHAR_RSQB_DATA[] = {
+		0xe0,
+		0x20,
+		0x20,
+		0x20,
+		0x20,
+		0x20,
+		0x20,
+		0x20,
+		0xe0,
+	};
+	const Image CHAR_RSQB(CHAR_RSQB_DATA, 1, 3, 9);
 	const uint8_t CHAR_CART_DATA[] = {
 		0x20,
 		0x50,

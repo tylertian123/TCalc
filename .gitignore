@@ -15,6 +15,7 @@
 
 # Periodic table data
 PeriodicTableJSON.json
+data.json
 
 # Keil project gitignore
 # Taken from https://github.com/mrshrdlu/gitignore-keil/blob/master/keil.gitignore

@@ -2109,10 +2109,14 @@ functionCheckLoopEnd:
         case KEY_CENTER:
         case KEY_ENTER:
             // Zoomed out view
-            if(selectorIndex == 0 || selectorIndex == 1) {
-                selectorIndex ++;
-                scrollingIndex = 0;
+            if(selectorIndex == 0) {
+                selectorIndex = 1;
                 dispElement = pt::elemWithLocation({ static_cast<uint8_t>(cursorX), static_cast<uint8_t>(cursorY) });
+            }
+            else if(selectorIndex == 1) {
+                selectorIndex = 2;
+                scrollingIndex = 0;
+                editorContents.empty();
             }
             break;
         
@@ -2150,7 +2154,7 @@ functionCheckLoopEnd:
             }
         case KEY_DOWN:
             if(selectorIndex == 2) {
-                if(scrollingIndex < 12 - 3) {
+                if(scrollingIndex < 13 - 3) {
                     scrollingIndex ++;
                 }
                 break;
@@ -2271,8 +2275,8 @@ functionCheckLoopEnd:
                 pt::drawElementInfo(1, 1 + i * 20, dispElement, scrollingIndex + i, display);
             }
             
-            display.fill(lcd::SIZE_WIDTH - FUNC_SCROLLBAR_WIDTH, lcd::SIZE_HEIGHT * scrollingIndex / 12, 
-                    FUNC_SCROLLBAR_WIDTH, lcd::SIZE_HEIGHT * 3 / 12);
+            display.fill(lcd::SIZE_WIDTH - FUNC_SCROLLBAR_WIDTH, lcd::SIZE_HEIGHT * scrollingIndex / 13, 
+                    FUNC_SCROLLBAR_WIDTH, lcd::SIZE_HEIGHT * 3 / 13);
         }
 
         if(editorContents.length() != 0) {

@@ -253,13 +253,11 @@ namespace lcd {
     // Uppercase Z (Z)
 	extern const Image CHAR_Z;
     // Left square bracket ([)
-    // Unused
 	extern const Image CHAR_LSQB;
     // Backslash (\)
     // Unused
 	extern const Image CHAR_BKSL;
     // Right square bracket (])
-    // Unused
 	extern const Image CHAR_RSQB;
     // Caret (^)
 	extern const Image CHAR_CART;
