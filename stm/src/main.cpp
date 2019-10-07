@@ -52,9 +52,7 @@ GPIOPin shiftLED(GPIOA, GPIO_Pin_3);
 
 /********** Fault Handlers **********/
 extern "C" {
-	// Redefine _sys_exit to allow loading of library
-	void _fini() {
-		// According to specifications this function should never return
+    void displayErrorMessage(const char *type) {
         display.endDraw();
         display.useBasic();
 		while(1) {
@@ -84,88 +82,28 @@ extern "C" {
             display.setCursor(0, 0);
             display.writeString("Type:");
             display.setCursor(1, 0);
-            display.writeString("_fini called");
+            display.writeString(type);
             display.setCursor(2, 0);
 
             for(volatile uint64_t i = 0; i < 7000000; i ++);
         }
+    }
+
+	// Redefine _fini to allow loading of library
+	void _fini() {
+		// According to specifications this function should never return
+        displayErrorMessage("_fini called");
 	}
 
 	void __io_putchar(char c) {
 	}
-}
 
-extern "C" void HardFault_Handler() {
-    display.endDraw();
-    display.useBasic();
-
-    while(1) {
-        display.clear();
-        display.setCursor(0, 0);
-        display.writeString("ERROR: A fatal");
-        display.setCursor(1, 0);
-        display.writeString("exception has");
-        display.setCursor(2, 0);
-        display.writeString("occurred.");
-
-        for(volatile uint64_t i = 0; i < 7000000; i ++);
-
-        display.clear();
-        display.setCursor(0, 0);
-        display.writeString("Attach debugger");
-        display.setCursor(1, 0);
-        display.writeString("or press the");
-        display.setCursor(2, 0);
-        display.writeString("reset button to");
-        display.setCursor(3, 0);
-        display.writeString("reset TCalc.");
-
-        for(volatile uint64_t i = 0; i < 7000000; i ++);
-
-        display.clear();
-        display.setCursor(0, 0);
-        display.writeString("Type:");
-        display.setCursor(1, 0);
-        display.writeString("HardFault");
-
-        for(volatile uint64_t i = 0; i < 7000000; i ++);
+    void HardFault_Handler() {
+        displayErrorMessage("HardFault");
     }
-}
 
-extern "C" void UsageFault_Handler() {
-    display.endDraw();
-    display.useBasic();
-
-    while(1) {
-        display.clear();
-        display.setCursor(0, 0);
-        display.writeString("ERROR: A fatal");
-        display.setCursor(1, 0);
-        display.writeString("exception has");
-        display.setCursor(2, 0);
-        display.writeString("occurred.");
-
-        for(volatile uint64_t i = 0; i < 7000000; i ++);
-
-        display.clear();
-        display.setCursor(0, 0);
-        display.writeString("Attach debugger");
-        display.setCursor(1, 0);
-        display.writeString("or press the");
-        display.setCursor(2, 0);
-        display.writeString("reset button to");
-        display.setCursor(3, 0);
-        display.writeString("reset TCalc.");
-
-        for(volatile uint64_t i = 0; i < 7000000; i ++);
-
-        display.clear();
-        display.setCursor(0, 0);
-        display.writeString("Type:");
-        display.setCursor(1, 0);
-        display.writeString("UsageFault");
-
-        for(volatile uint64_t i = 0; i < 7000000; i ++);
+    void UsageFault_Handler() {
+        displayErrorMessage("UsageFault");
     }
 }
 
@@ -196,7 +134,7 @@ uint16_t fetchKey() {
 /********** Mode **********/
 enum class DispMode {
 	NORMAL,
-	GAME,
+	GAME_SNAKE,
 };
 DispMode dispMode = DispMode::NORMAL;
 
@@ -223,39 +161,6 @@ void initCursorTimer(uint16_t period = 2000) {
 	TIM_ITConfig(TIM3, TIM_IT_Update, ENABLE);
 }
 
-/********** Snake Game **********/
-
-game::SnakeBody *head;
-game::SnakeBody *tail;
-game::SnakeDirection direction = game::SnakeDirection::UP;
-game::Coords food;
-bool gamePaused = false;
-uint16_t gameScore = 0;
-
-void newFood() {
-	do {
-		food.x = rand() % (GAME_FIELD_X_MAX - GAME_FIELD_X_MIN) + GAME_FIELD_X_MIN;
-		food.y = rand() % (GAME_FIELD_Y_MAX - GAME_FIELD_Y_MIN) + GAME_FIELD_Y_MIN;
-	} while(game::inSnake(food, head));
-}
-void respawn() {
-	head = new game::SnakeBody;
-	tail = new game::SnakeBody;
-	head->prev = nullptr;
-	head->next = tail;
-	tail->next = nullptr;
-	tail->prev = head;
-
-	head->x = (GAME_FIELD_X_MAX + GAME_FIELD_X_MIN) / 2;
-	head->y = (GAME_FIELD_Y_MAX + GAME_FIELD_Y_MIN) / 2;
-	tail->x = (GAME_FIELD_X_MAX + GAME_FIELD_X_MIN) / 2;
-	tail->y = (GAME_FIELD_Y_MAX + GAME_FIELD_Y_MIN) / 2 + 1;
-
-	gameScore = 0;
-
-	newFood();
-}
-
 /********** Cursor flashing and game processing **********/
 
 #define CURSOR_HORIZ_SPACING 1
@@ -276,55 +181,8 @@ extern "C" void TIM3_IRQHandler() {
 		if(dispMode == DispMode::NORMAL && exprEditMode == ExprEditMode::NORMAL) {
 			mainExprEntry.blinkCursor();
 		}
-		else if(dispMode == DispMode::GAME) {
-			if(!gamePaused) {
-				game::Coords nextCoords = game::getNextLocation(head, direction);
-				// See if the snake ran into itself or is out of bounds
-				if((nextCoords.x == 0xFF && nextCoords.y == 0xFF) || game::inSnake(nextCoords, head)) {
-					// Game over
-                    game::SnakeBody *tmp = head->next;
-                    while(head) {
-                        delete head;
-                        head = tmp;
-                        tmp = head->next;
-                    }
-					respawn();
-				}
-				// Movement - eating food
-				if(nextCoords.x == food.x && nextCoords.y == food.y) {
-					game::moveSnake(head, tail, direction, true);
-					head = head->prev;
-
-					++gameScore;
-					newFood();
-				}
-				// No eating food
-				else {
-					auto temp = tail->prev;
-					game::moveSnake(head, tail, direction);
-					head = head->prev;
-					tail = temp;
-				}
-			}
-			display.clearDrawingBuffer();
-			game::drawSnake(display, head);
-			display.setPixel(food.x * 2, food.y * 2, true);
-			display.setPixel(food.x * 2 + 1, food.y * 2, true);
-			display.setPixel(food.x * 2, food.y * 2 + 1, true);
-			display.setPixel(food.x * 2 + 1, food.y * 2 + 1, true);
-			display.drawLine(GAME_FIELD_X_MIN * 2 - 1, GAME_FIELD_Y_MIN * 2, GAME_FIELD_X_MIN * 2 - 1, GAME_FIELD_Y_MAX * 2 - 1);
-			display.drawLine(GAME_FIELD_X_MAX * 2, GAME_FIELD_Y_MIN * 2, GAME_FIELD_X_MAX * 2, GAME_FIELD_Y_MAX * 2 - 1);
-			
-			display.drawString(GAME_FIELD_X_MAX * 2 + 2, 1, "Score");
-			char buf[10];
-			util::ltoa(gameScore, buf);
-			display.drawString(GAME_FIELD_X_MAX * 2 + 2, 12, buf);
-
-			if(gamePaused) {
-				display.drawString(45, 25, "Paused", lcd::DrawBuf::FLAG_INVERTED);
-			}
-
-			display.updateDrawing();
+		else if(dispMode == DispMode::GAME_SNAKE) {
+			snake::processGame(display);
 		}
 	}
 }
@@ -363,36 +221,6 @@ void drawResult(uint8_t id, bool resetLocation = true) {
 	delete result;
 
 	display.updateDrawing();
-}
-
-void gameKeyPressHandler(uint16_t key) {
-	switch(key) {
-	case KEY_LEFT:
-		if(direction != game::SnakeDirection::RIGHT) {
-			direction = game::SnakeDirection::LEFT;
-		}
-		break;
-	case KEY_RIGHT:
-		if(direction != game::SnakeDirection::LEFT) {
-			direction = game::SnakeDirection::RIGHT;
-		}
-		break;
-	case KEY_UP:
-		if(direction != game::SnakeDirection::DOWN) {
-			direction = game::SnakeDirection::UP;
-		}
-		break;
-	case KEY_DOWN:
-		if(direction != game::SnakeDirection::UP) {
-			direction = game::SnakeDirection::DOWN;
-		}
-		break;
-	case KEY_LCP:
-		gamePaused = !gamePaused;
-		break;
-	default:
-		break;
-	}
 }
 
 constexpr uint16_t EXPR_SCROLL_SPEED = 4;
@@ -869,12 +697,12 @@ int main() {
     }
 
 	if(fetchKey() == KEY_LCT) {
-		dispMode = DispMode::GAME;
-		respawn();
+		dispMode = DispMode::GAME_SNAKE;
+		snake::startGame();
 	}
 
 	// Start blink
-	initCursorTimer(dispMode == DispMode::GAME ? 1000 : 2000);
+	initCursorTimer(dispMode == DispMode::GAME_SNAKE ? 1000 : 2000);
 
     display.clearDrawingBuffer();
     if(dispMode == DispMode::NORMAL) {
@@ -892,8 +720,8 @@ int main() {
             case DispMode::NORMAL:
                 normalKeyPressHandler(key);
                 break;
-            case DispMode::GAME:
-                gameKeyPressHandler(key);
+            case DispMode::GAME_SNAKE:
+                snake::handleKeyPress(key);
                 break;
             }
 		}
