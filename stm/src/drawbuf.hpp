@@ -58,6 +58,8 @@ namespace lcd {
     protected:
         void drawLineHigh(int16_t, int16_t, int16_t, int16_t, bool invert = false);
         void drawLineLow(int16_t, int16_t, int16_t, int16_t, bool invert = false);
+        void drawLineVertical(int16_t x, int16_t y1, int16_t y2, bool invert = false);
+        void drawLineHorizontal(int16_t y, int16_t x1, int16_t x2, bool invert = false);
 
         uint8_t buf[64][16] = { 0 };
     };
