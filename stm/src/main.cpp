@@ -20,7 +20,7 @@
 #include "exprentry.hpp"
 #include <stdlib.h>
 
-#define VERSION_STR "V1.4.1"
+#define VERSION_STR "V1.4.2"
 
 #ifdef _USE_CONSOLE
 #pragma message("Compiling with the USART Console.")
@@ -762,6 +762,58 @@ void receiveKey(sbdi::Receiver &receiver) {
     statusLED = !statusLED;
 }
 
+// Generates a true random value from ADC.
+// Uses ADC readings from PB0 and PB1
+int getRandomSeed() {
+    // Enable ADC1
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC1, ENABLE);
+
+    // Initialize the ports to be used as an ADC pin
+    // Assumes GPIOB has already been enabled
+    GPIO_InitTypeDef gpioInit;
+    gpioInit.GPIO_Mode = GPIO_Mode_AIN;
+    gpioInit.GPIO_Speed = GPIO_Speed_10MHz;
+    gpioInit.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1;
+    GPIO_Init(GPIOB, &gpioInit);
+
+    // Initialize ADC
+    ADC_InitTypeDef adcInit;
+    ADC_StructInit(&adcInit);
+    adcInit.ADC_Mode = ADC_Mode_Independent; // Independent mode for single conversion
+    adcInit.ADC_DataAlign = ADC_DataAlign_Right; // Right align the 12 bits of data
+    adcInit.ADC_ScanConvMode = DISABLE; // Disable scan conversion
+    adcInit.ADC_ContinuousConvMode = DISABLE; // Disable continuous conversion
+    adcInit.ADC_NbrOfChannel = 1; // Single channel
+    adcInit.ADC_ExternalTrigConv = ADC_ExternalTrigConv_None; // No external triggers
+    ADC_Init(ADC1, &adcInit);
+
+    // Enable it
+    ADC_Cmd(ADC1, ENABLE);
+    // Configure channel
+    // Use a really short sample time to get a wide range of data
+    ADC_RegularChannelConfig(ADC1, ADC_Channel_8, 1, ADC_SampleTime_1Cycles5);
+    // No need to wait for calibration since the accuracy doesn't matter
+    // Start conversion
+    ADC_SoftwareStartConvCmd(ADC1, ENABLE);
+    // Wait until conversion is finished
+    while(!ADC_GetFlagStatus(ADC1, ADC_FLAG_EOC));
+    uint16_t adcResult0 = ADC_GetConversionValue(ADC1);
+    ADC_ClearFlag(ADC1, ADC_FLAG_EOC);
+
+    // Do the same again
+    ADC_RegularChannelConfig(ADC1, ADC_Channel_9, 1, ADC_SampleTime_1Cycles5);
+    ADC_SoftwareStartConvCmd(ADC1, ENABLE);
+    while(!ADC_GetFlagStatus(ADC1, ADC_FLAG_EOC));
+    uint16_t adcResult1 = ADC_GetConversionValue(ADC1);
+    ADC_ClearFlag(ADC1, ADC_FLAG_EOC);
+
+    // Turn off ADC
+    ADC_Cmd(ADC1, DISABLE);
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC1, DISABLE);
+
+    return adcResult0 << 16 | adcResult1;
+}
+
 int main() {
 	// Init system
 	sys::initRCC();
@@ -788,16 +840,14 @@ int main() {
 	sbdi::Receiver receiver(SBDI_EN, SBDI_DATA, SBDI_CLK);
 	receiver.init();
 
-	// Startup delay
-	delay::ms(100);
-
 	// Initialize display
 	display.init();
 	display.useExtended();
 	display.startDraw();
 	display.clearDrawing();
 
-    usart::println("Peripherals initialized.");
+    usart::println("Generating random seed...");
+    srand(getRandomSeed());
 #ifdef _USE_CONSOLE
     usart::println("Initializing Console...");
     console::init();

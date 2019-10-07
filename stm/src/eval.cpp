@@ -741,13 +741,13 @@ namespace eval {
 		"\xff", "\xff",
 
 		"qdRts", "round", "min", "max", "floor", "ceil", "det", "linSolve", "leastSquares",
-        "rref", "mean",
+        "rref", "mean", "rand"
 	};
     const char * const Function::FUNC_FULLNAMES[TYPE_COUNT_DISPLAYABLE] = {
         "sin(angle)", "cos(angle)", "tan(angle)", "asin(x)", "acos(x)", "atan(x)", 
         "sinh(angle)", "cosh(angle)", "tanh(angle)", "asinh(x)", "acosh(x)", "atanh(x)",
         "ln(x)", "qdRts(a,b,c)", "round(n,decimals)", "min(values...)", "max(values...)", "floor(x)",
-        "ceil(x)", "det(A)", "linSolve(A)", "leastSquares(A, b)", "rref(A)", "mean(values...)",
+        "ceil(x)", "det(A)", "linSolve(A)", "leastSquares(A, b)", "rref(A)", "mean(values...)", "rand()",
     };
 	Function* Function::fromString(const char *str) {
 		for(uint8_t i = 0; i < TYPE_COUNT; i ++) {
@@ -764,6 +764,8 @@ namespace eval {
 		case Type::ROUND:
         case Type::LEASTSQUARES:
 			return 2;
+        case Type::RAND:
+            return 0;
 		default: 
 			return 1;
 		}
@@ -1014,6 +1016,10 @@ namespace eval {
                 avg += (static_cast<Numerical*>(args[i])->value - avg) / (i + 1);
             }
             return new Numerical(avg);
+        }
+        case Type::RAND:
+        {
+            return new Numerical(static_cast<double>(rand()) / RAND_MAX);
         }
 		default: return new Numerical(NAN);
 		}

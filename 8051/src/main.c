@@ -114,8 +114,7 @@ void checkAndSend(unsigned char row) {
 void main(void) {
 	unsigned short result = 0;
 	unsigned char holdCounter = 0;
-	
-	delay(1000);
+
 	// Set input pins to high impedance mode
 	P1M0 |= 0x06; // 0000 0110
 	P1M1 &= 0xF9; // 1111 1001
