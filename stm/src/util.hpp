@@ -16,6 +16,10 @@
 		{uint32_t __no_interrupt_PRIMASK=__get_PRIMASK();__disable_irq();\
 		x \
 		if(!__no_interrupt_PRIMASK)__enable_irq();}
+#define __NO_INTERRUPT_BEGIN \
+        {uint32_t __no_interrupt_PRIMASK=__get_PRIMASK();__disable_irq();
+#define __NO_INTERRUPT_END \
+        if(!__no_interrupt_PRIMASK)__enable_irq();}
 
 #ifndef INT16_MAX
     #define INT16_MAX ((int16_t) 32767)
