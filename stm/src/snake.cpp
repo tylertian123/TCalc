@@ -118,8 +118,12 @@ namespace snake {
 	SnakeBody *tail = nullptr;
 	SnakeDirection direction = SnakeDirection::UP;
 	Coords food;
-	bool gamePaused = false;
-	uint16_t gameScore = 0;
+	uint16_t score = 0;
+
+	struct GameState {
+		bool paused : 1;
+		bool gameOver : 1;
+	} gameState;
 
 	void newFood() {
 		do {
@@ -141,89 +145,111 @@ namespace snake {
 		tail->x = (GAME_FIELD_X_MAX + GAME_FIELD_X_MIN) / 2;
 		tail->y = (GAME_FIELD_Y_MAX + GAME_FIELD_Y_MIN) / 2 + 1;
 
-		gameScore = 0;
+		score = 0;
+		gameState.paused = false;
+		gameState.gameOver = false;
 
 		newFood();
 	}
 
 	void processGame(lcd::LCD12864 &display) {
-		if(!gamePaused) {
-			Coords nextCoords = getNextLocation(head, direction);
-			// See if the snake ran into itself or is out of bounds
-			if((nextCoords.x == 0xFF && nextCoords.y == 0xFF) || inSnake(nextCoords, head)) {
-				// Game over
-				SnakeBody *tmp = head->next;
-				while(head) {
-					delete head;
-					head = tmp;
-					tmp = head->next;
+		if(!gameState.gameOver) {
+			if(!gameState.paused) {
+				Coords nextCoords = getNextLocation(head, direction);
+				// See if the snake ran into itself or is out of bounds
+				if((nextCoords.x == 0xFF && nextCoords.y == 0xFF) || inSnake(nextCoords, head)) {
+					// Game over
+					SnakeBody *tmp = head->next;
+					while(head) {
+						delete head;
+						head = tmp;
+						tmp = head->next;
+					}
+					gameState.gameOver = true;
+					processGame(display);
+					return;
 				}
-				startGame();
-			}
-			// Movement - eating food
-			if(nextCoords.x == food.x && nextCoords.y == food.y) {
-				moveSnake(head, tail, direction, true);
-				head = head->prev;
+				// Movement - eating food
+				if(nextCoords.x == food.x && nextCoords.y == food.y) {
+					moveSnake(head, tail, direction, true);
+					head = head->prev;
 
-				++gameScore;
-				newFood();
+					++score;
+					newFood();
+				}
+				// No eating food
+				else {
+					auto temp = tail->prev;
+					moveSnake(head, tail, direction, false);
+					head = head->prev;
+					tail = temp;
+				}
 			}
-			// No eating food
-			else {
-				auto temp = tail->prev;
-				moveSnake(head, tail, direction, false);
-				head = head->prev;
-				tail = temp;
+			display.clearDrawingBuffer();
+			drawSnake(display, head);
+			display.setPixel(food.x * 2, food.y * 2, true);
+			display.setPixel(food.x * 2 + 1, food.y * 2, true);
+			display.setPixel(food.x * 2, food.y * 2 + 1, true);
+			display.setPixel(food.x * 2 + 1, food.y * 2 + 1, true);
+			display.drawLine(GAME_FIELD_X_MIN * 2 - 1, GAME_FIELD_Y_MIN * 2, GAME_FIELD_X_MIN * 2 - 1, GAME_FIELD_Y_MAX * 2 - 1);
+			display.drawLine(GAME_FIELD_X_MAX * 2, GAME_FIELD_Y_MIN * 2, GAME_FIELD_X_MAX * 2, GAME_FIELD_Y_MAX * 2 - 1);
+			
+			display.drawString(GAME_FIELD_X_MAX * 2 + 2, 1, "Score");
+			char buf[10];
+			util::ltoa(score, buf);
+			display.drawString(GAME_FIELD_X_MAX * 2 + 2, 12, buf);
+
+			if(gameState.paused) {
+				display.drawString(45, 25, "Paused", lcd::DrawBuf::FLAG_INVERTED);
 			}
+
+			display.updateDrawing();
 		}
-		display.clearDrawingBuffer();
-		drawSnake(display, head);
-		display.setPixel(food.x * 2, food.y * 2, true);
-		display.setPixel(food.x * 2 + 1, food.y * 2, true);
-		display.setPixel(food.x * 2, food.y * 2 + 1, true);
-		display.setPixel(food.x * 2 + 1, food.y * 2 + 1, true);
-		display.drawLine(GAME_FIELD_X_MIN * 2 - 1, GAME_FIELD_Y_MIN * 2, GAME_FIELD_X_MIN * 2 - 1, GAME_FIELD_Y_MAX * 2 - 1);
-		display.drawLine(GAME_FIELD_X_MAX * 2, GAME_FIELD_Y_MIN * 2, GAME_FIELD_X_MAX * 2, GAME_FIELD_Y_MAX * 2 - 1);
-		
-		display.drawString(GAME_FIELD_X_MAX * 2 + 2, 1, "Score");
-		char buf[10];
-		util::ltoa(gameScore, buf);
-		display.drawString(GAME_FIELD_X_MAX * 2 + 2, 12, buf);
-
-		if(gamePaused) {
-			display.drawString(45, 25, "Paused", lcd::DrawBuf::FLAG_INVERTED);
+		else {
+			display.clearDrawingBuffer();
+			display.drawString(lcd::SIZE_WIDTH / 2, 15, "Game Over", lcd::DrawBuf::FLAG_HALIGN_CENTER | lcd::DrawBuf::FLAG_INVERTED);
+            display.drawString(lcd::SIZE_WIDTH / 2, 40, "Score:", lcd::DrawBuf::FLAG_HALIGN_CENTER);
+            char buf[20];
+            util::ltoa(score, buf);
+            display.drawString(lcd::SIZE_WIDTH / 2, 50, buf, lcd::DrawBuf::FLAG_HALIGN_CENTER);
+			display.updateDrawing();
 		}
-
-		display.updateDrawing();
 	}
 
 	void handleKeyPress(uint16_t key) {
-		switch(key) {
-		case KEY_LEFT:
-			if(direction != SnakeDirection::RIGHT) {
-				direction = SnakeDirection::LEFT;
+		if(gameState.gameOver) {
+			if(key == KEY_CENTER) {
+				startGame();
 			}
-			break;
-		case KEY_RIGHT:
-			if(direction != SnakeDirection::LEFT) {
-				direction = SnakeDirection::RIGHT;
+		}
+		else {
+			switch(key) {
+			case KEY_LEFT:
+				if(direction != SnakeDirection::RIGHT) {
+					direction = SnakeDirection::LEFT;
+				}
+				break;
+			case KEY_RIGHT:
+				if(direction != SnakeDirection::LEFT) {
+					direction = SnakeDirection::RIGHT;
+				}
+				break;
+			case KEY_UP:
+				if(direction != SnakeDirection::DOWN) {
+					direction = SnakeDirection::UP;
+				}
+				break;
+			case KEY_DOWN:
+				if(direction != SnakeDirection::UP) {
+					direction = SnakeDirection::DOWN;
+				}
+				break;
+			case KEY_LCP:
+				gameState.paused = !gameState.paused;
+				break;
+			default:
+				break;
 			}
-			break;
-		case KEY_UP:
-			if(direction != SnakeDirection::DOWN) {
-				direction = SnakeDirection::UP;
-			}
-			break;
-		case KEY_DOWN:
-			if(direction != SnakeDirection::UP) {
-				direction = SnakeDirection::DOWN;
-			}
-			break;
-		case KEY_LCP:
-			gamePaused = !gamePaused;
-			break;
-		default:
-			break;
 		}
 	}
 }

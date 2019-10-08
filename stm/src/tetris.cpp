@@ -391,8 +391,10 @@ namespace tetris {
 
     void handleKeyPress(uint16_t key, lcd::LCD12864 &display) {
         __NO_INTERRUPT_BEGIN
-            if(gameState.gameOver && key == KEY_CENTER) {
-                startGame();
+            if(gameState.gameOver) {
+                if(key == KEY_CENTER) {
+                    startGame();
+                }
             }
             else {
                 switch(key) {
