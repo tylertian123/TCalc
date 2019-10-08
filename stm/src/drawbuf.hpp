@@ -28,13 +28,23 @@ namespace lcd {
         static constexpr Charset CHARSET_SMALL = &getSmallChar;
 
         // Passed into drawString
+        /*
+         *   7         6         5           4          3           2           1         0
+         * unused    unused    unused    v bottom    v center    h right    h center    invert 
+         */
         typedef int Flags;
-        static constexpr Flags FLAG_NONE = 0x00;
-        static constexpr Flags FLAG_NORMAL = 0x00;
-        static constexpr Flags FLAG_INVERTED = 0x01;
-        static constexpr Flags FLAG_HALIGN_LEFT = 0x00;
-        static constexpr Flags FLAG_HALIGN_CENTER = 0x02;
-        static constexpr Flags FLAG_HALIGN_RIGHT = 0x04;
+        static constexpr Flags FLAG_NONE = 0b0000'0000;
+
+        static constexpr Flags FLAG_NORMAL = 0b0000'0000;
+        static constexpr Flags FLAG_INVERTED = 0b0000'0001;
+
+        static constexpr Flags FLAG_HALIGN_LEFT = 0b0000'0000;
+        static constexpr Flags FLAG_HALIGN_CENTER = 0b0000'0010;
+        static constexpr Flags FLAG_HALIGN_RIGHT = 0b0000'0100;
+
+        static constexpr Flags FLAG_VALIGN_TOP = 0b0000'0000;
+        static constexpr Flags FLAG_VALIGN_CENTER = 0b0000'1000;
+        static constexpr Flags FLAG_VALIGN_BOTTOM = 0b0001'0000;
 
         // Clears the contents; sets every pixel to 0.
         void clear();

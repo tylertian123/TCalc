@@ -225,12 +225,18 @@ namespace lcd {
 		// Subtract away one extra spacing
 		--width;
 		
-		// Check horizontal align flags
+		// Check align flags
 		if(flags & FLAG_HALIGN_CENTER) {
 			x -= width / 2;
 		}
 		else if(flags & FLAG_HALIGN_RIGHT) {
 			x -= width;
+		}
+		if(flags & FLAG_VALIGN_CENTER) {
+			y -= height / 2;
+		}
+		else if(flags & FLAG_VALIGN_BOTTOM) {
+			y -= height;
 		}
 
 		// Check invert flag

@@ -375,7 +375,8 @@ namespace tetris {
             drawGame(display);
 
             if(gameState.paused) {
-                display.drawString(lcd::SIZE_WIDTH / 2, lcd::SIZE_HEIGHT / 2, "Paused", lcd::DrawBuf::FLAG_HALIGN_CENTER | lcd::DrawBuf::FLAG_INVERTED);
+                display.drawString(lcd::SIZE_WIDTH / 2, lcd::SIZE_HEIGHT / 2, "Paused", 
+                        lcd::DrawBuf::FLAG_HALIGN_CENTER | lcd::DrawBuf::FLAG_VALIGN_CENTER | lcd::DrawBuf::FLAG_INVERTED);
             }
         }
         else {
@@ -461,7 +462,8 @@ namespace tetris {
                 display.clearDrawingBuffer();
                 drawGame(display);
                 if(gameState.paused) {
-                    display.drawString(lcd::SIZE_WIDTH / 2, lcd::SIZE_HEIGHT / 2, "Paused", lcd::DrawBuf::FLAG_HALIGN_CENTER | lcd::DrawBuf::FLAG_INVERTED);
+                    display.drawString(lcd::SIZE_WIDTH / 2, lcd::SIZE_HEIGHT / 2, "Paused", 
+                        lcd::DrawBuf::FLAG_HALIGN_CENTER | lcd::DrawBuf::FLAG_VALIGN_CENTER | lcd::DrawBuf::FLAG_INVERTED);
                 }
                 display.updateDrawing();
             }
