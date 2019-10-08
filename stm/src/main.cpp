@@ -17,6 +17,7 @@
 #include "util.hpp"
 #include "ntoa.hpp"
 #include "snake.hpp"
+#include "tetris.hpp"
 #include "exprentry.hpp"
 #include <stdlib.h>
 
@@ -135,6 +136,7 @@ uint16_t fetchKey() {
 enum class DispMode {
 	NORMAL,
 	GAME_SNAKE,
+    GAME_TETRIS,
 };
 DispMode dispMode = DispMode::NORMAL;
 
@@ -184,6 +186,9 @@ extern "C" void TIM3_IRQHandler() {
 		else if(dispMode == DispMode::GAME_SNAKE) {
 			snake::processGame(display);
 		}
+        else if(dispMode == DispMode::GAME_TETRIS) {
+            tetris::processGame(display);
+        }
 	}
 }
 
@@ -696,24 +701,33 @@ int main() {
         receiveKey(receiver);
     }
 
-	if(fetchKey() == KEY_LCT) {
+    uint16_t key = KEY_NULL;
+    
+	if((key = fetchKey()) == KEY_LCS) {
 		dispMode = DispMode::GAME_SNAKE;
 		snake::startGame();
+
+        initCursorTimer(1000);
 	}
+    else if(key == KEY_LCT) {
+        dispMode = DispMode::GAME_TETRIS;
+        tetris::startGame();
+
+        initCursorTimer(1500);
+    }
 
 	// Start blink
-	initCursorTimer(dispMode == DispMode::GAME_SNAKE ? 1000 : 2000);
 
     display.clearDrawingBuffer();
     if(dispMode == DispMode::NORMAL) {
+	    initCursorTimer(2000);
         mainExprEntry.adjustExpr();
         mainExprEntry.cursor->expr->drawConnected(display);
         mainExprEntry.cursor->draw(display);
         display.updateDrawing();
     }
 
-	uint16_t key = KEY_NULL;
-	
+
 	while(true) {
 		if((key = fetchKey()) != KEY_NULL) {
 			switch(dispMode) {
@@ -722,6 +736,9 @@ int main() {
                 break;
             case DispMode::GAME_SNAKE:
                 snake::handleKeyPress(key);
+                break;
+            case DispMode::GAME_TETRIS:
+                tetris::handleKeyPress(key, display);
                 break;
             }
 		}

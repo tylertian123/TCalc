@@ -62,6 +62,24 @@ namespace util {
         t1 = t2;
         t2 = tmp;
     }
+    template <typename T, typename U>
+    T signedLeftShift(T t, U u) {
+        if(u >= 0) {
+            return t << u;
+        }
+        else {
+            return t >> -u;
+        }
+    }
+    template <typename T, typename U>
+    T signedRightShift(T t, U u) {
+        if(u >= 0) {
+            return t >> u;
+        }
+        else {
+            return t << -u;
+        }
+    }
 
     inline double round(double d, int16_t decimals) {
         double p = pow(10.0, decimals);
