@@ -1,9 +1,6 @@
 /*
  * Simple Bi-Directional Interface AKA I2C But Not I2C or I2C2BN
  *
- * WARNING:
- * There can only exist one instance of sbdi::Receiver at once.
- * sbdi::Receiver can only receive 32 bits of data at a time.
  */
 
 #ifndef __SBDI_H__
@@ -20,15 +17,13 @@ namespace sbdi {
 		
 		void init();
 
-        bool receivePending = false;
 		uint32_t buffer = 0;
 
         void receive();
-		
-		friend void Receiver_EN_Callback();
+		bool receivePending();
 	
 	protected:
-		EXTIPin EN;
+		GPIOPin EN;
 		GPIOPin DATA;
 		GPIOPin CLK;
 	};

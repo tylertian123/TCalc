@@ -6,34 +6,23 @@
 
 namespace sbdi {
 	
-	// Because of how callbacks work, unfortunately Receiver has to be a singleton
-	Receiver *receiverInstance;
-	
-	void Receiver_EN_Callback();
 	void Receiver::init() {
-		EN.init(GPIO_Speed_10MHz, EXTI_Trigger_Rising_Falling, 0x00, 0x01);
+		EN.init(GPIO_Mode_IN_FLOATING, GPIO_Speed_10MHz);
 		DATA.init(GPIO_Mode_IN_FLOATING, GPIO_Speed_10MHz);
 		CLK.init(GPIO_Mode_Out_PP, GPIO_Speed_10MHz);
         // Clock is always high
         CLK.set(1);
-		receiverInstance = this;
-		
-		EN.setCallback(Receiver_EN_Callback);
 	}
 
-    void Receiver_EN_Callback() {
-        // Falling edge - Transmission started
-        if(!receiverInstance->EN) {
-            receiverInstance->receivePending = true;
-        }
+    bool Receiver::receivePending() {
+        return !EN;
     }
 
     void Receiver::receive() {
-        // Verify and clear receive pending flag
-        if(!receivePending) {
+        // If the enable line is high then skip this
+        if(EN) {
             return;
         }
-        receivePending = false;
 
         bool transmissionFailed = false;
         bool parity = 0;

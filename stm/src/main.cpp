@@ -672,6 +672,8 @@ int main() {
 	// Set up SBDI receiver
 	sbdi::Receiver receiver(SBDI_EN, SBDI_DATA, SBDI_CLK);
 	receiver.init();
+    // Receive once to clear any pending receives
+    receiver.receive();
 
 	// Initialize display
 	display.init();
@@ -697,7 +699,7 @@ int main() {
 	// Title screen delay
 	delay::ms(1500);
 
-    if(receiver.receivePending) {
+    if(receiver.receivePending()) {
         receiveKey(receiver);
     }
 
@@ -742,7 +744,7 @@ int main() {
                 break;
             }
 		}
-        else if(receiver.receivePending) {
+        else if(receiver.receivePending()) {
             receiveKey(receiver);
         }
 	}
