@@ -14,7 +14,8 @@ num_range_low = 0
 num_range_high = 0x10000
 num_length = 6
 num_padding_length = 10
-key_prefix = "KEY_"
+key_prefix = ""
+key_postfix = ""
 
 def parse_int(n):
     if n.startswith('0x') or n.startswith('0X'):
@@ -69,6 +70,9 @@ for key in keys:
     elif key.startswith('EK_KEY_PREFIX'):
         key_prefix = key.split()[1]
         continue
+    elif key.startswith('EK_KEY_POSTFIX'):
+        key_postfix = key.split()[1]
+        continue
 
     eq = key.find('=')
     key = key.upper()
@@ -95,7 +99,7 @@ for key in keys:
 
     name = key if eq == -1 else key.split('=')[0]
     
-    print(f"#define {key_prefix}{name}{' ' * (num_padding_length - len(name))}0x{'0' * (num_length - len(hex(num)))}{hex(num).upper()[2:]}")
+    print(f"#define {key_prefix}{name}{' ' * (num_padding_length - len(name))}0x{'0' * (num_length - len(hex(num)))}{hex(num).upper()[2:]}{key_postfix}")
 
 if include_guard != None:
     print()
