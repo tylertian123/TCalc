@@ -7,13 +7,11 @@
 #define __SBDI_H__
 #include "stm32f10x.h"
 #include "gpiopin.hpp"
-#include "extipin.hpp"
 
 namespace sbdi {
-	class Receiver {
+	class SBDI {
 	public:
-		typedef void (*Callback)(uint32_t);
-		Receiver(GPIOPin EN, GPIOPin DATA, GPIOPin CLK) : EN(EN), DATA(DATA), CLK(CLK) {}
+		SBDI(GPIOPin EN, GPIOPin DATA, GPIOPin CLK) : EN(EN), DATA(DATA), CLK(CLK) {}
 		
 		void init();
 
@@ -22,6 +20,12 @@ namespace sbdi {
         void receive();
 		bool receivePending();
 	
+		void send();
+
+		void beginSend();
+		void sendByte(uint8_t data);
+		void endSend();
+
 	protected:
 		GPIOPin EN;
 		GPIOPin DATA;

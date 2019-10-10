@@ -6,7 +6,7 @@
 
 namespace sbdi {
 	
-	void Receiver::init() {
+	void SBDI::init() {
 		EN.init(GPIO_Mode_IN_FLOATING, GPIO_Speed_10MHz);
 		DATA.init(GPIO_Mode_IN_FLOATING, GPIO_Speed_10MHz);
 		CLK.init(GPIO_Mode_Out_PP, GPIO_Speed_10MHz);
@@ -14,11 +14,11 @@ namespace sbdi {
         CLK.set(1);
 	}
 
-    bool Receiver::receivePending() {
+    bool SBDI::receivePending() {
         return !EN;
     }
 
-    void Receiver::receive() {
+    void SBDI::receive() {
         // If the enable line is high then skip this
         if(EN) {
             return;
@@ -64,5 +64,44 @@ namespace sbdi {
                 }
             }
         )
+    }
+
+    void SBDI::beginSend() {
+        EN.init(GPIO_Mode_Out_PP, GPIO_Speed_10MHz);
+        DATA.init(GPIO_Mode_Out_PP, GPIO_Speed_10MHz);
+        CLK.init(GPIO_Mode_IN_FLOATING, GPIO_Speed_10MHz);
+
+        EN = 0;
+        DATA = 1;
+    }
+
+    void SBDI::sendByte(uint8_t data) {
+        uint8_t mask = 0x80;
+        // Use even parity
+        bool parity = 0;
+        do {
+            // Clock is active low
+            // Wait until clock is low
+            while(CLK);
+            DATA = data & mask;
+            // Wait until clock is high again
+            while(!CLK);
+            parity ^= static_cast<bool>(data & mask);
+        } while(mask >>= 1);
+        // Send parity bit
+        while(CLK);
+        DATA = parity;
+        while(!CLK);
+    }
+
+    void SBDI::endSend() {
+        EN = 1;
+        DATA = 1;
+
+        EN.init(GPIO_Mode_IN_FLOATING, GPIO_Speed_10MHz);
+		DATA.init(GPIO_Mode_IN_FLOATING, GPIO_Speed_10MHz);
+		CLK.init(GPIO_Mode_Out_PP, GPIO_Speed_10MHz);
+        // Clock is always high
+        CLK.set(1);
     }
 }

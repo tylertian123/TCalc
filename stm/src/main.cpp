@@ -573,25 +573,25 @@ void evaluateExpr(neda::Container *expr) {
     currentExpr = 0;
 }
 
-void receiveKey(sbdi::Receiver &receiver) {
-    receiver.receive();
+void receiveKey(sbdi::SBDI &keyboard) {
+    keyboard.receive();
     // Store keystroke into buffer
-    if(receiver.buffer == KEY_SHIFTON) {
+    if(keyboard.buffer == KEY_SHIFTON) {
         shiftLED = true;
     }
-    else if(receiver.buffer == KEY_SHIFTOFF) {
+    else if(keyboard.buffer == KEY_SHIFTOFF) {
         shiftLED = false;
     }
-    else if(receiver.buffer == KEY_CTRLON) {
+    else if(keyboard.buffer == KEY_CTRLON) {
         ctrlLED = true;
     }
-    else if(receiver.buffer == KEY_CTRLOFF) {
+    else if(keyboard.buffer == KEY_CTRLOFF) {
         ctrlLED = false;
     }
     else {
-        putKey(receiver.buffer);
+        putKey(keyboard.buffer);
     }
-    receiver.buffer = 0;
+    keyboard.buffer = 0;
     statusLED = !statusLED;
 }
 
@@ -669,11 +669,11 @@ int main() {
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
 	GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable, ENABLE);
 
-	// Set up SBDI receiver
-	sbdi::Receiver receiver(SBDI_EN, SBDI_DATA, SBDI_CLK);
-	receiver.init();
+	// Set up SBDI
+	sbdi::SBDI keyboard(SBDI_EN, SBDI_DATA, SBDI_CLK);
+	keyboard.init();
     // Receive once to clear any pending receives
-    receiver.receive();
+    keyboard.receive();
 
 	// Initialize display
 	display.init();
@@ -699,8 +699,8 @@ int main() {
 	// Title screen delay
 	delay::ms(1500);
 
-    if(receiver.receivePending()) {
-        receiveKey(receiver);
+    if(keyboard.receivePending()) {
+        receiveKey(keyboard);
     }
 
     uint16_t key = KEY_NULL;
@@ -744,8 +744,8 @@ int main() {
                 break;
             }
 		}
-        else if(receiver.receivePending()) {
-            receiveKey(receiver);
+        else if(keyboard.receivePending()) {
+            receiveKey(keyboard);
         }
 	}
 }

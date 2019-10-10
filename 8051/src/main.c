@@ -13,7 +13,7 @@ SBIT(STATUS, 0x93);
 //Configs
 #define MIN_THRESH 192
 #define MAX_THRESH 832
-#define REPEAT_KEY_DELAY 75
+unsigned short REPEAT_KEY_DELAY = 75;
 #define HOLD_COUNTER_MAX 80
 
 void delay (unsigned int a){
