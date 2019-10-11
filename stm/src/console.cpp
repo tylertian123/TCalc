@@ -1,11 +1,12 @@
+#include <string.h>
+#include <malloc.h>
+#include <stdio.h>
 #include "console.hpp"
 #ifndef USART_RECEIVE_METHOD_INTERRUPT
     #define USART_RECEIVE_METHOD_INTERRUPT
 #endif
 #include "usart.hpp"
-#include "heapstats.hpp"
 #include "util.hpp"
-#include <string.h>
 
 namespace console {
 
@@ -31,7 +32,8 @@ namespace console {
 
     void init() {
         usart::setInterruptCallback(&usartInterruptCallback);
-        usart::printf(">>> ");
+        printf(">>> ");
+        fflush(stdout);
     }
 
     extern "C" void *__stack_limit;
@@ -39,22 +41,22 @@ namespace console {
         char *cmd = strtok(recvBuf, " ");
 
         if(strcmp(cmd, "heapstats") == 0) {
-            hs::printStats();
+            malloc_stats();
         }
         else if(strcmp(cmd, "reset") == 0) {
-            usart::printf("Goodbye.\n");
+            printf("Goodbye.\n");
             NVIC_SystemReset();
         }
         else if(strcmp(cmd, "stackinfo") == 0) {
-            usart::printf("Stack Start Address: %#010x\n", *reinterpret_cast<uint32_t*>(0x00000000));
-            usart::printf("Stack End Address: %#010x\n", reinterpret_cast<uint32_t>(&__stack_limit));
-            usart::printf("Stack Size: %#010x\n", *reinterpret_cast<uint32_t*>(0x00000000) - reinterpret_cast<uint32_t>(&__stack_limit));
-            usart::printf("Current Stack Pointer: %#010x\n", __current_sp());
+            printf("Stack Start Address: %#010lx\n", *reinterpret_cast<uint32_t*>(0x00000000));
+            printf("Stack End Address: %#010lx\n", reinterpret_cast<uint32_t>(&__stack_limit));
+            printf("Stack Size: %#010lx\n", *reinterpret_cast<uint32_t*>(0x00000000) - reinterpret_cast<uint32_t>(&__stack_limit));
+            printf("Current Stack Pointer: %#010lx\n", __current_sp());
         }
         else if(strcmp(cmd, "blink") == 0) {
             cmd = strtok(NULL, " ");
             if(!cmd) {
-                usart::printf("Usage: blink [on|off]\n");
+                printf("Usage: blink [on|off]\n");
             }
             else {
                 if(strcmp(cmd, "on") == 0) {
@@ -64,14 +66,14 @@ namespace console {
                     TIM_Cmd(TIM3, DISABLE);
                 }
                 else {
-                    usart::printf("Usage: blink [on|off]\n");
+                    printf("Usage: blink [on|off]\n");
                 }
             }
         }
         else if(strcmp(cmd, "input") == 0) {
             cmd = strtok(NULL, " ");
             if(!cmd) {
-                usart::printf("Usage: input [on|off]\n");
+                printf("Usage: input [on|off]\n");
             }
             else {
                 EXTI_InitTypeDef initStruct;
@@ -87,15 +89,16 @@ namespace console {
                     EXTI_Init(&initStruct);
                 }
                 else {
-                    usart::printf("Usage: input [on|off]\n");
+                    printf("Usage: input [on|off]\n");
                 }
             }
         }
         else {
-            usart::printf("Unrecognized command: %s\n", cmd);
+            printf("Unrecognized command: %s\n", cmd);
         }
 
         recvBufIndex = 0;
-        usart::printf("\n>>> ");
+        printf("\n>>> ");
+        fflush(stdout);
     }
 }

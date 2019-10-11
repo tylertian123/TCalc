@@ -1,3 +1,5 @@
+#include <stdlib.h>
+#include <stdio.h>
 #include "stm32f10x.h"
 #include "sys.hpp"
 #include "delay.hpp"
@@ -19,7 +21,6 @@
 #include "snake.hpp"
 #include "tetris.hpp"
 #include "exprentry.hpp"
-#include <stdlib.h>
 
 #define VERSION_STR "V1.4.2"
 
@@ -90,15 +91,6 @@ extern "C" {
         }
     }
 
-	// Redefine _fini to allow loading of library
-	void _fini() {
-		// According to specifications this function should never return
-        displayErrorMessage("_fini called");
-	}
-
-	void __io_putchar(char c) {
-	}
-
     void HardFault_Handler() {
         displayErrorMessage("HardFault");
     }
@@ -106,6 +98,12 @@ extern "C" {
     void UsageFault_Handler() {
         displayErrorMessage("UsageFault");
     }
+    
+	// Redefine _fini to allow loading of library
+	void _fini() {
+		// According to specifications this function should never return
+        displayErrorMessage("_fini called");
+	}
 }
 
 /********** Keyboard stuff **********/
@@ -652,11 +650,11 @@ int main() {
 	sys::initRCC();
 	sys::initNVIC();
 	usart::init(115200);
-    usart::println("******** Welcome to TCalc " VERSION_STR " ********");
-    usart::println("Git Commit Hash: " STRINGIFY(_GIT_REV));
-    usart::println("Built On: " STRINGIFY(_BUILD_TIME));
-    usart::println("System Core initialization complete.");
-    usart::println("Initializing Peripherals...");
+    printf("******** Welcome to TCalc " VERSION_STR " ********\n");
+    printf("Git Commit Hash: " STRINGIFY(_GIT_REV) "\n");
+    printf("Built On: " STRINGIFY(_BUILD_TIME) "\n");
+    printf("System Core initialization complete.\n");
+    printf("Initializing Peripherals...\n");
 	// Init LEDs
 	statusLED.init(GPIO_Mode_Out_PP, GPIO_Speed_2MHz);
 	shiftLED.init(GPIO_Mode_Out_PP, GPIO_Speed_2MHz);
@@ -681,13 +679,15 @@ int main() {
 	display.startDraw();
 	display.clearDrawing();
 
-    usart::println("Generating random seed...");
+    printf("Generating random seed...\n");
+    int randomSeed = getRandomSeed();
     srand(getRandomSeed());
+    printf("Random seed: %d\n", randomSeed);
 #ifdef _USE_CONSOLE
-    usart::println("Initializing Console...");
+    printf("Initializing Console...\n");
     console::init();
 #else
-    usart::println("This version of TCalc was compiled without the USART console.");
+    printf("This version of TCalc was compiled without the USART console.\n");
 #endif
 
 	display.drawString(lcd::SIZE_WIDTH / 2, 25, "TCalc " VERSION_STR, lcd::DrawBuf::FLAG_INVERTED | lcd::DrawBuf::FLAG_HALIGN_CENTER);
