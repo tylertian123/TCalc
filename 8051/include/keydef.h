@@ -136,4 +136,7 @@
 
 #define KEY_DUMMY       0xFFFF
 
+#define KEY_ADCX_MASK   0x1000
+#define KEY_ADCY_MASK   0x2000
+
 #endif

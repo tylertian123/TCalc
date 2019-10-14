@@ -1,7 +1,9 @@
 #include <stc/STC12C5630AD.h>
+#include <stdint.h>
 #include "sbdi.h"
 #include "adc.h"
 #include "keydef.h"
+#include "keymsg.h"
 #include "bmat.h"
 
 SBIT(BUTTON, 0x90);
@@ -10,11 +12,13 @@ SBIT(STATUS, 0x93);
 #define CHANNEL_X_AXIS 1
 #define CHANNEL_Y_AXIS 2
 
-//Configs
+// Configs
 #define MIN_THRESH 192
 #define MAX_THRESH 832
-unsigned short REPEAT_KEY_DELAY = 75;
-#define HOLD_COUNTER_MAX 80
+#define DEFAULT_REPEAT_KEY_DELAY 75
+#define DEFAULT_HOLD_COUNTER_MAX 80
+uint16_t REPEAT_KEY_DELAY = 75;
+uint16_t HOLD_COUNTER_MAX = 80;
 
 void delay (unsigned int a){
 	unsigned int i;
@@ -114,6 +118,7 @@ void checkAndSend(unsigned char row) {
 void main(void) {
 	unsigned short result = 0;
 	unsigned char holdCounter = 0;
+	uint16_t param;
 
 	// Set input pins to high impedance mode
 	P1M0 |= 0x06; // 0000 0110
@@ -130,6 +135,25 @@ void main(void) {
 	resetRows();
 	resetCols();
 	while(1) {
+		if(SBDI_ReceivePending()) {
+			SBDI_Receive();
+			param = SBDI_ReceiveBuffer & 0x0000FFFF;
+		}
+		switch(SBDI_ReceiveBuffer & 0xFFFF0000) {
+		case KEYMSG_RESET:
+			HOLD_COUNTER_MAX = DEFAULT_HOLD_COUNTER_MAX;
+			REPEAT_KEY_DELAY = DEFAULT_REPEAT_KEY_DELAY;
+			break;
+		case KEYMSG_SET_HOLD_KEY_DURATION:
+			HOLD_COUNTER_MAX = param;
+			break;
+		case KEYMSG_SET_KEY_REPEAT_DELAY:
+			REPEAT_KEY_DELAY = param;
+			break;
+		default:
+			break;
+		}
+
 		// Check for left and right
 		result = ADC_SyncConv(CHANNEL_X_AXIS);
 		// Check if the value is below the min threshold, and that the last time we checked it was above

@@ -13,3 +13,5 @@ reset
 
 set_key_repeat_delay
 set_hold_key_duration
+
+set_mode
