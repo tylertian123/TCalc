@@ -84,6 +84,7 @@ extern "C" {
 	USART_IRQHANDLER {
 		if(USART_GetFlagStatus(USART_USED, USART_FLAG_RXNE) == SET) {
 			uint16_t data = USART_ReceiveData(USART_USED);
+			USART_ClearFlag(USART_USED, USART_FLAG_RXNE);
 			
 			if(usart::interruptCallback) {
 				usart::interruptCallback(data);
