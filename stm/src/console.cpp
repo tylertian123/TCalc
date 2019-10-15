@@ -27,6 +27,11 @@ namespace console {
             recvBuf[recvBufIndex] = '\0';
             processMessage();
         }
+
+        if(recvBufIndex >= CONSOLE_RECEIVE_BUFFER_SIZE) {
+            // If message too long then loop around to prevent crash
+            recvBufIndex = 0;
+        }
     }
 
     void init() {
