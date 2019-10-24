@@ -735,7 +735,7 @@ namespace eval {
 	/******************** Function ********************/
 	// Must be in the same order as type
 	const char * const Function::FUNCNAMES[TYPE_COUNT] = {
-		"sin", "cos", "tan", "asin", "acos", "atan", "sinh", "cosh", "tanh", "asinh",
+		"sin", "cos", "tan", "asin", "acos", "atan", "atan2", "sinh", "cosh", "tanh", "asinh",
         "acosh", "atanh", "ln", 
 		// log10 and log2 cannot be directly entered with a string
 		"\xff", "\xff",
@@ -744,7 +744,7 @@ namespace eval {
         "rref", "mean", "rand"
 	};
     const char * const Function::FUNC_FULLNAMES[TYPE_COUNT_DISPLAYABLE] = {
-        "sin(angle)", "cos(angle)", "tan(angle)", "asin(x)", "acos(x)", "atan(x)", 
+        "sin(angle)", "cos(angle)", "tan(angle)", "asin(x)", "acos(x)", "atan(x)", "atan2(y,x)",
         "sinh(angle)", "cosh(angle)", "tanh(angle)", "asinh(x)", "acosh(x)", "atanh(x)",
         "ln(x)", "qdRts(a,b,c)", "round(n,decimals)", "min(values...)", "max(values...)", "floor(x)",
         "ceil(x)", "det(A)", "linSolve(A)", "leastSquares(A, b)", "rref(A)", "mean(values...)", "rand()",
@@ -763,6 +763,7 @@ namespace eval {
 			return 3;
 		case Type::ROUND:
         case Type::LEASTSQUARES:
+        case Type::ATAN2:
 			return 2;
         case Type::RAND:
             return 0;
@@ -808,6 +809,10 @@ namespace eval {
 		{
 			return new Numerical(TRIG_FUNC_OUTPUT(atan(extractDouble(args[0]))));
 		}
+        case Type::ATAN2:
+        {
+            return new Numerical(TRIG_FUNC_OUTPUT(atan2(extractDouble(args[0]), extractDouble(args[1]))));
+        }
 		case Type::LN:
 		{
 			return new Numerical(log(extractDouble(args[0])));
