@@ -200,6 +200,8 @@ namespace tetris {
 
     constexpr uint8_t NUMBER_OF_TETROMINOES = sizeof(TETROMINOES) / sizeof(Tetromino);
 
+    constexpr uint8_t BLOCK_NULL = 0b111;
+
     uint16_t gameField[FIELD_HEIGHT_BLOCKS] = { 0 };
 
     uint32_t score = 0;
@@ -211,10 +213,9 @@ namespace tetris {
 
     uint8_t nextBlock = 0;
 
-    struct GameState {
-        bool paused : 1;
-        bool gameOver : 1;
-    } gameState;
+    uint8_t usedBlocks = 0x00;
+
+    GameState gameState;
 
     void drawBlock(int16_t x, int16_t y, lcd::LCD12864 &display) {
         display.setPixel(x, y);
@@ -269,7 +270,16 @@ namespace tetris {
 
     void newTetromino() {
         currentBlock = nextBlock;
-        nextBlock = rand() % NUMBER_OF_TETROMINOES;
+
+        do {
+            nextBlock = rand() % NUMBER_OF_TETROMINOES;
+        } while(usedBlocks & (0x80 >> nextBlock));
+        usedBlocks |= 0x80 >> nextBlock;
+        if(usedBlocks == 0b1111'1110) {
+            usedBlocks = 0x00;
+        }
+
+        gameState.holdUsed = false;
 
         currentRotation = 0;
         blockX = TETROMINOES[currentBlock].startX;
@@ -315,6 +325,16 @@ namespace tetris {
 
         display.drawString(FIELD_X + FIELD_WIDTH_PIXELS + 3, 31, "Next:");
         drawTetromino(FIELD_X + FIELD_WIDTH_PIXELS + 13, 45, nextBlock, 0, display);
+
+        if(gameState.holdEnabled) {
+            display.drawString(3, 1, "Hold:");
+            if(gameState.holdBlock == BLOCK_NULL) {
+                display.drawString(13, 11, "None");
+            }
+            else {
+                drawTetromino(13, 15, gameState.holdBlock, 0, display);
+            }
+        }
     }
 
     const uint16_t SCORE_ADDITIONS[] = {
@@ -347,6 +367,8 @@ namespace tetris {
         memset(gameField, 0, sizeof(gameField));
         gameState.paused = false;
         gameState.gameOver = false;
+        gameState.holdUsed = false;
+        gameState.holdBlock = BLOCK_NULL;
         // Call this twice to fill both the current and the next one
         newTetromino();
         newTetromino();
@@ -445,7 +467,6 @@ namespace tetris {
                             // Just OR the tetromino data with the field
                             gameField[blockY + i] |= util::signedLeftShift<uint16_t, int>(TETROMINOES[currentBlock].rotations[currentRotation][i], 8 - blockX);
                         }
-                        // TODO: Scoring
                         lineClearCheck();
                         newTetromino();
                         break;
@@ -454,6 +475,40 @@ namespace tetris {
                 case KEY_LCP:
                 {
                     gameState.paused = !gameState.paused;
+                    break;
+                }
+                case KEY_CENTER:
+                case KEY_LCQ:
+                {
+                    if(!gameState.holdEnabled) {
+                        break;
+                    }
+                    // If no block was in the hold space
+                    if(gameState.holdBlock == BLOCK_NULL) {
+                        // Put the current one in the hold space
+                        gameState.holdBlock = currentBlock;
+                        // Create a new one
+                        newTetromino();
+                    }
+                    // Otherwise if the hold was not swapped already
+                    else if(!gameState.holdUsed) {
+                        // Swap the hold and the current
+                        uint8_t temp = gameState.holdBlock;
+                        gameState.holdBlock = currentBlock;
+                        currentBlock = temp;
+
+                        // Restart it from the top
+                        currentRotation = 0;
+                        blockX = TETROMINOES[currentBlock].startX;
+                        blockY = TETROMINOES[currentBlock].startY - 1;
+
+                        // Check for game over
+                        if(collisionCheck(currentBlock, currentRotation, blockX, blockY)) {
+                            gameState.gameOver = true;
+                        }
+                    }
+                    gameState.holdUsed = true;
+                    break;
                 }
                 default:
                     break;

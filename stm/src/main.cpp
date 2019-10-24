@@ -711,8 +711,9 @@ int main() {
 
         initCursorTimer(1000);
 	}
-    else if(key == KEY_LCT) {
+    else if(key == KEY_LCT || key == KEY_LCY) {
         dispMode = DispMode::GAME_TETRIS;
+        tetris::gameState.holdEnabled = key == KEY_LCY;
         tetris::startGame();
 
         initCursorTimer(1500);
