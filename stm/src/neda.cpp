@@ -1279,7 +1279,7 @@ namespace neda {
 	}
 	void Matrix::left(Expr *ex, Cursor &cursor) {
 		// Find the index
-		uint8_t x, y;
+		uint8_t x = 0, y = 0;
 		for(x = 0; x < n; x ++) {
 			for(y = 0; y < m; y ++) {
 				if(ex == contents[index_0(x, y)]) {
@@ -1297,7 +1297,7 @@ loopEnd:
 	}
 	void Matrix::right(Expr *ex, Cursor &cursor) {
 		// Find the index
-		uint8_t x, y;
+		uint8_t x = 0, y = 0;
 		for(x = 0; x < n; x ++) {
 			for(y = 0; y < m; y ++) {
 				if(ex == contents[index_0(x, y)]) {
@@ -1315,7 +1315,7 @@ loopEnd:
 	}
 	void Matrix::up(Expr *ex, Cursor &cursor) {
 		// Find the index
-		uint8_t x, y;
+		uint8_t x = 0, y = 0;
 		for(x = 0; x < n; x ++) {
 			for(y = 0; y < m; y ++) {
 				if(ex == contents[index_0(x, y)]) {
@@ -1333,7 +1333,7 @@ loopEnd:
 	}
 	void Matrix::down(Expr *ex, Cursor &cursor) {
 		// Find the index
-		uint8_t x, y;
+		uint8_t x = 0, y = 0;
 		for(x = 0; x < n; x ++) {
 			for(y = 0; y < m; y ++) {
 				if(ex == contents[index_0(x, y)]) {
