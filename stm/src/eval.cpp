@@ -1069,13 +1069,13 @@ namespace eval {
                     int64_t i = frac.num / frac.denom;
                     frac.num = frac.num % frac.denom;
 
-                    util::ltoa(i, buf);
+                    util::dtoa(i, buf);
                     cont->addString(buf);
                 }
 
-                util::ltoa(frac.num, buf);
+                util::dtoa(frac.num, buf);
                 num->addString(buf);
-                util::ltoa(frac.denom, buf);
+                util::dtoa(frac.denom, buf);
                 denom->addString(buf);
 
                 cont->add(new neda::Fraction(num, denom));

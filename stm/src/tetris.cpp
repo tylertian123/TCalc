@@ -320,7 +320,7 @@ namespace tetris {
 
         display.drawString(FIELD_X + FIELD_WIDTH_PIXELS + 3, 1, "Score:");
         char buf[20];
-        util::ltoa(score, buf);
+        util::dtoa(score, buf);
         display.drawString(FIELD_X + FIELD_WIDTH_PIXELS + 33, 11, buf, lcd::DrawBuf::FLAG_HALIGN_RIGHT);
 
         display.drawString(FIELD_X + FIELD_WIDTH_PIXELS + 3, 31, "Next:");
@@ -405,7 +405,7 @@ namespace tetris {
             display.drawString(lcd::SIZE_WIDTH / 2, 15, "Game Over", lcd::DrawBuf::FLAG_HALIGN_CENTER | lcd::DrawBuf::FLAG_INVERTED);
             display.drawString(lcd::SIZE_WIDTH / 2, 40, "Score:", lcd::DrawBuf::FLAG_HALIGN_CENTER);
             char buf[20];
-            util::ltoa(score, buf);
+            util::dtoa(score, buf);
             display.drawString(lcd::SIZE_WIDTH / 2, 50, buf, lcd::DrawBuf::FLAG_HALIGN_CENTER);
         }
 

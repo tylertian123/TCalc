@@ -908,12 +908,12 @@ namespace expr {
 
         display.drawString(1, 11, "Result S.D.:");
         char buf[3];
-        util::ltoa(resultSignificantDigits, buf);
+        util::dtoa(resultSignificantDigits, buf);
         display.drawString(85, 11, buf, 
                 selectorIndex == 1 ? lcd::DrawBuf::FLAG_INVERTED : lcd::DrawBuf::FLAG_NONE);
 
         display.drawString(1, 21, "Graphing S.D.:");
-        util::ltoa(graphingSignificantDigits, buf);
+        util::dtoa(graphingSignificantDigits, buf);
         display.drawString(85, 21, buf, 
                 selectorIndex == 2 ? lcd::DrawBuf::FLAG_INVERTED : lcd::DrawBuf::FLAG_NONE);
 
@@ -987,11 +987,11 @@ namespace expr {
         display.drawString(1, 1, "Matrix Size:");
 
         char sizeBuf[8];
-        uint8_t len = util::ltoa(matRows, sizeBuf);
+        uint8_t len = util::dtoa(matRows, sizeBuf);
         display.drawString(48, 13, sizeBuf, 
                 selectorIndex == 0 ? lcd::DrawBuf::FLAG_INVERTED : lcd::DrawBuf::FLAG_NONE);
         display.drawString(48 + len * 6, 13, "x");
-        util::ltoa(matCols, sizeBuf);
+        util::dtoa(matCols, sizeBuf);
         display.drawString(54 + len * 6, 13, sizeBuf,
                 selectorIndex == 1 ? lcd::DrawBuf::FLAG_INVERTED : lcd::DrawBuf::FLAG_NONE);
 
@@ -1039,7 +1039,7 @@ namespace expr {
         display.drawString(1, 11, "Pieces:");
 
         char sizeBuf[4];
-        util::ltoa(piecewisePieces , sizeBuf);
+        util::dtoa(piecewisePieces , sizeBuf);
 
         display.drawString(lcd::SIZE_WIDTH / 2, 21, sizeBuf, lcd::DrawBuf::FLAG_INVERTED | lcd::DrawBuf::FLAG_HALIGN_CENTER);
         display.updateDrawing();

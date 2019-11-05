@@ -145,7 +145,7 @@ namespace pt {
         disp.drawString(x + 30, y + 8, elem->symbol, lcd::DrawBuf::FLAG_HALIGN_CENTER);
         disp.drawString(x + 30, y + 18, elem->name, lcd::DrawBuf::FLAG_HALIGN_CENTER, lcd::DrawBuf::CHARSET_SMALL);
         char buf[16];
-        util::ltoa(elem->protons, buf);
+        util::dtoa(elem->protons, buf);
         disp.drawString(x + 2, y + 2, buf, lcd::DrawBuf::FLAG_NONE, lcd::DrawBuf::CHARSET_SMALL);
         if(elem->valences[0] != '?' && elem->valences[0] != '\0') {
             disp.drawString(x + 60 - 2, y + 2, elem->valences, lcd::DrawBuf::FLAG_HALIGN_RIGHT, lcd::DrawBuf::CHARSET_SMALL);
@@ -205,11 +205,11 @@ namespace pt {
             disp.drawString(x, y + 10, buf);
             break;
         case 4:
-            util::ltoa(elem->protons, buf);
+            util::dtoa(elem->protons, buf);
             disp.drawString(x, y + 10, buf);
             break;
         case 5:
-            util::ltoa(elem->neutrons, buf);
+            util::dtoa(elem->neutrons, buf);
             disp.drawString(x, y + 10, buf);
             break;
         case 6:

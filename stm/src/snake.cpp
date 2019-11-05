@@ -196,7 +196,7 @@ namespace snake {
 			
 			display.drawString(GAME_FIELD_X_MAX * 2 + 2, 1, "Score");
 			char buf[10];
-			util::ltoa(score, buf);
+			util::dtoa(score, buf);
 			display.drawString(GAME_FIELD_X_MAX * 2 + 2, 12, buf);
 
 			if(gameState.paused) {
@@ -211,7 +211,7 @@ namespace snake {
 			display.drawString(lcd::SIZE_WIDTH / 2, 15, "Game Over", lcd::DrawBuf::FLAG_HALIGN_CENTER | lcd::DrawBuf::FLAG_INVERTED);
             display.drawString(lcd::SIZE_WIDTH / 2, 40, "Score:", lcd::DrawBuf::FLAG_HALIGN_CENTER);
             char buf[20];
-            util::ltoa(score, buf);
+            util::dtoa(score, buf);
             display.drawString(lcd::SIZE_WIDTH / 2, 50, buf, lcd::DrawBuf::FLAG_HALIGN_CENTER);
 			display.updateDrawing();
 		}
