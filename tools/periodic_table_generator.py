@@ -11,7 +11,6 @@ def print_element(element, table2):
     print("\t\t\t" + (str(element["melt"]) if element["melt"] != None else "NAN") + ",")
     print("\t\t\t" + (str(element["boil"]) if element["boil"] != None else "NAN") + ",")
     print(f"\t\t\t{str(element['density']) if element['density'] != None else 'NAN'},")
-    print("\t\t\t" + (str(element["electronegativity_pauling"]) if element["electronegativity_pauling"] != None else "NAN") + ",")
     print("\t\t\t" + (str(element["electron_affinity"]) if element["electron_affinity"] != None else "NAN") + ",")
     print("\t\t\t" + str(element["atomic_mass"]) + ",")
 
@@ -19,10 +18,8 @@ def print_element(element, table2):
     print(f"\t\t\t{round(element['atomic_mass']) - element['number']}" + ",")
 
     print("\t\t\t" + str(element["xpos"]) + ",")
-    if element["name"].__eq__("Oxygen"):
-        print("\t\t\tNONMETAL,")
-    else:
-        print("\t\t\t" + str(categories.get(element["category"], "UNKNOWN")) + ",")
+    print("\t\t\t" + str(categories.get(element["category"], "UNKNOWN")) + ",")
+    print(f"\t\t\t{round(element['electronegativity_pauling'] * 100) if element['electronegativity_pauling'] != None else 0},")
     print("\t\t},")
 
 with open(argv[1], "r") as table_json, open(argv[2], "r") as table_json2:
@@ -35,8 +32,8 @@ with open(argv[1], "r") as table_json, open(argv[2], "r") as table_json2:
         "transition metal": "TRANSITION_METAL",
         "post-transition metal": "POST_TRANSITION_METAL",
         "metalloid": "METALLOID",
-        "polyatomic nonmetal": "NONMETAL",
-        "diatomic nonmetal": "HALOGEN",
+        "polyatomic nonmetal": "POLYATOMIC_NONMETAL",
+        "diatomic nonmetal": "DIATOMIC_NONMETAL",
         "noble gas": "NOBLE_GAS",
         "lanthanide": "LANTHANIDE",
         "actinide": "ACTINIDE",

@@ -27,8 +27,8 @@ namespace pt {
         TRANSITION_METAL,
         POST_TRANSITION_METAL,
         METALLOID,
-        NONMETAL,
-        HALOGEN,
+        DIATOMIC_NONMETAL,
+        POLYATOMIC_NONMETAL,
         NOBLE_GAS,
         LANTHANIDE,
         ACTINIDE,
@@ -43,7 +43,6 @@ namespace pt {
         float melt;
         float boil;
         float density;
-        float electronegativity;
         float electronAffinity;
         double mass;
 
@@ -52,6 +51,7 @@ namespace pt {
         uint8_t group;
 
         Category category;
+        uint16_t electronegativity;
     };
 
     struct Location {

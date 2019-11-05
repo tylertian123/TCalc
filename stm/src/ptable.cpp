@@ -31,8 +31,8 @@ namespace pt {
         "Transition Metal",
         "Post-transition Metal",
         "Metalloid",
-        "Nonmetal",
-        "Halogen",
+        "Diatomic Nonmetal",
+        "Polyatomic Nonmetal",
         "Noble Gas",
         "Lanthanide",
         "Actinide",
@@ -228,8 +228,13 @@ namespace pt {
             disp.drawString(x, y + 10, buf);
             break;
         case 10:
-            util::ftoa(elem->electronegativity, buf, 7, LCD_CHAR_EE);
-            disp.drawString(x, y + 10, buf);
+            if(elem->electronegativity == 0) {
+                disp.drawString(x, y + 10, "\xff");
+            }
+            else {
+                util::ftoa(elem->electronegativity / 100.0, buf, 7, LCD_CHAR_EE);
+                disp.drawString(x, y + 10, buf);
+            }
             break;
         case 11:
             util::ftoa(elem->electronAffinity, buf, 7, LCD_CHAR_EE);
