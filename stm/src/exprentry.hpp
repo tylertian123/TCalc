@@ -230,6 +230,8 @@ namespace expr {
         int16_t cursorX;
         // The y coordinate of the cursor.
         int16_t cursorY;
+        int16_t cursorXf;
+        int16_t cursorYf;
         // Graph cursor mode.
         enum class GraphCursorMode : uint8_t {
             OFF, ON, AREA_ZOOM

@@ -104,4 +104,13 @@ namespace sbdi {
         // Clock is always high
         CLK.set(1);
     }
+
+    void SBDI::send32(uint32_t data) {
+        beginSend();
+        sendByte((data >> 24) & 0xFF);
+        sendByte((data >> 16) & 0xFF);
+        sendByte((data >> 8) & 0xFF);
+        sendByte(data & 0xFF);
+        endSend();
+    }
 }

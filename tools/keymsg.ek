@@ -13,5 +13,10 @@ reset
 
 set_key_repeat_delay
 set_hold_key_duration
+set_adc_key_repeat_delay
 
 set_mode
+
+EK_KEY_POSTFIX 
+mode_normal=0
+mode_adc=1

@@ -16,6 +16,7 @@
 #include "neda.hpp"
 #include "eval.hpp"
 #include "keydef.h"
+#include "keymsg.h"
 #include "util.hpp"
 #include "ntoa.hpp"
 #include "snake.hpp"
@@ -41,8 +42,6 @@ GPIOPin RS(GPIOC, GPIO_Pin_10), RW(GPIOC, GPIO_Pin_11), E(GPIOC, GPIO_Pin_12),
 			D7(GPIOC, GPIO_Pin_9), D6(GPIOC, GPIO_Pin_8), D5(GPIOC, GPIO_Pin_7), D4(GPIOC, GPIO_Pin_6),
 			D3(GPIOB, GPIO_Pin_15), D2(GPIOB, GPIO_Pin_14), D1(GPIOB, GPIO_Pin_13), D0(GPIOB, GPIO_Pin_12);
 lcd::LCD12864 display(RS, RW, E, D0, D1, D2, D3, D4, D5, D6, D7);
-
-//GPIOPin backlightPin(GPIOA, GPIO_Pin_1);
 
 GPIOPin SBDI_EN(GPIOB, GPIO_Pin_8);
 GPIOPin SBDI_CLK(GPIOB, GPIO_Pin_7);
@@ -129,6 +128,7 @@ uint16_t fetchKey() {
 		return KEY_NULL;
 	}
 }
+sbdi::SBDI keyboard(SBDI_EN, SBDI_DATA, SBDI_CLK);
 
 /********** Mode **********/
 enum class DispMode {
@@ -659,7 +659,7 @@ int main() {
 	statusLED.init(GPIO_Mode_Out_PP, GPIO_Speed_2MHz);
 	shiftLED.init(GPIO_Mode_Out_PP, GPIO_Speed_2MHz);
 	ctrlLED.init(GPIO_Mode_Out_PP, GPIO_Speed_2MHz);
-	statusLED = false;
+	statusLED = true;
 	shiftLED = false;
 	ctrlLED = false;
 
@@ -668,11 +668,12 @@ int main() {
 	GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable, ENABLE);
 
 	// Set up SBDI
-	sbdi::SBDI keyboard(SBDI_EN, SBDI_DATA, SBDI_CLK);
 	keyboard.init();
     // Receive once to clear any pending receives
     keyboard.receive();
-
+    // Reset keyboard
+    keyboard.send32(KEYMSG_RESET);
+    
 	// Initialize display
 	display.init();
 	display.useExtended();

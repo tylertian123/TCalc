@@ -70,10 +70,16 @@ for key in keys:
         num_padding_length = parse_int_param(key)
         continue
     elif key.startswith('EK_KEY_PREFIX'):
-        key_prefix = key.split()[1]
+        if len(key.split()) > 1:
+            key_prefix = key.split()[1]
+        else:
+            key_prefix = ""
         continue
     elif key.startswith('EK_KEY_POSTFIX'):
-        key_postfix = key.split()[1]
+        if len(key.split()) > 1:
+            key_postfix = key.split()[1]
+        else:
+            key_postfix = ""
         continue
 
     eq = key.find('=')

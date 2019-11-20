@@ -1,6 +1,11 @@
+#include <limits.h>
+#include "keydef.h"
+#include "keymsg.h"
+#include "sbdi.hpp"
 #include "exprentry.hpp"
 #include "ntoa.hpp"
-#include <limits.h>
+
+extern sbdi::SBDI keyboard;
 
 namespace expr {
     util::DynamicArray<eval::Variable> variables;
@@ -1086,6 +1091,7 @@ namespace expr {
                 prevMode = DisplayMode::NORMAL;
                 selectorIndex = 0;
                 graphCursorMode = GraphCursorMode::OFF;
+                keyboard.send32(KEYMSG_RESET);
                 redrawGraph();
             }
             paintInterface();
@@ -1219,6 +1225,7 @@ toggleEditOption:
                     prevMode = DisplayMode::NORMAL;
                     selectorIndex = 0;
                     graphCursorMode = GraphCursorMode::OFF;
+                    keyboard.send32(KEYMSG_RESET);
                     redrawGraph();
                 }
                 paintInterface();
@@ -1359,6 +1366,9 @@ toggleEditOption:
 
     constexpr int16_t SCREEN_CENTER_X = lcd::SIZE_WIDTH / 2 - 1;
     constexpr int16_t SCREEN_CENTER_Y = lcd::SIZE_HEIGHT / 2 - 1;
+    constexpr int16_t ANALOG_CURSOR_DEADZONE = 64;
+    constexpr int16_t ANALOG_CURSOR_FRAC_MAX = 0x1000;
+    constexpr float ANALOG_CURSOR_MAX_SPEED = 1.5;
     constexpr double GRAPH_ZOOM_FACTOR = 0.7;
 
     eval::Variable* constructFunctionGraphingEnvironment();
@@ -1367,350 +1377,392 @@ toggleEditOption:
     double unmapX(int16_t x);
     double unmapY(int16_t y);
     void ExprEntry::graphViewerKeyPressHandler(uint16_t key) {
-        switch(key) {
-        // Center should turn on the graph cursor if off
-        // And toggle function if on
-        case KEY_CENTER:
-            if(graphCursorMode == GraphCursorMode::ON) {
-                // Determine what function(s) occupy this pixel
+        if(key & KEY_ADCX_MASK) {
+            if((key & 0x3FF) >= 512 + ANALOG_CURSOR_DEADZONE 
+                    || (key & 0x3FF) <= 512 - ANALOG_CURSOR_DEADZONE) {
+                float speed = ((key & 0x3FF) - 512) / 512.0;
+                speed = copysign(speed * speed, speed);
+                cursorXf += speed * ANALOG_CURSOR_MAX_SPEED * ANALOG_CURSOR_FRAC_MAX;
 
-                // Graph each function
-                // Construct a environment that can be reused later since all graphable functions only have 1 argument x
-                eval::Variable *newVars = constructFunctionGraphingEnvironment();
-
-                eval::Numerical arg(0);
-                newVars[0].value = &arg;
-
-                uint16_t counter = 0;
-                bool incremented = false;
+                cursorX += cursorXf / ANALOG_CURSOR_FRAC_MAX;
+                cursorXf %= ANALOG_CURSOR_FRAC_MAX;
                 
-                // Code copied from redrawGraph()
+                if(cursorX < 0) {
+                    cursorX += lcd::SIZE_WIDTH;
+                }
+                else if(cursorX >= lcd::SIZE_WIDTH) {
+                    cursorX -= lcd::SIZE_WIDTH;
+                }
+            }
+        }
+        else if(key & KEY_ADCY_MASK) {
+            if((key & 0x3FF) >= 512 + ANALOG_CURSOR_DEADZONE 
+                    || (key & 0x3FF) <= 512 - ANALOG_CURSOR_DEADZONE) {
+                float speed = ((key & 0x3FF) - 512) / 512.0;
+                speed = copysign(speed * speed, speed);
+                cursorYf += speed * ANALOG_CURSOR_MAX_SPEED * ANALOG_CURSOR_FRAC_MAX;
 
-                // The y value of the previous pixel (in the real coordinate system)
-                double prevResult = NAN;
-                int16_t prevYLCD = 0;
-                for(GraphableFunction &gfunc : graphableFunctions) {
-                    if(gfunc.graph) {
-                        const eval::UserDefinedFunction &func = *gfunc.func;
+                cursorY += cursorYf / ANALOG_CURSOR_FRAC_MAX;
+                cursorYf %= ANALOG_CURSOR_FRAC_MAX;
 
-                        // Evaluate for x coordinates surrounding the cursor
-                        for(int16_t currentXLCD = cursorX - 1; currentXLCD <= cursorX + 1; currentXLCD ++) {
-                            // Get the x value in real coordinate space
-                            double currentXReal = unmapX(currentXLCD);
-                            // Set the value of the argument
-                            arg.value = currentXReal;
-                            // Attempt to evaluate
-                            eval::Token *t = eval::evaluate(func.expr, variables.length() + 1, newVars, functions.length(), functions.asArray());
-                            // Watch out for syntax error
-                            double currentYReal = t ? eval::extractDouble(t) : NAN;
-                            delete t;
+                if(cursorY < 0) {
+                    cursorY += lcd::SIZE_HEIGHT;
+                }
+                else if(cursorY >= lcd::SIZE_HEIGHT) {
+                    cursorY -= lcd::SIZE_HEIGHT;
+                }
+            }
+        }
+        else {
+            switch(key) {
+            // Center should turn on the graph cursor if off
+            // And toggle function if on
+            case KEY_CENTER:
+                if(graphCursorMode == GraphCursorMode::ON) {
+                    // Determine what function(s) occupy this pixel
 
-                            
-                            // If result is NaN, skip this pixel
-                            if(!isnan(currentYReal)) {
-                                // Otherwise map the Y value
-                                int16_t currentYLCD = mapY(currentYReal);
-                                int16_t prevXLCD = currentXLCD - 1;
+                    // Graph each function
+                    // Construct a environment that can be reused later since all graphable functions only have 1 argument x
+                    eval::Variable *newVars = constructFunctionGraphingEnvironment();
 
-                                if(currentXLCD == cursorX && currentYLCD == cursorY) {
-                                    counter ++;
-                                    if(counter == selectorIndex + 1) {
-                                        selectorIndex ++;
-                                        incremented = true;
-                                        graphDispFunc = gfunc.func;
-                                        goto functionCheckLoopEnd;
-                                    }
-                                    break;
-                                }
+                    eval::Numerical arg(0);
+                    newVars[0].value = &arg;
 
-                                // Do a bounds check
-                                if(currentXLCD >= 0 && prevXLCD < lcd::SIZE_WIDTH && (prevYLCD >= 0 || currentYLCD >= 0) 
-                                        && (prevYLCD < lcd::SIZE_HEIGHT || currentYLCD < lcd::SIZE_HEIGHT)) {
-                                    // If the previous pixel was valid, connect them
-                                    if(!isnan(prevResult)) {
+                    uint16_t counter = 0;
+                    bool incremented = false;
+                    
+                    // Code copied from redrawGraph()
 
-                                        double prevXReal = unmapX(prevXLCD);
-                                        double prevYReal = prevResult;
+                    // The y value of the previous pixel (in the real coordinate system)
+                    double prevResult = NAN;
+                    int16_t prevYLCD = 0;
+                    for(GraphableFunction &gfunc : graphableFunctions) {
+                        if(gfunc.graph) {
+                            const eval::UserDefinedFunction &func = *gfunc.func;
 
-                                        if(abs(currentYLCD - prevYLCD) > 1) {
-                                            // Will be positive if the current pixel is higher than the previous one
-                                            double slope = (currentXReal - prevXReal) / (currentYReal - prevYReal);
+                            // Evaluate for x coordinates surrounding the cursor
+                            for(int16_t currentXLCD = cursorX - 1; currentXLCD <= cursorX + 1; currentXLCD ++) {
+                                // Get the x value in real coordinate space
+                                double currentXReal = unmapX(currentXLCD);
+                                // Set the value of the argument
+                                arg.value = currentXReal;
+                                // Attempt to evaluate
+                                eval::Token *t = eval::evaluate(func.expr, variables.length() + 1, newVars, functions.length(), functions.asArray());
+                                // Watch out for syntax error
+                                double currentYReal = t ? eval::extractDouble(t) : NAN;
+                                delete t;
 
-                                            if(currentYReal > prevYReal) {
-                                                for(int16_t dispY = prevYLCD - 1; dispY > currentYLCD; dispY --) {
-                                                    double realXDiff = (unmapY(dispY) - prevYReal) * slope;
-                                                    if(mapX(realXDiff + prevXReal) == cursorX && dispY == cursorY) {
-                                                        counter ++;
-                                                        if(counter == selectorIndex + 1) {
-                                                            selectorIndex ++;
-                                                            incremented = true;
-                                                            graphDispFunc = gfunc.func;
-                                                            goto functionCheckLoopEnd;
-                                                        }
-                                                        break;
-                                                    }
-                                                }
-                                            }
-                                            else {
-                                                for(int16_t dispY = prevYLCD + 1; dispY < currentYLCD; dispY ++) {
-                                                    double realXDiff = (unmapY(dispY) - prevYReal) * slope;
-                                                    if(mapX(realXDiff + prevXReal) == cursorX && dispY == cursorY) {
-                                                        counter ++;
-                                                        if(counter == selectorIndex + 1) {
-                                                            selectorIndex ++;
-                                                            incremented = true;
-                                                            graphDispFunc = gfunc.func;
-                                                            goto functionCheckLoopEnd;
-                                                        }
-                                                        break;
-                                                    }
-                                                }
-                                            }
+                                
+                                // If result is NaN, skip this pixel
+                                if(!isnan(currentYReal)) {
+                                    // Otherwise map the Y value
+                                    int16_t currentYLCD = mapY(currentYReal);
+                                    int16_t prevXLCD = currentXLCD - 1;
+
+                                    if(currentXLCD == cursorX && currentYLCD == cursorY) {
+                                        counter ++;
+                                        if(counter == selectorIndex + 1) {
+                                            selectorIndex ++;
+                                            incremented = true;
+                                            graphDispFunc = gfunc.func;
+                                            goto functionCheckLoopEnd;
                                         }
-
+                                        break;
                                     }
+
+                                    // Do a bounds check
+                                    if(currentXLCD >= 0 && prevXLCD < lcd::SIZE_WIDTH && (prevYLCD >= 0 || currentYLCD >= 0) 
+                                            && (prevYLCD < lcd::SIZE_HEIGHT || currentYLCD < lcd::SIZE_HEIGHT)) {
+                                        // If the previous pixel was valid, connect them
+                                        if(!isnan(prevResult)) {
+
+                                            double prevXReal = unmapX(prevXLCD);
+                                            double prevYReal = prevResult;
+
+                                            if(abs(currentYLCD - prevYLCD) > 1) {
+                                                // Will be positive if the current pixel is higher than the previous one
+                                                double slope = (currentXReal - prevXReal) / (currentYReal - prevYReal);
+
+                                                if(currentYReal > prevYReal) {
+                                                    for(int16_t dispY = prevYLCD - 1; dispY > currentYLCD; dispY --) {
+                                                        double realXDiff = (unmapY(dispY) - prevYReal) * slope;
+                                                        if(mapX(realXDiff + prevXReal) == cursorX && dispY == cursorY) {
+                                                            counter ++;
+                                                            if(counter == selectorIndex + 1) {
+                                                                selectorIndex ++;
+                                                                incremented = true;
+                                                                graphDispFunc = gfunc.func;
+                                                                goto functionCheckLoopEnd;
+                                                            }
+                                                            break;
+                                                        }
+                                                    }
+                                                }
+                                                else {
+                                                    for(int16_t dispY = prevYLCD + 1; dispY < currentYLCD; dispY ++) {
+                                                        double realXDiff = (unmapY(dispY) - prevYReal) * slope;
+                                                        if(mapX(realXDiff + prevXReal) == cursorX && dispY == cursorY) {
+                                                            counter ++;
+                                                            if(counter == selectorIndex + 1) {
+                                                                selectorIndex ++;
+                                                                incremented = true;
+                                                                graphDispFunc = gfunc.func;
+                                                                goto functionCheckLoopEnd;
+                                                            }
+                                                            break;
+                                                        }
+                                                    }
+                                                }
+                                            }
+
+                                        }
+                                    }
+                                    prevYLCD = currentYLCD;
                                 }
-                                prevYLCD = currentYLCD;
+                                prevResult = currentYReal;
                             }
-                            prevResult = currentYReal;
                         }
                     }
-                }
 functionCheckLoopEnd:
-                if(!incremented) {
-                    selectorIndex = 0;
+                    if(!incremented) {
+                        selectorIndex = 0;
+                    }
+
+                    delete[] newVars;
                 }
+                else if(graphCursorMode == GraphCursorMode::AREA_ZOOM) {
+                    // First make sure that the area isn't zero
+                    if(cursorX != graphZoomX && cursorY != graphZoomY) {
+                        // Change bounds
+                        double x1 = unmapX(cursorX);
+                        double x2 = unmapX(graphZoomX);
+                        double y1 = unmapY(cursorY);
+                        double y2 = unmapY(graphZoomY);
 
-                delete[] newVars;
-            }
-            else if(graphCursorMode == GraphCursorMode::AREA_ZOOM) {
-                // First make sure that the area isn't zero
-                if(cursorX != graphZoomX && cursorY != graphZoomY) {
-                    // Change bounds
-                    double x1 = unmapX(cursorX);
-                    double x2 = unmapX(graphZoomX);
-                    double y1 = unmapY(cursorY);
-                    double y2 = unmapY(graphZoomY);
+                        xMin = util::min(x1, x2);
+                        xMax = util::max(x1, x2);
+                        yMin = util::min(y1, y2);
+                        yMax = util::max(y1, y2);
 
-                    xMin = util::min(x1, x2);
-                    xMax = util::max(x1, x2);
-                    yMin = util::min(y1, y2);
-                    yMax = util::max(y1, y2);
+                        cursorX = SCREEN_CENTER_X;
+                        cursorY = SCREEN_CENTER_Y;
 
+                        redrawGraph();
+                    }
+                    graphCursorMode = GraphCursorMode::ON;
+                }
+                else {
+                    graphCursorMode = GraphCursorMode::ON;
+                    keyboard.send32(KEYMSG_SET_ADC_KEY_REPEAT_DELAY | 15);
                     cursorX = SCREEN_CENTER_X;
                     cursorY = SCREEN_CENTER_Y;
-
-                    redrawGraph();
+                    cursorXf = cursorYf = 0;
                 }
-                graphCursorMode = GraphCursorMode::ON;
+                break;
+            // Enter and delete turn off the graph cursor if on
+            // Otherwise they will fall through and exit this mode
+            case KEY_ENTER:
+            case KEY_DELETE:
+                keyboard.send32(KEYMSG_RESET);
+                if(graphCursorMode != GraphCursorMode::OFF) {
+                    graphCursorMode = GraphCursorMode::OFF;
+                    break;
+                }
+            case KEY_GRAPH:
+                graphCursorMode = GraphCursorMode::OFF;
+                mode = prevMode;
+                paintInterface();
+                return;
+
+            case KEY_LEFT:
+                if(cursorX > 0) {
+                    cursorX --;
+                }
+                else {
+                    cursorX = lcd::SIZE_WIDTH - 1;
+                }
+                selectorIndex = 0;
+                break;
+            case KEY_RIGHT:
+                if(cursorX < lcd::SIZE_WIDTH - 1) {
+                    cursorX ++;
+                }
+                else {
+                    cursorX = 0;
+                }
+                selectorIndex = 0;
+                break;
+            case KEY_UP:
+                if(cursorY > 0) {
+                    cursorY --;
+                }
+                else {
+                    cursorY = lcd::SIZE_HEIGHT - 1;
+                }
+                selectorIndex = 0;
+                break;
+            case KEY_DOWN:
+                if(cursorY < lcd::SIZE_HEIGHT - 1) {
+                    cursorY ++;
+                }
+                else {
+                    cursorY = 0;
+                }
+                selectorIndex = 0;
+                break;
+            case KEY_HOME:
+                cursorX = 0;
+                selectorIndex = 0;
+                break;
+            case KEY_END:
+                cursorX = lcd::SIZE_WIDTH - 1;
+                selectorIndex = 0;
+                break;
+            case KEY_TOP:
+                cursorY = 0;
+                selectorIndex = 0;
+                break;
+            case KEY_BOTTOM:
+                cursorY = lcd::SIZE_HEIGHT - 1;
+                selectorIndex = 0;
+                break;
+            
+            // Pressing z turns on area zoom
+            case KEY_LCZ:
+            {
+                if(graphCursorMode == GraphCursorMode::ON) {
+                    graphCursorMode = GraphCursorMode::AREA_ZOOM;
+                    graphZoomX = cursorX;
+                    graphZoomY = cursorY;
+                    selectorIndex = 0;
+                }
+                else if(graphCursorMode == GraphCursorMode::AREA_ZOOM) {
+                    graphCursorMode = GraphCursorMode::ON;
+                }
+                break;
             }
-            else {
-                graphCursorMode = GraphCursorMode::ON;
+            // wasd moves the cursor by 10 pixels
+            case KEY_LCW:
+                cursorY -= 10;
+                if(cursorY < 0) {
+                    cursorY += lcd::SIZE_HEIGHT;
+                }
+                selectorIndex = 0;
+                break;
+            case KEY_LCA:
+                cursorX -= 10;
+                if(cursorX < 0) {
+                    cursorX += lcd::SIZE_WIDTH;
+                }
+                selectorIndex = 0;
+                break;
+            case KEY_LCS:
+                cursorY += 10;
+                if(cursorY >= lcd::SIZE_HEIGHT) {
+                    cursorY -= lcd::SIZE_HEIGHT;
+                }
+                selectorIndex = 0;
+                break;
+            case KEY_LCD:
+                cursorX += 10;
+                if(cursorX >= lcd::SIZE_WIDTH) {
+                    cursorX -= lcd::SIZE_WIDTH;
+                }
+                selectorIndex = 0;
+                break;
+            // Pressing h "homes" the cursor
+            case KEY_LCH:
                 cursorX = SCREEN_CENTER_X;
                 cursorY = SCREEN_CENTER_Y;
+                break;
+            // Pressing c moves the display window such that the cursor is centered
+            case KEY_LCC:
+            {
+                if(graphCursorMode != GraphCursorMode::ON) {
+                    break;
+                }
+                // Determine how much translation is needed
+                double currentX = unmapX(SCREEN_CENTER_X);
+                double currentY = unmapY(SCREEN_CENTER_Y);
+                double correctX = unmapX(cursorX);
+                double correctY = unmapY(cursorY);
+                double xShift = correctX - currentX;
+                double yShift = correctY - currentY;
+                
+                xMin += xShift;
+                xMax += xShift;
+                yMin += yShift;
+                yMax += yShift;
+
+                cursorX = SCREEN_CENTER_X;
+                cursorY = SCREEN_CENTER_Y;
+                
+                redrawGraph();
+                break;
             }
-            break;
-        // Enter and delete turn off the graph cursor if on
-        // Otherwise they will fall through and exit this mode
-        case KEY_ENTER:
-        case KEY_DELETE:
-            if(graphCursorMode != GraphCursorMode::OFF) {
+            // Pressing + zooms in around the cursor
+            case KEY_PLUS:
+            {
+                if(graphCursorMode != GraphCursorMode::ON) {
+                    break;
+                }
+                double newWidth = (xMax - xMin) * GRAPH_ZOOM_FACTOR;
+                double newHeight = (yMax - yMin) * GRAPH_ZOOM_FACTOR;
+
+                double xShift = (unmapX(cursorX) - xMin) * (1 - GRAPH_ZOOM_FACTOR);
+                double yShift = (unmapY(cursorY) - yMin) * (1 - GRAPH_ZOOM_FACTOR);
+
+                xMin += xShift;
+                xMax = xMin + newWidth;
+                yMin += yShift;
+                yMax = yMin + newHeight;
+
+                redrawGraph();
+                break;
+            }
+            // Pressing - zooms out around the cursor
+            case KEY_MINUS:
+            {
+                if(graphCursorMode != GraphCursorMode::ON) {
+                    break;
+                }
+                double newWidth = (xMax - xMin) / GRAPH_ZOOM_FACTOR;
+                double newHeight = (yMax - yMin) / GRAPH_ZOOM_FACTOR;
+
+                double xShift = (unmapX(cursorX) - xMin) * (1 - 1 / GRAPH_ZOOM_FACTOR);
+                double yShift = (unmapY(cursorY) - yMin) * (1 - 1 / GRAPH_ZOOM_FACTOR);
+
+                xMin += xShift;
+                xMax = xMin + newWidth;
+                yMin += yShift;
+                yMax = yMin + newHeight;
+
+                redrawGraph();
+                break;
+            }
+            case KEY_CONFIG:
+            case KEY_GSETTINGS:
                 graphCursorMode = GraphCursorMode::OFF;
-                break;
-            }
-        case KEY_GRAPH:
-            graphCursorMode = GraphCursorMode::OFF;
-            mode = prevMode;
-            paintInterface();
-            return;
-
-        case KEY_LEFT:
-            if(cursorX > 0) {
-                cursorX --;
-            }
-            else {
-                cursorX = lcd::SIZE_WIDTH - 1;
-            }
-            selectorIndex = 0;
-            break;
-        case KEY_RIGHT:
-            if(cursorX < lcd::SIZE_WIDTH - 1) {
-                cursorX ++;
-            }
-            else {
-                cursorX = 0;
-            }
-            selectorIndex = 0;
-            break;
-        case KEY_UP:
-            if(cursorY > 0) {
-                cursorY --;
-            }
-            else {
-                cursorY = lcd::SIZE_HEIGHT - 1;
-            }
-            selectorIndex = 0;
-            break;
-        case KEY_DOWN:
-            if(cursorY < lcd::SIZE_HEIGHT - 1) {
-                cursorY ++;
-            }
-            else {
-                cursorY = 0;
-            }
-            selectorIndex = 0;
-            break;
-        case KEY_HOME:
-            cursorX = 0;
-            selectorIndex = 0;
-            break;
-        case KEY_END:
-            cursorX = lcd::SIZE_WIDTH - 1;
-            selectorIndex = 0;
-            break;
-        case KEY_TOP:
-            cursorY = 0;
-            selectorIndex = 0;
-            break;
-        case KEY_BOTTOM:
-            cursorY = lcd::SIZE_HEIGHT - 1;
-            selectorIndex = 0;
-            break;
-        
-        // Pressing z turns on area zoom
-        case KEY_LCZ:
-        {
-            if(graphCursorMode == GraphCursorMode::ON) {
-                graphCursorMode = GraphCursorMode::AREA_ZOOM;
-                graphZoomX = cursorX;
-                graphZoomY = cursorY;
+                keyboard.send32(KEYMSG_RESET);
                 selectorIndex = 0;
-            }
-            else if(graphCursorMode == GraphCursorMode::AREA_ZOOM) {
-                graphCursorMode = GraphCursorMode::ON;
-            }
-            break;
-        }
-        // wasd moves the cursor by 10 pixels
-        case KEY_LCW:
-            cursorY -= 10;
-            if(cursorY < 0) {
-                cursorY += lcd::SIZE_HEIGHT;
-            }
-            selectorIndex = 0;
-            break;
-        case KEY_LCA:
-            cursorX -= 10;
-            if(cursorX < 0) {
-                cursorX += lcd::SIZE_WIDTH;
-            }
-            selectorIndex = 0;
-            break;
-        case KEY_LCS:
-            cursorY += 10;
-            if(cursorY >= lcd::SIZE_HEIGHT) {
-                cursorY -= lcd::SIZE_HEIGHT;
-            }
-            selectorIndex = 0;
-            break;
-        case KEY_LCD:
-            cursorX += 10;
-            if(cursorX >= lcd::SIZE_WIDTH) {
-                cursorX -= lcd::SIZE_WIDTH;
-            }
-            selectorIndex = 0;
-            break;
-        // Pressing h "homes" the cursor
-        case KEY_LCH:
-            cursorX = SCREEN_CENTER_X;
-            cursorY = SCREEN_CENTER_Y;
-            break;
-        // Pressing c moves the display window such that the cursor is centered
-        case KEY_LCC:
-        {
-            if(graphCursorMode != GraphCursorMode::ON) {
+                editOption = false;
+                mode = DisplayMode::GRAPH_SETTINGS_MENU;
+                prevMode = DisplayMode::GRAPH_VIEWER;
+                drawInterfaceGraphSettings();
+                return;
+            case KEY_GFUNCS:
+                graphCursorMode = GraphCursorMode::OFF;
+                keyboard.send32(KEYMSG_RESET);
+                selectorIndex = 0;
+                scrollingIndex = 0;
+                mode = DisplayMode::GRAPH_SELECT_MENU;
+                prevMode = DisplayMode::GRAPH_VIEWER;
+                drawInterfaceGraphSelect();
+                return;
+            default:
                 break;
             }
-            // Determine how much translation is needed
-            double currentX = unmapX(SCREEN_CENTER_X);
-            double currentY = unmapY(SCREEN_CENTER_Y);
-            double correctX = unmapX(cursorX);
-            double correctY = unmapY(cursorY);
-            double xShift = correctX - currentX;
-            double yShift = correctY - currentY;
-            
-            xMin += xShift;
-            xMax += xShift;
-            yMin += yShift;
-            yMax += yShift;
-
-            cursorX = SCREEN_CENTER_X;
-            cursorY = SCREEN_CENTER_Y;
-            
-            redrawGraph();
-            break;
         }
-        // Pressing + zooms in around the cursor
-        case KEY_PLUS:
-        {
-            if(graphCursorMode != GraphCursorMode::ON) {
-                break;
-            }
-            double newWidth = (xMax - xMin) * GRAPH_ZOOM_FACTOR;
-            double newHeight = (yMax - yMin) * GRAPH_ZOOM_FACTOR;
-
-            double xShift = (unmapX(cursorX) - xMin) * (1 - GRAPH_ZOOM_FACTOR);
-            double yShift = (unmapY(cursorY) - yMin) * (1 - GRAPH_ZOOM_FACTOR);
-
-            xMin += xShift;
-            xMax = xMin + newWidth;
-            yMin += yShift;
-            yMax = yMin + newHeight;
-
-            redrawGraph();
-            break;
-        }
-        // Pressing - zooms out around the cursor
-        case KEY_MINUS:
-        {
-            if(graphCursorMode != GraphCursorMode::ON) {
-                break;
-            }
-            double newWidth = (xMax - xMin) / GRAPH_ZOOM_FACTOR;
-            double newHeight = (yMax - yMin) / GRAPH_ZOOM_FACTOR;
-
-            double xShift = (unmapX(cursorX) - xMin) * (1 - 1 / GRAPH_ZOOM_FACTOR);
-            double yShift = (unmapY(cursorY) - yMin) * (1 - 1 / GRAPH_ZOOM_FACTOR);
-
-            xMin += xShift;
-            xMax = xMin + newWidth;
-            yMin += yShift;
-            yMax = yMin + newHeight;
-
-            redrawGraph();
-            break;
-        }
-        case KEY_CONFIG:
-        case KEY_GSETTINGS:
-            graphCursorMode = GraphCursorMode::OFF;
-            selectorIndex = 0;
-            editOption = false;
-            mode = DisplayMode::GRAPH_SETTINGS_MENU;
-            prevMode = DisplayMode::GRAPH_VIEWER;
-            drawInterfaceGraphSettings();
-            return;
-        case KEY_GFUNCS:
-            graphCursorMode = GraphCursorMode::OFF;
-            selectorIndex = 0;
-            scrollingIndex = 0;
-            mode = DisplayMode::GRAPH_SELECT_MENU;
-            prevMode = DisplayMode::GRAPH_VIEWER;
-            drawInterfaceGraphSelect();
-            return;
-        default:
-            break;
-        }
-
         drawInterfaceGraphViewer();
     }
 

@@ -19,6 +19,7 @@ SBIT(STATUS, 0x93);
 #define DEFAULT_HOLD_COUNTER_MAX 80
 uint16_t REPEAT_KEY_DELAY = 75;
 uint16_t HOLD_COUNTER_MAX = 80;
+bit adcMode = 0;
 
 void delay (unsigned int a){
 	unsigned int i;
@@ -135,124 +136,151 @@ void main(void) {
 	resetRows();
 	resetCols();
 	while(1) {
-		if(SBDI_ReceivePending()) {
+		while(SBDI_ReceivePending()) {
 			SBDI_Receive();
-			param = SBDI_ReceiveBuffer & 0x0000FFFF;
-		}
-		switch(SBDI_ReceiveBuffer & 0xFFFF0000) {
-		case KEYMSG_RESET:
-			HOLD_COUNTER_MAX = DEFAULT_HOLD_COUNTER_MAX;
-			REPEAT_KEY_DELAY = DEFAULT_REPEAT_KEY_DELAY;
-			break;
-		case KEYMSG_SET_HOLD_KEY_DURATION:
-			HOLD_COUNTER_MAX = param;
-			break;
-		case KEYMSG_SET_KEY_REPEAT_DELAY:
-			REPEAT_KEY_DELAY = param;
-			break;
-		default:
-			break;
+			if(SBDI_ReceiveBuffer != 0) {
+				param = SBDI_ReceiveBuffer & 0x0000FFFF;
+				switch(SBDI_ReceiveBuffer & 0xFFFF0000) {
+				case KEYMSG_RESET:
+					HOLD_COUNTER_MAX = DEFAULT_HOLD_COUNTER_MAX;
+					REPEAT_KEY_DELAY = DEFAULT_REPEAT_KEY_DELAY;
+					adcMode = 0;
+					break;
+				case KEYMSG_SET_HOLD_KEY_DURATION:
+					HOLD_COUNTER_MAX = param;
+					break;
+				case KEYMSG_SET_KEY_REPEAT_DELAY:
+					REPEAT_KEY_DELAY = param;
+					break;
+				case KEYMSG_SET_MODE:
+					adcMode = 1;
+					break;
+				case KEYMSG_SET_ADC_KEY_REPEAT_DELAY:
+					REPEAT_KEY_DELAY = param;
+					adcMode = 1;
+					break;
+				default:
+					break;
+				}
+				delay(10);
+
+				SBDI_ReceiveBuffer = 0;
+			}
 		}
 
 		// Check for left and right
 		result = ADC_SyncConv(CHANNEL_X_AXIS);
-		// Check if the value is below the min threshold, and that the last time we checked it was above
-		if(result < MIN_THRESH) {
-			// First send the key
-            if(ctrl) {
-                sendKey(KEY_HOME);
-                ctrl = 0;
-                delay(50);
-                sendKey(KEY_CTRLOFF);
-            }
-            else {
-			    sendKey(KEY_LEFT);
-            }
-			// Then check if the stick is held down
-			while(ADC_SyncConv(CHANNEL_X_AXIS) < MIN_THRESH) {
-				// While holding down and the counter does not exceed the max, increment the counter and delay
-				if(holdCounter <= HOLD_COUNTER_MAX) {
-					holdCounter ++;
-					delay(10);
+		if(adcMode) {
+			// ADC mode - send raw values
+			// The ADC value masks leave just enough room for a 10-bit result
+			sendKey(KEY_ADCX_MASK | result);
+			delay(REPEAT_KEY_DELAY);
+		}
+		else {
+			// Check if the value is below the min threshold, and that the last time we checked it was above
+			if(result < MIN_THRESH) {
+				// First send the key
+				if(ctrl) {
+					sendKey(KEY_HOME);
+					ctrl = 0;
+					delay(50);
+					sendKey(KEY_CTRLOFF);
 				}
-				// Otherwise send the key and delay
 				else {
 					sendKey(KEY_LEFT);
-					delay(REPEAT_KEY_DELAY);
 				}
+				// Then check if the stick is held down
+				while(ADC_SyncConv(CHANNEL_X_AXIS) < MIN_THRESH) {
+					// While holding down and the counter does not exceed the max, increment the counter and delay
+					if(holdCounter <= HOLD_COUNTER_MAX) {
+						holdCounter ++;
+						delay(10);
+					}
+					// Otherwise send the key and delay
+					else {
+						sendKey(KEY_LEFT);
+						delay(REPEAT_KEY_DELAY);
+					}
+				}
+				holdCounter = 0;
 			}
-			holdCounter = 0;
-		}
-		else if(result > MAX_THRESH) {
-            if(ctrl) {
-                sendKey(KEY_END);
-                ctrl = 0;
-                delay(50);
-                sendKey(KEY_CTRLOFF);
-            }
-            else {
-			    sendKey(KEY_RIGHT);
-            }
-			while(ADC_SyncConv(CHANNEL_X_AXIS) > MAX_THRESH) {
-				if(holdCounter <= HOLD_COUNTER_MAX) {
-					holdCounter ++;
-					delay(10);
+			else if(result > MAX_THRESH) {
+				if(ctrl) {
+					sendKey(KEY_END);
+					ctrl = 0;
+					delay(50);
+					sendKey(KEY_CTRLOFF);
 				}
 				else {
 					sendKey(KEY_RIGHT);
-					delay(REPEAT_KEY_DELAY);
 				}
+				while(ADC_SyncConv(CHANNEL_X_AXIS) > MAX_THRESH) {
+					if(holdCounter <= HOLD_COUNTER_MAX) {
+						holdCounter ++;
+						delay(10);
+					}
+					else {
+						sendKey(KEY_RIGHT);
+						delay(REPEAT_KEY_DELAY);
+					}
+				}
+				holdCounter = 0;
 			}
-			holdCounter = 0;
 		}
 		
 		// Check for up and down
 		result = ADC_SyncConv(CHANNEL_Y_AXIS);
-		if(result < MIN_THRESH) {
-			// First send the key
-            if(ctrl) {
-                sendKey(KEY_TOP);
-                ctrl = 0;
-                delay(50);
-                sendKey(KEY_CTRLOFF);
-            }
-            else {
-			    sendKey(KEY_UP);
-            }
-			while(ADC_SyncConv(CHANNEL_Y_AXIS) < MIN_THRESH) {
-				if(holdCounter <= HOLD_COUNTER_MAX) {
-					holdCounter ++;
-					delay(10);
+		if(adcMode) {
+			sendKey(KEY_ADCY_MASK | result);
+			delay(REPEAT_KEY_DELAY);
+		}
+		else {
+			if(result < MIN_THRESH) {
+				// First send the key
+				if(ctrl) {
+					sendKey(KEY_TOP);
+					ctrl = 0;
+					delay(50);
+					sendKey(KEY_CTRLOFF);
 				}
 				else {
 					sendKey(KEY_UP);
-					delay(REPEAT_KEY_DELAY);
 				}
+				while(ADC_SyncConv(CHANNEL_Y_AXIS) < MIN_THRESH) {
+					if(holdCounter <= HOLD_COUNTER_MAX) {
+						holdCounter ++;
+						delay(10);
+					}
+					else {
+						sendKey(KEY_UP);
+						delay(REPEAT_KEY_DELAY);
+					}
+				}
+				holdCounter = 0;
 			}
-			holdCounter = 0;
-		}
-		else if(result > MAX_THRESH) {
-			// First send the key
-            if(ctrl) {
-                sendKey(KEY_BOTTOM);
-                ctrl = 0;
-                delay(50);
-                sendKey(KEY_CTRLOFF);
-            }
-            else {
-			    sendKey(KEY_DOWN);
-            }
-			while(ADC_SyncConv(CHANNEL_Y_AXIS) > MAX_THRESH) {
-				if(holdCounter <= HOLD_COUNTER_MAX) {
-					holdCounter ++;
-					delay(10);
+			else if(result > MAX_THRESH) {
+				// First send the key
+				if(ctrl) {
+					sendKey(KEY_BOTTOM);
+					ctrl = 0;
+					delay(50);
+					sendKey(KEY_CTRLOFF);
 				}
 				else {
 					sendKey(KEY_DOWN);
-					delay(REPEAT_KEY_DELAY);
 				}
+				while(ADC_SyncConv(CHANNEL_Y_AXIS) > MAX_THRESH) {
+					if(holdCounter <= HOLD_COUNTER_MAX) {
+						holdCounter ++;
+						delay(10);
+					}
+					else {
+						sendKey(KEY_DOWN);
+						delay(REPEAT_KEY_DELAY);
+					}
+				}
+				holdCounter = 0;
 			}
-			holdCounter = 0;
 		}
 		
 		if(!BUTTON) {

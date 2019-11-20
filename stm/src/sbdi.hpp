@@ -26,6 +26,8 @@ namespace sbdi {
 		void sendByte(uint8_t data);
 		void endSend();
 
+		void send32(uint32_t data);
+
 	protected:
 		GPIOPin EN;
 		GPIOPin DATA;
