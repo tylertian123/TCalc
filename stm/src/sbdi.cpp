@@ -106,6 +106,9 @@ namespace sbdi {
     }
 
     void SBDI::send32(uint32_t data) {
+        if(receivePending()) {
+            receive();
+        }
         beginSend();
         sendByte((data >> 24) & 0xFF);
         sendByte((data >> 16) & 0xFF);

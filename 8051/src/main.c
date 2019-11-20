@@ -57,7 +57,9 @@ code const unsigned short KEYMAP_CTRL[6][10] = {
 bit shift = 0;
 bit ctrl = 0;
 
+void checkReceive(void);
 void sendKey(unsigned short key) {
+	checkReceive();
 	STATUS = !STATUS;
 	SBDI_BeginTransmission();
 	SBDI_SendByte(key >> 8);
@@ -116,10 +118,44 @@ void checkAndSend(unsigned char row) {
 	}
 }
 
+void checkReceive(void) {
+	uint16_t param;
+	while(SBDI_ReceivePending()) {
+		SBDI_Receive();
+		if(SBDI_ReceiveBuffer != 0) {
+			param = SBDI_ReceiveBuffer & 0x0000FFFF;
+			switch(SBDI_ReceiveBuffer & 0xFFFF0000) {
+			case KEYMSG_RESET:
+				HOLD_COUNTER_MAX = DEFAULT_HOLD_COUNTER_MAX;
+				REPEAT_KEY_DELAY = DEFAULT_REPEAT_KEY_DELAY;
+				adcMode = 0;
+				break;
+			case KEYMSG_SET_HOLD_KEY_DURATION:
+				HOLD_COUNTER_MAX = param;
+				break;
+			case KEYMSG_SET_KEY_REPEAT_DELAY:
+				REPEAT_KEY_DELAY = param;
+				break;
+			case KEYMSG_SET_MODE:
+				adcMode = 1;
+				break;
+			case KEYMSG_SET_ADC_KEY_REPEAT_DELAY:
+				REPEAT_KEY_DELAY = param;
+				adcMode = 1;
+				break;
+			default:
+				break;
+			}
+			delay(10);
+
+			SBDI_ReceiveBuffer = 0;
+		}
+	}
+}
+
 void main(void) {
 	unsigned short result = 0;
 	unsigned char holdCounter = 0;
-	uint16_t param;
 
 	// Set input pins to high impedance mode
 	P1M0 |= 0x06; // 0000 0110
@@ -136,38 +172,7 @@ void main(void) {
 	resetRows();
 	resetCols();
 	while(1) {
-		while(SBDI_ReceivePending()) {
-			SBDI_Receive();
-			if(SBDI_ReceiveBuffer != 0) {
-				param = SBDI_ReceiveBuffer & 0x0000FFFF;
-				switch(SBDI_ReceiveBuffer & 0xFFFF0000) {
-				case KEYMSG_RESET:
-					HOLD_COUNTER_MAX = DEFAULT_HOLD_COUNTER_MAX;
-					REPEAT_KEY_DELAY = DEFAULT_REPEAT_KEY_DELAY;
-					adcMode = 0;
-					break;
-				case KEYMSG_SET_HOLD_KEY_DURATION:
-					HOLD_COUNTER_MAX = param;
-					break;
-				case KEYMSG_SET_KEY_REPEAT_DELAY:
-					REPEAT_KEY_DELAY = param;
-					break;
-				case KEYMSG_SET_MODE:
-					adcMode = 1;
-					break;
-				case KEYMSG_SET_ADC_KEY_REPEAT_DELAY:
-					REPEAT_KEY_DELAY = param;
-					adcMode = 1;
-					break;
-				default:
-					break;
-				}
-				delay(10);
-
-				SBDI_ReceiveBuffer = 0;
-			}
-		}
-
+		checkReceive();
 		// Check for left and right
 		result = ADC_SyncConv(CHANNEL_X_AXIS);
 		if(adcMode) {
