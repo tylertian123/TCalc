@@ -23,7 +23,7 @@
 #include "tetris.hpp"
 #include "exprentry.hpp"
 
-#define VERSION_STR "V1.4.2"
+#define VERSION_STR "V1.4.3"
 
 #ifdef _USE_CONSOLE
 #pragma message("Compiling with the USART Console.")
@@ -666,13 +666,6 @@ int main() {
 	// Disable JTAG so we can use PB3 and 4
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
 	GPIO_PinRemapConfig(GPIO_Remap_SWJ_JTAGDisable, ENABLE);
-
-	// Set up SBDI
-	keyboard.init();
-    // Receive once to clear any pending receives
-    keyboard.receive();
-    // Reset keyboard
-    keyboard.send32(KEYMSG_RESET);
     
 	// Initialize display
 	display.init();
@@ -697,8 +690,13 @@ int main() {
 #endif
 	display.updateDrawing();
 
+    // Set up SBDI
+	keyboard.init();
+    // Reset keyboard
+    keyboard.send32(KEYMSG_RESET);
+
 	// Title screen delay
-	delay::ms(1500);
+	delay::ms(1000);
 
     if(keyboard.receivePending()) {
         receiveKey(keyboard);
