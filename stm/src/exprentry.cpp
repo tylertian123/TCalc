@@ -1366,8 +1366,9 @@ toggleEditOption:
 
     constexpr int16_t SCREEN_CENTER_X = lcd::SIZE_WIDTH / 2 - 1;
     constexpr int16_t SCREEN_CENTER_Y = lcd::SIZE_HEIGHT / 2 - 1;
-    constexpr int16_t ANALOG_CURSOR_DEADZONE = 64;
+    constexpr int16_t ANALOG_CURSOR_DEADZONE = 32;
     constexpr int16_t ANALOG_CURSOR_FRAC_MAX = 0x1000;
+    constexpr uint16_t ANALOG_CURSOR_REFRESH_DURATION = 15;
     constexpr float ANALOG_CURSOR_MAX_SPEED = 1.5;
     constexpr double GRAPH_ZOOM_FACTOR = 0.7;
 
@@ -1415,9 +1416,9 @@ toggleEditOption:
         }
         else {
             switch(key) {
-            // Center should turn on the graph cursor if off
+            // Enter should turn on the graph cursor if off
             // And toggle function if on
-            case KEY_CENTER:
+            case KEY_ENTER:
                 if(graphCursorMode == GraphCursorMode::ON) {
                     // Determine what function(s) occupy this pixel
 
@@ -1553,21 +1554,41 @@ functionCheckLoopEnd:
                 }
                 else {
                     graphCursorMode = GraphCursorMode::ON;
-                    keyboard.send32(KEYMSG_SET_ADC_KEY_REPEAT_DELAY | 15);
+                    // matRows is used as a flag indicating whether we're in analog mode
+                    matRows = 0;
                     cursorX = SCREEN_CENTER_X;
                     cursorY = SCREEN_CENTER_Y;
                     cursorXf = cursorYf = 0;
                 }
                 break;
-            // Enter and delete turn off the graph cursor if on
-            // Otherwise they will fall through and exit this mode
-            case KEY_ENTER:
+            case KEY_CENTER:
+                if(graphCursorMode == GraphCursorMode::OFF) {
+                    graphCursorMode = GraphCursorMode::ON;
+                    keyboard.send32(KEYMSG_SET_ADC_KEY_REPEAT_DELAY | ANALOG_CURSOR_REFRESH_DURATION);
+                    // matRows is used as a flag indicating whether we're in analog mode
+                    matRows = 1;
+                    cursorX = SCREEN_CENTER_X;
+                    cursorY = SCREEN_CENTER_Y;
+                    cursorXf = cursorYf = 0;
+                }
+                else {
+                    if(matRows) {
+                        keyboard.send32(KEYMSG_RESET);
+                    }
+                    else {
+                        keyboard.send32(KEYMSG_SET_ADC_KEY_REPEAT_DELAY | ANALOG_CURSOR_REFRESH_DURATION);
+                    }
+                    matRows = !matRows;
+                }
+                break;
+            // Delete turn off the graph cursor if on
             case KEY_DELETE:
                 keyboard.send32(KEYMSG_RESET);
                 if(graphCursorMode != GraphCursorMode::OFF) {
                     graphCursorMode = GraphCursorMode::OFF;
                     break;
                 }
+            // Intentional fall-through
             case KEY_GRAPH:
                 graphCursorMode = GraphCursorMode::OFF;
                 mode = prevMode;
