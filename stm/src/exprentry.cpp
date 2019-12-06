@@ -240,6 +240,35 @@ namespace expr {
         }
     }
 
+    void ExprEntry::handleMenuKeyPress(uint16_t key, uint16_t len, uint16_t backKey) {
+        if(key == backKey || key == KEY_DELETE) {
+            mode = prevMode;
+            prevMode = DisplayMode::NORMAL;
+            selectorIndex = 0;
+            scrollingIndex = 0;
+        }
+        switch (key) {
+        case KEY_UP:
+            scrollUp(len);
+            break;
+        case KEY_DOWN:
+            scrollDown(len);
+            break;
+        default:
+            break;
+        }
+
+        paintInterface();
+    }
+
+    constexpr uint8_t SCROLLBAR_WIDTH = 4;
+
+    void ExprEntry::drawScrollbar(uint16_t total, uint16_t displayed) {
+        uint16_t location = static_cast<uint16_t>(scrollingIndex * lcd::SIZE_HEIGHT / total);
+        uint16_t height = displayed * lcd::SIZE_HEIGHT / total;
+        display.fill(128 - SCROLLBAR_WIDTH, location, SCROLLBAR_WIDTH, height);
+    }
+
     const ExprEntry::KeyPressHandler ExprEntry::KEY_PRESS_HANDLERS[] = {
             &ExprEntry::normalKeyPressHandler,
             &ExprEntry::trigKeyPressHandler,
@@ -541,7 +570,7 @@ namespace expr {
                 // Before we draw the graph, first update the list of graphable functions
                 // This is so that if any of the graphable functions get deleted, they would not be graphed
                 updateGraphableFunctions();
-                redrawGraph();
+                graphChanged = true;
                 drawInterfaceGraphViewer();
                 return;
             case KEY_LOGIC:
@@ -756,12 +785,9 @@ namespace expr {
         display.updateDrawing();
     }
 
-    constexpr uint8_t FUNC_SCROLLBAR_WIDTH = 4;
     void ExprEntry::funcKeyPressHandler(uint16_t key) {
         const uint16_t funcCount = eval::Function::TYPE_COUNT_DISPLAYABLE + expr::functions.length();
-        switch (key) {
-        case KEY_CENTER:
-        case KEY_ENTER:
+        if(key == KEY_ENTER || key == KEY_CENTER) {
             // If the selected item is in the range of builtin functions, insert that
             if (selectorIndex < eval::Function::TYPE_COUNT_DISPLAYABLE) {
                 // Extract the function name from its full name
@@ -776,23 +802,10 @@ namespace expr {
                 cursor->addStr(expr::functions[selectorIndex - eval::Function::TYPE_COUNT_DISPLAYABLE].name);
             }
             cursor->add(new neda::LeftBracket);
-        // Intentional fall-through
-        case KEY_CAT:
-        case KEY_DELETE:
-            mode = prevMode;
-            paintInterface();
-            return;
-        case KEY_UP:
-            scrollUp(funcCount);
-            break;
-        case KEY_DOWN:
-            scrollDown(funcCount);
-            break;
-        default:
-            break;
+            
+            key = KEY_DELETE;
         }
-
-        drawInterfaceFunc();
+        handleMenuKeyPress(key, funcCount, KEY_CAT);
     }
 
     void ExprEntry::drawInterfaceFunc() {
@@ -811,43 +824,22 @@ namespace expr {
             }
             y += 10;
         }
-        // Draw the scrollbar
-        uint16_t scrollbarLocation = static_cast<uint16_t>(
-                scrollingIndex * 64 / (eval::Function::TYPE_COUNT_DISPLAYABLE + expr::functions.length()));
-        uint16_t scrollbarHeight = 6 * 64 / (eval::Function::TYPE_COUNT_DISPLAYABLE + expr::functions.length());
-        display.fill(128 - FUNC_SCROLLBAR_WIDTH, scrollbarLocation, FUNC_SCROLLBAR_WIDTH, scrollbarHeight);
+
+        drawScrollbar(eval::Function::TYPE_COUNT_DISPLAYABLE + expr::functions.length(), 6);
         display.updateDrawing();
     }
 
     void ExprEntry::recallKeyPressHandler(uint16_t key) {
-        switch (key) {
-        case KEY_CENTER:
-        case KEY_ENTER: {
+        if(key == KEY_CENTER || key == KEY_ENTER) {
             // Insert the definition of the recalled function
             if (expr::functions.length() > 0) {
                 for (auto ex : expr::functions[selectorIndex].expr->contents) {
                     cursor->add(ex->copy());
                 }
             }
+            key = KEY_DELETE;
         }
-        // Intentional fall-through
-        case KEY_RECALL:
-        case KEY_CAT:
-        case KEY_DELETE:
-            mode = prevMode;
-            paintInterface();
-            return;
-        case KEY_UP:
-            scrollUp(expr::functions.length());
-            break;
-        case KEY_DOWN:
-            scrollDown(expr::functions.length());
-            break;
-        default:
-            break;
-        }
-
-        drawInterfaceRecall();
+        handleMenuKeyPress(key, expr::functions.length(), KEY_RECALL);
     }
 
     void ExprEntry::drawInterfaceRecall() {
@@ -864,9 +856,7 @@ namespace expr {
                 y += 10;
             }
 
-            uint16_t scrollbarLocation = static_cast<uint16_t>(scrollingIndex * 64 / expr::functions.length());
-            uint16_t scrollbarHeight = 6 * 64 / expr::functions.length();
-            display.fill(128 - FUNC_SCROLLBAR_WIDTH, scrollbarLocation, FUNC_SCROLLBAR_WIDTH, scrollbarHeight);
+            drawScrollbar(expr::functions.length(), 6);
         }
         display.updateDrawing();
     }
@@ -1098,37 +1088,14 @@ namespace expr {
     }
 
     void ExprEntry::graphSelectKeyPressHandler(uint16_t key) {
-        switch (key) {
-        case KEY_CENTER:
+        graphChanged = true;
+        if(key == KEY_CENTER || key == KEY_ENTER) {
             if (graphableFunctions.length() != 0) {
                 // Toggle status
                 graphableFunctions[selectorIndex].graph = !graphableFunctions[selectorIndex].graph;
             }
-            break;
-        case KEY_ENTER:
-        case KEY_GFUNCS:
-        case KEY_DELETE:
-            mode = prevMode;
-            if (prevMode == DisplayMode::GRAPH_VIEWER) {
-                prevMode = DisplayMode::NORMAL;
-                selectorIndex = 0;
-                graphCursorMode = GraphCursorMode::OFF;
-                keyboard.send32(KEYMSG_RESET);
-                redrawGraph();
-            }
-            paintInterface();
-            return;
-        case KEY_UP:
-            scrollUp(graphableFunctions.length());
-            break;
-        case KEY_DOWN:
-            scrollDown(graphableFunctions.length());
-            break;
-        default:
-            break;
         }
-
-        drawInterfaceGraphSelect();
+        handleMenuKeyPress(key, graphableFunctions.length(), KEY_GFUNCS);
     }
 
     void ExprEntry::drawInterfaceGraphSelect() {
@@ -1146,9 +1113,7 @@ namespace expr {
                 y += 10;
             }
 
-            uint16_t scrollbarLocation = static_cast<uint16_t>(scrollingIndex * 64 / graphableFunctions.length());
-            uint16_t scrollbarHeight = 6 * 64 / graphableFunctions.length();
-            display.fill(128 - FUNC_SCROLLBAR_WIDTH, scrollbarLocation, FUNC_SCROLLBAR_WIDTH, scrollbarHeight);
+            drawScrollbar(graphableFunctions.length(), 6);
         }
 #else
         display.drawString(1, 1, "Graphing is disabled");
@@ -1247,7 +1212,7 @@ namespace expr {
                     selectorIndex = 0;
                     graphCursorMode = GraphCursorMode::OFF;
                     keyboard.send32(KEYMSG_RESET);
-                    redrawGraph();
+                    graphChanged = true;
                 }
                 paintInterface();
                 return;
@@ -1564,7 +1529,7 @@ namespace expr {
                         cursorX = SCREEN_CENTER_X;
                         cursorY = SCREEN_CENTER_Y;
 
-                        redrawGraph();
+                        graphChanged = true;
                     }
                     graphCursorMode = GraphCursorMode::ON;
                 }
@@ -1732,7 +1697,7 @@ namespace expr {
                 cursorX = SCREEN_CENTER_X;
                 cursorY = SCREEN_CENTER_Y;
 
-                redrawGraph();
+                graphChanged = true;
                 break;
             }
             // Pressing + zooms in around the cursor
@@ -1751,7 +1716,7 @@ namespace expr {
                 yMin += yShift;
                 yMax = yMin + newHeight;
 
-                redrawGraph();
+                graphChanged = true;
                 break;
             }
             // Pressing - zooms out around the cursor
@@ -1770,7 +1735,7 @@ namespace expr {
                 yMin += yShift;
                 yMax = yMin + newHeight;
 
-                redrawGraph();
+                graphChanged = true;
                 break;
             }
             case KEY_CONFIG:
@@ -1966,6 +1931,10 @@ namespace expr {
 
     void ExprEntry::drawInterfaceGraphViewer() {
 #ifndef _TEST_MODE
+        if(graphChanged) {
+            redrawGraph();
+            graphChanged = false;
+        }
         // First copy the base graph
         // No need to clear the buffer since it will be overwritten anyways
         display.copyBuffer(graphBuf);
@@ -2369,8 +2338,7 @@ namespace expr {
                 pt::drawElementInfo(1, 1 + i * 20, dispElement, scrollingIndex + i, display);
             }
 
-            display.fill(lcd::SIZE_WIDTH - FUNC_SCROLLBAR_WIDTH, lcd::SIZE_HEIGHT * scrollingIndex / 13,
-                    FUNC_SCROLLBAR_WIDTH, lcd::SIZE_HEIGHT * 3 / 13);
+            drawScrollbar(13, 3);
         }
 
         if (editorContents.length() != 0) {

@@ -97,6 +97,9 @@ namespace expr {
         // If there is no corresponding character, 0xFF is returned.
         static char keyCodeToChar(uint16_t key);
 
+        void handleMenuKeyPress(uint16_t key, uint16_t len, uint16_t backKey);
+        void drawScrollbar(uint16_t total, uint16_t displayed);
+
         /*
          * These functions handle key presses for a given mode.
          * They're called by handleKeyPress() depending on the current mode.
@@ -220,6 +223,8 @@ namespace expr {
         double &yMax = graphSettings[4];
         // Spacing between ticks on the y axis for graphing.
         double &yScale = graphSettings[5];
+        // Whether or not the graph has changed and now needs to be redrawn
+        bool graphChanged = false;
         // Whether the user is editing a number.
         bool editOption = false;
         // Contents of the option editor
