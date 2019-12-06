@@ -13,20 +13,20 @@
 
 // Comment this out to use query instead of interrupt
 #ifndef USART_RECEIVE_METHOD_INTERRUPT
-    #define USART_RECEIVE_METHOD_INTERRUPT
+#define USART_RECEIVE_METHOD_INTERRUPT
 #endif
 
 namespace usart {
-	void init(uint32_t);
-	
-	void sendDataSync(uint16_t data);
-	void sendDataAsync(uint16_t data);
-	
-	uint16_t queryReceive();
-	bool receiveBufferNotEmpty();
-	
-	extern void (*interruptCallback) (uint16_t);
-	void setInterruptCallback(void (*) (uint16_t));
-}
+    void init(uint32_t);
+
+    void sendDataSync(uint16_t data);
+    void sendDataAsync(uint16_t data);
+
+    uint16_t queryReceive();
+    bool receiveBufferNotEmpty();
+
+    extern void (*interruptCallback)(uint16_t);
+    void setInterruptCallback(void (*)(uint16_t));
+} // namespace usart
 
 #endif

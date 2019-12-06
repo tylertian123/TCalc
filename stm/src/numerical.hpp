@@ -9,8 +9,10 @@ namespace util {
      * Represents a fraction.
      */
     struct Fraction {
-        constexpr Fraction() : num(0), denom(0) {}
-        constexpr Fraction(int64_t num, int64_t denom) : num(num), denom(denom) {}
+        constexpr Fraction() : num(0), denom(0) {
+        }
+        constexpr Fraction(int64_t num, int64_t denom) : num(num), denom(denom) {
+        }
 
         int64_t num;
         int64_t denom;
@@ -46,7 +48,7 @@ namespace util {
         Numerical(const Numerical &other) = default;
         // Move constructor
         Numerical(Numerical &&other) = default;
-        
+
         /*
          * Tests whether or not this Numerical represents a floating-point number.
          */
@@ -57,7 +59,7 @@ namespace util {
         double asDouble() const;
         /*
          * Returns the value of this Numerical as a fraction.
-         * 
+         *
          * Warning: This does not check whether or not a fraction is actually represented!
          */
         Fraction asFraction() const;
@@ -81,25 +83,25 @@ namespace util {
          */
         void toFraction();
 
-        Numerical& operator=(const Numerical &other) = default;
-        Numerical& operator=(double n);
-        Numerical& operator=(const Fraction &frac);
+        Numerical &operator=(const Numerical &other) = default;
+        Numerical &operator=(double n);
+        Numerical &operator=(const Fraction &frac);
 
-        Numerical& operator+=(const Numerical &other);
-        Numerical& operator+=(double n);
-        Numerical& operator+=(const Fraction &frac);
+        Numerical &operator+=(const Numerical &other);
+        Numerical &operator+=(double n);
+        Numerical &operator+=(const Fraction &frac);
 
-        Numerical& operator-=(const Numerical &other);
-        Numerical& operator-=(double n);
-        Numerical& operator-=(const Fraction &frac);
+        Numerical &operator-=(const Numerical &other);
+        Numerical &operator-=(double n);
+        Numerical &operator-=(const Fraction &frac);
 
-        Numerical& operator*=(const Numerical &other);
-        Numerical& operator*=(double n);
-        Numerical& operator*=(const Fraction &frac);
+        Numerical &operator*=(const Numerical &other);
+        Numerical &operator*=(double n);
+        Numerical &operator*=(const Fraction &frac);
 
-        Numerical& operator/=(const Numerical &other);
-        Numerical& operator/=(double n);
-        Numerical& operator/=(const Fraction &frac);
+        Numerical &operator/=(const Numerical &other);
+        Numerical &operator/=(double n);
+        Numerical &operator/=(const Fraction &frac);
 
         Numerical operator-() const;
 
@@ -155,7 +157,7 @@ namespace util {
         explicit operator Fraction() const;
 
         void sqrt();
-        
+
         void pow(const Numerical &other);
         void pow(double n);
         void pow(const Fraction &frac);
@@ -167,14 +169,14 @@ namespace util {
     protected:
         /*
          * This union represents either a double or a 64-bit signed integer.
-         * 
+         *
          * Each util::Numerical has two of them, the numerator (num) and
          * denominator (denom). When the Numerical is representing a fraction,
-         * num stores the numerator (as an int64_t) and denom stores the 
+         * num stores the numerator (as an int64_t) and denom stores the
          * denominator (as an int64_t). When the Numerical is representing a
          * floating-point number, num stores the value, and denom is unused.
-         * 
-         * Note that when the Numerical is representing a fraction, the sign 
+         *
+         * Note that when the Numerical is representing a fraction, the sign
          * of the fraction is kept in the numerator. That is, the denominator
          * will always be positive (or have a sign bit of 0). Therefore, one
          * can tell what this Numerical is representing by looking at the sign
@@ -187,9 +189,9 @@ namespace util {
 
         // This method does not check that the Numerical is indeed a fraction.
         void _reduce();
-    
+
         static constexpr uint64_t IS_NUMBER_FLAG = 0x8000000000000000;
     };
-}
+} // namespace util
 
 #endif

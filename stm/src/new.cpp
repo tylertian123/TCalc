@@ -1,19 +1,19 @@
-#include <new>
 #include <malloc.h>
- 
-void* operator new(std::size_t size) {
+#include <new>
+
+void *operator new(std::size_t size) {
     return malloc(size);
 }
- 
-void* operator new[](std::size_t size) {
+
+void *operator new[](std::size_t size) {
     return malloc(size);
 }
- 
-void operator delete(void* ptr) {
+
+void operator delete(void *ptr) {
     free(ptr);
 }
- 
-void operator delete[](void* ptr) {
+
+void operator delete[](void *ptr) {
     free(ptr);
 }
 
@@ -22,20 +22,19 @@ void operator delete[](void* ptr) {
    own debug code, or keep track of heap usage for example,
    rather than just eliminate exceptions.
  */
- 
-void* operator new(std::size_t size, const std::nothrow_t&) {
+
+void *operator new(std::size_t size, const std::nothrow_t &) {
     return malloc(size);
 }
- 
-void* operator new[](std::size_t size, const std::nothrow_t&) {
+
+void *operator new[](std::size_t size, const std::nothrow_t &) {
     return malloc(size);
 }
- 
-void operator delete(void* ptr, const std::nothrow_t&) {
-    free(ptr);
-}
- 
-void operator delete[](void* ptr, const std::nothrow_t&) {
+
+void operator delete(void *ptr, const std::nothrow_t &) {
     free(ptr);
 }
 
+void operator delete[](void *ptr, const std::nothrow_t &) {
+    free(ptr);
+}

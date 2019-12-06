@@ -12,12 +12,12 @@ namespace tetris {
         bool holdUsed : 1;
         unsigned int holdBlock : 3;
     };
-    
+
     extern GameState gameState;
-    
+
     void startGame();
     void processGame(lcd::LCD12864 &display);
     void handleKeyPress(uint16_t key, lcd::LCD12864 &display);
-}
+} // namespace tetris
 
 #endif

@@ -1,10 +1,10 @@
 #ifndef __EXPRENTRY_H__
 #define __EXPRENTRY_H__
 
-#include "neda.hpp"
 #include "eval.hpp"
-#include "lcd12864.hpp"
 #include "keydef.h"
+#include "lcd12864.hpp"
+#include "neda.hpp"
 #include "ptable.hpp"
 
 namespace expr {
@@ -16,21 +16,21 @@ namespace expr {
     // Updates the value of the variable with the specified name.
     // If the variable was not previously defined, a new variable will be created.
     // Note that the name and value must be allocated with new for cleanup to work properly.
-    void updateVar(const char*, eval::Token*);
+    void updateVar(const char *, eval::Token *);
     // Retrieves the "full name" of a user-defined function.
     // This is in the form of "name(arg1, arg2, ...)"
     // Note that the result was allocated on the heap with new.
-    char* getFuncFullName(const eval::UserDefinedFunction&);
+    char *getFuncFullName(const eval::UserDefinedFunction &);
     // Updates the definition of a user-defined function with the specified name.
     // If the function was not previously defined, a new function will be created.
     // Note that the name, argument names and expression definition must be allocated on the heap with new for cleanup.
-    void updateFunc(const char*, neda::Container*, uint8_t, const char**);
+    void updateFunc(const char *, neda::Container *, uint8_t, const char **);
     // Deletes all variables and functions.
     void clearAll();
 
     class ExprEntry {
     public:
-        ExprEntry(lcd::LCD12864&, uint16_t horizMargin = 1, uint16_t vertMargin = 1);
+        ExprEntry(lcd::LCD12864 &, uint16_t horizMargin = 1, uint16_t vertMargin = 1);
 
         ~ExprEntry();
 
@@ -67,7 +67,7 @@ namespace expr {
         void handleKeyPress(uint16_t key);
         // Draws the interface for the mode.
         void paintInterface();
-        
+
         bool cursorOn = true;
         // Toggles the cursor and displays it.
         void blinkCursor();
@@ -89,7 +89,7 @@ namespace expr {
 
         // Redraws the graph of all functions marked to graph.
         void redrawGraph();
-        
+
         // The previous display mode
         DisplayMode prevMode = DisplayMode::NORMAL;
 
@@ -130,9 +130,9 @@ namespace expr {
         // Handles key presses in the periodic table menu
         void periodicTableKeyPressHandler(uint16_t key);
 
-        /* 
-         * These functions draw the interface for a given mode. 
-         * They're called automatically by the correct key handler. 
+        /*
+         * These functions draw the interface for a given mode.
+         * They're called automatically by the correct key handler.
          */
         // A wrapper for drawInterfaceNormal(bool) to make it fit the InterfacePainter definition.
         void drawInterfaceNormalWrapper();
@@ -175,8 +175,10 @@ namespace expr {
         static const InterfacePainter INTERFACE_PAINTERS[];
 
         struct GraphableFunction {
-            GraphableFunction(const eval::UserDefinedFunction *func, bool graph) : func(func), graph(graph) {}
-            GraphableFunction(const GraphableFunction &other) : func(other.func), graph(other.graph) {}
+            GraphableFunction(const eval::UserDefinedFunction *func, bool graph) : func(func), graph(graph) {
+            }
+            GraphableFunction(const GraphableFunction &other) : func(other.func), graph(other.graph) {
+            }
 
             const eval::UserDefinedFunction *func;
             bool graph = false;
@@ -199,12 +201,12 @@ namespace expr {
         uint16_t scrollingIndex = 0;
         // Graph settings
         double graphSettings[6] = {
-            -10, // xMin
-            10,  // xMax
-            1,   // xScale
-            -5,  // yMin
-            5,   // yMax
-            1,   // yScale
+                -10, // xMin
+                10,  // xMax
+                1,   // xScale
+                -5,  // yMin
+                5,   // yMax
+                1,   // yScale
         };
         // Min x for graphing.
         double &xMin = graphSettings[0];
@@ -233,9 +235,7 @@ namespace expr {
         int16_t cursorXf;
         int16_t cursorYf;
         // Graph cursor mode.
-        enum class GraphCursorMode : uint8_t {
-            OFF, ON, AREA_ZOOM
-        } graphCursorMode;
+        enum class GraphCursorMode : uint8_t { OFF, ON, AREA_ZOOM } graphCursorMode;
         // X of the upper left corner of the area zoom box
         int16_t graphZoomX;
         // Y of the upper left corner of the area zoom box
@@ -248,6 +248,6 @@ namespace expr {
         void scrollUp(uint16_t);
         void scrollDown(uint16_t);
     };
-}
+} // namespace expr
 
 #endif

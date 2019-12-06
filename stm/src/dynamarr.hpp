@@ -6,24 +6,25 @@
 
 namespace util {
     /*
-    * Class DynamicArray
-    * A dynamic array class.
-    * T - The type of elements in this array
-    * IncreaseAmount - The amount of elements by which to increase the size every time the array is filled
-    */
+     * Class DynamicArray
+     * A dynamic array class.
+     * T - The type of elements in this array
+     * IncreaseAmount - The amount of elements by which to increase the size every time the array is filled
+     */
     template <typename T, uint16_t IncreaseAmount = 8>
     class DynamicArray {
     public:
         // Creates a new DynamicArray with a default length of 0
-        DynamicArray() : contents((T*)malloc(0)), len(0), maxLen(0) {}
+        DynamicArray() : contents((T *) malloc(0)), len(0), maxLen(0) {
+        }
         // Creates a new DynamicArray with a starting maximum length
         DynamicArray(uint16_t initialCapacity) : len(0), maxLen(initialCapacity) {
             // Make sure the length is multipled by the size of T
-            contents = (T*)malloc(sizeof(T) * initialCapacity);
+            contents = (T *) malloc(sizeof(T) * initialCapacity);
         }
         // Copy constructor
         DynamicArray(const DynamicArray &other) : len(other.len), maxLen(other.maxLen) {
-            contents = (T*)malloc(sizeof(T) * maxLen);
+            contents = (T *) malloc(sizeof(T) * maxLen);
 
             for (uint16_t i = 0; i < len; i++) {
                 contents[i] = other.contents[i];
@@ -35,11 +36,11 @@ namespace util {
             other.contents = nullptr;
             other.createdNormally = false;
         }
-        typedef T* iterator;
-        typedef const T* const_iterator;
+        typedef T *iterator;
+        typedef const T *const_iterator;
         // Iterator constructor
         DynamicArray(const_iterator start, const_iterator fin) : len(fin - start), maxLen(fin - start) {
-            contents = (T*)malloc(sizeof(T) * maxLen);
+            contents = (T *) malloc(sizeof(T) * maxLen);
 
             for (iterator i = begin(); i != end(); i++) {
                 // Go through every elem and initialize its value
@@ -48,14 +49,14 @@ namespace util {
         }
         // Array constructor from an array and size
         DynamicArray(const T *arr, uint16_t len) : len(len), maxLen(len) {
-            contents = (T*)malloc(sizeof(T) * maxLen);
+            contents = (T *) malloc(sizeof(T) * maxLen);
 
             for (uint16_t i = 0; i < len; i++) {
                 contents[i] = arr[i];
             }
         }
         ~DynamicArray() {
-            if(contents && createdNormally) {
+            if (contents && createdNormally) {
                 free(contents);
             }
         }
@@ -85,14 +86,14 @@ namespace util {
                 maxLen = oldSize;
                 return false;
             }
-            contents = (T*)tmp;
+            contents = (T *) tmp;
             return true;
         }
         // Reallocates the contents so that all extra space is freed
         void minimize() {
             resize(len);
         }
-        
+
         bool add(const T &elem) {
             len++;
             // If the new length is more than what we can store then reallocate
@@ -133,7 +134,7 @@ namespace util {
         }
         T pop() {
             // Simply decrement the length, no need to waste time clearing out the memory
-            if(len > 0) {
+            if (len > 0) {
                 len--;
             }
             return contents[len];
@@ -154,7 +155,7 @@ namespace util {
                     maxLen = old;
                     return false;
                 }
-                contents = (T*)tmp;
+                contents = (T *) tmp;
             }
             // Iterate and copy elements
             auto itThis = begin() + len - other->length();
@@ -164,21 +165,21 @@ namespace util {
             return true;
         }
 
-        T* asArray() {
+        T *asArray() {
             return contents;
         }
-        const T* asArray() const {
+        const T *asArray() const {
             return contents;
         }
 
         // WARNING: Does not check for out of bounds!
-        const T& operator[](uint16_t i) const {
+        const T &operator[](uint16_t i) const {
             return contents[i];
         }
-        T& operator[](uint16_t i) {
+        T &operator[](uint16_t i) {
             return contents[i];
         }
-        DynamicArray& operator+=(const T &elem) {
+        DynamicArray &operator+=(const T &elem) {
             add(elem);
             return *this;
         }
@@ -197,13 +198,15 @@ namespace util {
         }
 
         // Creates a const DynamicArray from a begin and an end iterator.
-        // The DynamicArray created does allocate its own memory; it just points to the piece of memory specified by the iterators.
-        // Therefore, the elements don't undergo a copy operation.
+        // The DynamicArray created does allocate its own memory; it just points to the piece of memory specified by the
+        // iterators. Therefore, the elements don't undergo a copy operation.
         static const DynamicArray<T, IncreaseAmount> createConstRef(const_iterator start, const_iterator fin) {
             DynamicArray<T, IncreaseAmount> arr(fin - start, fin - start);
-            // This might look dangerous, but since a const DynamicArray does not offer any way to change its contents, this is fine
-            arr.contents = const_cast<T*>(start);
-            // Set this to false to prevent the destructor from freeing memory since it was never allocated in the first place
+            // This might look dangerous, but since a const DynamicArray does not offer any way to change its contents,
+            // this is fine
+            arr.contents = const_cast<T *>(start);
+            // Set this to false to prevent the destructor from freeing memory since it was never allocated in the first
+            // place
             arr.createdNormally = false;
             return arr;
         }
@@ -217,8 +220,9 @@ namespace util {
     private:
         // This constructor is intended for internal use only
         // It only sets the length and max length
-        DynamicArray(uint16_t len, uint16_t maxLen) : len(len), maxLen(maxLen) {}
+        DynamicArray(uint16_t len, uint16_t maxLen) : len(len), maxLen(maxLen) {
+        }
     };
-}
+} // namespace util
 
 #endif

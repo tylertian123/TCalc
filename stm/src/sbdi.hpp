@@ -5,34 +5,35 @@
 
 #ifndef __SBDI_H__
 #define __SBDI_H__
-#include "stm32f10x.h"
 #include "gpiopin.hpp"
+#include "stm32f10x.h"
 
 namespace sbdi {
-	class SBDI {
-	public:
-		SBDI(GPIOPin EN, GPIOPin DATA, GPIOPin CLK) : EN(EN), DATA(DATA), CLK(CLK) {}
-		
-		void init();
+    class SBDI {
+    public:
+        SBDI(GPIOPin EN, GPIOPin DATA, GPIOPin CLK) : EN(EN), DATA(DATA), CLK(CLK) {
+        }
 
-		uint32_t buffer = 0;
+        void init();
+
+        uint32_t buffer = 0;
 
         void receive();
-		bool receivePending();
-	
-		void send();
+        bool receivePending();
 
-		void beginSend();
-		void sendByte(uint8_t data);
-		void endSend();
+        void send();
 
-		void send32(uint32_t data);
+        void beginSend();
+        void sendByte(uint8_t data);
+        void endSend();
 
-	protected:
-		GPIOPin EN;
-		GPIOPin DATA;
-		GPIOPin CLK;
-	};
-}
+        void send32(uint32_t data);
+
+    protected:
+        GPIOPin EN;
+        GPIOPin DATA;
+        GPIOPin CLK;
+    };
+} // namespace sbdi
 
 #endif

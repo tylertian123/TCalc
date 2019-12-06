@@ -1,9 +1,9 @@
 #ifndef __PTABLE_H__
 #define __PTABLE_H__
 
-#include <stdint.h>
-#include "util.hpp"
 #include "lcd12864.hpp"
+#include "util.hpp"
+#include <stdint.h>
 
 namespace pt {
 
@@ -59,7 +59,7 @@ namespace pt {
         uint8_t y;
     };
 
-    extern const char * const CATEGORY_NAMES[];
+    extern const char *const CATEGORY_NAMES[];
 
     extern const Element PERIOD_1_ELEMENTS[];
     extern const Element PERIOD_2_ELEMENTS[];
@@ -71,25 +71,25 @@ namespace pt {
     extern const Element LANTHANIDES[];
     extern const Element ACTINIDES[];
 
-    extern const Element * const ELEMENTS[];
+    extern const Element *const ELEMENTS[];
     extern const uint8_t ELEMENTS_LENGTHS[];
     extern const uint8_t PERIOD_LENGTHS[];
     extern const uint8_t PERIOD_COUNT;
 
-    const Element* elemWithLocation(const Location &location);
-    const Element* rightOf(Location &locationIO);
-    const Element* leftOf(Location &locationIO);
-    const Element* above(Location &locationIO);
-    const Element* below(Location &locationIO);
-    
+    const Element *elemWithLocation(const Location &location);
+    const Element *rightOf(Location &locationIO);
+    const Element *leftOf(Location &locationIO);
+    const Element *above(Location &locationIO);
+    const Element *below(Location &locationIO);
+
     void drawElement(int16_t x, int16_t y, const Element *elem, lcd::LCD12864 &disp);
     void drawElementInfo(int16_t x, int16_t y, const Element *elem, uint8_t field, lcd::LCD12864 &disp);
 
-    const Element* searchElemByNumber(Location &locationOut, uint8_t atomicNumber);
-    const Element* searchElemByString(Location &locationOut, const char * (*field)(const Element*),
-            const char *str, uint16_t len = UINT16_MAX);
-    const Element* searchElemBySymbol(Location &locationOut, const char *str, uint16_t len = UINT16_MAX);
-    const Element* searchElemByName(Location &locationOut, const char *str, uint16_t len = UINT16_MAX);
-}
+    const Element *searchElemByNumber(Location &locationOut, uint8_t atomicNumber);
+    const Element *searchElemByString(
+            Location &locationOut, const char *(*field)(const Element *), const char *str, uint16_t len = UINT16_MAX);
+    const Element *searchElemBySymbol(Location &locationOut, const char *str, uint16_t len = UINT16_MAX);
+    const Element *searchElemByName(Location &locationOut, const char *str, uint16_t len = UINT16_MAX);
+} // namespace pt
 
 #endif
