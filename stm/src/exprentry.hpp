@@ -50,6 +50,7 @@ namespace expr {
             LOGIC_MENU = 11,
             CLEAR_VAR_MENU = 12,
             PERIODIC_TABLE = 13,
+            VAR_RECALL_MENU = 14,
         };
 
         neda::Cursor *cursor;
@@ -132,6 +133,8 @@ namespace expr {
         void clearVarKeyPressHandler(uint16_t key);
         // Handles key presses in the periodic table menu
         void periodicTableKeyPressHandler(uint16_t key);
+        // Handles key presses in the variable recall menu
+        void varRecallKeyPressHandler(uint16_t key);
 
         /*
          * These functions draw the interface for a given mode.
@@ -169,6 +172,8 @@ namespace expr {
         void drawInterfaceClearVar();
         // Draws the interface for the periodic table menu.
         void drawInterfacePeriodicTable();
+        // Draws the interface for the variable recall menu.
+        void drawInterfaceVarRecall();
 
         // A key press handler handles key press events.
         typedef void (ExprEntry::*KeyPressHandler)(uint16_t);

@@ -284,6 +284,7 @@ namespace expr {
             &ExprEntry::logicKeyPressHandler,
             &ExprEntry::clearVarKeyPressHandler,
             &ExprEntry::periodicTableKeyPressHandler,
+            &ExprEntry::varRecallKeyPressHandler,
     };
 
     const ExprEntry::InterfacePainter ExprEntry::INTERFACE_PAINTERS[] = {
@@ -301,6 +302,7 @@ namespace expr {
             &ExprEntry::drawInterfaceLogic,
             &ExprEntry::drawInterfaceClearVar,
             &ExprEntry::drawInterfacePeriodicTable,
+            &ExprEntry::drawInterfaceVarRecall,
     };
 
     void ExprEntry::handleKeyPress(uint16_t key) {
@@ -602,6 +604,12 @@ namespace expr {
                 selectorIndex = 0;
                 drawInterfacePeriodicTable();
                 return;
+            case KEY_VRECALL:
+                mode = DisplayMode::VAR_RECALL_MENU;
+                selectorIndex = 0;
+                scrollingIndex = 0;
+                drawInterfaceVarRecall();
+                return;
             default:
                 break;
             }
@@ -813,7 +821,7 @@ namespace expr {
         int16_t y = 1;
         // Draw the full names of functions
         // Only 6 fit at a time, so only draw from the scrolling index to scrolling index + 6
-        for (uint8_t i = scrollingIndex; i < scrollingIndex + 6; i++) {
+        for (uint8_t i = scrollingIndex; i < scrollingIndex + 6 && i < eval::Function::TYPE_COUNT_DISPLAYABLE + expr::functions.length(); i++) {
             if (i < eval::Function::TYPE_COUNT_DISPLAYABLE) {
                 display.drawString(1, y, eval::Function::FUNC_FULLNAMES[i],
                         selectorIndex == i ? lcd::DrawBuf::FLAG_INVERTED : lcd::DrawBuf::FLAG_NONE);
@@ -845,8 +853,7 @@ namespace expr {
     void ExprEntry::drawInterfaceRecall() {
         display.clearDrawingBuffer();
         if (expr::functions.length() == 0) {
-            display.drawString(1, 1, "No Functions to");
-            display.drawString(1, 11, "Recall");
+            display.drawString(1, 1, "No Functions to Recall");
         }
         else {
             int16_t y = 1;
@@ -2369,6 +2376,35 @@ namespace expr {
             scrollingIndex = util::max(len - 6, 0);
         }
     }
+
+    void ExprEntry::varRecallKeyPressHandler(uint16_t key) {
+        if(key == KEY_CENTER || key == KEY_ENTER) {
+            eval::Token *v = expr::variables[selectorIndex].value;
+            eval::toNEDAObjs(cursor->expr, v, resultSignificantDigits);
+
+            key = KEY_DELETE;
+        }
+        handleMenuKeyPress(key, expr::variables.length(), KEY_VRECALL);
+    }
+
+    void ExprEntry::drawInterfaceVarRecall() {
+        display.clearDrawingBuffer();
+        if (expr::variables.length() == 0) {
+            display.drawString(1, 1, "No Variables to Recall");
+        }
+        else {
+            int16_t y = 1;
+            for (uint8_t i = scrollingIndex; i < scrollingIndex + 6 && i < expr::variables.length(); i++) {
+                display.drawString(1, y, expr::variables[i].name, 
+                        selectorIndex == i ? lcd::DrawBuf::FLAG_INVERTED : lcd::DrawBuf::FLAG_NONE);
+                y += 10;
+            }
+        }
+
+        drawScrollbar(expr::variables.length(), 6);
+        display.updateDrawing();
+    }
+
     void ExprEntry::scrollDown(uint16_t len) {
         if (selectorIndex < len - 1) {
             ++selectorIndex;

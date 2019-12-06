@@ -138,6 +138,7 @@ end
 top
 bottom
 ptable
+vrecall
 
 EK_RESTART_NUM 0xFFFF
 dummy
