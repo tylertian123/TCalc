@@ -467,7 +467,9 @@ namespace neda {
         // DOES NOT RECOMPUTE THE SIZE!
         inline void setEntry(uint8_t row, uint8_t col, Expr *entry) {
             contents[index_0(col, row)] = entry;
-            entry->parent = this;
+            if(entry != nullptr) {
+                entry->parent = this;
+            }
         }
         inline Expr *getEntry(uint8_t row, uint8_t col) {
             return contents[index_0(col, row)];
@@ -477,6 +479,8 @@ namespace neda {
         uint16_t rowTopSpacing_0(uint8_t row);
         uint16_t rowHeight_0(uint8_t row);
         uint16_t colWidth_0(uint8_t col);
+
+        bool findElem(Expr *ex, uint8_t &rowOut, uint8_t &colOut);
 
         virtual void computeDimensions() override;
         virtual void draw(lcd::LCD12864 &, int16_t, int16_t) override;

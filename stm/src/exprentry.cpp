@@ -285,6 +285,7 @@ namespace expr {
             &ExprEntry::clearVarKeyPressHandler,
             &ExprEntry::periodicTableKeyPressHandler,
             &ExprEntry::varRecallKeyPressHandler,
+            &ExprEntry::matrixOptionsKeyPressHandler,
     };
 
     const ExprEntry::InterfacePainter ExprEntry::INTERFACE_PAINTERS[] = {
@@ -303,6 +304,7 @@ namespace expr {
             &ExprEntry::drawInterfaceClearVar,
             &ExprEntry::drawInterfacePeriodicTable,
             &ExprEntry::drawInterfaceVarRecall,
+            &ExprEntry::drawInterfaceMatrixOptions,
     };
 
     void ExprEntry::handleKeyPress(uint16_t key) {
@@ -534,15 +536,32 @@ namespace expr {
                 drawInterfaceRecall();
                 return;
             case KEY_MATRIX:
-                // Set the mode to matrix menu
-                mode = DisplayMode::MATRIX_MENU;
+            {
+                // See if cursor is in a matrix
+                neda::Expr *ex = cursor->expr;
+                bool inMatrix = false;
+                while(ex->parent) {
+                    ex = ex->parent;
+                    if(ex->getType() == neda::ObjType::MATRIX) {
+                        inMatrix = true;
+                        break;
+                    }
+                }
                 prevMode = DisplayMode::NORMAL;
-                matRows = matCols = 1;
                 selectorIndex = 0;
+                if(!inMatrix) {
+                    // Set the mode to matrix menu
+                    mode = DisplayMode::MATRIX_MENU;
+                    matRows = matCols = 1;
+                }
+                else {
+                    mode = DisplayMode::MATRIX_OPTIONS_MENU;
+                }
                 // Draw the interface
-                drawInterfaceMatrix();
+                paintInterface();
                 // Return here to skip drawing the normal interface
                 return;
+            }
             case KEY_PIECEWISE:
                 mode = DisplayMode::PIECEWISE_MENU;
                 prevMode = DisplayMode::NORMAL;
@@ -2363,20 +2382,6 @@ namespace expr {
         display.updateDrawing();
     }
 
-    void ExprEntry::scrollUp(uint16_t len) {
-        if (selectorIndex > 0) {
-            --selectorIndex;
-            // Scrolling
-            if (selectorIndex < scrollingIndex) {
-                --scrollingIndex;
-            }
-        }
-        else {
-            selectorIndex = len - 1;
-            scrollingIndex = util::max(len - 6, 0);
-        }
-    }
-
     void ExprEntry::varRecallKeyPressHandler(uint16_t key) {
         if(key == KEY_CENTER || key == KEY_ENTER) {
             eval::Token *v = expr::variables[selectorIndex].value;
@@ -2403,6 +2408,146 @@ namespace expr {
 
         drawScrollbar(expr::variables.length(), 6);
         display.updateDrawing();
+    }
+
+    void ExprEntry::matrixOptionsKeyPressHandler(uint16_t key) {
+        if(key == KEY_CENTER || key == KEY_ENTER) {
+            // Find nearest matrix
+            neda::Expr *ex = cursor->expr;
+            neda::Matrix *mat = nullptr;
+            while(ex->parent) {
+                if(ex->parent->getType() == neda::ObjType::MATRIX) {
+                    mat = static_cast<neda::Matrix *>(ex->parent);
+                    break;
+                }
+                ex = ex->parent;
+            }
+            if(!mat) {
+                return;
+            }
+            // Find element index
+            uint8_t row, col;
+            mat->findElem(ex, row, col);
+
+            neda::Matrix *newMat = nullptr;
+
+            // Insert
+            if(selectorIndex >= 0 && selectorIndex <= 3) {
+                // Make new matrix
+                // Calculate new size based on option selected
+                newMat = selectorIndex <= 1 ? new neda::Matrix(mat->m + 1, mat->n) 
+                        : new neda::Matrix(mat->m, mat->n + 1);
+                uint8_t oldRow = 0, oldCol = 0;
+                for(uint8_t m = 0; m < newMat->m; m ++) {
+                    for(uint8_t n = 0; n < newMat->n; n ++) {
+                        // The new row/col
+                        if((selectorIndex == 0 && m == row) || (selectorIndex == 1 && m == row + 1)
+                                || (selectorIndex == 2 && n == col) || (selectorIndex == 3 && n == col + 1)) {
+                            newMat->setEntry(m, n, new neda::Container());
+                        }
+                        else {
+                            // Move over the container
+                            neda::Expr *expr = mat->getEntry(oldRow, oldCol);
+                            newMat->setEntry(m, n, expr);
+                            mat->setEntry(oldRow, oldCol, nullptr);
+                            
+                            oldCol ++;
+                        }
+                    }
+                    oldCol = 0;
+                    if(!((selectorIndex == 0 && m == row) || (selectorIndex == 1 && m == row + 1))) {
+                        oldRow ++;
+                    }
+                }
+            }
+            // Delete
+            // Make sure there are still rows left
+            else if ((selectorIndex == 4 && mat->m > 1) || (selectorIndex == 5 && mat->n > 1)) {
+                // Make new matrix
+                // Calculate new size based on option selected
+                newMat = selectorIndex == 4 ? new neda::Matrix(mat->m - 1, mat->n) 
+                        : new neda::Matrix(mat->m, mat->n - 1);
+                
+                uint8_t newRow = 0, newCol = 0;
+                for(uint8_t m = 0; m < mat->m; m ++) {
+                    // Skip deleted row
+                    if(selectorIndex == 4 && m == row) {
+                        continue;
+                    }
+                    for(uint8_t n = 0; n < mat->n; n ++) {
+                        // Skip deleted col
+                        if(selectorIndex == 5 && n == col) {
+                            continue;
+                        }
+
+                        // Move over the container
+                        neda::Expr *expr = mat->getEntry(m, n);
+                        newMat->setEntry(newRow, newCol, expr);
+                        mat->setEntry(m, n, nullptr);
+
+                        newCol ++;
+                    }
+
+                    newCol = 0;
+                    newRow ++;
+                }
+
+                // Move cursor
+                row = util::min(static_cast<uint8_t>(newMat->m - 1), row);
+                col = util::min(static_cast<uint8_t>(newMat->n - 1), col);
+                newMat->getEntry(row, col)->getCursor(*cursor, neda::CURSORLOCATION_START);
+            }
+
+            if(newMat != nullptr) {
+                // Sub in the new matrix
+                // A matrix should never be top level so this is fine
+                neda::Container *cont = static_cast<neda::Container *>(mat->parent);
+                // Find the index and replace with new matrix
+                uint16_t i = cont->indexOf(mat);
+                cont->remove(i);
+                cont->addAt(i, newMat);
+                // Delete old matrix
+                delete mat;
+                // Update matrix dimensions
+                newMat->computeDimensions();
+            }
+
+            key = KEY_DELETE;
+        }
+        handleMenuKeyPress(key, 6, KEY_MATRIX);
+    }
+
+    void ExprEntry::drawInterfaceMatrixOptions() {
+        display.clearDrawingBuffer();
+
+        display.drawString(1, 1, "Insert Row Above", 
+                selectorIndex == 0 ? lcd::DrawBuf::FLAG_INVERTED : lcd::DrawBuf::FLAG_NONE);
+        display.drawString(1, 11, "Insert Row Below", 
+                selectorIndex == 1 ? lcd::DrawBuf::FLAG_INVERTED : lcd::DrawBuf::FLAG_NONE);
+        display.drawString(1, 21, "Insert Column Left", 
+                selectorIndex == 2 ? lcd::DrawBuf::FLAG_INVERTED : lcd::DrawBuf::FLAG_NONE);
+        display.drawString(1, 31, "Insert Column Right", 
+                selectorIndex == 3 ? lcd::DrawBuf::FLAG_INVERTED : lcd::DrawBuf::FLAG_NONE);
+        display.drawString(1, 41, "Delete Row", 
+                selectorIndex == 4 ? lcd::DrawBuf::FLAG_INVERTED : lcd::DrawBuf::FLAG_NONE);
+        display.drawString(1, 51, "Delete Column", 
+                selectorIndex == 5 ? lcd::DrawBuf::FLAG_INVERTED : lcd::DrawBuf::FLAG_NONE);
+
+        display.updateDrawing();
+    }
+
+    void ExprEntry::scrollUp(uint16_t len) {
+        if (selectorIndex > 0) {
+            --selectorIndex;
+            // Scrolling
+            if (selectorIndex < scrollingIndex) {
+                --scrollingIndex;
+            }
+        }
+        else {
+            selectorIndex = len - 1;
+            scrollingIndex = util::max(len - 6, 0);
+        }
     }
 
     void ExprEntry::scrollDown(uint16_t len) {
