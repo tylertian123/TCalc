@@ -286,6 +286,7 @@ namespace expr {
             &ExprEntry::periodicTableKeyPressHandler,
             &ExprEntry::varRecallKeyPressHandler,
             &ExprEntry::matrixOptionsKeyPressHandler,
+            &ExprEntry::graphVarSelectKeyPressHandler,
     };
 
     const ExprEntry::InterfacePainter ExprEntry::INTERFACE_PAINTERS[] = {
@@ -305,6 +306,7 @@ namespace expr {
             &ExprEntry::drawInterfacePeriodicTable,
             &ExprEntry::drawInterfaceVarRecall,
             &ExprEntry::drawInterfaceMatrixOptions,
+            &ExprEntry::drawInterfaceGraphVarSelect,
     };
 
     void ExprEntry::handleKeyPress(uint16_t key) {
@@ -568,29 +570,15 @@ namespace expr {
                 piecewisePieces = 2;
                 drawInterfacePiecewise();
                 return;
-            case KEY_GFUNCS:
-                mode = DisplayMode::GRAPH_SELECT_MENU;
-                prevMode = DisplayMode::NORMAL;
-                selectorIndex = 0;
-                scrollingIndex = 0;
-                updateGraphableFunctions();
-                drawInterfaceGraphSelect();
-                return;
-            case KEY_GSETTINGS:
-                mode = DisplayMode::GRAPH_SETTINGS_MENU;
-                prevMode = DisplayMode::NORMAL;
-                selectorIndex = 0;
-                editOption = false;
-                drawInterfaceGraphSettings();
-                return;
             case KEY_GRAPH:
                 mode = DisplayMode::GRAPH_VIEWER;
                 prevMode = DisplayMode::NORMAL;
                 selectorIndex = 0;
                 graphCursorMode = GraphCursorMode::OFF;
-                // Before we draw the graph, first update the list of graphable functions
+                // Before we draw the graph, first update the list of graphable functions and variables
                 // This is so that if any of the graphable functions get deleted, they would not be graphed
                 updateGraphableFunctions();
+                updateGraphableVars();
                 graphChanged = true;
                 drawInterfaceGraphViewer();
                 return;
@@ -1094,7 +1082,7 @@ namespace expr {
         for (const auto &func : functions) {
             // A function is only graphable if it only takes a single parameter x.
             if (func.argc == 1 && strcmp(func.argn[0], "x") == 0) {
-                GraphableFunction f = {&func, false};
+                GraphableFunction f(&func, false);
                 // Look in the old array and see if it existed previously
                 for (const auto &gfunc : graphableFunctions) {
                     // If the two functions match, copy its status
@@ -1106,11 +1094,7 @@ namespace expr {
             }
         }
 
-        // Copy the new to the old
-        graphableFunctions.empty();
-        for (const auto &func : newGraphableFunctions) {
-            graphableFunctions.add(func);
-        }
+        graphableFunctions.swap(newGraphableFunctions);
     }
 
     void ExprEntry::graphSelectKeyPressHandler(uint16_t key) {
@@ -1783,6 +1767,16 @@ namespace expr {
                 prevMode = DisplayMode::GRAPH_VIEWER;
                 drawInterfaceGraphSelect();
                 return;
+            // Note: CTRL+P Reused
+            case KEY_PIECEWISE:
+                graphCursorMode = GraphCursorMode::OFF;
+                keyboard.send32(KEYMSG_RESET);
+                selectorIndex = 0;
+                scrollingIndex = 0;
+                mode = DisplayMode::GRAPH_VAR_SELECT_MENU;
+                prevMode = DisplayMode::GRAPH_VIEWER;
+                drawInterfaceGraphVarSelect();
+                return;
             default:
                 break;
             }
@@ -1881,6 +1875,40 @@ namespace expr {
         if (yAxis <= lcd::SIZE_WIDTH - 2) {
             for (double y = yMin - fmod(yMin, yScale); y <= yMax; y += yScale) {
                 graphBuf.setPixel(yAxis + 1, mapY(y));
+            }
+        }
+
+        // Graph each variable
+        for (GraphableVariable &gvar : graphableVars) {
+            if(!gvar.graph) {
+                continue;
+            }
+            if(gvar.var->value->getType() == eval::TokenType::MATRIX) {
+                eval::Matrix *m = static_cast<eval::Matrix *>(gvar.var->value);
+                // A set of points
+                if(m->n == 2) {
+                    for(uint8_t i = 0; i < m->m; i ++) {
+                        int16_t x = mapX(m->getEntry(i, 0).asDouble());
+                        int16_t y = mapY(m->getEntry(i, 1).asDouble());
+
+                        graphBuf.setPixel(x, y);
+                        graphBuf.setPixel(x, y - 1);
+                        graphBuf.setPixel(x, y + 1);
+                        graphBuf.setPixel(x - 1, y);
+                        graphBuf.setPixel(x + 1, y);
+                    }
+                }
+                // A single point (column form)
+                else if(m->m == 2 && m->n == 1) {
+                    int16_t x = mapX(m->contents[0].asDouble());
+                    int16_t y = mapY(m->contents[1].asDouble());
+
+                    graphBuf.setPixel(x, y);
+                    graphBuf.setPixel(x, y - 1);
+                    graphBuf.setPixel(x, y + 1);
+                    graphBuf.setPixel(x - 1, y);
+                    graphBuf.setPixel(x + 1, y);
+                }
             }
         }
 
@@ -2533,6 +2561,66 @@ namespace expr {
         display.drawString(1, 51, "Delete Column", 
                 selectorIndex == 5 ? lcd::DrawBuf::FLAG_INVERTED : lcd::DrawBuf::FLAG_NONE);
 
+        display.updateDrawing();
+    }
+
+    void ExprEntry::updateGraphableVars() {
+        util::DynamicArray<GraphableVariable> newGraphableVars;
+        
+        for(const auto &var : variables) {
+            if(var.value->getType() == eval::TokenType::MATRIX) {
+                eval::Matrix *mat = static_cast<eval::Matrix*>(var.value);
+                // 2D col vector
+                // Or a set of data points
+                if((mat->m == 2 && mat->n == 1) || mat->n == 2) {
+                    GraphableVariable v(&var, false);
+                    // Look in the old array and see if it existed previously
+                    for (const auto &gvar : graphableVars) {
+                        // If the two variables match, copy its status
+                        if (strcmp(gvar.var->name, var.name) == 0) {
+                            v.graph = gvar.graph;
+                        }
+                    }
+                    newGraphableVars.add(v);
+                }
+            }
+        }
+
+        graphableVars.swap(newGraphableVars);
+    }
+
+    void ExprEntry::graphVarSelectKeyPressHandler(uint16_t key) {
+        graphChanged = true;
+        if(key == KEY_CENTER || key == KEY_ENTER) {
+            if (graphableVars.length() != 0) {
+                // Toggle status
+                graphableVars[selectorIndex].graph = !graphableVars[selectorIndex].graph;
+            }
+        }
+        handleMenuKeyPress(key, graphableVars.length(), KEY_PIECEWISE);
+    }
+
+    void ExprEntry::drawInterfaceGraphVarSelect() {
+        display.clearDrawingBuffer();
+#ifndef _TEST_MODE
+        if (graphableVars.length() == 0) {
+            display.drawString(1, 1, "No Graphable Variables");
+        }
+        else {
+            int16_t y = 1;
+            for (uint8_t i = scrollingIndex; i < scrollingIndex + 6 && i < graphableVars.length(); i++) {
+                // Draw checkbox
+                display.drawString(1, y, graphableVars[i].graph ? LCD_STR_CCB : LCD_STR_ECB, selectorIndex == i);
+                display.drawString(9, y, graphableVars[i].var->name, selectorIndex == i);
+                y += 10;
+            }
+
+            drawScrollbar(graphableVars.length(), 6);
+        }
+#else
+        display.drawString(1, 1, "Graphing is disabled");
+        display.drawString(1, 11, "in Test Mode.");
+#endif
         display.updateDrawing();
     }
 

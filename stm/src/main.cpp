@@ -23,7 +23,7 @@
 #include "usart.hpp"
 #include "util.hpp"
 
-#define VERSION_STR "V1.4.3"
+#define VERSION_STR "V1.4.4"
 
 #ifdef _USE_CONSOLE
 #pragma message("Compiling with the USART Console.")

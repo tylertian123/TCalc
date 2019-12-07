@@ -52,6 +52,7 @@ namespace expr {
             PERIODIC_TABLE = 13,
             VAR_RECALL_MENU = 14,
             MATRIX_OPTIONS_MENU = 15,
+            GRAPH_VAR_SELECT_MENU = 16,
         };
 
         neda::Cursor *cursor;
@@ -77,6 +78,8 @@ namespace expr {
     private:
         // Updates the list of functions that are "graphable".
         void updateGraphableFunctions();
+        // Updates the list of points that are graphable.
+        void updateGraphableVars();
 
         // Maps an x value in real coordinate space to an x value on the display.
         int16_t mapX(double);
@@ -138,6 +141,8 @@ namespace expr {
         void varRecallKeyPressHandler(uint16_t key);
         // Handles key presses in the matrix options menu
         void matrixOptionsKeyPressHandler(uint16_t key);
+        // Handles key presses in the graph variables menu
+        void graphVarSelectKeyPressHandler(uint16_t key);
 
         /*
          * These functions draw the interface for a given mode.
@@ -179,6 +184,8 @@ namespace expr {
         void drawInterfaceVarRecall();
         // Draws the interface for the matrix options menu.
         void drawInterfaceMatrixOptions();
+        // Draws the interface for the variable graph select menu.
+        void drawInterfaceGraphVarSelect();
 
         // A key press handler handles key press events.
         typedef void (ExprEntry::*KeyPressHandler)(uint16_t);
@@ -190,14 +197,21 @@ namespace expr {
         struct GraphableFunction {
             GraphableFunction(const eval::UserDefinedFunction *func, bool graph) : func(func), graph(graph) {
             }
-            GraphableFunction(const GraphableFunction &other) : func(other.func), graph(other.graph) {
-            }
 
             const eval::UserDefinedFunction *func;
             bool graph = false;
         };
+        struct GraphableVariable {
+            GraphableVariable(const eval::Variable *var, bool graph) : var(var), graph(graph) {
+            }
+
+            const eval::Variable *var;
+            bool graph = false;
+        };
         // A list of graphable functions.
         util::DynamicArray<GraphableFunction> graphableFunctions;
+        // A list of graphable variables.
+        util::DynamicArray<GraphableVariable> graphableVars;
 
         /*
          * These variables are kept between two key presses and thus have to be global.

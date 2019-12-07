@@ -2,6 +2,7 @@
 #define __DYNAMIC_ARRAY_H__
 
 #include "stm32f10x.h"
+#include "util.hpp"
 #include <stdlib.h>
 
 namespace util {
@@ -34,7 +35,9 @@ namespace util {
         DynamicArray(DynamicArray &&other) : len(other.len), maxLen(other.maxLen) {
             contents = other.contents;
             other.contents = nullptr;
-            other.createdNormally = false;
+            other.ownsContents = false;
+            other.len = 0;
+            other.maxLen = 0;
         }
         typedef T *iterator;
         typedef const T *const_iterator;
@@ -56,7 +59,7 @@ namespace util {
             }
         }
         ~DynamicArray() {
-            if (contents && createdNormally) {
+            if (contents && ownsContents) {
                 free(contents);
             }
         }
@@ -143,26 +146,34 @@ namespace util {
             len = 0;
         }
         template <uint16_t Increase>
-        bool merge(const DynamicArray<T, Increase> *other) {
+        bool merge(const DynamicArray<T, Increase> &other) {
             // Expand memory and stuff
-            len += other->length();
+            len += other.length();
             if (len > maxLen) {
                 uint16_t old = maxLen;
                 maxLen = len;
                 void *tmp = realloc(contents, sizeof(T) * maxLen);
                 if (!tmp) {
-                    len -= other->length();
+                    len -= other.length();
                     maxLen = old;
                     return false;
                 }
                 contents = (T *) tmp;
             }
             // Iterate and copy elements
-            auto itThis = begin() + len - other->length();
-            for (auto itOther = other->begin(); itThis != end() && itOther != other->end(); itThis++, itOther++) {
+            auto itThis = begin() + len - other.length();
+            for (auto itOther = other.begin(); itThis != end() && itOther != other.end(); itThis++, itOther++) {
                 *itThis = *itOther;
             }
             return true;
+        }
+        
+        template <uint16_t Increase>
+        void swap(DynamicArray<T, Increase> &other) {
+            util::swap(contents, other.contents);
+            util::swap(len, other.len);
+            util::swap(maxLen, other.maxLen);
+            util::swap(ownsContents, other.ownsContents);
         }
 
         T *asArray() {
@@ -198,7 +209,7 @@ namespace util {
         }
 
         // Creates a const DynamicArray from a begin and an end iterator.
-        // The DynamicArray created does allocate its own memory; it just points to the piece of memory specified by the
+        // The DynamicArray created does NOT allocate its own memory; it just points to the piece of memory specified by the
         // iterators. Therefore, the elements don't undergo a copy operation.
         static const DynamicArray<T, IncreaseAmount> createConstRef(const_iterator start, const_iterator fin) {
             DynamicArray<T, IncreaseAmount> arr(fin - start, fin - start);
@@ -207,7 +218,7 @@ namespace util {
             arr.contents = const_cast<T *>(start);
             // Set this to false to prevent the destructor from freeing memory since it was never allocated in the first
             // place
-            arr.createdNormally = false;
+            arr.ownsContents = false;
             return arr;
         }
 
@@ -215,7 +226,7 @@ namespace util {
         T *contents;
         uint16_t len;
         uint16_t maxLen;
-        bool createdNormally = true;
+        bool ownsContents = true;
 
     private:
         // This constructor is intended for internal use only
