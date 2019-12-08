@@ -188,9 +188,9 @@ namespace expr {
         void drawInterfaceGraphVarSelect();
 
         // A key press handler handles key press events.
-        typedef void (ExprEntry::*KeyPressHandler)(uint16_t);
+        typedef void (ExprEntry::* const KeyPressHandler)(uint16_t);
         // An interface painter draws the interface for a particular mode.
-        typedef void (ExprEntry::*InterfacePainter)(void);
+        typedef void (ExprEntry::* const InterfacePainter)(void);
         static const KeyPressHandler KEY_PRESS_HANDLERS[];
         static const InterfacePainter INTERFACE_PAINTERS[];
 

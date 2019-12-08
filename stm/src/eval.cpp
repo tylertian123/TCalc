@@ -1240,18 +1240,22 @@ namespace eval {
      * vars - An array of all user-defined variables
      * funcc - The number of user-defined functions
      * funcs - An array of all user-defined functions
-     * start - Where to start evaluating. This should be the index of the left bracket marking the beginning of the
-     * arguments list. end *(out)* - A uint16_t reference which will be set to the index of the right bracket marking
-     * the end of the arguments list. err *(out)* - A boolean that will be set to true if an error occurs
+     * start - Where to start evaluating. This should be the index of the left bracket marking the beginning of the arguments list
+     * end *(out)* - A uint16_t reference which will be set to the index of the right bracket marking the end of the arguments list
+     * err *(out)* - A boolean that will be set to true if an error occurs
      *
      * If there is a syntax error in the arguments list, this function will set the output bool to true.
      */
     util::DynamicArray<Token *> evaluateArgs(const util::DynamicArray<neda::NEDAObj *> &expr, uint16_t varc,
             const Variable *vars, uint16_t funcc, const UserDefinedFunction *funcs, uint16_t start, uint16_t &end,
             bool &err) {
-
+        
+        if(start >= expr.length()) {
+            err = true;
+            return util::DynamicArray<Token *>();
+        }
         // Args must start with a left bracket
-        if (start < expr.length() && expr[start]->getType() != neda::ObjType::L_BRACKET) {
+        if (expr[start]->getType() != neda::ObjType::L_BRACKET) {
             err = true;
             return util::DynamicArray<Token *>();
         }
@@ -1327,6 +1331,132 @@ namespace eval {
         }
         return args;
     }
+
+    Token *evaluateBuiltinFunction(const Function *func, const util::DynamicArray<neda::NEDAObj *> &expr,
+            uint16_t varc, const Variable *vars, uint16_t funcc, const UserDefinedFunction *funcs, uint16_t argStart, uint16_t &endOut) {
+        bool err = false;
+        auto args = evaluateArgs(expr, varc, vars, funcc, funcs, argStart, endOut, err);
+        // Verify number of arguments
+        if(err || (func->isVarArgs() ? args.length() < func->getNumArgs() : args.length() != func->getNumArgs())) {
+            freeTokens(args);
+            return nullptr;
+        }
+        // Call function
+        auto result = (*func)(args.asArray(), args.length());
+        freeTokens(args);
+        // Will be nullptr in case of failure
+        return result;
+    }
+
+    Token *evaluateUserDefinedFunction(const UserDefinedFunction *func, const util::DynamicArray<neda::NEDAObj *> &expr,
+            uint16_t varc, const Variable *vars, uint16_t funcc, const UserDefinedFunction *funcs, uint16_t argStart, uint16_t &endOut) {
+        bool err = false;
+        auto args = evaluateArgs(expr, varc, vars, funcc, funcs, argStart, endOut, err);
+        // Verify number of arguments
+        if(err || func->argc != args.length()) {
+            freeTokens(args);
+            return nullptr;
+        }
+
+        // Evaluate a user-defined function by creating a new environment in which the variables
+        // list also contain the function arguments. The other variables and functions are also
+        // kept so that functions can call other functions. The function arguments are first in
+        // the list so that they have precedence over other variables. However, this doesn't
+        // handle recursion! Recursive functions without an exit condition will cause a stack
+        // overflow.
+
+        // Construct a new variables list containing the arguments and normal variables
+        Variable *newVars = new Variable[varc + func->argc];
+        // Copy in the names and values of function arguments
+        for (uint8_t i = 0; i < func->argc; i++) {
+            newVars[i].name = func->argn[i];
+            newVars[i].value = args[i];
+        }
+        // Copy in the names and values of variables
+        for (uint16_t i = 0; i < varc; i++) {
+            newVars[i + func->argc] = vars[i];
+        }
+
+        // Evaluate
+        auto result = evaluate(func->expr, varc + func->argc, newVars, funcc, funcs);
+        delete[] newVars;
+        freeTokens(args);
+        // Will be nullptr in case of failure
+        return result;
+    }
+    
+    Token *logSEP(const util::DynamicArray<neda::NEDAObj *> &expr, uint16_t varc, const Variable *vars, 
+            uint16_t funcc, const UserDefinedFunction *funcs, uint16_t start, uint16_t &endOut) {
+        if(start + 1 < expr.length()) {
+            // Custom base
+            if(expr[start]->getType() == neda::ObjType::SUBSCRIPT) {
+                // If subscript exists, recursively evaluate it
+                Token *sub = evaluate((neda::Container *) ((neda::Subscript *) expr[start])->contents, varc,
+                        vars, funcc, funcs);
+                
+                // If an error occurs, clean up and return
+                if (!sub) {
+                    return nullptr;
+                }
+
+                // Now evaluate arguments
+                bool err = false;
+                auto arg = evaluateArgs(expr, varc, vars, funcc, funcs, start + 1, endOut, err);
+                // Syntax error/wrong number of args
+                if(err || arg.length() != 1) {
+                    freeTokens(arg);
+                    delete sub;
+                    return nullptr;
+                }
+                // Change of base
+                Token *n = Function(Function::Type::LOG2)(arg.asArray(), 1);
+                Token *d = Function(Function::Type::LOG2)(&sub, 1);
+
+                if(!n || !d) {
+                    freeTokens(arg);
+                    delete sub;
+                    delete n;
+                    delete d;
+                }
+                // Divide the result
+                Token *result = Operator(Operator::Type::DIVIDE)(n, d);
+
+                freeTokens(arg);
+                delete sub;
+                ++endOut;
+                return result;
+            }
+            // Default base
+            else {
+                bool err = false;
+                auto arg = evaluateArgs(expr, varc, vars, funcc, funcs, start, endOut, err);
+
+                // Syntax error/wrong number of args
+                if(err || arg.length() != 1) {
+                    freeTokens(arg);
+                    return nullptr;
+                }
+
+                Token *result = Function(Function::Type::LOG10)(arg.asArray(), 1);
+                freeTokens(arg);
+                ++endOut;
+                return result;
+            }
+        }
+        else {
+            return nullptr;
+        }
+    }
+
+    typedef Token *(*const SpecialExpressionParser)(const util::DynamicArray<neda::NEDAObj *> &expr, 
+            uint16_t varc, const Variable *vars, uint16_t funcc, const UserDefinedFunction *funcs, uint16_t start, uint16_t &endOut);
+    const char * const SPECIAL_EXPRESSION_NAMES[] = {
+        "log"
+    };
+    constexpr auto SPECIAL_EXPRESSION_LEN = sizeof(SPECIAL_EXPRESSION_NAMES) / sizeof(const char *const);
+    const SpecialExpressionParser SPECIAL_EXPRESSION_PARSERS[SPECIAL_EXPRESSION_LEN] = {
+        &logSEP,
+    };
 
     // Overloaded instance of the other evaluate() for convenience. Works directly on neda::Containers.
     Token *evaluate(const neda::Container *expr, const util::DynamicArray<Variable> &vars,
@@ -1690,179 +1820,114 @@ namespace eval {
                     break;
                 }
 
+                // Special expressions
+                bool isSpecialExpression = false;
+                for(uint16_t i = 0; i < SPECIAL_EXPRESSION_LEN; i ++) {
+                    if(strcmp(str, SPECIAL_EXPRESSION_NAMES[i]) == 0) {
+                        // Implied multiplication
+                        if (!lastTokenOperator) {
+                            arr.add(new Operator(Operator::Type::MULTIPLY));
+                        }
+                        // Evaluate
+                        Token *result = SPECIAL_EXPRESSION_PARSERS[i](exprs, varc, vars, funcc, funcs, 
+                                end, end);
+                        
+                        delete[] str;
+                        if(!result) {
+                            freeTokens(arr);
+                            return nullptr;
+                        }
+                        arr.add(result);
+                        lastTokenOperator = false;
+                        index = end;
+                        isSpecialExpression = true;
+                        break;
+                    }
+                }
+                if(isSpecialExpression) {
+                    break;
+                }
+
                 const Function *func = nullptr;
                 const UserDefinedFunction *uFunc = nullptr;
                 // If the token isn't a number
                 if (!isNum) {
-                    // Special processing for logarithms:
-                    if (strcmp(str, "log") == 0) {
-                        // See if the next object is a subscript (log base)
-                        if (end < exprs.length() && exprs[end]->getType() == neda::ObjType::SUBSCRIPT) {
-                            // If subscript exists, recursively evaluate it
-                            Token *sub = evaluate((neda::Container *) ((neda::Subscript *) exprs[end])->contents, varc,
-                                    vars, funcc, funcs);
-                            // If an error occurs, clean up and return
-                            if (!sub) {
-                                freeTokens(arr);
-                                delete[] str;
-                                return nullptr;
+                    func = Function::fromString(str);
+
+                    // If it's not a normal function then try to find a user function that matches
+                    if (!func) {
+                        // Loop through all functions
+                        for (uint16_t i = 0; i < funcc; ++i) {
+                            // Compare with all the names of user-defined functions
+                            if (strcmp(funcs[i].name, str) == 0) {
+                                // If found, set uFunc to point to it
+                                uFunc = funcs + i;
+                                break;
                             }
-                            // Use the log change of base property to convert it to a base 2 log
-                            double base = extractDouble(sub);
-                            delete sub;
-                            double multiplier = 1 / log2(base);
-                            // Convert it to a multiplication with a base 2 log
-                            arr.add(new Numerical(multiplier));
-                            // Use special multiply to ensure the order of operations do not mess it up
-                            arr.add(new Operator(Operator::Type::SP_MULT));
-                            // The function is base 2 log
-                            func = new Function(Function::Type::LOG2);
-                            // Increment end so the index gets set properly afterwards
-                            ++end;
                         }
-                        // Default log base: 10
-                        else {
-                            // The function is base 10 log
-                            func = new Function(Function::Type::LOG10);
-                        }
-                        // Move on to evaluate the arguments
-                        goto evaluateFunc;
                     }
-                    // If it's not a log, see if it's a built-in function
+                    // Add the function if it's valid
+                    if (func || uFunc) {
+                        // Implied multiplication
+                        if (!lastTokenOperator) {
+                            arr.add(new Operator(Operator::Type::MULTIPLY));
+                        }
+
+                        Token *result = func ? evaluateBuiltinFunction(func, exprs, varc, vars, funcc, funcs, end, end) 
+                                : evaluateUserDefinedFunction(uFunc, exprs, varc, vars, funcc, funcs, end, end);
+                        
+                        delete func;
+                        delete uFunc;
+                        if(!result) {
+                            freeTokens(arr);
+                            delete[] str;
+                            return nullptr;
+                        }
+
+                        // Add result
+                        arr.add(result);
+                        lastTokenOperator = false;
+                        // Increment end to skip the ending right bracket
+                        ++end;
+                    }
+                    // If not a function, check if it's a constant or a variable
                     else {
-                        func = Function::fromString(str);
-                        // If it's not a normal function then try to find a user function that matches
-                        if (!func) {
-                            // Loop through all functions
-                            for (uint16_t i = 0; i < funcc; ++i) {
-                                // Compare with all the names of user-defined functions
-                                if (strcmp(funcs[i].name, str) == 0) {
-                                    // If found, set uFunc to point to it
-                                    uFunc = funcs + i;
+                        // Implied multiplication
+                        if (!lastTokenOperator) {
+                            arr.add(new Operator(Operator::Type::MULTIPLY));
+                        }
+                        // If n is nonnull it must be added, so no need for cleanup for this dynamically allocated
+                        // variable
+                        Numerical *n = Numerical::constFromString(str);
+                        // Add if it's a valid constant
+                        if (n) {
+                            arr.add(n);
+                        }
+                        // Otherwise check if it's a valid variable
+                        else {
+                            // Loop through all variables
+                            uint16_t i;
+                            for (i = 0; i < varc; i++) {
+                                // Compare with each variable name
+                                if (strcmp(str, vars[i].name) == 0) {
+                                    // We found a match!
+                                    if (vars[i].value->getType() == TokenType::NUMERICAL) {
+                                        arr.add(new Numerical(static_cast<Numerical *>(vars[i].value)->value));
+                                    }
+                                    else {
+                                        arr.add(new Matrix(*static_cast<Matrix *>(vars[i].value)));
+                                    }
                                     break;
                                 }
                             }
-                        }
-                        // Add the function if it's valid
-                        if (func || uFunc) {
-                        evaluateFunc:
-                            // Implied multiplication
-                            if (!lastTokenOperator) {
-                                arr.add(new Operator(Operator::Type::MULTIPLY));
-                            }
-                            bool err = false;
-                            auto args = evaluateArgs(exprs, varc, vars, funcc, funcs, end, end, err);
-                            // Verify that the number of arguments is correct
-                            // Make sure to handle user-defined functions as well
-                            if (err ||
-                                    (func && (func->isVarArgs() ? args.length() < func->getNumArgs()
-                                                                : args.length() != func->getNumArgs())) ||
-                                    (uFunc && uFunc->argc != args.length())) {
+                            // If no match was found, cleanup and return
+                            if (i == varc) {
                                 freeTokens(arr);
-                                freeTokens(args);
                                 delete[] str;
-                                delete func;
                                 return nullptr;
                             }
-                            // Evaluate
-                            Token *result;
-                            // Regular function - cast and call to evaluate
-                            if (func) {
-                                result = (*func)(args.asArray(), args.length());
-                                // If result cannot be computed, syntax error
-                                if (!result) {
-                                    freeTokens(arr);
-                                    freeTokens(args);
-                                    delete[] str;
-                                    delete func;
-                                    return nullptr;
-                                }
-                                delete func;
-                            }
-                            // User-defined function
-                            else {
-                                // Evaluate a user-defined function by creating a new environment in which the variables
-                                // list also contain the function arguments. The other variables and functions are also
-                                // kept so that functions can call other functions. The function arguments are first in
-                                // the list so that they have precedence over other variables. However, this doesn't
-                                // handle recursion! Recursive functions without an exit condition will cause a stack
-                                // overflow.
-
-                                // Construct a new variables list containing the arguments and normal variables
-                                Variable *newVars = new Variable[varc + uFunc->argc];
-                                // Copy in the names and values of function arguments
-                                for (uint8_t i = 0; i < uFunc->argc; i++) {
-                                    newVars[i].name = uFunc->argn[i];
-                                    newVars[i].value = args[i];
-                                }
-                                // Copy in the names and values of variables
-                                for (uint16_t i = 0; i < varc; i++) {
-                                    newVars[i + uFunc->argc] = vars[i];
-                                }
-
-                                // Evaluate
-                                result = evaluate(uFunc->expr, varc + uFunc->argc, newVars, funcc, funcs);
-                                // Syntax error, cleanup
-                                if (!result) {
-                                    delete[] newVars;
-
-                                    freeTokens(arr);
-                                    freeTokens(args);
-                                    delete[] str;
-                                    return nullptr;
-                                }
-
-                                // Cleanup
-                                delete[] newVars;
-                            }
-
-                            // Free args
-                            freeTokens(args);
-                            // Add result
-                            arr.add(result);
-                            lastTokenOperator = false;
-                            // Increment end to skip the ending right bracket
-                            ++end;
                         }
-                        // If not a function, check if it's a constant or a variable
-                        else {
-                            // Implied multiplication
-                            if (!lastTokenOperator) {
-                                arr.add(new Operator(Operator::Type::MULTIPLY));
-                            }
-                            // If n is nonnull it must be added, so no need for cleanup for this dynamically allocated
-                            // variable
-                            Numerical *n = Numerical::constFromString(str);
-                            // Add if it's a valid constant
-                            if (n) {
-                                arr.add(n);
-                            }
-                            // Otherwise check if it's a valid variable
-                            else {
-                                // Loop through all variables
-                                uint16_t i;
-                                for (i = 0; i < varc; i++) {
-                                    // Compare with each variable name
-                                    if (strcmp(str, vars[i].name) == 0) {
-                                        // We found a match!
-                                        if (vars[i].value->getType() == TokenType::NUMERICAL) {
-                                            arr.add(new Numerical(static_cast<Numerical *>(vars[i].value)->value));
-                                        }
-                                        else {
-                                            arr.add(new Matrix(*static_cast<Matrix *>(vars[i].value)));
-                                        }
-                                        break;
-                                    }
-                                }
-                                // If no match was found, cleanup and return
-                                if (i == varc) {
-                                    freeTokens(arr);
-                                    delete[] str;
-                                    return nullptr;
-                                }
-                            }
-                            lastTokenOperator = false;
-                        }
+                        lastTokenOperator = false;
                     }
                 }
                 // If it's a number, parse it with atof and add its value
