@@ -125,6 +125,38 @@ namespace eval {
         }
         return equal;
     }
+    Matrix *Matrix::leastSquares(const Matrix &a, const Matrix &b) {
+        // Matrix
+        Matrix *aTranspose = a.transpose();
+        // Matrix
+        Matrix *aTransposeA = Matrix::multiply(*aTranspose, a);
+        // Vector
+        Matrix *aTransposeB = Matrix::multiply(*aTranspose, b);
+
+        delete aTranspose;
+        // Matrix
+        Matrix augmented(aTransposeA->m, aTransposeA->n + 1);
+        for (uint8_t i = 0; i < aTransposeA->m; i++) {
+            for (uint8_t j = 0; j < aTransposeA->n; j++) {
+                augmented.setEntry(i, j, aTransposeA->getEntry(i, j));
+            }
+        }
+        for (uint8_t i = 0; i < aTransposeA->m; i++) {
+            augmented.setEntry(i, aTransposeA->n, (*aTransposeB)[i]);
+        }
+        delete aTransposeA;
+        delete aTransposeB;
+
+        if (!augmented.eliminate(false)) {
+            return nullptr;
+        }
+        // Construct solution as vector
+        Matrix *solution = new Matrix(augmented.m, 1);
+        for (uint8_t i = 0; i < augmented.m; i++) {
+            (*solution)[i] = augmented.getEntry(i, augmented.m);
+        }
+        return solution;
+    }
     util::Numerical Matrix::det() {
         // No determinant for nonsquare matrices
         if (m != n) {
@@ -749,6 +781,7 @@ namespace eval {
             "rref(A)",
             "mean(values...)",
             "rand()",
+            "linReg(x,y,model...)",
     };
     Function *Function::fromString(const char *str) {
         for (uint8_t i = 0; i < TYPE_COUNT; i++) {
@@ -897,38 +930,8 @@ namespace eval {
                 return nullptr;
             }
 
-            // Matrix
-            Matrix *aTranspose = a->transpose();
-            // Matrix
-            Matrix *aTransposeA = Matrix::multiply(*aTranspose, *a);
-            // Vector
-            Matrix *aTransposeB = Matrix::multiply(*aTranspose, *b);
-
-            delete aTranspose;
-            // Matrix
-            Matrix *augmented = new Matrix(aTransposeA->m, aTransposeA->n + 1);
-            for (uint8_t i = 0; i < aTransposeA->m; i++) {
-                for (uint8_t j = 0; j < aTransposeA->n; j++) {
-                    augmented->setEntry(i, j, aTransposeA->getEntry(i, j));
-                }
-            }
-            for (uint8_t i = 0; i < aTransposeA->m; i++) {
-                augmented->setEntry(i, aTransposeA->n, (*aTransposeB)[i]);
-            }
-            delete aTransposeA;
-            delete aTransposeB;
-
-            if (!augmented->eliminate(false)) {
-                delete augmented;
-                return new Numerical(NAN);
-            }
-            // Construct solution as vector
-            Matrix *solution = new Matrix(augmented->m, 1);
-            for (uint8_t i = 0; i < augmented->m; i++) {
-                (*solution)[i] = augmented->getEntry(i, augmented->m);
-            }
-            delete augmented;
-            return solution;
+            Matrix *solution = Matrix::leastSquares(*a, *b);
+            return solution ? static_cast<Token *>(solution) : static_cast<Token *>(new Numerical(NAN));
         }
         case Type::RREF: {
             // Syntax error: rref of a scalar
@@ -1431,14 +1434,127 @@ namespace eval {
         }
     }
 
+    Token *linRegSEP(const util::DynamicArray<neda::NEDAObj *> &expr, uint16_t varc, const Variable *vars,
+            uint16_t funcc, const UserDefinedFunction *funcs, uint16_t start, uint16_t &endOut) {
+        if(start + 1 >= expr.length() || expr[start]->getType() != neda::ObjType::L_BRACKET) {
+            return nullptr;
+        }
+
+        uint16_t nesting = 0;
+        uint16_t argStart = start + 1;
+        util::DynamicArray<Token *> args;
+        util::DynamicArray<uint32_t> model;
+        for(endOut = start; endOut < expr.length(); endOut ++) {
+            // left bracket - increase nesting
+            if(expr[endOut]->getType() == neda::ObjType::L_BRACKET) {
+                ++nesting;
+            }
+            // right bracket - decrease nesting
+            else if(expr[endOut]->getType() == neda::ObjType::R_BRACKET) {
+                --nesting;
+                // All brackets finished
+                if(!nesting) {
+                    // Try evaluating the last argument
+                    if(args.length() < 2) {
+                        Token *result = evaluate(util::DynamicArray<neda::NEDAObj *>::createConstRef(expr.begin() + argStart, expr.begin() + endOut),
+                                varc, vars, funcc, funcs);
+                        if(!result) {
+                            freeTokens(args);
+                            return nullptr;
+                        }
+
+                        args.add(result);
+                    }
+                    else {
+                        // put into model
+                        model.add(argStart << 16 | endOut);
+                    }
+                    break;
+                }
+            }
+            // comma - handle arguments
+            // Only do this if nesting level is 1, so commas inside inner brackets are not counted by mistake
+            else if(expr[endOut]->getType() == neda::ObjType::CHAR_TYPE && extractChar(expr[endOut]) == ',' && nesting == 1) {
+                // Try evaluate
+                if(args.length() < 2) {
+                    Token *result = evaluate(util::DynamicArray<neda::NEDAObj *>::createConstRef(expr.begin() + argStart, expr.begin() + endOut),
+                            varc, vars, funcc, funcs);
+                    if(!result) {
+                        freeTokens(args);
+                        return nullptr;
+                    }
+
+                    args.add(result);
+                }
+                else {
+                    // put into model
+                    model.add(argStart << 16 | endOut);
+                }
+                // Skip the comma
+                argStart = endOut + 1;
+            }
+        }
+        ++endOut;
+
+        // Handle errors
+        if(nesting != 0 || args.length() != 2 || model.length() == 0 
+                || args[0]->getType() != TokenType::MATRIX || args[1]->getType() != TokenType::MATRIX
+                || static_cast<Matrix *>(args[0])->n != 1 || static_cast<Matrix *>(args[1])->n != 1
+                || static_cast<Matrix *>(args[0])->m != static_cast<Matrix *>(args[1])->m
+                || static_cast<Matrix *>(args[0])->m > 0xFF || model.length() > 0xFF) {
+            freeTokens(args);
+            return nullptr;
+        }
+
+        Matrix *x = static_cast<Matrix *>(args[0]);
+        Matrix *y = static_cast<Matrix *>(args[1]);
+
+        Matrix a(x->m, model.length());
+
+        // Construct a new variables list containing the arguments and normal variables
+        Variable *newVars = new Variable[varc + 1];
+        // Copy in the names and values of variables
+        for (uint16_t i = 0; i < varc; i++) {
+            newVars[i + 1] = vars[i];
+        }
+        newVars[0].name = "x";
+        
+        Numerical xn(0);
+        newVars[0].value = &xn;
+
+        for(uint8_t row = 0; row < x->m; row ++) {
+            for(uint8_t col = 0; col < model.length(); col ++) {
+                xn.value = x->contents[row];
+                Token *t = evaluate(util::DynamicArray<neda::NEDAObj *>::createConstRef(expr.begin() + (model[col] >> 16), 
+                        expr.begin() + (model[col] & 0xFFFF)), varc + 1, newVars, funcc, funcs);
+
+                if(!t || t->getType() != TokenType::NUMERICAL) {
+                    freeTokens(args);
+                    delete[] newVars;
+                    return nullptr;
+                }
+
+                a.setEntry(row, col, static_cast<Numerical *>(t)->value);
+                delete t;
+            }
+        }
+
+        delete[] newVars;
+        Token *result = Matrix::leastSquares(a, *y);
+        freeTokens(args);
+        return result ? result : new Numerical(NAN);
+    }
+
     typedef Token *(*const SpecialExpressionParser)(const util::DynamicArray<neda::NEDAObj *> &expr, 
             uint16_t varc, const Variable *vars, uint16_t funcc, const UserDefinedFunction *funcs, uint16_t start, uint16_t &endOut);
     const char * const SPECIAL_EXPRESSION_NAMES[] = {
-        "log"
+        "log",
+        "linReg",
     };
     constexpr auto SPECIAL_EXPRESSION_LEN = sizeof(SPECIAL_EXPRESSION_NAMES) / sizeof(const char *const);
     const SpecialExpressionParser SPECIAL_EXPRESSION_PARSERS[SPECIAL_EXPRESSION_LEN] = {
         &logSEP,
+        &linRegSEP,
     };
 
     // Overloaded instance of the other evaluate() for convenience. Works directly on neda::Containers.

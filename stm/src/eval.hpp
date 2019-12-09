@@ -96,6 +96,7 @@ namespace eval {
         static Matrix *multiply(const Matrix &, const Matrix &);
         static util::Numerical dot(const Matrix &, const Matrix &);
         static bool equality(const Matrix &, const Matrix &);
+        static Matrix *leastSquares(const Matrix &, const Matrix &);
         // Note: This will modify the matrix
         util::Numerical det();
         util::Numerical len() const;
@@ -226,7 +227,7 @@ namespace eval {
         // Used for displaying, doesn't have to contain all functions
         static const char *const FUNC_FULLNAMES[];
         // Length of FUNC_FULLNAMES
-        static constexpr uint8_t TYPE_COUNT_DISPLAYABLE = 26;
+        static constexpr uint8_t TYPE_COUNT_DISPLAYABLE = 27;
 
         Function(Type type) : type(type) {
         }
