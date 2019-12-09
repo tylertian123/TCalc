@@ -142,7 +142,9 @@ namespace expr {
         // Make sure it fits
         if (info.x + xd >= HORIZ_MARGIN && info.y + yd >= VERT_MARGIN &&
                 info.x + info.width + xd + HORIZ_MARGIN < lcd::SIZE_WIDTH &&
-                info.y + info.height + yd + VERT_MARGIN < lcd::SIZE_HEIGHT) {
+                // Check that the bottom of the cursor is in bounds, OR if the cursor is too big to be shown completely
+                (info.y + info.height + yd + VERT_MARGIN < lcd::SIZE_HEIGHT 
+                        || info.height > lcd::SIZE_HEIGHT - VERT_MARGIN * 2)) {
             top->updatePosition(xd, yd);
         }
         else {
@@ -163,12 +165,14 @@ namespace expr {
             else if (info.x + info.width + HORIZ_MARGIN >= lcd::SIZE_WIDTH) {
                 xdiff = (lcd::SIZE_WIDTH - 1) - (info.x + info.width + HORIZ_MARGIN);
             }
-            // Cursor too high
+            // Cursor too low
+            if (info.y + info.height + VERT_MARGIN >= lcd::SIZE_HEIGHT) {
+                ydiff = (lcd::SIZE_HEIGHT - 1) - (info.y + info.height + VERT_MARGIN);
+            }
+            // Note: sometimes the cursor can be out of bounds on both sides
+            // In this case, correct it as if the cursor was too high
             if (info.y < VERT_MARGIN) {
                 ydiff = VERT_MARGIN - info.y;
-            }
-            else if (info.y + info.height + VERT_MARGIN >= lcd::SIZE_HEIGHT) {
-                ydiff = (lcd::SIZE_HEIGHT - 1) - (info.y + info.height + VERT_MARGIN);
             }
             top->updatePosition(xdiff, ydiff);
         }
