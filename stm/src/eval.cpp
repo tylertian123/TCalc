@@ -1259,77 +1259,60 @@ namespace eval {
             err = true;
             return util::DynamicArray<Token *>();
         }
+
         uint16_t nesting = 0;
-        for (end = start; end < expr.length(); end++) {
-            // Increase and decrease the nesting level accordingly and exit when nesting level is 0
-            if (expr[end]->getType() == neda::ObjType::L_BRACKET) {
+        uint16_t argStart = start + 1;
+        util::DynamicArray<Token *> args;
+        for(end = start; end < expr.length(); end ++) {
+            // left bracket - increase nesting
+            if(expr[end]->getType() == neda::ObjType::L_BRACKET) {
                 ++nesting;
             }
-            else if (expr[end]->getType() == neda::ObjType::R_BRACKET) {
+            // right bracket - decrease nesting
+            else if(expr[end]->getType() == neda::ObjType::R_BRACKET) {
                 --nesting;
-                if (!nesting) {
-                    break;
-                }
-            }
-        }
-
-        if (nesting != 0) {
-            // Mismatched brackets
-            err = true;
-            return util::DynamicArray<Token *>();
-        }
-
-        util::DynamicArray<Token *> args;
-        // Increment to skip the first left bracket
-        start++;
-        uint16_t argEnd = start;
-        while (start != end) {
-            // Take care of nested brackets
-            uint16_t nesting = 0;
-            for (; argEnd < end; ++argEnd) {
-                // Increase and decrease nesting accordingly
-                if (expr[argEnd]->getType() == neda::ObjType::L_BRACKET) {
-                    ++nesting;
-                    continue;
-                }
-                else if (expr[argEnd]->getType() == neda::ObjType::R_BRACKET) {
-                    // Arguments can only end by a comma
-                    // Thus if nesting ever reaches a level less than zero, there are mismatched parentheses
-                    if (!nesting) {
-                        err = true;
+                // All brackets finished
+                if(!nesting) {
+                    // Try evaluating the last argument
+                    // Special case: no arguments, right bracket right after left bracket
+                    if(args.length() == 0 && end == start + 1) {
+                        return args;
+                    }
+                    // Try evaluate
+                    Token *result = evaluate(util::DynamicArray<neda::NEDAObj *>::createConstRef(expr.begin() + argStart, expr.begin() + end),
+                            varc, vars, funcc, funcs);
+                    if(!result) {
                         freeTokens(args);
+                        err = true;
                         return util::DynamicArray<Token *>();
                     }
-                    // Decrease nesting since we now know it's nonzero
-                    --nesting;
-                    continue;
-                }
-                // Only end arguments when the nesting level is 0
-                // This ensures that expressions like f(g(x, y), 0) get parsed properly
-                if (nesting == 0 && extractChar(expr[argEnd]) == ',') {
-                    break;
+                    args.add(result);
+                    err = false;
+                    return args;
                 }
             }
+            // comma - handle arguments
+            // Only do this if nesting level is 1, so commas inside inner brackets are not counted by mistake
+            else if(expr[end]->getType() == neda::ObjType::CHAR_TYPE && extractChar(expr[end]) == ',' && nesting == 1) {
+                // Try evaluate
+                Token *result = evaluate(util::DynamicArray<neda::NEDAObj *>::createConstRef(expr.begin() + argStart, expr.begin() + end),
+                        varc, vars, funcc, funcs);
+                if(!result) {
+                    freeTokens(args);
+                    err = true;
+                    return util::DynamicArray<Token *>();
+                }
 
-            // Isolate the argument's contents
-            const util::DynamicArray<neda::NEDAObj *> argContents =
-                    util::DynamicArray<neda::NEDAObj *>::createConstRef(expr.begin() + start, expr.begin() + argEnd);
-            Token *arg = evaluate(argContents, varc, vars, funcc, funcs);
-            // Syntax error
-            if (!arg) {
-                freeTokens(args);
-                err = true;
-                return util::DynamicArray<Token *>();
+                args.add(result);
+                // Skip the comma
+                argStart = end + 1;
             }
-            args.add(arg);
-
-            // If we ended on a comma (because this argument isn't the last), skip it
-            if (extractChar(expr[argEnd]) == ',') {
-                ++argEnd;
-            }
-            start = argEnd;
         }
-        return args;
+
+        // Handle mismatched brackets
+        err = true;
+        freeTokens(args);
+        return util::DynamicArray<Token *>();
     }
 
     Token *evaluateBuiltinFunction(const Function *func, const util::DynamicArray<neda::NEDAObj *> &expr,
