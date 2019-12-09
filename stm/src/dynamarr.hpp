@@ -25,15 +25,22 @@ namespace util {
         }
         // Copy constructor
         DynamicArray(const DynamicArray &other) : len(other.len), maxLen(other.maxLen) {
-            contents = (T *) malloc(sizeof(T) * maxLen);
+            if(!other.ownsContents) {
+                contents = other.contents;
+                ownsContents = false;
+            }
+            else {
+                contents = (T *) malloc(sizeof(T) * maxLen);
 
-            for (uint16_t i = 0; i < len; i++) {
-                contents[i] = other.contents[i];
+                for (uint16_t i = 0; i < len; i++) {
+                    contents[i] = other.contents[i];
+                }
             }
         }
         // Move constructor
         DynamicArray(DynamicArray &&other) : len(other.len), maxLen(other.maxLen) {
             contents = other.contents;
+            ownsContents = other.ownsContents;
             other.contents = nullptr;
             other.ownsContents = false;
             other.len = 0;
