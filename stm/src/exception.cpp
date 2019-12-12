@@ -1,6 +1,14 @@
 #include <gunzip.h>
 #include "exception.hpp"
 #include <unwind.h>
+#include "usart.hpp"
+
+#ifndef DEBUG_EXCEPTION
+#define DEBUG_EXCEPTION 0
+#endif
+
+#define DEBUG_EXCEPTION_PRINT(fmt, ...) \
+	do { if (DEBUG_EXCEPTION) printf(fmt, __VA_ARGS__); } while (0)
 
 // Definitions to match with external data
 
@@ -48,8 +56,8 @@ namespace exception {
 								  // 	3 - getting unwind amt
 								  // )
 								  // where index is the byte into the value
-		uint32_t lower_PC, upper_PC;
-		int16_t  unwind_amt;
+		uint32_t lower_PC = 0, upper_PC = 0;
+		int16_t  unwind_amt = 0;
 		
 		uint32_t PC;
 		uint32_t LR;
@@ -60,6 +68,7 @@ namespace exception {
 		uint16_t   bt_maxlen;
 
 		bool signalDone;
+		ptrdiff_t offset = 0;
 	};
 
 	BackTraceParseState *btps;
@@ -83,9 +92,12 @@ namespace exception {
 		while (!local_btps.signalDone && local_btps.bt_len < local_btps.bt_maxlen) {
 			// Set the initial state of the BTP
 			local_btps.parse_state = 0x10;
-
+			// Set the buffer pointer
+			local_btps.offset = 0;
 			// Deflate the entire buffer
-			tinydeflate::Deflate(dbg_backtable_begin+0, +[](uint8_t data){ // this lambda is positive. (it forces a cast to pointer to avoid flash space)
+			tinydeflate::Deflate(+[](){
+				return dbg_backtable_begin[btps->offset++];
+			}, +[](uint8_t data){ // this lambda is positive. (it forces a cast to pointer to avoid flash space)
 				// Our callback; should be called whenever
 				
 				switch (btps->parse_state & 0xF0) {
@@ -100,7 +112,7 @@ namespace exception {
 						if ((btps->parse_state & 0x0F) == 4) btps->parse_state = 0x30;
 						break;
 					case 0x30:
-						btps->unwind_amt <<= 8; btps->upper_PC |= data;
+						btps->unwind_amt <<= 8; btps->unwind_amt |= data;
 						++btps->parse_state;
 						break;
 					default:
@@ -108,15 +120,19 @@ namespace exception {
 				}
 
 				if (btps->parse_state == 0x32) {
+					DEBUG_EXCEPTION_PRINT("found bt %08x - %08x = %d; currently at PC=%08x; SP=%08x; LR=%08x\n", btps->lower_PC, btps->upper_PC, btps->unwind_amt, btps->PC, btps->SP, btps->LR);
 					// Check if this is an acceptable unwind value.
-					while (btps->lower_PC <= btps->PC && btps->upper_PC < btps->PC) {
+					while (btps->lower_PC <= btps->PC && btps->PC < btps->upper_PC) {
+						DEBUG_EXCEPTION_PRINT("matches in %08x - %08x = %d; currently at PC=%08x; SP=%08x; LR=%08x\n", btps->lower_PC, btps->upper_PC, btps->unwind_amt, btps->PC, btps->SP, btps->LR);
 						// It is! apply the unwind amount
 						_applyUnwindTo(btps->PC, btps->LR, btps->SP, btps->unwind_amt);
 						// Push the new PC to the backtrace
 						btps->backtrace[btps->bt_len++] = btps->PC;
+						DEBUG_EXCEPTION_PRINT("now at PC=%08x; SP=%08x; LR=%08x\n", btps->PC, btps->SP, btps->LR);
 
 						// Check if we have reached the end of the backtrace
-						if (btps->SP >= reinterpret_cast<uint32_t>(&_estack)) {
+						// (are we past the end of stack / are we in an invalid addres)
+						if (btps->SP >= reinterpret_cast<uint32_t>(&_estack) || btps->PC < 0x0800'0000 || btps->PC > 0x2400'0000) {
 							btps->signalDone = true;
 							return true;
 						}
@@ -128,6 +144,10 @@ namespace exception {
 						// If the value is later, this function returns and decompression continues.
 					}
 
+
+					btps->unwind_amt = 0;
+					btps->lower_PC = 0;
+					btps->upper_PC = 0;
 					btps->parse_state = 0x10; // Get ready for the next value
 				}
 

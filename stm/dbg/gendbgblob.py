@@ -138,12 +138,12 @@ def run(inelf, outbin):
     f2 = io.BytesIO()  # unwind table
 
     for name, addr in sorted(symtable.items(), key=lambda x: x[0]):
-        f1.write(struct.pack("<I", addr))
+        f1.write(struct.pack(">I", addr))
         f1.write(cxxfilt.demangleb(name.encode('ascii'))[:SYMBOL_CUTOFF])
         f1.write(b'\x00')
 
     for (start, end), offs in sorted(dbgtable.items(), key=lambda x: x[0][0]):
-        f2.write(struct.pack("<IIh", start, end, offs))
+        f2.write(struct.pack(">IIh", start, end, offs))
 
     blob1 = lowmemcompress(f1.getvalue())
     blob2 = lowmemcompress(f2.getvalue())

@@ -123,20 +123,31 @@ namespace lcd {
             return;
         }
         for(uint8_t row = 0; row < 32; row ++) {
+			bool run = false;
             for(uint8_t col = 0; col < 16; col ++) {
                 uint16_t data = drawBuf.getLCDWord(row, col);
                 // Compare drawBuf with dispBuf
                 if(dispBuf[row][col] != data) {
                     // Update the display buffer
                     dispBuf[row][col] = data;
-                    __NO_INTERRUPT(
-                        writeCommand(0x80 | row);
-                        writeCommand(0x80 | col);
-                        // Write higher order byte first
-                        writeData(dispBuf[row][col] >> 8);
-                        writeData(dispBuf[row][col] & 0x00FF);
-                    );
+					if (!run) {
+						run = true;
+						__NO_INTERRUPT(
+							writeCommand(0x80 | row);
+							writeCommand(0x80 | col);
+							// Write higher order byte first
+							writeData(dispBuf[row][col] >> 8);
+							writeData(dispBuf[row][col] & 0x00FF);
+						);
+					}
+					else {
+						__NO_INTERRUPT(
+							writeData(dispBuf[row][col] >> 8);
+							writeData(dispBuf[row][col] & 0x00FF);
+						);
+					}
                 }
+				else run = false;
             }
         }
 	}
