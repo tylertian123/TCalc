@@ -132,7 +132,6 @@ namespace lcd {
 			}
 			else {
 				setDataPort(cmd);
-				LCD_EDELAY();
 				E = true;
 				LCD_EDELAY();
 				E = false;
