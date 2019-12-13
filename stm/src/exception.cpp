@@ -3,6 +3,7 @@
 #include <unwind.h>
 #include "usart.hpp"
 #include <string.h>
+#include <inttypes.h>
 
 #ifndef DEBUG_EXCEPTION
 #define DEBUG_EXCEPTION 0
@@ -127,15 +128,15 @@ namespace exception {
 				}
 
 				if (btps->parse_state == 0x32) {
-					DEBUG_EXCEPTION_PRINT("found bt %08x - %08x = %d; currently at PC=%08x; SP=%08x; LR=%08x\n", btps->lower_PC, btps->upper_PC, btps->unwind_amt, btps->PC, btps->SP, btps->LR);
+					DEBUG_EXCEPTION_PRINT("found bt %08" PRIx32 " - %08" PRIx32 " = %d; currently at PC=%08" PRIx32 "; SP=%08" PRIx32 "; LR=%08" PRIx32 "\n", btps->lower_PC, btps->upper_PC, btps->unwind_amt, btps->PC, btps->SP, btps->LR);
 					// Check if this is an acceptable unwind value.
 					while (btps->lower_PC <= btps->PC && btps->PC < btps->upper_PC) {
-						DEBUG_EXCEPTION_PRINT("matches in %08x - %08x = %d; currently at PC=%08x; SP=%08x; LR=%08x\n", btps->lower_PC, btps->upper_PC, btps->unwind_amt, btps->PC, btps->SP, btps->LR);
+						DEBUG_EXCEPTION_PRINT("matches in %08" PRIx32 " - %08" PRIx32 " = %d; currently at PC=%08" PRIx32 "; SP=%08" PRIx32 "; LR=%08" PRIx32 "\n", btps->lower_PC, btps->upper_PC, btps->unwind_amt, btps->PC, btps->SP, btps->LR);
 						// It is! apply the unwind amount
 						_applyUnwindTo(btps->PC, btps->LR, btps->SP, btps->unwind_amt);
 						// Push the new PC to the backtrace
 						btps->backtrace[btps->bt_len++] = btps->PC % 2 == 0 ? btps->PC + 1 : btps->PC;
-						DEBUG_EXCEPTION_PRINT("now at PC=%08x; SP=%08x; LR=%08x\n", btps->PC, btps->SP, btps->LR);
+						DEBUG_EXCEPTION_PRINT("now at PC=%08" PRIx32 "; SP=%08" PRIx32 "; LR=%08" PRIx32 "\n", btps->PC, btps->SP, btps->LR);
 
 						// Check if we have reached the end of the backtrace
 						// (are we past the end of stack / are we in an invalid addres)
@@ -242,7 +243,7 @@ namespace exception {
 						// always add the data, so we get the null terminator
 						sps->currname[sps->parse_state & 0xFF] = data;
 						if (data == 0) {
-							DEBUG_EXCEPTION_PRINT("got ai: %s at %04x\n", sps->currname, sps->curraddr);
+							DEBUG_EXCEPTION_PRINT("got ai: %s at %04" PRIx32 "\n", sps->currname, sps->curraddr);
 							// Handle the new data
 							
 							// ... but first check if we've parsed at least one thing
@@ -250,11 +251,11 @@ namespace exception {
 							if (sps->prevaddr != 0) {
 								for (int i = 0; i < sps->bt_len; ++i) {
 									if ((sps->resolved[i][0] == 0 && sps->backtrace[i] == sps->curraddr) || (sps->backtrace[i] % 2 == 0 && sps->backtrace[i] + 1 == sps->curraddr)) {
-										DEBUG_EXCEPTION_PRINT("resolving c2 with %04x at %04x (%s)\n", sps->prevaddr, sps->backtrace[i], sps->currname);
+										DEBUG_EXCEPTION_PRINT("resolving c2 with %04" PRIx32 " at %04" PRIx32 " (%s)\n", sps->prevaddr, sps->backtrace[i], sps->currname);
 										strcpy(sps->resolved[i], sps->currname);
 									}
 									else if (sps->resolved[i][0] == 0 && sps->backtrace[i] < sps->curraddr) {
-										DEBUG_EXCEPTION_PRINT("resolving c1 with %04x at %04x (%s)\n", sps->prevaddr, sps->backtrace[i], sps->prevname);
+										DEBUG_EXCEPTION_PRINT("resolving c1 with %04" PRIx32 " at %04" PRIx32 " (%s)\n", sps->prevaddr, sps->backtrace[i], sps->prevname);
 										strcpy(sps->resolved[i], sps->prevname);
 									}
 								}

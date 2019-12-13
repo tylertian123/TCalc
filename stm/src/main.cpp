@@ -23,6 +23,7 @@
 #include "usart.hpp"
 #include "util.hpp"
 #include "exception.hpp"
+#include <inttypes.h>
 
 #define VERSION_STR "V1.5.0"
 
@@ -92,7 +93,7 @@ void displayErrorMessage(const char *type, uint32_t pc[], const char fn[][64], u
         
         for(uint16_t i = 0; i < length; i ++) {
             // Print the number and program counter
-            sprintf(buf, "[%d] - 0x%08x", i, pc[i]);
+            sprintf(buf, "[%d] - 0x%08" PRIx32 "", i, pc[i]);
             displayErrorMessageLine(line, buf);
 
             uint8_t len = strlen(fn[i]);
@@ -143,7 +144,7 @@ void HardFault_Handler_impl(uint32_t *stackAtFault) {
 	char funcnames[backtrace_len][64]; exception::fillSymbols(funcnames, backtrace, backtrace_len);
 	puts("BACKTRACE:");
 	for (int i = 0; i < backtrace_len; ++i) {
-		printf("[%d] - 0x%08x <%s>\n", i, backtrace[i], funcnames[i]);
+		printf("[%d] - 0x%08" PRIx32 " <%s>\n", i, backtrace[i], funcnames[i]);
 	}
     displayErrorMessage("HardFault", backtrace, funcnames, backtrace_len);
 }
@@ -155,7 +156,7 @@ void UsageFault_Handler_impl(uint32_t *stackAtFault) {
 	char funcnames[backtrace_len][64]; exception::fillSymbols(funcnames, backtrace, backtrace_len);
 	puts("BACKTRACE:");
 	for (int i = 0; i < backtrace_len; ++i) {
-		printf("[%d] - 0x%08x <%s>\n", i, backtrace[i], funcnames[i]);
+		printf("[%d] - 0x%08" PRIx32 " <%s>\n", i, backtrace[i], funcnames[i]);
 	}
     displayErrorMessage("UsageFault", backtrace, funcnames, backtrace_len);
 }
@@ -169,7 +170,7 @@ void _fini() {
 	char funcnames[backtrace_len][64]; exception::fillSymbols(funcnames, backtrace, backtrace_len);
 	puts("BACKTRACE:");
 	for (int i = 0; i < backtrace_len; ++i) {
-		printf("[%d] - 0x%08x <%s>\n", i, backtrace[i], funcnames[i]);
+		printf("[%d] - 0x%08" PRIx32 " <%s>\n", i, backtrace[i], funcnames[i]);
 	}
 
     displayErrorMessage("_fini", backtrace, funcnames, backtrace_len);
