@@ -133,7 +133,11 @@
 #define KEY_TOP         0x0080
 #define KEY_BOTTOM      0x0081
 #define KEY_PTABLE      0x0082
+#define KEY_VRECALL     0x0083
 
 #define KEY_DUMMY       0xFFFF
+
+#define KEY_ADCX_MASK   0x1000
+#define KEY_ADCY_MASK   0x2000
 
 #endif

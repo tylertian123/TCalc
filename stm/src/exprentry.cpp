@@ -1,6 +1,11 @@
 #include "exprentry.hpp"
+#include "keydef.h"
+#include "keymsg.h"
 #include "ntoa.hpp"
+#include "sbdi.hpp"
 #include <limits.h>
+
+extern sbdi::SBDI keyboard;
 
 namespace expr {
     util::DynamicArray<eval::Variable> variables;
@@ -9,9 +14,9 @@ namespace expr {
     void updateVar(const char *varName, eval::Token *varVal) {
         uint16_t i;
         // See if the variable has already been defined
-        for(i = 0; i < variables.length(); ++i) {
+        for (i = 0; i < variables.length(); ++i) {
             // Update it if found
-            if(strcmp(variables[i].name, varName) == 0) {
+            if (strcmp(variables[i].name, varName) == 0) {
                 // Delete the old value
                 delete variables[i].value;
                 variables[i].value = varVal;
@@ -22,18 +27,18 @@ namespace expr {
             }
         }
         // If i is equal to variables.length() it was not found
-        if(i == variables.length()) {
+        if (i == variables.length()) {
             // Add the var if not found
             variables.add(eval::Variable(varName, varVal));
         }
     }
-    char* getFuncFullName(const eval::UserDefinedFunction &func) {
+    char *getFuncFullName(const eval::UserDefinedFunction &func) {
         // Find the length of the name
         uint16_t len = strlen(func.name);
         // 2 for brackets, one for each comma except the last one
         uint16_t totalLen = len + 2 + func.argc - 1;
         // Add the length of each of the args
-        for(uint8_t j = 0; j < func.argc; ++j) {
+        for (uint8_t j = 0; j < func.argc; ++j) {
             totalLen += strlen(func.argn[j]);
         }
         // Allocate array
@@ -42,11 +47,11 @@ namespace expr {
         strcpy(fullname, func.name);
         fullname[len++] = '(';
         // Copy each one of the arguments
-        for(uint8_t j = 0; j < func.argc; ++j) {
+        for (uint8_t j = 0; j < func.argc; ++j) {
             strcpy(fullname + len, func.argn[j]);
             len += strlen(func.argn[j]);
             // If not the last, then add a comma
-            if(j + 1 != func.argc) {
+            if (j + 1 != func.argc) {
                 fullname[len++] = ',';
             }
         }
@@ -57,13 +62,13 @@ namespace expr {
     void updateFunc(const char *name, neda::Container *definition, uint8_t argc, const char **argn) {
         // Test if the function was previously defined
         uint16_t i;
-        for(i = 0; i < functions.length(); ++i) {
+        for (i = 0; i < functions.length(); ++i) {
             // If found, update it
-            if(strcmp(functions[i].name, name) == 0) {
+            if (strcmp(functions[i].name, name) == 0) {
                 // Delete the old definition
                 delete functions[i].expr;
                 // Delete every argument name
-                for(uint8_t j = 0; j < functions[i].argc; j ++) {
+                for (uint8_t j = 0; j < functions[i].argc; j++) {
                     delete[] functions[i].argn[j];
                 }
                 // Delete the argument name array itself
@@ -74,7 +79,7 @@ namespace expr {
                 functions[i].argc = argc;
                 functions[i].argn = argn;
                 functions[i].fullname = getFuncFullName(functions[i]);
-                
+
                 // delete the name since it's not updated
                 delete name;
 
@@ -82,7 +87,7 @@ namespace expr {
             }
         }
         // If not found, create new function
-        if(i == functions.length()) {
+        if (i == functions.length()) {
             eval::UserDefinedFunction func(definition, name, argc, argn, nullptr);
             func.fullname = getFuncFullName(func);
             functions.add(func);
@@ -90,16 +95,16 @@ namespace expr {
     }
     void clearAll() {
         // Delete all variables
-        for(auto var : variables) {
+        for (auto var : variables) {
             delete[] var.name;
             delete var.value;
         }
         variables.empty();
         // Delete all functions
-        for(auto func : functions) {
+        for (auto func : functions) {
             delete[] func.name;
             delete func.expr;
-            for(uint8_t i = 0; i < func.argc; ++i) {
+            for (uint8_t i = 0; i < func.argc; ++i) {
                 delete[] func.argn[i];
             }
             delete[] func.argn;
@@ -108,8 +113,8 @@ namespace expr {
         functions.empty();
     }
 
-    ExprEntry::ExprEntry(lcd::LCD12864 &lcd, uint16_t HORIZ_MARGIN, uint16_t VERT_MARGIN) : display(lcd), 
-            HORIZ_MARGIN(HORIZ_MARGIN), VERT_MARGIN(VERT_MARGIN) {
+    ExprEntry::ExprEntry(lcd::LCD12864 &lcd, uint16_t HORIZ_MARGIN, uint16_t VERT_MARGIN)
+            : display(lcd), HORIZ_MARGIN(HORIZ_MARGIN), VERT_MARGIN(VERT_MARGIN) {
         // Create cursor and top-level container
         cursor = new neda::Cursor;
         neda::Container *top = new neda::Container();
@@ -119,7 +124,7 @@ namespace expr {
 
     ExprEntry::~ExprEntry() {
         auto top = cursor->expr->getTopLevel();
-        
+
         delete cursor;
         delete top;
     }
@@ -135,45 +140,51 @@ namespace expr {
         int16_t xd = HORIZ_MARGIN + 1 - top->x;
         int16_t yd = VERT_MARGIN - top->y;
         // Make sure it fits
-        if(info.x + xd >= HORIZ_MARGIN && info.y + yd >= VERT_MARGIN
-                && info.x + info.width + xd + HORIZ_MARGIN < lcd::SIZE_WIDTH && info.y + info.height + yd + VERT_MARGIN < lcd::SIZE_HEIGHT) {
+        if (info.x + xd >= HORIZ_MARGIN && info.y + yd >= VERT_MARGIN &&
+                info.x + info.width + xd + HORIZ_MARGIN < lcd::SIZE_WIDTH &&
+                // Check that the bottom of the cursor is in bounds, OR if the cursor is too big to be shown completely
+                (info.y + info.height + yd + VERT_MARGIN < lcd::SIZE_HEIGHT 
+                        || info.height > lcd::SIZE_HEIGHT - VERT_MARGIN * 2)) {
             top->updatePosition(xd, yd);
         }
         else {
             // Test to see if the cursor already fits
-            if(info.x >= HORIZ_MARGIN && info.y >= VERT_MARGIN
-                    && info.x + info.width + HORIZ_MARGIN < lcd::SIZE_WIDTH && info.y + info.height + VERT_MARGIN < lcd::SIZE_HEIGHT) {
+            if (info.x >= HORIZ_MARGIN && info.y >= VERT_MARGIN &&
+                    info.x + info.width + HORIZ_MARGIN < lcd::SIZE_WIDTH &&
+                    info.y + info.height + VERT_MARGIN < lcd::SIZE_HEIGHT) {
                 // If it's good then return
                 return;
             }
             // Otherwise adjust it so that it's just inside the display
             int16_t xdiff = 0, ydiff = 0;
             // Cursor too much to the left
-            if(info.x < HORIZ_MARGIN) {
+            if (info.x < HORIZ_MARGIN) {
                 xdiff = HORIZ_MARGIN - info.x;
             }
             // Cursor too much to the right
-            else if(info.x + info.width + HORIZ_MARGIN >= lcd::SIZE_WIDTH) {
+            else if (info.x + info.width + HORIZ_MARGIN >= lcd::SIZE_WIDTH) {
                 xdiff = (lcd::SIZE_WIDTH - 1) - (info.x + info.width + HORIZ_MARGIN);
             }
-            // Cursor too high
-            if(info.y < VERT_MARGIN) {
-                ydiff = VERT_MARGIN - info.y;
-            }
-            else if(info.y + info.height + VERT_MARGIN >= lcd::SIZE_HEIGHT) {
+            // Cursor too low
+            if (info.y + info.height + VERT_MARGIN >= lcd::SIZE_HEIGHT) {
                 ydiff = (lcd::SIZE_HEIGHT - 1) - (info.y + info.height + VERT_MARGIN);
+            }
+            // Note: sometimes the cursor can be out of bounds on both sides
+            // In this case, correct it as if the cursor was too high
+            if (info.y < VERT_MARGIN) {
+                ydiff = VERT_MARGIN - info.y;
             }
             top->updatePosition(xdiff, ydiff);
         }
     }
 
     void ExprEntry::blinkCursor() {
-        if(mode == DisplayMode::NORMAL) {
+        if (mode == DisplayMode::NORMAL) {
             cursorOn = !cursorOn;
             // Redraw the interface
             drawInterfaceNormal(cursorOn);
         }
-        else if(mode == DisplayMode::GRAPH_SETTINGS_MENU) {
+        else if (mode == DisplayMode::GRAPH_SETTINGS_MENU) {
             cursorOn = !cursorOn;
             // Redraw the interface
             drawInterfaceGraphSettings(cursorOn);
@@ -182,18 +193,18 @@ namespace expr {
 
     char ExprEntry::keyCodeToChar(uint16_t key) {
         // Uppercase letters
-        if(key >= KEY_A && key <= KEY_Z) {
+        if (key >= KEY_A && key <= KEY_Z) {
             return key - KEY_A + 'A';
         }
         // Lowercase letters
-        if(key >= KEY_LCA && key <= KEY_LCZ) {
+        if (key >= KEY_LCA && key <= KEY_LCZ) {
             return key - KEY_LCA + 'a';
         }
         // Numbers
-        if(key >= KEY_0 && key <= KEY_9) {
+        if (key >= KEY_0 && key <= KEY_9) {
             return key - KEY_0 + '0';
         }
-        switch(key) {
+        switch (key) {
         case KEY_SPACE:
             return ' ';
         case KEY_COMMA:
@@ -228,43 +239,78 @@ namespace expr {
             return '*';
         case KEY_AUGMENT:
             return '|';
-        default: 
+        default:
             return 0xFF;
         }
     }
 
+    void ExprEntry::handleMenuKeyPress(uint16_t key, uint16_t len, uint16_t backKey) {
+        if(key == backKey || key == KEY_DELETE) {
+            mode = prevMode;
+            prevMode = DisplayMode::NORMAL;
+            selectorIndex = 0;
+            scrollingIndex = 0;
+        }
+        switch (key) {
+        case KEY_UP:
+            scrollUp(len);
+            break;
+        case KEY_DOWN:
+            scrollDown(len);
+            break;
+        default:
+            break;
+        }
+
+        paintInterface();
+    }
+
+    constexpr uint8_t SCROLLBAR_WIDTH = 4;
+
+    void ExprEntry::drawScrollbar(uint16_t total, uint16_t displayed) {
+        uint16_t location = static_cast<uint16_t>(scrollingIndex * lcd::SIZE_HEIGHT / total);
+        uint16_t height = displayed * lcd::SIZE_HEIGHT / total;
+        display.fill(128 - SCROLLBAR_WIDTH, location, SCROLLBAR_WIDTH, height);
+    }
+
     const ExprEntry::KeyPressHandler ExprEntry::KEY_PRESS_HANDLERS[] = {
-        &ExprEntry::normalKeyPressHandler,
-        &ExprEntry::trigKeyPressHandler,
-        &ExprEntry::constKeyPressHandler,
-        &ExprEntry::configKeyPressHandler,
-        &ExprEntry::funcKeyPressHandler,
-        &ExprEntry::recallKeyPressHandler,
-        &ExprEntry::matrixKeyPressHandler,
-        &ExprEntry::piecewiseKeyPressHandler,
-        &ExprEntry::graphSelectKeyPressHandler,
-        &ExprEntry::graphSettingsKeyPressHandler,
-        &ExprEntry::graphViewerKeyPressHandler,
-        &ExprEntry::logicKeyPressHandler,
-        &ExprEntry::clearVarKeyPressHandler,
-        &ExprEntry::periodicTableKeyPressHandler,
+            &ExprEntry::normalKeyPressHandler,
+            &ExprEntry::trigKeyPressHandler,
+            &ExprEntry::constKeyPressHandler,
+            &ExprEntry::configKeyPressHandler,
+            &ExprEntry::funcKeyPressHandler,
+            &ExprEntry::recallKeyPressHandler,
+            &ExprEntry::matrixKeyPressHandler,
+            &ExprEntry::piecewiseKeyPressHandler,
+            &ExprEntry::graphSelectKeyPressHandler,
+            &ExprEntry::graphSettingsKeyPressHandler,
+            &ExprEntry::graphViewerKeyPressHandler,
+            &ExprEntry::logicKeyPressHandler,
+            &ExprEntry::clearVarKeyPressHandler,
+            &ExprEntry::periodicTableKeyPressHandler,
+            &ExprEntry::varRecallKeyPressHandler,
+            &ExprEntry::matrixOptionsKeyPressHandler,
+            &ExprEntry::graphVarSelectKeyPressHandler,
     };
 
     const ExprEntry::InterfacePainter ExprEntry::INTERFACE_PAINTERS[] = {
-        &ExprEntry::drawInterfaceNormalWrapper,
-        &ExprEntry::drawInterfaceTrig,
-        &ExprEntry::drawInterfaceConst,
-        &ExprEntry::drawInterfaceConfig,
-        &ExprEntry::drawInterfaceFunc,
-        &ExprEntry::drawInterfaceRecall,
-        &ExprEntry::drawInterfaceMatrix,
-        &ExprEntry::drawInterfacePiecewise,
-        &ExprEntry::drawInterfaceGraphSelect,
-        &ExprEntry::drawInterfaceGraphSettingsWrapper,
-        &ExprEntry::drawInterfaceGraphViewer,
-        &ExprEntry::drawInterfaceLogic,
-        &ExprEntry::drawInterfaceClearVar,
-        &ExprEntry::drawInterfacePeriodicTable,
+            &ExprEntry::drawInterfaceNormalWrapper,
+            &ExprEntry::drawInterfaceTrig,
+            &ExprEntry::drawInterfaceConst,
+            &ExprEntry::drawInterfaceConfig,
+            &ExprEntry::drawInterfaceFunc,
+            &ExprEntry::drawInterfaceRecall,
+            &ExprEntry::drawInterfaceMatrix,
+            &ExprEntry::drawInterfacePiecewise,
+            &ExprEntry::drawInterfaceGraphSelect,
+            &ExprEntry::drawInterfaceGraphSettingsWrapper,
+            &ExprEntry::drawInterfaceGraphViewer,
+            &ExprEntry::drawInterfaceLogic,
+            &ExprEntry::drawInterfaceClearVar,
+            &ExprEntry::drawInterfacePeriodicTable,
+            &ExprEntry::drawInterfaceVarRecall,
+            &ExprEntry::drawInterfaceMatrixOptions,
+            &ExprEntry::drawInterfaceGraphVarSelect,
     };
 
     void ExprEntry::handleKeyPress(uint16_t key) {
@@ -279,12 +325,12 @@ namespace expr {
     void ExprEntry::normalKeyPressHandler(uint16_t key) {
         // First see if this is a simple key with no processing
         char ch = keyCodeToChar(key);
-        if(ch != 0xFF) {
+        if (ch != 0xFF) {
             // Add the character
             cursor->add(new neda::Character(ch));
         }
         else {
-            switch(key) {
+            switch (key) {
             /* ARROW KEYS */
             case KEY_LEFT:
                 cursor->left();
@@ -305,45 +351,45 @@ namespace expr {
             case KEY_RBRACKET:
                 cursor->add(new neda::RightBracket());
                 break;
-            case KEY_ROOT:
-            {
+            case KEY_ROOT: {
                 neda::Radical *radical = new neda::Radical(new neda::Container, nullptr);
                 cursor->add(radical);
                 radical->getCursor(*cursor, neda::CURSORLOCATION_START);
                 break;
             }
-            case KEY_NTHROOT:
-            {
+            case KEY_NTHROOT: {
                 neda::Radical *radical = new neda::Radical(new neda::Container, new neda::Container);
                 cursor->add(radical);
                 radical->getCursor(*cursor, neda::CURSORLOCATION_START);
                 break;
             }
             case KEY_SUM:
-            case KEY_PRODUCT:
-            {
-                neda::SigmaPi *sp = new neda::SigmaPi(key == KEY_SUM ? lcd::CHAR_SUMMATION : lcd::CHAR_PRODUCT, new neda::Container(), new neda::Container(), new neda::Container());
+            case KEY_PRODUCT: {
+                neda::SigmaPi *sp = new neda::SigmaPi(key == KEY_SUM ? lcd::CHAR_SUMMATION : lcd::CHAR_PRODUCT,
+                        new neda::Container(), new neda::Container(), new neda::Container());
                 cursor->add(sp);
                 sp->getCursor(*cursor, neda::CURSORLOCATION_START);
                 break;
             }
-            case KEY_FRAC:
-            {
+            case KEY_FRAC: {
                 neda::Fraction *frac;
                 // If there's a token in front of the cursor, enclose that in the fraction
                 char ch;
                 neda::ObjType prevType;
-                if(cursor->index != 0 && 
+                if (cursor->index != 0 &&
                         ((prevType = cursor->expr->contents[cursor->index - 1]->getType(),
-                        prevType == neda::ObjType::ABS || prevType == neda::ObjType::MATRIX || prevType == neda::ObjType::PIECEWISE
-                        || prevType == neda::ObjType::RADICAL || prevType == neda::ObjType::SIGMA_PI || prevType == neda::ObjType::FRACTION) 
-                        || (ch = eval::extractChar(cursor->expr->contents[cursor->index - 1]), eval::isDigit(ch) || eval::isNameChar(ch)))) {
+                                 prevType == neda::ObjType::ABS || prevType == neda::ObjType::MATRIX ||
+                                         prevType == neda::ObjType::PIECEWISE || prevType == neda::ObjType::RADICAL ||
+                                         prevType == neda::ObjType::SIGMA_PI || prevType == neda::ObjType::FRACTION) ||
+                                (ch = eval::extractChar(cursor->expr->contents[cursor->index - 1]),
+                                        eval::isDigit(ch) || eval::isNameChar(ch)))) {
                     bool isNum;
                     uint16_t end = eval::findTokenEnd(cursor->expr->contents, cursor->index - 1, -1, isNum) + 1;
                     uint16_t len = cursor->index - end;
-                    
+
                     // Create a new array with the objects
-                    util::DynamicArray<neda::NEDAObj*> arr(cursor->expr->contents.begin() + end, cursor->expr->contents.begin() + cursor->index);
+                    util::DynamicArray<neda::NEDAObj *> arr(
+                            cursor->expr->contents.begin() + end, cursor->expr->contents.begin() + cursor->index);
                     cursor->index = end;
                     // Remove the objects from the original array
                     cursor->expr->contents.removeAt(end, len);
@@ -360,53 +406,47 @@ namespace expr {
             }
             case KEY_SQUARE:
             case KEY_CUBE:
-            case KEY_EXPONENT:
-            {
-                neda::Superscript *super = new neda::Superscript(neda::makeString(key == KEY_SQUARE ? "2" : (key == KEY_CUBE ? "3" : "")));
+            case KEY_EXPONENT: {
+                neda::Superscript *super =
+                        new neda::Superscript(neda::makeString(key == KEY_SQUARE ? "2" : (key == KEY_CUBE ? "3" : "")));
                 cursor->add(super);
                 // Only move the cursor if the exponent box is empty
-                if(key == KEY_EXPONENT) {
+                if (key == KEY_EXPONENT) {
                     super->getCursor(*cursor, neda::CURSORLOCATION_START);
                 }
                 break;
             }
-            case KEY_SUB:
-            {
+            case KEY_SUB: {
                 neda::Subscript *sub = new neda::Subscript(new neda::Container());
                 cursor->add(sub);
 
                 sub->getCursor(*cursor, neda::CURSORLOCATION_START);
                 break;
             }
-            case KEY_EXP:
-            {
+            case KEY_EXP: {
                 cursor->add(new neda::Character(LCD_CHAR_EULR));
                 neda::Superscript *super = new neda::Superscript(new neda::Container());
                 cursor->add(super);
                 super->getCursor(*cursor, neda::CURSORLOCATION_START);
                 break;
             }
-            case KEY_ABS:
-            {
+            case KEY_ABS: {
                 neda::Abs *a = new neda::Abs(new neda::Container());
                 cursor->add(a);
                 a->getCursor(*cursor, neda::CURSORLOCATION_START);
                 break;
             }
-            case KEY_LN:
-            {
+            case KEY_LN: {
                 cursor->addStr("ln");
                 cursor->add(new neda::LeftBracket());
                 break;
             }
-            case KEY_LOG10:
-            {
+            case KEY_LOG10: {
                 cursor->addStr("log");
                 cursor->add(new neda::LeftBracket());
                 break;
             }
-            case KEY_LOGN:
-            {
+            case KEY_LOGN: {
                 cursor->addStr("log");
                 neda::Subscript *sub = new neda::Subscript(new neda::Container());
                 cursor->add(sub);
@@ -414,8 +454,7 @@ namespace expr {
                 sub->getCursor(*cursor, neda::CURSORLOCATION_START);
                 break;
             }
-            case KEY_ANS:
-            {
+            case KEY_ANS: {
                 cursor->addStr("Ans");
                 break;
             }
@@ -426,10 +465,9 @@ namespace expr {
             case KEY_END:
                 cursor->expr->getTopLevel()->getCursor(*cursor, neda::CURSORLOCATION_END);
                 break;
-            case KEY_DELETE:
-            {
+            case KEY_DELETE: {
                 // Simple case: There is still stuff left before the cursor
-                if(cursor->index != 0) {
+                if (cursor->index != 0) {
                     // Remove the object
                     neda::NEDAObj *obj = cursor->expr->removeAtCursor(*cursor);
                     // Delete the object and break
@@ -438,10 +476,11 @@ namespace expr {
                 }
                 // If there are no more characters to delete:
                 // Confirm that the cursor is not in the top-level expression
-                if(cursor->expr != cursor->expr->getTopLevel()) {
+                if (cursor->expr != cursor->expr->getTopLevel()) {
                     // First put the cursor in the position before
-                    // The container the cursor is in must be inside some other expression, and then inside another container
-                    neda::Container *cont = (neda::Container*) cursor->expr->parent->parent;
+                    // The container the cursor is in must be inside some other expression, and then inside another
+                    // container
+                    neda::Container *cont = (neda::Container *) cursor->expr->parent->parent;
                     uint16_t index = cont->indexOf(cursor->expr->parent);
                     // Manually change the position of the cursor
                     cursor->expr = cont;
@@ -452,8 +491,7 @@ namespace expr {
                 }
                 break;
             }
-            case KEY_CLEAR:
-            {
+            case KEY_CLEAR: {
                 display.clearDrawing();
                 // Keep pointer of original
                 neda::Expr *original = cursor->expr->getTopLevel();
@@ -504,45 +542,48 @@ namespace expr {
                 drawInterfaceRecall();
                 return;
             case KEY_MATRIX:
-                // Set the mode to matrix menu
-                mode = DisplayMode::MATRIX_MENU;
+            {
+                // See if cursor is in a matrix
+                neda::Expr *ex = cursor->expr;
+                bool inMatrix = false;
+                while(ex->parent) {
+                    ex = ex->parent;
+                    if(ex->getType() == neda::ObjType::MATRIX) {
+                        inMatrix = true;
+                        break;
+                    }
+                }
                 prevMode = DisplayMode::NORMAL;
-                matRows = matCols = 1;
                 selectorIndex = 0;
+                if(!inMatrix) {
+                    // Set the mode to matrix menu
+                    mode = DisplayMode::MATRIX_MENU;
+                    matRows = matCols = 1;
+                }
+                else {
+                    mode = DisplayMode::MATRIX_OPTIONS_MENU;
+                }
                 // Draw the interface
-                drawInterfaceMatrix();
+                paintInterface();
                 // Return here to skip drawing the normal interface
                 return;
+            }
             case KEY_PIECEWISE:
                 mode = DisplayMode::PIECEWISE_MENU;
                 prevMode = DisplayMode::NORMAL;
                 piecewisePieces = 2;
                 drawInterfacePiecewise();
                 return;
-            case KEY_GFUNCS:
-                mode = DisplayMode::GRAPH_SELECT_MENU;
-                prevMode = DisplayMode::NORMAL;
-                selectorIndex = 0;
-                scrollingIndex = 0;
-                updateGraphableFunctions();
-                drawInterfaceGraphSelect();
-                return;
-            case KEY_GSETTINGS:
-                mode = DisplayMode::GRAPH_SETTINGS_MENU;
-                prevMode = DisplayMode::NORMAL;
-                selectorIndex = 0;
-                editOption = false;
-                drawInterfaceGraphSettings();
-                return;
             case KEY_GRAPH:
                 mode = DisplayMode::GRAPH_VIEWER;
                 prevMode = DisplayMode::NORMAL;
                 selectorIndex = 0;
                 graphCursorMode = GraphCursorMode::OFF;
-                // Before we draw the graph, first update the list of graphable functions
+                // Before we draw the graph, first update the list of graphable functions and variables
                 // This is so that if any of the graphable functions get deleted, they would not be graphed
                 updateGraphableFunctions();
-                redrawGraph();
+                updateGraphableVars();
+                graphChanged = true;
                 drawInterfaceGraphViewer();
                 return;
             case KEY_LOGIC:
@@ -574,7 +615,14 @@ namespace expr {
                 selectorIndex = 0;
                 drawInterfacePeriodicTable();
                 return;
-            default: break;
+            case KEY_VRECALL:
+                mode = DisplayMode::VAR_RECALL_MENU;
+                selectorIndex = 0;
+                scrollingIndex = 0;
+                drawInterfaceVarRecall();
+                return;
+            default:
+                break;
             }
         }
 
@@ -596,22 +644,42 @@ namespace expr {
         display.clearDrawingBuffer();
         // Draw everything
         top->draw(display);
-        if(drawCursor) {
+        if (drawCursor) {
             cursor->draw(display);
         }
         display.updateDrawing();
     }
 
-    const char * const trigFuncs[] = {
-        "sin", "cos", "tan", "arcsin", "arccos", "arctan",
-        "sinh", "cosh", "tanh", "arcsinh", "arccosh", "arctanh",
+    const char *const trigFuncs[] = {
+            "sin",
+            "cos",
+            "tan",
+            "arcsin",
+            "arccos",
+            "arctan",
+            "sinh",
+            "cosh",
+            "tanh",
+            "arcsinh",
+            "arccosh",
+            "arctanh",
     };
-    const char * const trigFuncNames[] = {
-        "sin", "cos", "tan", "asin", "acos", "atan",
-        "sinh", "cosh", "tanh", "asinh", "acosh", "atanh",
+    const char *const trigFuncNames[] = {
+            "sin",
+            "cos",
+            "tan",
+            "asin",
+            "acos",
+            "atan",
+            "sinh",
+            "cosh",
+            "tanh",
+            "asinh",
+            "acosh",
+            "atanh",
     };
     void ExprEntry::trigKeyPressHandler(uint16_t key) {
-        switch(key) {
+        switch (key) {
         // Center or enter is confirm
         case KEY_CENTER:
         case KEY_ENTER:
@@ -626,7 +694,7 @@ namespace expr {
             paintInterface();
             return;
         case KEY_UP:
-            if(selectorIndex > 0) {
+            if (selectorIndex > 0) {
                 --selectorIndex;
             }
             else {
@@ -635,25 +703,25 @@ namespace expr {
             break;
         case KEY_DOWN:
             ++selectorIndex;
-            if(selectorIndex >= 12) {
+            if (selectorIndex >= 12) {
                 selectorIndex = 0;
             }
             break;
         case KEY_LEFT:
-            if(selectorIndex >= 6) {
+            if (selectorIndex >= 6) {
                 selectorIndex -= 6;
             }
             break;
         case KEY_RIGHT:
-            if(selectorIndex < 6) {
+            if (selectorIndex < 6) {
                 selectorIndex += 6;
             }
             break;
-        default: break;
+        default:
+            break;
         }
 
         drawInterfaceTrig();
-
     }
 
     void ExprEntry::drawInterfaceTrig() {
@@ -661,17 +729,19 @@ namespace expr {
         display.clearDrawingBuffer();
         // The y coordinate is incremented with every function
         int16_t y = 1;
-        for(uint8_t i = 0; i < 12; i ++) {
+        for (uint8_t i = 0; i < 12; i++) {
             // Reset y if we are in the second column
-            if(i == 6) {
+            if (i == 6) {
                 y = 1;
             }
 
-            if(i < 6) {
-                display.drawString(1, y, trigFuncs[i], selectorIndex == i);
+            if (i < 6) {
+                display.drawString(
+                        1, y, trigFuncs[i], selectorIndex == i ? lcd::DrawBuf::FLAG_INVERTED : lcd::DrawBuf::FLAG_NONE);
             }
             else {
-                display.drawString(64, y, trigFuncs[i], selectorIndex == i);
+                display.drawString(64, y, trigFuncs[i],
+                        selectorIndex == i ? lcd::DrawBuf::FLAG_INVERTED : lcd::DrawBuf::FLAG_NONE);
             }
             // Increment y
             y += 10;
@@ -680,11 +750,16 @@ namespace expr {
         display.updateDrawing();
     }
 
-    const char * const constantNames[] = {
-        LCD_STR_PI, LCD_STR_EULR, LCD_STR_AVGO, LCD_STR_ECHG, LCD_STR_VLIG, LCD_STR_AGV,
+    const char *const constantNames[] = {
+            LCD_STR_PI,
+            LCD_STR_EULR,
+            LCD_STR_AVGO,
+            LCD_STR_ECHG,
+            LCD_STR_VLIG,
+            LCD_STR_AGV,
     };
     void ExprEntry::constKeyPressHandler(uint16_t key) {
-        switch(key) {
+        switch (key) {
         case KEY_CENTER:
         case KEY_ENTER:
             // Insert the chars
@@ -696,7 +771,7 @@ namespace expr {
             paintInterface();
             return;
         case KEY_LEFT:
-            if(selectorIndex > 0) {
+            if (selectorIndex > 0) {
                 --selectorIndex;
             }
             else {
@@ -705,11 +780,12 @@ namespace expr {
             break;
         case KEY_RIGHT:
             ++selectorIndex;
-            if(selectorIndex >= 6) {
+            if (selectorIndex >= 6) {
                 selectorIndex = 0;
             }
             break;
-        default: break;
+        default:
+            break;
         }
 
         drawInterfaceConst();
@@ -718,27 +794,25 @@ namespace expr {
     void ExprEntry::drawInterfaceConst() {
         display.clearDrawingBuffer();
         int16_t x = HORIZ_MARGIN;
-        for(uint8_t i = 0; i < 6; i ++) {
-            display.drawString(x, VERT_MARGIN, constantNames[i], selectorIndex == i);
-            
+        for (uint8_t i = 0; i < 6; i++) {
+            display.drawString(x, VERT_MARGIN, constantNames[i],
+                    selectorIndex == i ? lcd::DrawBuf::FLAG_INVERTED : lcd::DrawBuf::FLAG_NONE);
+
             x += 15;
         }
 
         display.updateDrawing();
     }
 
-    constexpr uint8_t FUNC_SCROLLBAR_WIDTH = 4;
     void ExprEntry::funcKeyPressHandler(uint16_t key) {
         const uint16_t funcCount = eval::Function::TYPE_COUNT_DISPLAYABLE + expr::functions.length();
-        switch(key) {
-        case KEY_CENTER:
-        case KEY_ENTER:
+        if(key == KEY_ENTER || key == KEY_CENTER) {
             // If the selected item is in the range of builtin functions, insert that
-            if(selectorIndex < eval::Function::TYPE_COUNT_DISPLAYABLE) {
+            if (selectorIndex < eval::Function::TYPE_COUNT_DISPLAYABLE) {
                 // Extract the function name from its full name
                 const char *s = eval::Function::FUNC_FULLNAMES[selectorIndex];
                 // Add until we see the null terminator or the left bracket
-                while(*s != '\0' && *s != '(') {
+                while (*s != '\0' && *s != '(') {
                     cursor->add(new neda::Character(*s++));
                 }
             }
@@ -747,22 +821,10 @@ namespace expr {
                 cursor->addStr(expr::functions[selectorIndex - eval::Function::TYPE_COUNT_DISPLAYABLE].name);
             }
             cursor->add(new neda::LeftBracket);
-        // Intentional fall-through
-        case KEY_CAT:
-        case KEY_DELETE:
-            mode = prevMode;
-            paintInterface();
-            return;
-        case KEY_UP:
-            scrollUp(funcCount);
-            break;
-        case KEY_DOWN:
-            scrollDown(funcCount);
-            break;
-        default: break;
+            
+            key = KEY_DELETE;
         }
-
-        drawInterfaceFunc();
+        handleMenuKeyPress(key, funcCount, KEY_CAT);
     }
 
     void ExprEntry::drawInterfaceFunc() {
@@ -770,75 +832,55 @@ namespace expr {
         int16_t y = 1;
         // Draw the full names of functions
         // Only 6 fit at a time, so only draw from the scrolling index to scrolling index + 6
-        for(uint8_t i = scrollingIndex; i < scrollingIndex + 6; i ++) {
-            if(i < eval::Function::TYPE_COUNT_DISPLAYABLE) {
-                display.drawString(1, y, eval::Function::FUNC_FULLNAMES[i], selectorIndex == i);
+        for (uint8_t i = scrollingIndex; i < scrollingIndex + 6 && i < eval::Function::TYPE_COUNT_DISPLAYABLE + expr::functions.length(); i++) {
+            if (i < eval::Function::TYPE_COUNT_DISPLAYABLE) {
+                display.drawString(1, y, eval::Function::FUNC_FULLNAMES[i],
+                        selectorIndex == i ? lcd::DrawBuf::FLAG_INVERTED : lcd::DrawBuf::FLAG_NONE);
             }
             else {
-                display.drawString(1, y, expr::functions[i - eval::Function::TYPE_COUNT_DISPLAYABLE].fullname, selectorIndex == i);
+                display.drawString(1, y, expr::functions[i - eval::Function::TYPE_COUNT_DISPLAYABLE].fullname,
+                        selectorIndex == i ? lcd::DrawBuf::FLAG_INVERTED : lcd::DrawBuf::FLAG_NONE);
             }
             y += 10;
         }
-        // Draw the scrollbar
-        uint16_t scrollbarLocation = static_cast<uint16_t>(scrollingIndex * 64 / (eval::Function::TYPE_COUNT_DISPLAYABLE + expr::functions.length()));
-        uint16_t scrollbarHeight = 6 * 64 / (eval::Function::TYPE_COUNT_DISPLAYABLE + expr::functions.length());
-        display.fill(128 - FUNC_SCROLLBAR_WIDTH, scrollbarLocation, FUNC_SCROLLBAR_WIDTH, scrollbarHeight);
+
+        drawScrollbar(eval::Function::TYPE_COUNT_DISPLAYABLE + expr::functions.length(), 6);
         display.updateDrawing();
     }
 
     void ExprEntry::recallKeyPressHandler(uint16_t key) {
-        switch(key) {
-        case KEY_CENTER:
-        case KEY_ENTER:
-        {
+        if(key == KEY_CENTER || key == KEY_ENTER) {
             // Insert the definition of the recalled function
-            if(expr::functions.length() > 0) {
-                for(auto ex : expr::functions[selectorIndex].expr->contents) {
+            if (expr::functions.length() > 0) {
+                for (auto ex : expr::functions[selectorIndex].expr->contents) {
                     cursor->add(ex->copy());
                 }
             }
+            key = KEY_DELETE;
         }
-        // Intentional fall-through
-        case KEY_RECALL:
-        case KEY_CAT:
-        case KEY_DELETE:
-            mode = prevMode;
-            paintInterface();
-            return;
-        case KEY_UP:
-            scrollUp(expr::functions.length());
-            break;
-        case KEY_DOWN:
-            scrollDown(expr::functions.length());
-            break;
-        default: break;
-        }
-
-        drawInterfaceRecall();
+        handleMenuKeyPress(key, expr::functions.length(), KEY_RECALL);
     }
 
     void ExprEntry::drawInterfaceRecall() {
         display.clearDrawingBuffer();
-        if(expr::functions.length() == 0) {
-            display.drawString(1, 1, "No Functions to");
-            display.drawString(1, 11, "Recall");
+        if (expr::functions.length() == 0) {
+            display.drawString(1, 1, "No Functions to Recall");
         }
         else {
             int16_t y = 1;
-            for(uint8_t i = scrollingIndex; i < scrollingIndex + 6 && i < expr::functions.length(); i ++) {
-                display.drawString(1, y, expr::functions[i].fullname, selectorIndex == i);
+            for (uint8_t i = scrollingIndex; i < scrollingIndex + 6 && i < expr::functions.length(); i++) {
+                display.drawString(1, y, expr::functions[i].fullname,
+                        selectorIndex == i ? lcd::DrawBuf::FLAG_INVERTED : lcd::DrawBuf::FLAG_NONE);
                 y += 10;
             }
 
-            uint16_t scrollbarLocation = static_cast<uint16_t>(scrollingIndex * 64 / expr::functions.length());
-            uint16_t scrollbarHeight = 6 * 64 / expr::functions.length();
-            display.fill(128 - FUNC_SCROLLBAR_WIDTH, scrollbarLocation, FUNC_SCROLLBAR_WIDTH, scrollbarHeight);
+            drawScrollbar(expr::functions.length(), 6);
         }
         display.updateDrawing();
     }
 
     void ExprEntry::configKeyPressHandler(uint16_t key) {
-        switch(key) {
+        switch (key) {
         case KEY_CENTER:
         case KEY_ENTER:
         case KEY_CONFIG:
@@ -847,50 +889,51 @@ namespace expr {
             paintInterface();
             return;
         case KEY_LEFT:
-            if(selectorIndex == 0) {
+            if (selectorIndex == 0) {
                 eval::useRadians = !eval::useRadians;
             }
-            else if(selectorIndex == 1 && resultSignificantDigits > 1) {
-                resultSignificantDigits --;
+            else if (selectorIndex == 1 && resultSignificantDigits > 1) {
+                resultSignificantDigits--;
             }
-            else if(selectorIndex == 2 && graphingSignificantDigits > 1) {
-                graphingSignificantDigits --;
+            else if (selectorIndex == 2 && graphingSignificantDigits > 1) {
+                graphingSignificantDigits--;
             }
-            else if(selectorIndex == 3) {
+            else if (selectorIndex == 3) {
                 eval::autoFractions = !eval::autoFractions;
             }
             break;
         case KEY_RIGHT:
-            if(selectorIndex == 0) {
+            if (selectorIndex == 0) {
                 eval::useRadians = !eval::useRadians;
             }
-            else if(selectorIndex == 1 && resultSignificantDigits < 20) {
-                resultSignificantDigits ++;
+            else if (selectorIndex == 1 && resultSignificantDigits < 20) {
+                resultSignificantDigits++;
             }
-            else if(selectorIndex == 2 && graphingSignificantDigits < 20) {
-                graphingSignificantDigits ++;
+            else if (selectorIndex == 2 && graphingSignificantDigits < 20) {
+                graphingSignificantDigits++;
             }
-            else if(selectorIndex == 3) {
+            else if (selectorIndex == 3) {
                 eval::autoFractions = !eval::autoFractions;
             }
             break;
         case KEY_UP:
-            if(selectorIndex > 0) {
-                selectorIndex --;
+            if (selectorIndex > 0) {
+                selectorIndex--;
             }
             else {
                 selectorIndex = 3;
             }
             break;
         case KEY_DOWN:
-            if(selectorIndex < 3) {
-                selectorIndex ++;
+            if (selectorIndex < 3) {
+                selectorIndex++;
             }
             else {
                 selectorIndex = 0;
             }
             break;
-        default: break;
+        default:
+            break;
         }
 
         drawInterfaceConfig();
@@ -900,41 +943,41 @@ namespace expr {
         display.clearDrawingBuffer();
 
         display.drawString(1, 1, "Angles:");
-        display.drawString(85, 1, eval::useRadians ? "Radians" : "Degrees", selectorIndex == 0);
+        display.drawString(85, 1, eval::useRadians ? "Radians" : "Degrees",
+                selectorIndex == 0 ? lcd::DrawBuf::FLAG_INVERTED : lcd::DrawBuf::FLAG_NONE);
 
         display.drawString(1, 11, "Result S.D.:");
         char buf[3];
-        util::ltoa(resultSignificantDigits, buf);
-        display.drawString(85, 11, buf, selectorIndex == 1);
+        util::dtoa(resultSignificantDigits, buf);
+        display.drawString(85, 11, buf, selectorIndex == 1 ? lcd::DrawBuf::FLAG_INVERTED : lcd::DrawBuf::FLAG_NONE);
 
         display.drawString(1, 21, "Graphing S.D.:");
-        util::ltoa(graphingSignificantDigits, buf);
-        display.drawString(85, 21, buf, selectorIndex == 2);
+        util::dtoa(graphingSignificantDigits, buf);
+        display.drawString(85, 21, buf, selectorIndex == 2 ? lcd::DrawBuf::FLAG_INVERTED : lcd::DrawBuf::FLAG_NONE);
 
         display.drawString(1, 31, "Auto Fractions:");
-        display.drawString(85, 31, eval::autoFractions ? "On" : "Off", selectorIndex == 3);
+        display.drawString(85, 31, eval::autoFractions ? "On" : "Off",
+                selectorIndex == 3 ? lcd::DrawBuf::FLAG_INVERTED : lcd::DrawBuf::FLAG_NONE);
 
         display.updateDrawing();
     }
 
     void ExprEntry::matrixKeyPressHandler(uint16_t key) {
-        switch(key) {
+        switch (key) {
         case KEY_CENTER:
-        case KEY_ENTER:
-        {
+        case KEY_ENTER: {
             // Insert matrix
             neda::Matrix *mat = new neda::Matrix(matRows, matCols);
-			for(uint8_t i = 0; i < matRows; i ++) {
-				for(uint8_t j = 0; j < matCols; j ++) {
-					mat->setEntry(i, j, new neda::Container());
-				}
-			}
-			// These have to be called manually since setting the entries do not trigger size recalculations
-			mat->computeDimensions();
+            for (uint8_t i = 0; i < matRows; i++) {
+                for (uint8_t j = 0; j < matCols; j++) {
+                    mat->setEntry(i, j, new neda::Container());
+                }
+            }
+            // These have to be called manually since setting the entries do not trigger size recalculations
+            mat->computeDimensions();
 
-			cursor->add(mat);
-			mat->getCursor(*cursor, neda::CURSORLOCATION_START);
-        
+            cursor->add(mat);
+            mat->getCursor(*cursor, neda::CURSORLOCATION_START);
         }
         // Intentional fall-through
         case KEY_MATRIX:
@@ -947,26 +990,26 @@ namespace expr {
             selectorIndex = !selectorIndex;
             break;
         case KEY_UP:
-            if(selectorIndex == 0) {
-                if(matRows < 255) {
-                    matRows ++;
+            if (selectorIndex == 0) {
+                if (matRows < 255) {
+                    matRows++;
                 }
             }
             else {
-                if(matCols < 255) {
-                    matCols ++;
+                if (matCols < 255) {
+                    matCols++;
                 }
             }
             break;
         case KEY_DOWN:
-            if(selectorIndex == 0) {
-                if(matRows > 1) {
-                    matRows --;
+            if (selectorIndex == 0) {
+                if (matRows > 1) {
+                    matRows--;
                 }
             }
             else {
-                if(matCols > 1) {
-                    matCols --;
+                if (matCols > 1) {
+                    matCols--;
                 }
             }
             break;
@@ -980,22 +1023,22 @@ namespace expr {
         display.drawString(1, 1, "Matrix Size:");
 
         char sizeBuf[8];
-        uint8_t len = util::ltoa(matRows, sizeBuf);
-        display.drawString(48, 13, sizeBuf, selectorIndex == 0);
+        uint8_t len = util::dtoa(matRows, sizeBuf);
+        display.drawString(48, 13, sizeBuf, selectorIndex == 0 ? lcd::DrawBuf::FLAG_INVERTED : lcd::DrawBuf::FLAG_NONE);
         display.drawString(48 + len * 6, 13, "x");
-        util::ltoa(matCols, sizeBuf);
-        display.drawString(54 + len * 6, 13, sizeBuf, selectorIndex == 1);
+        util::dtoa(matCols, sizeBuf);
+        display.drawString(
+                54 + len * 6, 13, sizeBuf, selectorIndex == 1 ? lcd::DrawBuf::FLAG_INVERTED : lcd::DrawBuf::FLAG_NONE);
 
         display.updateDrawing();
     }
 
     void ExprEntry::piecewiseKeyPressHandler(uint16_t key) {
-        switch(key) {
+        switch (key) {
         case KEY_CENTER:
-        case KEY_ENTER:
-        {
+        case KEY_ENTER: {
             neda::Piecewise *p = new neda::Piecewise(piecewisePieces);
-            for(uint8_t i = 0; i < piecewisePieces; i ++) {
+            for (uint8_t i = 0; i < piecewisePieces; i++) {
                 p->setCondition(i, new neda::Container());
                 p->setValue(i, new neda::Container());
             }
@@ -1010,43 +1053,44 @@ namespace expr {
             paintInterface();
             return;
         case KEY_UP:
-            if(piecewisePieces < 255) {
-                piecewisePieces ++;
+            if (piecewisePieces < 255) {
+                piecewisePieces++;
             }
             break;
         case KEY_DOWN:
-            if(piecewisePieces > 2) {
-                piecewisePieces --;
+            if (piecewisePieces > 2) {
+                piecewisePieces--;
             }
             break;
         }
 
         drawInterfacePiecewise();
     }
-    
+
     void ExprEntry::drawInterfacePiecewise() {
         display.clearDrawingBuffer();
         display.drawString(1, 1, "Number of Function");
         display.drawString(1, 11, "Pieces:");
 
         char sizeBuf[4];
-        util::ltoa(piecewisePieces , sizeBuf);
+        util::dtoa(piecewisePieces, sizeBuf);
 
-        display.drawString(60, 21, sizeBuf, true);
+        display.drawString(
+                lcd::SIZE_WIDTH / 2, 21, sizeBuf, lcd::DrawBuf::FLAG_INVERTED | lcd::DrawBuf::FLAG_HALIGN_CENTER);
         display.updateDrawing();
     }
 
     void ExprEntry::updateGraphableFunctions() {
         util::DynamicArray<GraphableFunction> newGraphableFunctions;
 
-        for(const auto &func : functions) {
+        for (const auto &func : functions) {
             // A function is only graphable if it only takes a single parameter x.
-            if(func.argc == 1 && strcmp(func.argn[0], "x") == 0) {
-                GraphableFunction f = { &func, false };
+            if (func.argc == 1 && strcmp(func.argn[0], "x") == 0) {
+                GraphableFunction f(&func, false);
                 // Look in the old array and see if it existed previously
-                for(const auto &gfunc : graphableFunctions) {
+                for (const auto &gfunc : graphableFunctions) {
                     // If the two functions match, copy its status
-                    if(strcmp(gfunc.func->name, f.func->name) == 0) {
+                    if (strcmp(gfunc.func->name, f.func->name) == 0) {
                         f.graph = gfunc.graph;
                     }
                 }
@@ -1054,83 +1098,59 @@ namespace expr {
             }
         }
 
-        // Copy the new to the old
-        graphableFunctions.empty();
-        for(const auto &func : newGraphableFunctions) {
-            graphableFunctions.add(func);
-        }
+        graphableFunctions.swap(newGraphableFunctions);
     }
 
     void ExprEntry::graphSelectKeyPressHandler(uint16_t key) {
-        switch(key) {
-        case KEY_CENTER:
-            if(graphableFunctions.length() != 0) {
+        graphChanged = true;
+        if(key == KEY_CENTER || key == KEY_ENTER) {
+            if (graphableFunctions.length() != 0) {
                 // Toggle status
                 graphableFunctions[selectorIndex].graph = !graphableFunctions[selectorIndex].graph;
             }
-            break;
-        case KEY_ENTER:
-        case KEY_GFUNCS:
-        case KEY_DELETE:
-            mode = prevMode;
-            if(prevMode == DisplayMode::GRAPH_VIEWER) {
-                prevMode = DisplayMode::NORMAL;
-                selectorIndex = 0;
-                graphCursorMode = GraphCursorMode::OFF;
-                redrawGraph();
-            }
-            paintInterface();
-            return;
-        case KEY_UP:
-            scrollUp(graphableFunctions.length());
-            break;
-        case KEY_DOWN:
-            scrollDown(graphableFunctions.length());
-            break;
-        default: break;
         }
-
-        drawInterfaceGraphSelect();
+        handleMenuKeyPress(key, graphableFunctions.length(), KEY_GFUNCS);
     }
 
     void ExprEntry::drawInterfaceGraphSelect() {
         display.clearDrawingBuffer();
-        if(graphableFunctions.length() == 0) {
+#ifndef _TEST_MODE
+        if (graphableFunctions.length() == 0) {
             display.drawString(1, 1, "No Graphable Functions");
         }
         else {
             int16_t y = 1;
-            for(uint8_t i = scrollingIndex; i < scrollingIndex + 6 && i < graphableFunctions.length(); i ++) {
+            for (uint8_t i = scrollingIndex; i < scrollingIndex + 6 && i < graphableFunctions.length(); i++) {
                 // Draw checkbox
                 display.drawString(1, y, graphableFunctions[i].graph ? LCD_STR_CCB : LCD_STR_ECB, selectorIndex == i);
                 display.drawString(9, y, graphableFunctions[i].func->fullname, selectorIndex == i);
                 y += 10;
             }
 
-            uint16_t scrollbarLocation = static_cast<uint16_t>(scrollingIndex * 64 / graphableFunctions.length());
-            uint16_t scrollbarHeight = 6 * 64 / graphableFunctions.length();
-            display.fill(128 - FUNC_SCROLLBAR_WIDTH, scrollbarLocation, FUNC_SCROLLBAR_WIDTH, scrollbarHeight);
+            drawScrollbar(graphableFunctions.length(), 6);
         }
+#else
+        display.drawString(1, 1, "Graphing is disabled");
+        display.drawString(1, 11, "in Test Mode.");
+#endif
         display.updateDrawing();
     }
 
     // Names of graph settings
-    const char * const graphSettingNames[] = {
-        "Min X:", "Max X:", "X Scale:", "Min Y:", "Max Y:", "Y Scale:"
-    };
+    const char *const graphSettingNames[] = {"Min X:", "Max X:", "X Scale:", "Min Y:", "Max Y:", "Y Scale:"};
     void ExprEntry::graphSettingsKeyPressHandler(uint16_t key) {
-        switch(key) {
+        switch (key) {
         case KEY_CENTER:
-toggleEditOption:
+        toggleEditOption:
             editOption = !editOption;
-            
-            if(editOption) {
+
+            if (editOption) {
                 // Fill the editor with the previous number
                 editorContents.empty();
                 char buf[64];
                 util::ftoa(graphSettings[selectorIndex], buf, graphingSignificantDigits, LCD_CHAR_EE);
-                
-                for(uint8_t i = 0; buf[i] != '\0'; i ++) {
+
+                for (uint8_t i = 0; buf[i] != '\0'; i++) {
                     editorContents.add(buf[i]);
                 }
                 // Null termination
@@ -1143,16 +1163,16 @@ toggleEditOption:
                 // Convert to double by calling eval::evaluate
                 // This way the user can input simple expressions
                 // First translate into an array of NEDAObjs
-                util::DynamicArray<neda::NEDAObj*> objs;
-                for(char ch : editorContents) {
-                    if(ch == '\0') {
+                util::DynamicArray<neda::NEDAObj *> objs;
+                for (char ch : editorContents) {
+                    if (ch == '\0') {
                         break;
                     }
                     // Left and right brackets are special
-                    if(ch == '(') {
+                    if (ch == '(') {
                         objs.add(new neda::LeftBracket);
                     }
-                    else if(ch == ')') {
+                    else if (ch == ')') {
                         objs.add(new neda::RightBracket);
                     }
                     // All other ones are normal characters
@@ -1160,18 +1180,18 @@ toggleEditOption:
                         objs.add(new neda::Character(ch));
                     }
                 }
-                
+
                 eval::Token *t = eval::evaluate(objs, variables, functions);
-                
+
                 // Free the array of NEDAObjs here
-                for(neda::NEDAObj *ptr : objs) {
+                for (neda::NEDAObj *ptr : objs) {
                     delete ptr;
                 }
 
                 // Extract the value
                 double value = t ? eval::extractDouble(t) : NAN;
                 // Verify that the value is finite and not NAN or syntax error
-                if(isfinite(value)) {
+                if (isfinite(value)) {
                     graphSettings[selectorIndex] = value;
                 }
                 else {
@@ -1182,14 +1202,14 @@ toggleEditOption:
             break;
         case KEY_ENTER:
             // When editing, the enter key finishes the edit
-            if(editOption) {
+            if (editOption) {
                 goto toggleEditOption;
             }
             // Otherwise this falls through and should exit
         case KEY_DELETE:
             // If editing, this deletes a character
-            if(editOption) {
-                if(cursorIndex != 0) {
+            if (editOption) {
+                if (cursorIndex != 0) {
                     // Remove the character in front of the cursor
                     editorContents.removeAt(cursorIndex - 1);
                     --cursorIndex;
@@ -1199,21 +1219,22 @@ toggleEditOption:
             // Otherwise, intentionally fall-through to the next case which exits
         case KEY_GSETTINGS:
             // No exiting when editing an expression
-            if(!editOption) {
+            if (!editOption) {
                 mode = prevMode;
-                if(prevMode == DisplayMode::GRAPH_VIEWER) {
+                if (prevMode == DisplayMode::GRAPH_VIEWER) {
                     prevMode = DisplayMode::NORMAL;
                     selectorIndex = 0;
                     graphCursorMode = GraphCursorMode::OFF;
-                    redrawGraph();
+                    keyboard.send32(KEYMSG_RESET);
+                    graphChanged = true;
                 }
                 paintInterface();
                 return;
             }
             break;
         case KEY_UP:
-            if(!editOption) {
-                if(selectorIndex > 0) {
+            if (!editOption) {
+                if (selectorIndex > 0) {
                     --selectorIndex;
                 }
                 else {
@@ -1222,8 +1243,8 @@ toggleEditOption:
             }
             break;
         case KEY_DOWN:
-            if(!editOption) {
-                if(selectorIndex < 5) {
+            if (!editOption) {
+                if (selectorIndex < 5) {
                     ++selectorIndex;
                 }
                 else {
@@ -1232,53 +1253,51 @@ toggleEditOption:
             }
             break;
         case KEY_LEFT:
-            if(editOption) {
-                if(cursorIndex) {
+            if (editOption) {
+                if (cursorIndex) {
                     --cursorIndex;
                 }
             }
             break;
         case KEY_RIGHT:
-            if(editOption) {
+            if (editOption) {
                 // -1 for null terminator
-                if(cursorIndex < editorContents.length() - 1) {
+                if (cursorIndex < editorContents.length() - 1) {
                     ++cursorIndex;
                 }
             }
             break;
         case KEY_HOME:
-            if(editOption) {
+            if (editOption) {
                 cursorIndex = 0;
             }
             break;
         case KEY_END:
-            if(editOption) {
+            if (editOption) {
                 cursorIndex = editorContents.length() - 1;
             }
             break;
         // These are not handled by keyCodeToChar()
         case KEY_LBRACKET:
             editorContents.insert('(', cursorIndex);
-            cursorIndex ++;
+            cursorIndex++;
             break;
         case KEY_RBRACKET:
             editorContents.insert(')', cursorIndex);
-            cursorIndex ++;
+            cursorIndex++;
             break;
         case KEY_EXPONENT:
             editorContents.insert('^', cursorIndex);
-            cursorIndex ++;
+            cursorIndex++;
             break;
-        default: 
-        {   
+        default: {
             // Try to translate the key to a character
             char ch = keyCodeToChar(key);
-            if(ch != 0xFF) {
+            if (ch != 0xFF) {
                 editorContents.insert(ch, cursorIndex);
-                cursorIndex ++;
+                cursorIndex++;
             }
-        }
-            break;
+        } break;
         }
         drawInterfaceGraphSettings();
     }
@@ -1286,25 +1305,27 @@ toggleEditOption:
     void ExprEntry::drawInterfaceGraphSettingsWrapper() {
         drawInterfaceGraphSettings();
     }
-    
+
     void ExprEntry::drawInterfaceGraphSettings(bool drawCursor) {
         display.clearDrawingBuffer();
 
+#ifndef _TEST_MODE
         uint16_t y = VERT_MARGIN;
-        for(uint8_t i = 0; i < 6; i ++) {
+        for (uint8_t i = 0; i < 6; i++) {
             // Draw the name of the option
             display.drawString(HORIZ_MARGIN, y, graphSettingNames[i]);
 
-            if(!editOption) {
+            if (!editOption) {
                 // If not editing an option, draw the value normally
                 char buf[64];
                 util::ftoa(graphSettings[i], buf, graphingSignificantDigits, LCD_CHAR_EE);
 
-                display.drawString(HORIZ_MARGIN + 50, y, buf, selectorIndex == i);
+                display.drawString(HORIZ_MARGIN + 50, y, buf,
+                        selectorIndex == i ? lcd::DrawBuf::FLAG_INVERTED : lcd::DrawBuf::FLAG_NONE);
             }
             else {
                 // If this value is not being edited, draw it normally
-                if(i != selectorIndex) {
+                if (i != selectorIndex) {
                     char buf[64];
                     util::ftoa(graphSettings[i], buf, graphingSignificantDigits, LCD_CHAR_EE);
 
@@ -1315,7 +1336,7 @@ toggleEditOption:
                     // Draw the contents
                     display.drawString(HORIZ_MARGIN + 50, y, editorContents.asArray());
                     // Draw the cursor if told to
-                    if(drawCursor) {
+                    if (drawCursor) {
                         // To figure out the position, replace the character at the cursor with a null terminator
                         // and then call getDrawnStringWidth
                         char temp = editorContents[cursorIndex];
@@ -1325,7 +1346,7 @@ toggleEditOption:
 
                         uint16_t cursorX = HORIZ_MARGIN + 50 + strWidth;
                         // Take the empty expression height as the height for the cursor
-                        for(uint16_t i = 0; i < neda::Container::EMPTY_EXPR_HEIGHT; i ++) {
+                        for (uint16_t i = 0; i < neda::Container::EMPTY_EXPR_HEIGHT; i++) {
                             display.setPixel(cursorX, y + i, true);
                             display.setPixel(cursorX + 1, y + i, true);
                         }
@@ -1335,364 +1356,435 @@ toggleEditOption:
 
             y += 10;
         }
-
+#else
+        display.drawString(1, 1, "Graphing is disabled");
+        display.drawString(1, 11, "in Test Mode.");
+#endif
         display.updateDrawing();
     }
 
     constexpr int16_t SCREEN_CENTER_X = lcd::SIZE_WIDTH / 2 - 1;
     constexpr int16_t SCREEN_CENTER_Y = lcd::SIZE_HEIGHT / 2 - 1;
+    constexpr int16_t ANALOG_CURSOR_DEADZONE = 32;
+    constexpr int16_t ANALOG_CURSOR_FRAC_MAX = 0x1000;
+    constexpr uint16_t ANALOG_CURSOR_REFRESH_DURATION = 15;
+    constexpr float ANALOG_CURSOR_MAX_SPEED = 1.5;
     constexpr double GRAPH_ZOOM_FACTOR = 0.7;
 
-    eval::Variable* constructFunctionGraphingEnvironment();
+    eval::Variable *constructFunctionGraphingEnvironment();
     int16_t mapX(double x);
     int16_t mapY(double y);
     double unmapX(int16_t x);
     double unmapY(int16_t y);
     void ExprEntry::graphViewerKeyPressHandler(uint16_t key) {
-        switch(key) {
-        // Center should turn on the graph cursor if off
-        // And toggle function if on
-        case KEY_CENTER:
-            if(graphCursorMode == GraphCursorMode::ON) {
-                // Determine what function(s) occupy this pixel
+        if (key & KEY_ADCX_MASK) {
+            if ((key & 0x3FF) >= 512 + ANALOG_CURSOR_DEADZONE || (key & 0x3FF) <= 512 - ANALOG_CURSOR_DEADZONE) {
+                float speed = ((key & 0x3FF) - 512) / 512.0;
+                speed = copysign(speed * speed, speed);
+                cursorXf += speed * ANALOG_CURSOR_MAX_SPEED * ANALOG_CURSOR_FRAC_MAX;
 
-                // Graph each function
-                // Construct a environment that can be reused later since all graphable functions only have 1 argument x
-                eval::Variable *newVars = constructFunctionGraphingEnvironment();
+                cursorX += cursorXf / ANALOG_CURSOR_FRAC_MAX;
+                cursorXf %= ANALOG_CURSOR_FRAC_MAX;
 
-                eval::Numerical arg(0);
-                newVars[0].value = &arg;
+                if (cursorX < 0) {
+                    cursorX += lcd::SIZE_WIDTH;
+                }
+                else if (cursorX >= lcd::SIZE_WIDTH) {
+                    cursorX -= lcd::SIZE_WIDTH;
+                }
+            }
+        }
+        else if (key & KEY_ADCY_MASK) {
+            if ((key & 0x3FF) >= 512 + ANALOG_CURSOR_DEADZONE || (key & 0x3FF) <= 512 - ANALOG_CURSOR_DEADZONE) {
+                float speed = ((key & 0x3FF) - 512) / 512.0;
+                speed = copysign(speed * speed, speed);
+                cursorYf += speed * ANALOG_CURSOR_MAX_SPEED * ANALOG_CURSOR_FRAC_MAX;
 
-                uint16_t counter = 0;
-                bool incremented = false;
-                
-                // Code copied from redrawGraph()
+                cursorY += cursorYf / ANALOG_CURSOR_FRAC_MAX;
+                cursorYf %= ANALOG_CURSOR_FRAC_MAX;
 
-                // The y value of the previous pixel (in the real coordinate system)
-                double prevResult = NAN;
-                int16_t prevYLCD = 0;
-                for(GraphableFunction &gfunc : graphableFunctions) {
-                    if(gfunc.graph) {
-                        const eval::UserDefinedFunction &func = *gfunc.func;
+                if (cursorY < 0) {
+                    cursorY += lcd::SIZE_HEIGHT;
+                }
+                else if (cursorY >= lcd::SIZE_HEIGHT) {
+                    cursorY -= lcd::SIZE_HEIGHT;
+                }
+            }
+        }
+        else {
+            switch (key) {
+            // Enter should turn on the graph cursor if off
+            // And toggle function if on
+            case KEY_ENTER:
+                if (graphCursorMode == GraphCursorMode::ON) {
+                    // Determine what function(s) occupy this pixel
 
-                        // Evaluate for x coordinates surrounding the cursor
-                        for(int16_t currentXLCD = cursorX - 1; currentXLCD <= cursorX + 1; currentXLCD ++) {
-                            // Get the x value in real coordinate space
-                            double currentXReal = unmapX(currentXLCD);
-                            // Set the value of the argument
-                            arg.value = currentXReal;
-                            // Attempt to evaluate
-                            eval::Token *t = eval::evaluate(func.expr, variables.length() + 1, newVars, functions.length(), functions.asArray());
-                            // Watch out for syntax error
-                            double currentYReal = t ? eval::extractDouble(t) : NAN;
-                            delete t;
+                    // Graph each function
+                    // Construct a environment that can be reused later since all graphable functions only have 1
+                    // argument x
+                    eval::Variable *newVars = constructFunctionGraphingEnvironment();
 
-                            
-                            // If result is NaN, skip this pixel
-                            if(!isnan(currentYReal)) {
-                                // Otherwise map the Y value
-                                int16_t currentYLCD = mapY(currentYReal);
-                                int16_t prevXLCD = currentXLCD - 1;
+                    eval::Numerical arg(0);
+                    newVars[0].value = &arg;
 
-                                if(currentXLCD == cursorX && currentYLCD == cursorY) {
-                                    counter ++;
-                                    if(counter == selectorIndex + 1) {
-                                        selectorIndex ++;
-                                        incremented = true;
-                                        graphDispFunc = gfunc.func;
-                                        goto functionCheckLoopEnd;
+                    uint16_t counter = 0;
+                    bool incremented = false;
+
+                    // Code copied from redrawGraph()
+
+                    // The y value of the previous pixel (in the real coordinate system)
+                    double prevResult = NAN;
+                    int16_t prevYLCD = 0;
+                    for (GraphableFunction &gfunc : graphableFunctions) {
+                        if (gfunc.graph) {
+                            const eval::UserDefinedFunction &func = *gfunc.func;
+
+                            // Evaluate for x coordinates surrounding the cursor
+                            for (int16_t currentXLCD = cursorX - 1; currentXLCD <= cursorX + 1; currentXLCD++) {
+                                // Get the x value in real coordinate space
+                                double currentXReal = unmapX(currentXLCD);
+                                // Set the value of the argument
+                                arg.value = currentXReal;
+                                // Attempt to evaluate
+                                eval::Token *t = eval::evaluate(func.expr, variables.length() + 1, newVars,
+                                        functions.length(), functions.asArray());
+                                // Watch out for syntax error
+                                double currentYReal = t ? eval::extractDouble(t) : NAN;
+                                delete t;
+
+                                // If result is NaN, skip this pixel
+                                if (!isnan(currentYReal)) {
+                                    // Otherwise map the Y value
+                                    int16_t currentYLCD = mapY(currentYReal);
+                                    int16_t prevXLCD = currentXLCD - 1;
+
+                                    if (currentXLCD == cursorX && currentYLCD == cursorY) {
+                                        counter++;
+                                        if (counter == selectorIndex + 1) {
+                                            selectorIndex++;
+                                            incremented = true;
+                                            graphDispFunc = gfunc.func;
+                                            goto functionCheckLoopEnd;
+                                        }
+                                        break;
                                     }
-                                    break;
-                                }
 
-                                // Do a bounds check
-                                if(currentXLCD >= 0 && prevXLCD < lcd::SIZE_WIDTH && (prevYLCD >= 0 || currentYLCD >= 0) 
-                                        && (prevYLCD < lcd::SIZE_HEIGHT || currentYLCD < lcd::SIZE_HEIGHT)) {
-                                    // If the previous pixel was valid, connect them
-                                    if(!isnan(prevResult)) {
-
+                                    // Do a bounds check
+                                    if (currentXLCD >= 0 && prevXLCD < lcd::SIZE_WIDTH &&
+                                            (prevYLCD >= 0 || currentYLCD >= 0) &&
+                                            (prevYLCD < lcd::SIZE_HEIGHT || currentYLCD < lcd::SIZE_HEIGHT)
+                                            // Make sure previous pixel was not NaN
+                                            && !isnan(prevResult)
+                                            // Test if connection was necessary
+                                            && abs(currentYLCD - prevYLCD) > 1) {
                                         double prevXReal = unmapX(prevXLCD);
                                         double prevYReal = prevResult;
+                                        // Will be positive if the current pixel is higher than the previous one
+                                        double slope = (currentXReal - prevXReal) / (currentYReal - prevYReal);
 
-                                        if(abs(currentYLCD - prevYLCD) > 1) {
-                                            // Will be positive if the current pixel is higher than the previous one
-                                            double slope = (currentXReal - prevXReal) / (currentYReal - prevYReal);
-
-                                            if(currentYReal > prevYReal) {
-                                                for(int16_t dispY = prevYLCD - 1; dispY > currentYLCD; dispY --) {
-                                                    double realXDiff = (unmapY(dispY) - prevYReal) * slope;
-                                                    if(mapX(realXDiff + prevXReal) == cursorX && dispY == cursorY) {
-                                                        counter ++;
-                                                        if(counter == selectorIndex + 1) {
-                                                            selectorIndex ++;
-                                                            incremented = true;
-                                                            graphDispFunc = gfunc.func;
-                                                            goto functionCheckLoopEnd;
-                                                        }
-                                                        break;
+                                        if (currentYReal > prevYReal) {
+                                            for (int16_t dispY = prevYLCD - 1; dispY > currentYLCD; dispY--) {
+                                                double realXDiff = (unmapY(dispY) - prevYReal) * slope;
+                                                if (mapX(realXDiff + prevXReal) == cursorX && dispY == cursorY) {
+                                                    counter++;
+                                                    if (counter == selectorIndex + 1) {
+                                                        selectorIndex++;
+                                                        incremented = true;
+                                                        graphDispFunc = gfunc.func;
+                                                        goto functionCheckLoopEnd;
                                                     }
-                                                }
-                                            }
-                                            else {
-                                                for(int16_t dispY = prevYLCD + 1; dispY < currentYLCD; dispY ++) {
-                                                    double realXDiff = (unmapY(dispY) - prevYReal) * slope;
-                                                    if(mapX(realXDiff + prevXReal) == cursorX && dispY == cursorY) {
-                                                        counter ++;
-                                                        if(counter == selectorIndex + 1) {
-                                                            selectorIndex ++;
-                                                            incremented = true;
-                                                            graphDispFunc = gfunc.func;
-                                                            goto functionCheckLoopEnd;
-                                                        }
-                                                        break;
-                                                    }
+                                                    break;
                                                 }
                                             }
                                         }
-
+                                        else {
+                                            for (int16_t dispY = prevYLCD + 1; dispY < currentYLCD; dispY++) {
+                                                double realXDiff = (unmapY(dispY) - prevYReal) * slope;
+                                                if (mapX(realXDiff + prevXReal) == cursorX && dispY == cursorY) {
+                                                    counter++;
+                                                    if (counter == selectorIndex + 1) {
+                                                        selectorIndex++;
+                                                        incremented = true;
+                                                        graphDispFunc = gfunc.func;
+                                                        goto functionCheckLoopEnd;
+                                                    }
+                                                    break;
+                                                }
+                                            }
+                                        }
                                     }
+                                    prevYLCD = currentYLCD;
                                 }
-                                prevYLCD = currentYLCD;
+                                prevResult = currentYReal;
                             }
-                            prevResult = currentYReal;
                         }
                     }
+                functionCheckLoopEnd:
+                    if (!incremented) {
+                        selectorIndex = 0;
+                    }
+
+                    delete[] newVars;
                 }
-functionCheckLoopEnd:
-                if(!incremented) {
-                    selectorIndex = 0;
+                else if (graphCursorMode == GraphCursorMode::AREA_ZOOM) {
+                    // First make sure that the area isn't zero
+                    if (cursorX != graphZoomX && cursorY != graphZoomY) {
+                        // Change bounds
+                        double x1 = unmapX(cursorX);
+                        double x2 = unmapX(graphZoomX);
+                        double y1 = unmapY(cursorY);
+                        double y2 = unmapY(graphZoomY);
+
+                        xMin = util::min(x1, x2);
+                        xMax = util::max(x1, x2);
+                        yMin = util::min(y1, y2);
+                        yMax = util::max(y1, y2);
+
+                        cursorX = SCREEN_CENTER_X;
+                        cursorY = SCREEN_CENTER_Y;
+
+                        graphChanged = true;
+                    }
+                    graphCursorMode = GraphCursorMode::ON;
                 }
-
-                delete[] newVars;
-            }
-            else if(graphCursorMode == GraphCursorMode::AREA_ZOOM) {
-                // First make sure that the area isn't zero
-                if(cursorX != graphZoomX && cursorY != graphZoomY) {
-                    // Change bounds
-                    double x1 = unmapX(cursorX);
-                    double x2 = unmapX(graphZoomX);
-                    double y1 = unmapY(cursorY);
-                    double y2 = unmapY(graphZoomY);
-
-                    xMin = util::min(x1, x2);
-                    xMax = util::max(x1, x2);
-                    yMin = util::min(y1, y2);
-                    yMax = util::max(y1, y2);
-
+                else {
+                    graphCursorMode = GraphCursorMode::ON;
+                    // matRows is used as a flag indicating whether we're in analog mode
+                    matRows = 0;
                     cursorX = SCREEN_CENTER_X;
                     cursorY = SCREEN_CENTER_Y;
-
-                    redrawGraph();
+                    cursorXf = cursorYf = 0;
                 }
-                graphCursorMode = GraphCursorMode::ON;
+                break;
+            case KEY_CENTER:
+                if (graphCursorMode == GraphCursorMode::OFF) {
+                    graphCursorMode = GraphCursorMode::ON;
+                    keyboard.send32(KEYMSG_SET_ADC_KEY_REPEAT_DELAY | ANALOG_CURSOR_REFRESH_DURATION);
+                    // matRows is used as a flag indicating whether we're in analog mode
+                    matRows = 1;
+                    cursorX = SCREEN_CENTER_X;
+                    cursorY = SCREEN_CENTER_Y;
+                    cursorXf = cursorYf = 0;
+                }
+                else {
+                    if (matRows) {
+                        keyboard.send32(KEYMSG_RESET);
+                    }
+                    else {
+                        keyboard.send32(KEYMSG_SET_ADC_KEY_REPEAT_DELAY | ANALOG_CURSOR_REFRESH_DURATION);
+                    }
+                    matRows = !matRows;
+                }
+                break;
+            // Delete turn off the graph cursor if on
+            case KEY_DELETE:
+                keyboard.send32(KEYMSG_RESET);
+                if (graphCursorMode != GraphCursorMode::OFF) {
+                    graphCursorMode = GraphCursorMode::OFF;
+                    break;
+                }
+            // Intentional fall-through
+            case KEY_GRAPH:
+                graphCursorMode = GraphCursorMode::OFF;
+                mode = prevMode;
+                paintInterface();
+                return;
+
+            case KEY_LEFT:
+                if (cursorX > 0) {
+                    cursorX--;
+                }
+                else {
+                    cursorX = lcd::SIZE_WIDTH - 1;
+                }
+                selectorIndex = 0;
+                break;
+            case KEY_RIGHT:
+                if (cursorX < lcd::SIZE_WIDTH - 1) {
+                    cursorX++;
+                }
+                else {
+                    cursorX = 0;
+                }
+                selectorIndex = 0;
+                break;
+            case KEY_UP:
+                if (cursorY > 0) {
+                    cursorY--;
+                }
+                else {
+                    cursorY = lcd::SIZE_HEIGHT - 1;
+                }
+                selectorIndex = 0;
+                break;
+            case KEY_DOWN:
+                if (cursorY < lcd::SIZE_HEIGHT - 1) {
+                    cursorY++;
+                }
+                else {
+                    cursorY = 0;
+                }
+                selectorIndex = 0;
+                break;
+            case KEY_HOME:
+                cursorX = 0;
+                selectorIndex = 0;
+                break;
+            case KEY_END:
+                cursorX = lcd::SIZE_WIDTH - 1;
+                selectorIndex = 0;
+                break;
+            case KEY_TOP:
+                cursorY = 0;
+                selectorIndex = 0;
+                break;
+            case KEY_BOTTOM:
+                cursorY = lcd::SIZE_HEIGHT - 1;
+                selectorIndex = 0;
+                break;
+
+            // Pressing z turns on area zoom
+            case KEY_LCZ: {
+                if (graphCursorMode == GraphCursorMode::ON) {
+                    graphCursorMode = GraphCursorMode::AREA_ZOOM;
+                    graphZoomX = cursorX;
+                    graphZoomY = cursorY;
+                    selectorIndex = 0;
+                }
+                else if (graphCursorMode == GraphCursorMode::AREA_ZOOM) {
+                    graphCursorMode = GraphCursorMode::ON;
+                }
+                break;
             }
-            else {
-                graphCursorMode = GraphCursorMode::ON;
+            // wasd moves the cursor by 10 pixels
+            case KEY_LCW:
+                cursorY -= 10;
+                if (cursorY < 0) {
+                    cursorY += lcd::SIZE_HEIGHT;
+                }
+                selectorIndex = 0;
+                break;
+            case KEY_LCA:
+                cursorX -= 10;
+                if (cursorX < 0) {
+                    cursorX += lcd::SIZE_WIDTH;
+                }
+                selectorIndex = 0;
+                break;
+            case KEY_LCS:
+                cursorY += 10;
+                if (cursorY >= lcd::SIZE_HEIGHT) {
+                    cursorY -= lcd::SIZE_HEIGHT;
+                }
+                selectorIndex = 0;
+                break;
+            case KEY_LCD:
+                cursorX += 10;
+                if (cursorX >= lcd::SIZE_WIDTH) {
+                    cursorX -= lcd::SIZE_WIDTH;
+                }
+                selectorIndex = 0;
+                break;
+            // Pressing h "homes" the cursor
+            case KEY_LCH:
                 cursorX = SCREEN_CENTER_X;
                 cursorY = SCREEN_CENTER_Y;
+                break;
+            // Pressing c moves the display window such that the cursor is centered
+            case KEY_LCC: {
+                if (graphCursorMode != GraphCursorMode::ON) {
+                    break;
+                }
+                // Determine how much translation is needed
+                double currentX = unmapX(SCREEN_CENTER_X);
+                double currentY = unmapY(SCREEN_CENTER_Y);
+                double correctX = unmapX(cursorX);
+                double correctY = unmapY(cursorY);
+                double xShift = correctX - currentX;
+                double yShift = correctY - currentY;
+
+                xMin += xShift;
+                xMax += xShift;
+                yMin += yShift;
+                yMax += yShift;
+
+                cursorX = SCREEN_CENTER_X;
+                cursorY = SCREEN_CENTER_Y;
+
+                graphChanged = true;
+                break;
             }
-            break;
-        // Enter and delete turn off the graph cursor if on
-        // Otherwise they will fall through and exit this mode
-        case KEY_ENTER:
-        case KEY_DELETE:
-            if(graphCursorMode != GraphCursorMode::OFF) {
+            // Pressing + zooms in around the cursor
+            case KEY_PLUS: {
+                if (graphCursorMode != GraphCursorMode::ON) {
+                    break;
+                }
+                double newWidth = (xMax - xMin) * GRAPH_ZOOM_FACTOR;
+                double newHeight = (yMax - yMin) * GRAPH_ZOOM_FACTOR;
+
+                double xShift = (unmapX(cursorX) - xMin) * (1 - GRAPH_ZOOM_FACTOR);
+                double yShift = (unmapY(cursorY) - yMin) * (1 - GRAPH_ZOOM_FACTOR);
+
+                xMin += xShift;
+                xMax = xMin + newWidth;
+                yMin += yShift;
+                yMax = yMin + newHeight;
+
+                graphChanged = true;
+                break;
+            }
+            // Pressing - zooms out around the cursor
+            case KEY_MINUS: {
+                if (graphCursorMode != GraphCursorMode::ON) {
+                    break;
+                }
+                double newWidth = (xMax - xMin) / GRAPH_ZOOM_FACTOR;
+                double newHeight = (yMax - yMin) / GRAPH_ZOOM_FACTOR;
+
+                double xShift = (unmapX(cursorX) - xMin) * (1 - 1 / GRAPH_ZOOM_FACTOR);
+                double yShift = (unmapY(cursorY) - yMin) * (1 - 1 / GRAPH_ZOOM_FACTOR);
+
+                xMin += xShift;
+                xMax = xMin + newWidth;
+                yMin += yShift;
+                yMax = yMin + newHeight;
+
+                graphChanged = true;
+                break;
+            }
+            case KEY_CONFIG:
+            case KEY_GSETTINGS:
                 graphCursorMode = GraphCursorMode::OFF;
-                break;
-            }
-        case KEY_GRAPH:
-            graphCursorMode = GraphCursorMode::OFF;
-            mode = prevMode;
-            paintInterface();
-            return;
-
-        case KEY_LEFT:
-            if(cursorX > 0) {
-                cursorX --;
-            }
-            else {
-                cursorX = lcd::SIZE_WIDTH - 1;
-            }
-            selectorIndex = 0;
-            break;
-        case KEY_RIGHT:
-            if(cursorX < lcd::SIZE_WIDTH - 1) {
-                cursorX ++;
-            }
-            else {
-                cursorX = 0;
-            }
-            selectorIndex = 0;
-            break;
-        case KEY_UP:
-            if(cursorY > 0) {
-                cursorY --;
-            }
-            else {
-                cursorY = lcd::SIZE_HEIGHT - 1;
-            }
-            selectorIndex = 0;
-            break;
-        case KEY_DOWN:
-            if(cursorY < lcd::SIZE_HEIGHT - 1) {
-                cursorY ++;
-            }
-            else {
-                cursorY = 0;
-            }
-            selectorIndex = 0;
-            break;
-        case KEY_HOME:
-            cursorX = 0;
-            selectorIndex = 0;
-            break;
-        case KEY_END:
-            cursorX = lcd::SIZE_WIDTH - 1;
-            selectorIndex = 0;
-            break;
-        case KEY_TOP:
-            cursorY = 0;
-            selectorIndex = 0;
-            break;
-        case KEY_BOTTOM:
-            cursorY = lcd::SIZE_HEIGHT - 1;
-            selectorIndex = 0;
-            break;
-        
-        // Pressing z turns on area zoom
-        case KEY_LCZ:
-        {
-            if(graphCursorMode == GraphCursorMode::ON) {
-                graphCursorMode = GraphCursorMode::AREA_ZOOM;
-                graphZoomX = cursorX;
-                graphZoomY = cursorY;
+                keyboard.send32(KEYMSG_RESET);
                 selectorIndex = 0;
-            }
-            else if(graphCursorMode == GraphCursorMode::AREA_ZOOM) {
-                graphCursorMode = GraphCursorMode::ON;
-            }
-            break;
-        }
-        // wasd moves the cursor by 10 pixels
-        case KEY_LCW:
-            cursorY -= 10;
-            if(cursorY < 0) {
-                cursorY += lcd::SIZE_HEIGHT;
-            }
-            selectorIndex = 0;
-            break;
-        case KEY_LCA:
-            cursorX -= 10;
-            if(cursorX < 0) {
-                cursorX += lcd::SIZE_WIDTH;
-            }
-            selectorIndex = 0;
-            break;
-        case KEY_LCS:
-            cursorY += 10;
-            if(cursorY >= lcd::SIZE_HEIGHT) {
-                cursorY -= lcd::SIZE_HEIGHT;
-            }
-            selectorIndex = 0;
-            break;
-        case KEY_LCD:
-            cursorX += 10;
-            if(cursorX >= lcd::SIZE_WIDTH) {
-                cursorX -= lcd::SIZE_WIDTH;
-            }
-            selectorIndex = 0;
-            break;
-        // Pressing h "homes" the cursor
-        case KEY_LCH:
-            cursorX = SCREEN_CENTER_X;
-            cursorY = SCREEN_CENTER_Y;
-            break;
-        // Pressing c moves the display window such that the cursor is centered
-        case KEY_LCC:
-        {
-            if(graphCursorMode != GraphCursorMode::ON) {
+                editOption = false;
+                mode = DisplayMode::GRAPH_SETTINGS_MENU;
+                prevMode = DisplayMode::GRAPH_VIEWER;
+                drawInterfaceGraphSettings();
+                return;
+            case KEY_GFUNCS:
+                graphCursorMode = GraphCursorMode::OFF;
+                keyboard.send32(KEYMSG_RESET);
+                selectorIndex = 0;
+                scrollingIndex = 0;
+                mode = DisplayMode::GRAPH_SELECT_MENU;
+                prevMode = DisplayMode::GRAPH_VIEWER;
+                drawInterfaceGraphSelect();
+                return;
+            // Note: CTRL+P Reused
+            case KEY_PIECEWISE:
+                graphCursorMode = GraphCursorMode::OFF;
+                keyboard.send32(KEYMSG_RESET);
+                selectorIndex = 0;
+                scrollingIndex = 0;
+                mode = DisplayMode::GRAPH_VAR_SELECT_MENU;
+                prevMode = DisplayMode::GRAPH_VIEWER;
+                drawInterfaceGraphVarSelect();
+                return;
+            default:
                 break;
             }
-            // Determine how much translation is needed
-            double currentX = unmapX(SCREEN_CENTER_X);
-            double currentY = unmapY(SCREEN_CENTER_Y);
-            double correctX = unmapX(cursorX);
-            double correctY = unmapY(cursorY);
-            double xShift = correctX - currentX;
-            double yShift = correctY - currentY;
-            
-            xMin += xShift;
-            xMax += xShift;
-            yMin += yShift;
-            yMax += yShift;
-
-            cursorX = SCREEN_CENTER_X;
-            cursorY = SCREEN_CENTER_Y;
-            
-            redrawGraph();
-            break;
         }
-        // Pressing + zooms in around the cursor
-        case KEY_PLUS:
-        {
-            if(graphCursorMode != GraphCursorMode::ON) {
-                break;
-            }
-            double newWidth = (xMax - xMin) * GRAPH_ZOOM_FACTOR;
-            double newHeight = (yMax - yMin) * GRAPH_ZOOM_FACTOR;
-
-            double xShift = (unmapX(cursorX) - xMin) * (1 - GRAPH_ZOOM_FACTOR);
-            double yShift = (unmapY(cursorY) - yMin) * (1 - GRAPH_ZOOM_FACTOR);
-
-            xMin += xShift;
-            xMax = xMin + newWidth;
-            yMin += yShift;
-            yMax = yMin + newHeight;
-
-            redrawGraph();
-            break;
-        }
-        // Pressing - zooms out around the cursor
-        case KEY_MINUS:
-        {
-            if(graphCursorMode != GraphCursorMode::ON) {
-                break;
-            }
-            double newWidth = (xMax - xMin) / GRAPH_ZOOM_FACTOR;
-            double newHeight = (yMax - yMin) / GRAPH_ZOOM_FACTOR;
-
-            double xShift = (unmapX(cursorX) - xMin) * (1 - 1 / GRAPH_ZOOM_FACTOR);
-            double yShift = (unmapY(cursorY) - yMin) * (1 - 1 / GRAPH_ZOOM_FACTOR);
-
-            xMin += xShift;
-            xMax = xMin + newWidth;
-            yMin += yShift;
-            yMax = yMin + newHeight;
-
-            redrawGraph();
-            break;
-        }
-        case KEY_CONFIG:
-        case KEY_GSETTINGS:
-            graphCursorMode = GraphCursorMode::OFF;
-            selectorIndex = 0;
-            editOption = false;
-            mode = DisplayMode::GRAPH_SETTINGS_MENU;
-            prevMode = DisplayMode::GRAPH_VIEWER;
-            drawInterfaceGraphSettings();
-            return;
-        case KEY_GFUNCS:
-            graphCursorMode = GraphCursorMode::OFF;
-            selectorIndex = 0;
-            scrollingIndex = 0;
-            mode = DisplayMode::GRAPH_SELECT_MENU;
-            prevMode = DisplayMode::GRAPH_VIEWER;
-            drawInterfaceGraphSelect();
-            return;
-        default:
-            break;
-        }
-
         drawInterfaceGraphViewer();
     }
 
@@ -1706,10 +1798,10 @@ functionCheckLoopEnd:
         // Round x
         x = round(x);
         // Verify that x is in bounds
-        if(x > INT16_MAX) {
+        if (x > INT16_MAX) {
             x = INT16_MAX;
         }
-        else if(x < INT16_MIN) {
+        else if (x < INT16_MIN) {
             x = INT16_MIN;
         }
 
@@ -1723,10 +1815,10 @@ functionCheckLoopEnd:
         y *= (lcd::SIZE_HEIGHT - 1) / (yMin - yMax);
         y = round(y);
 
-        if(y > INT16_MAX) {
+        if (y > INT16_MAX) {
             y = INT16_MAX;
         }
-        else if(y < INT16_MIN) {
+        else if (y < INT16_MIN) {
             y = INT16_MIN;
         }
 
@@ -1746,9 +1838,9 @@ functionCheckLoopEnd:
         return realY;
     }
 
-    eval::Variable* constructFunctionGraphingEnvironment() {
+    eval::Variable *constructFunctionGraphingEnvironment() {
         eval::Variable *newVars = new eval::Variable[variables.length() + 1];
-        for(uint16_t i = 0; i < variables.length(); i ++) {
+        for (uint16_t i = 0; i < variables.length(); i++) {
             newVars[i + 1] = variables[i];
         }
 
@@ -1768,25 +1860,59 @@ functionCheckLoopEnd:
         // First graph the axes if they're in range
         // Y coordinate of the X axis
         int16_t xAxis = mapY(0);
-        if(xAxis >= 0 && xAxis < lcd::SIZE_HEIGHT) {
+        if (xAxis >= 0 && xAxis < lcd::SIZE_HEIGHT) {
             graphBuf.drawLine(0, xAxis, lcd::SIZE_WIDTH - 1, xAxis);
         }
         // Draw the "ticks" on the y axis if they're visible
-        if(xAxis >= 1) {
+        if (xAxis >= 1) {
             // Make sure that the ticks line up with the origin
-            for(double x = xMin - fmod(xMin, xScale); x <= xMax; x += xScale) {
+            for (double x = xMin - fmod(xMin, xScale); x <= xMax; x += xScale) {
                 graphBuf.setPixel(mapX(x), xAxis - 1);
             }
         }
         // X coordinate of the Y axis
         int16_t yAxis = mapX(0);
-        if(yAxis >= 0 && yAxis < lcd::SIZE_WIDTH) {
+        if (yAxis >= 0 && yAxis < lcd::SIZE_WIDTH) {
             graphBuf.drawLine(yAxis, 0, yAxis, lcd::SIZE_HEIGHT - 1);
         }
         // Draw the ticks
-        if(yAxis <= lcd::SIZE_WIDTH - 2) {
-            for(double y = yMin - fmod(yMin, yScale); y <= yMax; y += yScale) {
+        if (yAxis <= lcd::SIZE_WIDTH - 2) {
+            for (double y = yMin - fmod(yMin, yScale); y <= yMax; y += yScale) {
                 graphBuf.setPixel(yAxis + 1, mapY(y));
+            }
+        }
+
+        // Graph each variable
+        for (GraphableVariable &gvar : graphableVars) {
+            if(!gvar.graph) {
+                continue;
+            }
+            if(gvar.var->value->getType() == eval::TokenType::MATRIX) {
+                eval::Matrix *m = static_cast<eval::Matrix *>(gvar.var->value);
+                // A set of points
+                if(m->n == 2) {
+                    for(uint8_t i = 0; i < m->m; i ++) {
+                        int16_t x = mapX(m->getEntry(i, 0).asDouble());
+                        int16_t y = mapY(m->getEntry(i, 1).asDouble());
+
+                        graphBuf.setPixel(x, y);
+                        graphBuf.setPixel(x, y - 1);
+                        graphBuf.setPixel(x, y + 1);
+                        graphBuf.setPixel(x - 1, y);
+                        graphBuf.setPixel(x + 1, y);
+                    }
+                }
+                // A single point (column form)
+                else if(m->m == 2 && m->n == 1) {
+                    int16_t x = mapX(m->contents[0].asDouble());
+                    int16_t y = mapY(m->contents[1].asDouble());
+
+                    graphBuf.setPixel(x, y);
+                    graphBuf.setPixel(x, y - 1);
+                    graphBuf.setPixel(x, y + 1);
+                    graphBuf.setPixel(x - 1, y);
+                    graphBuf.setPixel(x + 1, y);
+                }
             }
         }
 
@@ -1800,61 +1926,57 @@ functionCheckLoopEnd:
         // The y value of the previous pixel (in the real coordinate system)
         double prevResult = NAN;
         int16_t prevYLCD = 0;
-        for(GraphableFunction &gfunc : graphableFunctions) {
-            if(gfunc.graph) {
+        for (GraphableFunction &gfunc : graphableFunctions) {
+            if (gfunc.graph) {
                 const eval::UserDefinedFunction &func = *gfunc.func;
 
                 // Evaluate for each x coordinate
                 // We intentially also include the pixel at x = 128 and x = -1, which is out of bounds
                 // This is so that if it needs to be connected to the previous pixel, the connection is drawn
-                for(int16_t currentXLCD = -1; currentXLCD <= lcd::SIZE_WIDTH; currentXLCD ++) {
+                for (int16_t currentXLCD = -1; currentXLCD <= lcd::SIZE_WIDTH; currentXLCD++) {
                     // Get the x value in real coordinate space
                     double currentXReal = unmapX(currentXLCD);
                     // Set the value of the argument
                     arg.value = currentXReal;
                     // Attempt to evaluate
-                    eval::Token *t = eval::evaluate(func.expr, variables.length() + 1, newVars, functions.length(), functions.asArray());
+                    eval::Token *t = eval::evaluate(
+                            func.expr, variables.length() + 1, newVars, functions.length(), functions.asArray());
                     // Watch out for syntax error
                     double currentYReal = t ? eval::extractDouble(t) : NAN;
                     delete t;
 
-                    
                     // If result is NaN, skip this pixel
-                    if(!isnan(currentYReal)) {
+                    if (!isnan(currentYReal)) {
                         // Otherwise map the Y value
                         int16_t currentYLCD = mapY(currentYReal);
                         int16_t prevXLCD = currentXLCD - 1;
 
+                        // Set the pixel
+                        graphBuf.setPixel(currentXLCD, currentYLCD);
                         // Do a bounds check
-                        if(currentXLCD >= 0 && prevXLCD < lcd::SIZE_WIDTH && (prevYLCD >= 0 || currentYLCD >= 0) 
-                                && (prevYLCD < lcd::SIZE_HEIGHT || currentYLCD < lcd::SIZE_HEIGHT)) {
-                            // If the previous pixel was valid, connect them
-                            if(!isnan(prevResult)) {
+                        if (currentXLCD >= 0 && prevXLCD < lcd::SIZE_WIDTH && (prevYLCD >= 0 || currentYLCD >= 0) &&
+                                (prevYLCD < lcd::SIZE_HEIGHT || currentYLCD < lcd::SIZE_HEIGHT)
+                                // Make sure previous pixel was not NaN
+                                && !isnan(prevResult)
+                                // Test if connection was necessary
+                                && abs(currentYLCD - prevYLCD) > 1) {
+                            double prevXReal = unmapX(prevXLCD);
+                            double prevYReal = prevResult;
+                            // Will be positive if the current pixel is higher than the previous one
+                            double slope = (currentXReal - prevXReal) / (currentYReal - prevYReal);
 
-                                double prevXReal = unmapX(prevXLCD);
-                                double prevYReal = prevResult;
-
-                                if(abs(currentYLCD - prevYLCD) > 1) {
-                                    // Will be positive if the current pixel is higher than the previous one
-                                    double slope = (currentXReal - prevXReal) / (currentYReal - prevYReal);
-
-                                    if(currentYReal > prevYReal) {
-                                        for(int16_t dispY = prevYLCD - 1; dispY > currentYLCD; dispY --) {
-                                            double realXDiff = (unmapY(dispY) - prevYReal) * slope;
-                                            graphBuf.setPixel(mapX(realXDiff + prevXReal), dispY);
-                                        }
-                                    }
-                                    else {
-                                        for(int16_t dispY = prevYLCD + 1; dispY < currentYLCD; dispY ++) {
-                                            double realXDiff = (unmapY(dispY) - prevYReal) * slope;
-                                            graphBuf.setPixel(mapX(realXDiff + prevXReal), dispY);
-                                        }
-                                    }
+                            if (currentYReal > prevYReal) {
+                                for (int16_t dispY = prevYLCD - 1; dispY > currentYLCD; dispY--) {
+                                    double realXDiff = (unmapY(dispY) - prevYReal) * slope;
+                                    graphBuf.setPixel(mapX(realXDiff + prevXReal), dispY);
                                 }
-
                             }
-                            // Set the pixel
-                            graphBuf.setPixel(currentXLCD, currentYLCD);
+                            else {
+                                for (int16_t dispY = prevYLCD + 1; dispY < currentYLCD; dispY++) {
+                                    double realXDiff = (unmapY(dispY) - prevYReal) * slope;
+                                    graphBuf.setPixel(mapX(realXDiff + prevXReal), dispY);
+                                }
+                            }
                         }
                         prevYLCD = currentYLCD;
                     }
@@ -1864,14 +1986,19 @@ functionCheckLoopEnd:
         }
         delete[] newVars;
     }
-    
+
     void ExprEntry::drawInterfaceGraphViewer() {
+#ifndef _TEST_MODE
+        if(graphChanged) {
+            redrawGraph();
+            graphChanged = false;
+        }
         // First copy the base graph
         // No need to clear the buffer since it will be overwritten anyways
         display.copyBuffer(graphBuf);
 
         // Draw the graph cursor if on
-        if(graphCursorMode != GraphCursorMode::OFF) {
+        if (graphCursorMode != GraphCursorMode::OFF) {
             // Display the location of the cursor
             double x = unmapX(cursorX);
             double y = unmapY(cursorY);
@@ -1887,40 +2014,42 @@ functionCheckLoopEnd:
             // Used later
             uint16_t maxWidth = width;
             display.fill(HORIZ_MARGIN - 1, lcd::SIZE_HEIGHT - VERT_MARGIN - 5 - 5 - 1 - 1, width + 2, 7, true);
-            display.drawString(HORIZ_MARGIN, lcd::SIZE_HEIGHT - VERT_MARGIN - 5 - 5 - 1, buf, false, lcd::DrawBuf::CHARSET_SMALL);
+            display.drawString(HORIZ_MARGIN, lcd::SIZE_HEIGHT - VERT_MARGIN - 5 - 5 - 1, buf, lcd::DrawBuf::FLAG_NONE,
+                    lcd::DrawBuf::CHARSET_SMALL);
 
             // Do the same with the y coordinate
             buf[0] = 'y';
             util::ftoa(y, buf + 2, graphingSignificantDigits, LCD_CHAR_EE);
             width = lcd::DrawBuf::getDrawnStringWidth(buf, lcd::DrawBuf::CHARSET_SMALL);
             display.fill(HORIZ_MARGIN - 1, lcd::SIZE_HEIGHT - VERT_MARGIN - 5 - 1, width + 2, 7, true);
-            display.drawString(HORIZ_MARGIN, lcd::SIZE_HEIGHT - VERT_MARGIN - 5, buf, false, lcd::DrawBuf::CHARSET_SMALL);
+            display.drawString(HORIZ_MARGIN, lcd::SIZE_HEIGHT - VERT_MARGIN - 5, buf, lcd::DrawBuf::FLAG_NONE,
+                    lcd::DrawBuf::CHARSET_SMALL);
 
             maxWidth = util::max(maxWidth, width);
 
             // Draw the zoom box
-            if(graphCursorMode == GraphCursorMode::AREA_ZOOM) {
-                if(cursorX >= graphZoomX) {
-                    for(int16_t x = graphZoomX; x <= cursorX; x ++) {
+            if (graphCursorMode == GraphCursorMode::AREA_ZOOM) {
+                if (cursorX >= graphZoomX) {
+                    for (int16_t x = graphZoomX; x <= cursorX; x++) {
                         display.setPixel(x, graphZoomY);
                         display.setPixel(x, cursorY);
                     }
                 }
                 else {
-                    for(int16_t x = cursorX; x <= graphZoomX; x ++) {
+                    for (int16_t x = cursorX; x <= graphZoomX; x++) {
                         display.setPixel(x, graphZoomY);
                         display.setPixel(x, cursorY);
                     }
                 }
 
-                if(cursorY >= graphZoomY) {
-                    for(int16_t y = graphZoomY; y <= cursorY; y ++) {
+                if (cursorY >= graphZoomY) {
+                    for (int16_t y = graphZoomY; y <= cursorY; y++) {
                         display.setPixel(graphZoomX, y);
                         display.setPixel(cursorX, y);
                     }
                 }
                 else {
-                    for(int16_t y = cursorY; y <= graphZoomY; y ++) {
+                    for (int16_t y = cursorY; y <= graphZoomY; y++) {
                         display.setPixel(graphZoomX, y);
                         display.setPixel(cursorX, y);
                     }
@@ -1928,10 +2057,11 @@ functionCheckLoopEnd:
             }
 
             // Draw the function name
-            if(selectorIndex != 0) {
+            if (selectorIndex != 0) {
                 width = lcd::DrawBuf::getDrawnStringWidth(graphDispFunc->fullname);
                 display.fill(HORIZ_MARGIN + maxWidth + 4, lcd::SIZE_HEIGHT - VERT_MARGIN - 9 - 1, width + 2, 11, true);
-                display.drawString(HORIZ_MARGIN + maxWidth + 5, lcd::SIZE_HEIGHT - VERT_MARGIN - 9, graphDispFunc->fullname);
+                display.drawString(
+                        HORIZ_MARGIN + maxWidth + 5, lcd::SIZE_HEIGHT - VERT_MARGIN - 9, graphDispFunc->fullname);
             }
 
             display.setPixel(cursorX, cursorY - 2);
@@ -1946,22 +2076,34 @@ functionCheckLoopEnd:
             display.setPixel(cursorX, cursorY + 1);
             display.setPixel(cursorX, cursorY + 2);
         }
-
+#else
+        display.clearDrawingBuffer();
+        display.drawString(1, 1, "Graphing is disabled");
+        display.drawString(1, 11, "in Test Mode.");
+#endif
         display.updateDrawing();
     }
 
     const char LCD_LOGIC_CHARS[] = {
-        '=', '!', '<', '>', LCD_CHAR_LEQ, LCD_CHAR_GEQ, 
+            '=',
+            '!',
+            '<',
+            '>',
+            LCD_CHAR_LEQ,
+            LCD_CHAR_GEQ,
 
-        LCD_CHAR_LAND, LCD_CHAR_LOR, LCD_CHAR_LNOT, LCD_CHAR_LXOR,
+            LCD_CHAR_LAND,
+            LCD_CHAR_LOR,
+            LCD_CHAR_LNOT,
+            LCD_CHAR_LXOR,
     };
     constexpr uint16_t LCD_LOGIC_CHAR_LEN = sizeof(LCD_LOGIC_CHARS) / sizeof(char);
     void ExprEntry::logicKeyPressHandler(uint16_t key) {
-        switch(key) {
+        switch (key) {
         case KEY_ENTER:
         case KEY_CENTER:
             cursor->add(new neda::Character(LCD_LOGIC_CHARS[selectorIndex]));
-            if(selectorIndex == 0 || selectorIndex == 1) {
+            if (selectorIndex == 0 || selectorIndex == 1) {
                 cursor->add(new neda::Character('='));
             }
 
@@ -1973,7 +2115,7 @@ functionCheckLoopEnd:
             paintInterface();
             return;
         case KEY_LEFT:
-            if(selectorIndex > 0) {
+            if (selectorIndex > 0) {
                 selectorIndex--;
             }
             else {
@@ -1981,20 +2123,20 @@ functionCheckLoopEnd:
             }
             break;
         case KEY_RIGHT:
-            if(selectorIndex < LCD_LOGIC_CHAR_LEN - 1) {
-                selectorIndex ++;
+            if (selectorIndex < LCD_LOGIC_CHAR_LEN - 1) {
+                selectorIndex++;
             }
             else {
                 selectorIndex = 0;
             }
             break;
         case KEY_UP:
-            if(selectorIndex >= 6) {
+            if (selectorIndex >= 6) {
                 selectorIndex -= 6;
             }
             break;
         case KEY_DOWN:
-            if(selectorIndex + 6 < LCD_LOGIC_CHAR_LEN) {
+            if (selectorIndex + 6 < LCD_LOGIC_CHAR_LEN) {
                 selectorIndex += 6;
             }
             break;
@@ -2014,20 +2156,23 @@ functionCheckLoopEnd:
         char str[2];
         // Set the null terminator
         str[1] = '\0';
-        for(uint16_t i = 0; i <= LCD_LOGIC_CHAR_LEN; i ++) {
-            if(i == 0) {
-                display.drawString(x, y, "==", i == selectorIndex);
+        for (uint16_t i = 0; i <= LCD_LOGIC_CHAR_LEN; i++) {
+            if (i == 0) {
+                display.drawString(
+                        x, y, "==", selectorIndex == i ? lcd::DrawBuf::FLAG_INVERTED : lcd::DrawBuf::FLAG_NONE);
             }
-            else if(i == 1) {
-                display.drawString(x, y, "!=", i == selectorIndex);
+            else if (i == 1) {
+                display.drawString(
+                        x, y, "!=", selectorIndex == i ? lcd::DrawBuf::FLAG_INVERTED : lcd::DrawBuf::FLAG_NONE);
             }
             else {
                 str[0] = LCD_LOGIC_CHARS[i];
-                display.drawString(x, y, str, i == selectorIndex);
+                display.drawString(
+                        x, y, str, selectorIndex == i ? lcd::DrawBuf::FLAG_INVERTED : lcd::DrawBuf::FLAG_NONE);
             }
-            
+
             x += 20;
-            if((i + 1) % 6 == 0) {
+            if ((i + 1) % 6 == 0) {
                 y += 15;
                 x = 0;
             }
@@ -2037,13 +2182,13 @@ functionCheckLoopEnd:
     }
 
     void ExprEntry::clearVarKeyPressHandler(uint16_t key) {
-        switch(key) {
+        switch (key) {
         case KEY_ENTER:
         case KEY_CENTER:
-            if(selectorIndex == 0) {
+            if (selectorIndex == 0) {
                 expr::clearAll();
                 // scrollingIndex is set to 1 if the all clear key is pressed
-                if(scrollingIndex) {
+                if (scrollingIndex) {
                     display.clearDrawing();
                     // Keep pointer of original
                     neda::Expr *original = cursor->expr->getTopLevel();
@@ -2076,52 +2221,76 @@ functionCheckLoopEnd:
         display.drawString(HORIZ_MARGIN, VERT_MARGIN, "Clear All Functions");
         display.drawString(HORIZ_MARGIN, VERT_MARGIN + 10, "and Variables?");
 
-        display.drawString(32, 32, "Yes", selectorIndex == 0);
-        display.drawString(85, 32, "No", selectorIndex == 1);
+        display.drawString(32, 32, "Yes", selectorIndex == 0 ? lcd::DrawBuf::FLAG_INVERTED : lcd::DrawBuf::FLAG_NONE);
+        display.drawString(85, 32, "No", selectorIndex == 1 ? lcd::DrawBuf::FLAG_INVERTED : lcd::DrawBuf::FLAG_NONE);
         display.updateDrawing();
     }
 
     void ExprEntry::periodicTableKeyPressHandler(uint16_t key) {
-        switch(key) {
+        switch (key) {
         case KEY_CENTER:
         case KEY_ENTER:
             // Zoomed out view
-            if(selectorIndex == 0) {
+            if (selectorIndex == 0) {
                 selectorIndex = 1;
-                dispElement = pt::elemWithLocation({ static_cast<uint8_t>(cursorX), static_cast<uint8_t>(cursorY) });
+                dispElement = pt::elemWithLocation({static_cast<uint8_t>(cursorX), static_cast<uint8_t>(cursorY)});
+            }
+            else if (selectorIndex == 1) {
+                selectorIndex = 2;
+                scrollingIndex = 0;
+                editorContents.empty();
             }
             break;
-        
+
         case KEY_PTABLE:
             mode = prevMode;
             paintInterface();
             return;
-        
+
         case KEY_DELETE:
-            if(selectorIndex == 0) {
+            if (editorContents.length() != 0) {
+                // Delete a character
+                editorContents.pop();
+                break;
+            }
+            if (selectorIndex == 0) {
                 mode = prevMode;
                 paintInterface();
                 return;
             }
-            else if(selectorIndex == 1) {
+            else if (selectorIndex == 1) {
                 dispElement = nullptr;
                 selectorIndex = 0;
             }
+            else {
+                selectorIndex = 1;
+            }
             break;
-        
-        case KEY_LEFT:
-        case KEY_RIGHT:
+
         case KEY_UP:
+            if (selectorIndex == 2) {
+                if (scrollingIndex > 0) {
+                    scrollingIndex--;
+                }
+                break;
+            }
         case KEY_DOWN:
-        {
-            pt::Location l = { static_cast<uint8_t>(cursorX), static_cast<uint8_t>(cursorY) };
-            if(key == KEY_LEFT) {
+            if (selectorIndex == 2) {
+                if (scrollingIndex < 13 - 3) {
+                    scrollingIndex++;
+                }
+                break;
+            }
+        case KEY_LEFT:
+        case KEY_RIGHT: {
+            pt::Location l = {static_cast<uint8_t>(cursorX), static_cast<uint8_t>(cursorY)};
+            if (key == KEY_LEFT) {
                 pt::leftOf(l);
             }
-            else if(key == KEY_RIGHT) {
+            else if (key == KEY_RIGHT) {
                 pt::rightOf(l);
             }
-            else if(key == KEY_UP) {
+            else if (key == KEY_UP) {
                 pt::above(l);
             }
             else {
@@ -2129,13 +2298,24 @@ functionCheckLoopEnd:
             }
             cursorX = l.x;
             cursorY = l.y;
-            if(selectorIndex == 1) {
+            if (selectorIndex == 1) {
                 dispElement = pt::elemWithLocation(l);
+            }
+            // Clear the contents of the search bar if there is anything
+            if (editorContents.length() != 0) {
+                editorContents.empty();
             }
             break;
         }
-        default:
+        default: {
+            // See if the key pressed is a valid char
+            char ch = keyCodeToChar(key);
+            // Add the char if in modes 0 or 1
+            if (ch != 0xFF && (selectorIndex == 0 || selectorIndex == 1) && editorContents.length() < 16) {
+                editorContents.add(ch);
+            }
             break;
+        }
         }
 
         drawInterfacePeriodicTable();
@@ -2144,32 +2324,315 @@ functionCheckLoopEnd:
     void ExprEntry::drawInterfacePeriodicTable() {
         display.clearDrawingBuffer();
 
-        if(selectorIndex == 0) {
-            display.drawImage((lcd::SIZE_WIDTH - lcd::IMG_PTABLE.width) / 2, 10, lcd::IMG_PTABLE);
+        bool found = false;
+        if (editorContents.length() != 0) {
+            // Search for the element
+            // First append null terminator
+            editorContents.add('\0');
+            // Search by atomic number if the first character is a digit
+            if (editorContents[0] >= '0' && editorContents[0] <= '9') {
+                // Convert to number
+                int number = atoi(editorContents.asArray());
+                // Cast to uint8_t
+                if (util::canCastProperly<int, uint8_t>(number)) {
+                    uint8_t atomicNumber = number;
+                    pt::Location location;
+                    const pt::Element *elem = pt::searchElemByNumber(location, atomicNumber);
+
+                    // See if found
+                    if (elem) {
+                        found = true;
+                        dispElement = elem;
+                        cursorX = location.x;
+                        cursorY = location.y;
+                    }
+                }
+            }
+            else {
+                // Search by symbol first
+                pt::Location location;
+                const pt::Element *elem = pt::searchElemBySymbol(location, editorContents.asArray());
+                // See if found
+                if (elem) {
+                    found = true;
+                    dispElement = elem;
+                    cursorX = location.x;
+                    cursorY = location.y;
+                }
+                else {
+                    // Search by name
+                    elem = pt::searchElemByName(location, editorContents.asArray());
+                    if (elem) {
+                        found = true;
+                        dispElement = elem;
+                        cursorX = location.x;
+                        cursorY = location.y;
+                    }
+                }
+            }
+        }
+
+        if (selectorIndex == 0) {
+            display.drawImage((lcd::SIZE_WIDTH - lcd::IMG_PTABLE.width) / 2, 11, lcd::IMG_PTABLE);
 
             // Draw the cursor
             int16_t elemX = (cursorX - 1) * 5 + (lcd::SIZE_WIDTH - lcd::IMG_PTABLE.width) / 2 + 1;
-            int16_t elemY = (cursorY - 1) * 5 + 10 + 1;
+            int16_t elemY = (cursorY - 1) * 5 + 11 + 1;
             display.fill(elemX, elemY, 4, 4);
         }
-        else if(selectorIndex == 1) {
-            for(int8_t i = -1; i <= 1; i ++) {
-                for(int8_t j = -1; j <= 1; j ++) {
-                    const pt::Element *elem = pt::elemWithLocation({ static_cast<uint8_t>(cursorX + i), static_cast<uint8_t>(cursorY + j) });
-                    if(elem) {
+        else if (selectorIndex == 1) {
+            for (int8_t i = -1; i <= 1; i++) {
+                for (int8_t j = -1; j <= 1; j++) {
+                    const pt::Element *elem = pt::elemWithLocation(
+                            {static_cast<uint8_t>(cursorX + i), static_cast<uint8_t>(cursorY + j)});
+                    if (elem) {
                         pt::drawElement(34 + i * 60, 17 + j * 30, elem, display);
                     }
                 }
             }
         }
+        else {
+            for (uint8_t i = 0; i < 3; i++) {
+                pt::drawElementInfo(1, 1 + i * 20, dispElement, scrollingIndex + i, display);
+            }
+
+            drawScrollbar(13, 3);
+        }
+
+        if (editorContents.length() != 0) {
+            // Draw the search bar
+            display.fill(0, 0, lcd::SIZE_WIDTH, 11, true);
+            display.drawString(1, 1, editorContents.asArray());
+            // Remove the null terminator
+            editorContents.pop();
+
+            // Show error
+            if (!found) {
+                display.drawImage(88, 1, lcd::CHAR_SERR);
+            }
+        }
+        display.updateDrawing();
+    }
+
+    void ExprEntry::varRecallKeyPressHandler(uint16_t key) {
+        if(key == KEY_CENTER || key == KEY_ENTER) {
+            eval::Token *v = expr::variables[selectorIndex].value;
+            eval::toNEDAObjs(cursor->expr, v, resultSignificantDigits);
+
+            key = KEY_DELETE;
+        }
+        handleMenuKeyPress(key, expr::variables.length(), KEY_VRECALL);
+    }
+
+    void ExprEntry::drawInterfaceVarRecall() {
+        display.clearDrawingBuffer();
+        if (expr::variables.length() == 0) {
+            display.drawString(1, 1, "No Variables to Recall");
+        }
+        else {
+            int16_t y = 1;
+            for (uint8_t i = scrollingIndex; i < scrollingIndex + 6 && i < expr::variables.length(); i++) {
+                display.drawString(1, y, expr::variables[i].name, 
+                        selectorIndex == i ? lcd::DrawBuf::FLAG_INVERTED : lcd::DrawBuf::FLAG_NONE);
+                y += 10;
+            }
+        }
+
+        drawScrollbar(expr::variables.length(), 6);
+        display.updateDrawing();
+    }
+
+    void ExprEntry::matrixOptionsKeyPressHandler(uint16_t key) {
+        if(key == KEY_CENTER || key == KEY_ENTER) {
+            // Find nearest matrix
+            neda::Expr *ex = cursor->expr;
+            neda::Matrix *mat = nullptr;
+            while(ex->parent) {
+                if(ex->parent->getType() == neda::ObjType::MATRIX) {
+                    mat = static_cast<neda::Matrix *>(ex->parent);
+                    break;
+                }
+                ex = ex->parent;
+            }
+            if(!mat) {
+                return;
+            }
+            // Find element index
+            uint8_t row, col;
+            mat->findElem(ex, row, col);
+
+            neda::Matrix *newMat = nullptr;
+
+            // Insert
+            if(selectorIndex >= 0 && selectorIndex <= 3) {
+                // Make new matrix
+                // Calculate new size based on option selected
+                newMat = selectorIndex <= 1 ? new neda::Matrix(mat->m + 1, mat->n) 
+                        : new neda::Matrix(mat->m, mat->n + 1);
+                uint8_t oldRow = 0, oldCol = 0;
+                for(uint8_t m = 0; m < newMat->m; m ++) {
+                    for(uint8_t n = 0; n < newMat->n; n ++) {
+                        // The new row/col
+                        if((selectorIndex == 0 && m == row) || (selectorIndex == 1 && m == row + 1)
+                                || (selectorIndex == 2 && n == col) || (selectorIndex == 3 && n == col + 1)) {
+                            newMat->setEntry(m, n, new neda::Container());
+                        }
+                        else {
+                            // Move over the container
+                            neda::Expr *expr = mat->getEntry(oldRow, oldCol);
+                            newMat->setEntry(m, n, expr);
+                            mat->setEntry(oldRow, oldCol, nullptr);
+                            
+                            oldCol ++;
+                        }
+                    }
+                    oldCol = 0;
+                    if(!((selectorIndex == 0 && m == row) || (selectorIndex == 1 && m == row + 1))) {
+                        oldRow ++;
+                    }
+                }
+            }
+            // Delete
+            // Make sure there are still rows left
+            else if ((selectorIndex == 4 && mat->m > 1) || (selectorIndex == 5 && mat->n > 1)) {
+                // Make new matrix
+                // Calculate new size based on option selected
+                newMat = selectorIndex == 4 ? new neda::Matrix(mat->m - 1, mat->n) 
+                        : new neda::Matrix(mat->m, mat->n - 1);
+                
+                uint8_t newRow = 0, newCol = 0;
+                for(uint8_t m = 0; m < mat->m; m ++) {
+                    // Skip deleted row
+                    if(selectorIndex == 4 && m == row) {
+                        continue;
+                    }
+                    for(uint8_t n = 0; n < mat->n; n ++) {
+                        // Skip deleted col
+                        if(selectorIndex == 5 && n == col) {
+                            continue;
+                        }
+
+                        // Move over the container
+                        neda::Expr *expr = mat->getEntry(m, n);
+                        newMat->setEntry(newRow, newCol, expr);
+                        mat->setEntry(m, n, nullptr);
+
+                        newCol ++;
+                    }
+
+                    newCol = 0;
+                    newRow ++;
+                }
+
+                // Move cursor
+                row = util::min(static_cast<uint8_t>(newMat->m - 1), row);
+                col = util::min(static_cast<uint8_t>(newMat->n - 1), col);
+                newMat->getEntry(row, col)->getCursor(*cursor, neda::CURSORLOCATION_START);
+            }
+
+            if(newMat != nullptr) {
+                // Sub in the new matrix
+                // A matrix should never be top level so this is fine
+                neda::Container *cont = static_cast<neda::Container *>(mat->parent);
+                // Find the index and replace with new matrix
+                uint16_t i = cont->indexOf(mat);
+                cont->remove(i);
+                cont->addAt(i, newMat);
+                // Delete old matrix
+                delete mat;
+                // Update matrix dimensions
+                newMat->computeDimensions();
+            }
+
+            key = KEY_DELETE;
+        }
+        handleMenuKeyPress(key, 6, KEY_MATRIX);
+    }
+
+    void ExprEntry::drawInterfaceMatrixOptions() {
+        display.clearDrawingBuffer();
+
+        display.drawString(1, 1, "Insert Row Above", 
+                selectorIndex == 0 ? lcd::DrawBuf::FLAG_INVERTED : lcd::DrawBuf::FLAG_NONE);
+        display.drawString(1, 11, "Insert Row Below", 
+                selectorIndex == 1 ? lcd::DrawBuf::FLAG_INVERTED : lcd::DrawBuf::FLAG_NONE);
+        display.drawString(1, 21, "Insert Column Left", 
+                selectorIndex == 2 ? lcd::DrawBuf::FLAG_INVERTED : lcd::DrawBuf::FLAG_NONE);
+        display.drawString(1, 31, "Insert Column Right", 
+                selectorIndex == 3 ? lcd::DrawBuf::FLAG_INVERTED : lcd::DrawBuf::FLAG_NONE);
+        display.drawString(1, 41, "Delete Row", 
+                selectorIndex == 4 ? lcd::DrawBuf::FLAG_INVERTED : lcd::DrawBuf::FLAG_NONE);
+        display.drawString(1, 51, "Delete Column", 
+                selectorIndex == 5 ? lcd::DrawBuf::FLAG_INVERTED : lcd::DrawBuf::FLAG_NONE);
+
+        display.updateDrawing();
+    }
+
+    void ExprEntry::updateGraphableVars() {
+        util::DynamicArray<GraphableVariable> newGraphableVars;
+        
+        for(const auto &var : variables) {
+            if(var.value->getType() == eval::TokenType::MATRIX) {
+                eval::Matrix *mat = static_cast<eval::Matrix*>(var.value);
+                // 2D col vector
+                // Or a set of data points
+                if((mat->m == 2 && mat->n == 1) || mat->n == 2) {
+                    GraphableVariable v(&var, false);
+                    // Look in the old array and see if it existed previously
+                    for (const auto &gvar : graphableVars) {
+                        // If the two variables match, copy its status
+                        if (strcmp(gvar.var->name, var.name) == 0) {
+                            v.graph = gvar.graph;
+                        }
+                    }
+                    newGraphableVars.add(v);
+                }
+            }
+        }
+
+        graphableVars.swap(newGraphableVars);
+    }
+
+    void ExprEntry::graphVarSelectKeyPressHandler(uint16_t key) {
+        graphChanged = true;
+        if(key == KEY_CENTER || key == KEY_ENTER) {
+            if (graphableVars.length() != 0) {
+                // Toggle status
+                graphableVars[selectorIndex].graph = !graphableVars[selectorIndex].graph;
+            }
+        }
+        handleMenuKeyPress(key, graphableVars.length(), KEY_PIECEWISE);
+    }
+
+    void ExprEntry::drawInterfaceGraphVarSelect() {
+        display.clearDrawingBuffer();
+#ifndef _TEST_MODE
+        if (graphableVars.length() == 0) {
+            display.drawString(1, 1, "No Graphable Variables");
+        }
+        else {
+            int16_t y = 1;
+            for (uint8_t i = scrollingIndex; i < scrollingIndex + 6 && i < graphableVars.length(); i++) {
+                // Draw checkbox
+                display.drawString(1, y, graphableVars[i].graph ? LCD_STR_CCB : LCD_STR_ECB, selectorIndex == i);
+                display.drawString(9, y, graphableVars[i].var->name, selectorIndex == i);
+                y += 10;
+            }
+
+            drawScrollbar(graphableVars.length(), 6);
+        }
+#else
+        display.drawString(1, 1, "Graphing is disabled");
+        display.drawString(1, 11, "in Test Mode.");
+#endif
         display.updateDrawing();
     }
 
     void ExprEntry::scrollUp(uint16_t len) {
-        if(selectorIndex > 0) {
+        if (selectorIndex > 0) {
             --selectorIndex;
             // Scrolling
-            if(selectorIndex < scrollingIndex) {
+            if (selectorIndex < scrollingIndex) {
                 --scrollingIndex;
             }
         }
@@ -2178,11 +2641,12 @@ functionCheckLoopEnd:
             scrollingIndex = util::max(len - 6, 0);
         }
     }
+
     void ExprEntry::scrollDown(uint16_t len) {
-        if(selectorIndex < len - 1) {
+        if (selectorIndex < len - 1) {
             ++selectorIndex;
             // Scrolling
-            if(scrollingIndex + 6 <= selectorIndex) {
+            if (scrollingIndex + 6 <= selectorIndex) {
                 ++scrollingIndex;
             }
         }
@@ -2191,4 +2655,4 @@ functionCheckLoopEnd:
             scrollingIndex = 0;
         }
     }
-}
+} // namespace expr

@@ -9,9 +9,10 @@ namespace util {
     class Deque {
     public:
         Deque(uint16_t capacity) : len(0), start(0), maxLen(capacity) {
-            contents = (T*) malloc(sizeof(T) * capacity);
+            contents = (T *) malloc(sizeof(T) * capacity);
         }
-        Deque() : contents((T*) malloc(0)), len(0), start(0), maxLen(0) {}
+        Deque() : contents((T *) malloc(0)), len(0), start(0), maxLen(0) {
+        }
         ~Deque() {
             free(contents);
         }
@@ -20,23 +21,23 @@ namespace util {
             uint16_t oldMaxLen = maxLen;
             maxLen = len + increase;
             void *tmp = realloc(contents, sizeof(T) * maxLen);
-            if(!tmp) {
+            if (!tmp) {
                 maxLen = oldMaxLen;
                 return false;
             }
             // Adjust the queue to accommodate for the change
-            contents = (T*) tmp;
+            contents = (T *) tmp;
             uint16_t i = maxLen - 1;
             uint16_t index = (start + len) % maxLen;
-            while(i != index) {
-                if(i + increase >= maxLen) {
+            while (i != index) {
+                if (i + increase >= maxLen) {
                     contents[i] = contents[(i + increase) % maxLen];
                 }
                 else {
                     contents[i] = contents[i + increase];
                 }
                 ++i;
-                if(i >= maxLen) {
+                if (i >= maxLen) {
                     i = 0;
                 }
             }
@@ -45,8 +46,8 @@ namespace util {
 
         bool enqueue(T elem) {
             // Check for overflow
-            if(len + 1 > maxLen) {
-                if(!increaseSize(IncreaseAmount)) {
+            if (len + 1 > maxLen) {
+                if (!increaseSize(IncreaseAmount)) {
                     return false;
                 }
             }
@@ -57,13 +58,13 @@ namespace util {
         }
         bool push(T elem) {
             // Check for overflow
-            if(len + 1 > maxLen) {
-                if(!increaseSize(IncreaseAmount)) {
+            if (len + 1 > maxLen) {
+                if (!increaseSize(IncreaseAmount)) {
                     return false;
                 }
             }
 
-            if(start > 0) {
+            if (start > 0) {
                 --start;
             }
             else {
@@ -76,7 +77,7 @@ namespace util {
         T dequeue() {
             T &temp = contents[start];
             ++start;
-            if(start >= maxLen) {
+            if (start >= maxLen) {
                 start = 0;
             }
             --len;
@@ -101,6 +102,6 @@ namespace util {
         uint16_t start;
         uint16_t maxLen;
     };
-}
+} // namespace util
 
 #endif

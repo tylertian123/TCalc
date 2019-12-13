@@ -3,7 +3,8 @@
 #include <stc/STC12C5630AD.h>
 
 extern void bmat_delay(unsigned int);
-#define DEBOUNCE(pin) bmat_delay(10); while(!(pin)); bmat_delay(10)
+#define DEBOUNCE_DELAY 100
+#define DEBOUNCE(pin) bmat_delay(DEBOUNCE_DELAY); while(!(pin)); bmat_delay(DEBOUNCE_DELAY)
 
 void resetRows(void);
 void resetCols(void);

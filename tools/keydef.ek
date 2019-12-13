@@ -138,6 +138,12 @@ end
 top
 bottom
 ptable
+vrecall
 
 EK_RESTART_NUM 0xFFFF
 dummy
+
+EK_RESTART_NUM 0x1000
+adcx_mask
+EK_RESTART_NUM 0x2000
+adcy_mask

@@ -1277,17 +1277,21 @@ namespace neda {
 			SAFE_EXEC(contents[n - 1], getCursor, cursor, location);
 		}
 	}
-	void Matrix::left(Expr *ex, Cursor &cursor) {
-		// Find the index
-		uint8_t x, y;
-		for(x = 0; x < n; x ++) {
-			for(y = 0; y < m; y ++) {
-				if(ex == contents[index_0(x, y)]) {
-					goto loopEnd;
+	bool Matrix::findElem(Expr *ex, uint8_t &rowOut, uint8_t &colOut) {
+		for(rowOut = 0; rowOut < m; rowOut ++) {
+			for(colOut = 0; colOut < n; colOut ++) {
+				if(ex == contents[index_0(colOut, rowOut)]) {
+					return true;
 				}
 			}
 		}
-loopEnd:
+		return false;
+	}
+	void Matrix::left(Expr *ex, Cursor &cursor) {
+		// Find the index
+		uint8_t x, y;
+		findElem(ex, y, x);
+
 		if(x != 0 && x != n) {
 			SAFE_EXEC(contents[index_0(x - 1, y)], getCursor, cursor, CURSORLOCATION_END);
 		}
@@ -1296,16 +1300,9 @@ loopEnd:
 		}
 	}
 	void Matrix::right(Expr *ex, Cursor &cursor) {
-		// Find the index
 		uint8_t x, y;
-		for(x = 0; x < n; x ++) {
-			for(y = 0; y < m; y ++) {
-				if(ex == contents[index_0(x, y)]) {
-					goto loopEnd;
-				}
-			}
-		}
-loopEnd:
+		findElem(ex, y, x);
+
 		if(x < n - 1) {
 			SAFE_EXEC(contents[index_0(x + 1, y)], getCursor, cursor, CURSORLOCATION_START);
 		}
@@ -1314,16 +1311,9 @@ loopEnd:
 		}
 	}
 	void Matrix::up(Expr *ex, Cursor &cursor) {
-		// Find the index
 		uint8_t x, y;
-		for(x = 0; x < n; x ++) {
-			for(y = 0; y < m; y ++) {
-				if(ex == contents[index_0(x, y)]) {
-					goto loopEnd;
-				}
-			}
-		}
-loopEnd:
+		findElem(ex, y, x);
+
 		if(y != 0 && y != m) {
 			SAFE_EXEC(contents[index_0(x, y - 1)], getCursor, cursor, CURSORLOCATION_END);
 		}
@@ -1332,16 +1322,9 @@ loopEnd:
 		}
 	}
 	void Matrix::down(Expr *ex, Cursor &cursor) {
-		// Find the index
 		uint8_t x, y;
-		for(x = 0; x < n; x ++) {
-			for(y = 0; y < m; y ++) {
-				if(ex == contents[index_0(x, y)]) {
-					goto loopEnd;
-				}
-			}
-		}
-loopEnd:
+		findElem(ex, y, x);
+		
 		if(y < m - 1) {
 			SAFE_EXEC(contents[index_0(x, y + 1)], getCursor, cursor, CURSORLOCATION_START);
 		}

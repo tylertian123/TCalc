@@ -11,17 +11,15 @@
 #define SAFE_ACCESS_0(obj, field) ((obj) ? ((obj)->field) : 0)
 
 #include <stdint.h>
-// VS Code does not recognize these since they're intrisincs in the Keil compiler
-// Define them here so IntelliSense is happy
-#ifdef __VSCODE
-    #define __enable_irq(x)
-    #define __disable_irq(x)
-#endif
 #define __current_sp __get_MSP
 #define __NO_INTERRUPT(x) \
 		{uint32_t __no_interrupt_PRIMASK=__get_PRIMASK();__disable_irq();\
 		x \
 		if(!__no_interrupt_PRIMASK)__enable_irq();}
+#define __NO_INTERRUPT_BEGIN \
+        {uint32_t __no_interrupt_PRIMASK=__get_PRIMASK();__disable_irq();
+#define __NO_INTERRUPT_END \
+        if(!__no_interrupt_PRIMASK)__enable_irq();}
 
 #ifndef INT16_MAX
     #define INT16_MAX ((int16_t) 32767)
@@ -29,6 +27,9 @@
 #ifndef INT16_MIN
     #define INT16_MIN ((int16_t) (-32767 - 1))
 #endif
+
+#define _STRINGIFY_(x) #x
+#define STRINGIFY(x) _STRINGIFY_(x)
 
 namespace util {
     template <typename T>
@@ -64,6 +65,24 @@ namespace util {
         T tmp(t1);
         t1 = t2;
         t2 = tmp;
+    }
+    template <typename T, typename U>
+    T signedLeftShift(T t, U u) {
+        if(u >= 0) {
+            return t << u;
+        }
+        else {
+            return t >> -u;
+        }
+    }
+    template <typename T, typename U>
+    T signedRightShift(T t, U u) {
+        if(u >= 0) {
+            return t >> u;
+        }
+        else {
+            return t << -u;
+        }
     }
 
     inline double round(double d, int16_t decimals) {

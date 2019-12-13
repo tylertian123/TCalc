@@ -1,7 +1,5 @@
 #include "usart.hpp"
-
-#include <stdarg.h>
-#include <stdio.h>
+#include <stddef.h>
 
 namespace usart {
 	void init(uint32_t baudrate) {
@@ -65,28 +63,6 @@ namespace usart {
 		while(USART_GetFlagStatus(USART_USED, USART_FLAG_TC) != SET);
 	}
 	
-	void printf(const char *fmt, ...) {
-		// Buffer used to store formatted string
-		char buf[USART_PRINTF_BUFFER_SIZE] = { 0 };
-		va_list args;
-		va_start(args, fmt);
-		// Use vsnprintf to safely format the string and put into the buffer
-		vsnprintf(buf, USART_PRINTF_BUFFER_SIZE, fmt, args);
-		for(uint16_t i = 0; i < USART_PRINTF_BUFFER_SIZE && buf[i] != '\0'; i ++) {
-			usart::sendDataSync(buf[i]);
-		}
-		
-		va_end(args);
-	}
-	void println(const char *msg, const char *ending) {
-		for(uint16_t i = 0; msg[i] != '\0'; i ++) {
-			usart::sendDataSync(msg[i]);
-		}
-		for(uint16_t i = 0; ending[i] != '\0'; i ++) {
-			usart::sendDataSync(ending[i]);
-		}
-	}
-	
 	uint16_t queryReceive() {
 		return USART_ReceiveData(USART_USED);
 	}
@@ -101,13 +77,14 @@ namespace usart {
 	}
 }
 
-//Make sure the USART interrupt has external C linkage
-//Only define interrupt procedure if using interrupt receive method
+// Make sure the USART interrupt has external C linkage
+// Only define interrupt procedure if using interrupt receive method
 #ifdef USART_RECEIVE_METHOD_INTERRUPT
 extern "C" {
 	USART_IRQHANDLER {
 		if(USART_GetFlagStatus(USART_USED, USART_FLAG_RXNE) == SET) {
 			uint16_t data = USART_ReceiveData(USART_USED);
+			USART_ClearFlag(USART_USED, USART_FLAG_RXNE);
 			
 			if(usart::interruptCallback) {
 				usart::interruptCallback(data);
@@ -116,3 +93,13 @@ extern "C" {
 	}
 }
 #endif
+
+extern "C" {
+	int _write(int fd, char *buf, size_t len) {
+		for(size_t i = 0; i < len; i ++) {
+			usart::sendDataSync(*buf++);
+		}
+
+		return len;
+	}
+}

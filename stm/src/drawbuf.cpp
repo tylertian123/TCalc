@@ -164,26 +164,53 @@ namespace lcd {
 		}
 	}
 
+	void DrawBuf::drawLineVertical(int16_t x, int16_t y1, int16_t y2, bool invert) {
+		if(y2 < y1) {
+			util::swap(y1, y2);
+		}
+		for(; y1 <= y2; y1 ++) {
+			setPixel(x, y1, !invert);
+		}
+	}
+
+	void DrawBuf::drawLineHorizontal(int16_t y, int16_t x1, int16_t x2, bool invert) {
+		if(x2 < x1) {
+			util::swap(x1, x2);
+		}
+		for(; x1 <= x2; x1 ++) {
+			setPixel(x1, y, !invert);
+		}
+	}
+
     void DrawBuf::drawLine(int16_t x1, int16_t y1, int16_t x2, int16_t y2, bool invert) {
-		if (util::abs(y2 - y1) <= util::abs(x2 - x1)) {
-			if (x2 > x1) {
-				drawLineLow(x1, y1, x2, y2, invert);
-			}
-			else {
-				drawLineLow(x2, y2, x1, y1, invert);
-			}
+		// Optimize for horizontal and vertical lines
+		if(x1 == x2) {
+			drawLineVertical(x1, y1, y2, invert);
+		}
+		else if(y1 == y2) {
+			drawLineHorizontal(y1, x1, x2, invert);
 		}
 		else {
-			if (y2 > y1) {
-				drawLineHigh(x1, y1, x2, y2, invert);
+			if (util::abs(y2 - y1) <= util::abs(x2 - x1)) {
+				if (x2 > x1) {
+					drawLineLow(x1, y1, x2, y2, invert);
+				}
+				else {
+					drawLineLow(x2, y2, x1, y1, invert);
+				}
 			}
 			else {
-				drawLineHigh(x2, y2, x1, y1, invert);
+				if (y2 > y1) {
+					drawLineHigh(x1, y1, x2, y2, invert);
+				}
+				else {
+					drawLineHigh(x2, y2, x1, y1, invert);
+				}
 			}
 		}
 	}
 
-    void DrawBuf::drawString(int16_t x, int16_t y, const char *str, bool invert, Charset charset) {
+    void DrawBuf::drawString(int16_t x, int16_t y, const char *str, Flags flags, Charset charset) {
         // Empty string
 		if(*str == '\0') {
 			return;
@@ -197,7 +224,23 @@ namespace lcd {
 		}
 		// Subtract away one extra spacing
 		--width;
+		
+		// Check align flags
+		if(flags & FLAG_HALIGN_CENTER) {
+			x -= width / 2;
+		}
+		else if(flags & FLAG_HALIGN_RIGHT) {
+			x -= width;
+		}
+		if(flags & FLAG_VALIGN_CENTER) {
+			y -= height / 2;
+		}
+		else if(flags & FLAG_VALIGN_BOTTOM) {
+			y -= height;
+		}
 
+		// Check invert flag
+		bool invert = flags & FLAG_INVERTED;
 		if(invert) {
 			// Fill the zone
 			fill(x - 1, y - 1, width + 2, height + 2);

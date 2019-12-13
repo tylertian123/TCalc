@@ -253,13 +253,11 @@ namespace lcd {
     // Uppercase Z (Z)
 	extern const Image CHAR_Z;
     // Left square bracket ([)
-    // Unused
 	extern const Image CHAR_LSQB;
     // Backslash (\)
     // Unused
 	extern const Image CHAR_BKSL;
     // Right square bracket (])
-    // Unused
 	extern const Image CHAR_RSQB;
     // Caret (^)
 	extern const Image CHAR_CART;
@@ -472,6 +470,8 @@ namespace lcd {
     extern const Image CHAR_SMALL_EE;
     // Minus sign (-)
     extern const Image CHAR_SMALL_MINUS;
+    // Comma (,)
+    extern const Image CHAR_SMALL_COMMA;
 
     extern const Image * const CHAR_SMALL_NUMS[];
     extern const Image * const CHAR_SMALL_LETTERS[];

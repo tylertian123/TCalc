@@ -2,13 +2,13 @@
 #define __CONSOLE_H__
 
 #ifndef CONSOLE_RECEIVE_BUFFER_SIZE
-    #define CONSOLE_RECEIVE_BUFFER_SIZE 256
+#define CONSOLE_RECEIVE_BUFFER_SIZE 256
 #endif
 
 namespace console {
 
     // Assumes USART has already been initialized
     void init();
-}
+} // namespace console
 
 #endif
