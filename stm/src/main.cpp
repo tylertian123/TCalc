@@ -52,45 +52,67 @@ GPIOPin statusLED(GPIOA, GPIO_Pin_1);
 GPIOPin ctrlLED(GPIOA, GPIO_Pin_2);
 GPIOPin shiftLED(GPIOA, GPIO_Pin_3);
 
+sbdi::SBDI keyboard(SBDI_EN, SBDI_DATA, SBDI_CLK);
+
 /********** Fault Handlers **********/
 extern "C" {
-void displayErrorMessage(const char *type) {
-    display.endDraw();
-    display.useBasic();
-    while (1) {
-        display.clear();
-        display.setCursor(0, 0);
-        display.writeString("ERROR: A fatal");
-        display.setCursor(1, 0);
-        display.writeString("exception has");
-        display.setCursor(2, 0);
-        display.writeString("occurred.");
 
-        for (volatile uint64_t i = 0; i < 7000000; i++)
-            ;
+bool displayErrorMessageLine(uint8_t &line, const char *str) {
+    display.drawString(0, line * 10, str);
 
-        display.clear();
-        display.setCursor(0, 0);
-        display.writeString("Attach debugger");
-        display.setCursor(1, 0);
-        display.writeString("or press the");
-        display.setCursor(2, 0);
-        display.writeString("reset button to");
-        display.setCursor(3, 0);
-        display.writeString("reset TCalc.");
+    line ++;
+    if(line == 6) {
+        line = 0;
+        display.updateDrawing();
+        while(!keyboard.receivePending());
+        keyboard.receive();
+        display.clearDrawingBuffer();
+        return true;
+    }
+    return false;
+}
 
-        for (volatile uint64_t i = 0; i < 7000000; i++)
-            ;
+void displayErrorMessage(const char *type, uint32_t pc[], const char fn[][64], uint16_t length) {
+    constexpr uint16_t CHARS_PER_LINE = 22;
 
-        display.clear();
-        display.setCursor(0, 0);
-        display.writeString("Type:");
-        display.setCursor(1, 0);
-        display.writeString(type);
-        display.setCursor(2, 0);
+    // Kill off the cursor blink
+    TIM_Cmd(TIM3, DISABLE);
+    while(1) {
+        uint8_t line = 0;
+        char buf[64];
 
-        for (volatile uint64_t i = 0; i < 7000000; i++)
-            ;
+        display.clearDrawingBuffer();
+
+        displayErrorMessageLine(line, "ERROR: A fatal except-");
+        displayErrorMessageLine(line, "ion has occurred.");
+        displayErrorMessageLine(line, "Exception Type:");
+        displayErrorMessageLine(line, type);
+        line ++;
+        displayErrorMessageLine(line, "**BEGIN STACKTRACE**");
+        
+        for(uint16_t i = 0; i < length; i ++) {
+            // Print the number and program counter
+            sprintf(buf, "[%d] - 0x%08x", i, pc[i]);
+            displayErrorMessageLine(line, buf);
+
+            uint8_t len = strlen(fn[i]);
+            // Handle line wrapping
+            for(uint8_t s = 0; s < len; s += CHARS_PER_LINE) {
+                // Copy substring
+                strncpy(buf, fn[i] + s, CHARS_PER_LINE);
+                // Null terminate if necessary
+                if(s + CHARS_PER_LINE < len) {
+                    buf[CHARS_PER_LINE] = '\0';
+                }
+                displayErrorMessageLine(line, buf);
+            }
+        }
+
+        if(!displayErrorMessageLine(line, "**END STACKTRACE**")) {
+            display.updateDrawing();
+            while(!keyboard.receivePending());
+            keyboard.receive();
+        }
     }
 }
 
@@ -123,7 +145,7 @@ void HardFault_Handler_impl(uint32_t *stackAtFault) {
 	for (int i = 0; i < backtrace_len; ++i) {
 		printf("[%d] - 0x%08x <%s>\n", i, backtrace[i], funcnames[i]);
 	}
-    displayErrorMessage("HardFault");
+    displayErrorMessage("HardFault", backtrace, funcnames, backtrace_len);
 }
 
 void UsageFault_Handler_impl(uint32_t *stackAtFault) {
@@ -135,7 +157,7 @@ void UsageFault_Handler_impl(uint32_t *stackAtFault) {
 	for (int i = 0; i < backtrace_len; ++i) {
 		printf("[%d] - 0x%08x <%s>\n", i, backtrace[i], funcnames[i]);
 	}
-    displayErrorMessage("UsageFault");
+    displayErrorMessage("UsageFault", backtrace, funcnames, backtrace_len);
 }
 
 // Redefine _fini to allow loading of library
@@ -150,7 +172,7 @@ void _fini() {
 		printf("[%d] - 0x%08x <%s>\n", i, backtrace[i], funcnames[i]);
 	}
 
-    displayErrorMessage("_fini called");
+    displayErrorMessage("_fini", backtrace, funcnames, backtrace_len);
 }
 }
 
@@ -177,7 +199,6 @@ uint16_t fetchKey() {
         return KEY_NULL;
     }
 }
-sbdi::SBDI keyboard(SBDI_EN, SBDI_DATA, SBDI_CLK);
 
 /********** Mode **********/
 enum class DispMode {

@@ -197,18 +197,18 @@ namespace lcd {
 		0x98,
 	};
 	const Image CHAR_PCT(CHAR_PCT_DATA, 1, 5, 9);
-	// const uint8_t CHAR_AND_DATA[] = {
-	//     0x60,
-	//     0x90,
-	//     0x90,
-	//     0x90,
-	//     0x60,
-	//     0xa8,
-	//     0x90,
-	//     0x90,
-	//     0x68,
-	// };
-	// const Image CHAR_AND(CHAR_AND_DATA, 1, 5, 9);
+	const uint8_t CHAR_AND_DATA[] = {
+	    0x60,
+	    0x90,
+	    0x90,
+	    0x90,
+	    0x60,
+	    0xa8,
+	    0x90,
+	    0x90,
+	    0x68,
+	};
+	const Image CHAR_AND(CHAR_AND_DATA, 1, 5, 9);
 	// const uint8_t CHAR_SGLQ_DATA[] = {
 	//     0x80,
 	//     0x80,
@@ -761,18 +761,18 @@ namespace lcd {
 		0x00,
 	};
 	const Image CHAR_CART(CHAR_CART_DATA, 1, 5, 9);
-	// const uint8_t CHAR_USCR_DATA[] = {
-	// 	0x00,
-	// 	0x00,
-	// 	0x00,
-	// 	0x00,
-	// 	0x00,
-	// 	0x00,
-	// 	0x00,
-	// 	0x00,
-	// 	0xf8,
-	// };
-	// const Image CHAR_USCR(CHAR_USCR_DATA, 1, 5, 9);
+	const uint8_t CHAR_USCR_DATA[] = {
+		0x00,
+		0x00,
+		0x00,
+		0x00,
+		0x00,
+		0x00,
+		0x00,
+		0x00,
+		0xf8,
+	};
+	const Image CHAR_USCR(CHAR_USCR_DATA, 1, 5, 9);
 	// const uint8_t CHAR_BKTK_DATA[] = {
 	// 	0x40,
 	// 	0x20,

@@ -42,6 +42,23 @@ def lowmemcompress(data):
     cobj = zlib.compressobj(level=9, wbits=13)
     return cobj.compress(data) + cobj.flush()
 
+type_names = [
+    ("unsigned long long", "u64"),
+    ("unsigned long", "u32"),
+    ("unsigned int", "u32"),
+    ("unsigned short", "u16"),
+    ("unsigned char", "u8"),
+    ("long long", "s64"),
+    ("long", "s32"),
+    ("int", "s32"),
+    ("short", "s16"),
+]
+
+def process_name(name):
+    for tn, rn in type_names:
+        name = name.replace(tn, rn)
+    return name if len(name) < SYMBOL_CUTOFF else name[:SYMBOL_CUTOFF - 1 - 3] + "..."
+
 def run(inelf, outbin):
     elf = ELFFile(open(inelf, "rb"))
 
@@ -149,7 +166,7 @@ def run(inelf, outbin):
 
     for name, addr in sorted(symtable.items(), key=lambda x: x[1]):
         f1.write(struct.pack(">I", addr))
-        f1.write(cxxfilt.demangleb(name.encode('ascii'))[:SYMBOL_CUTOFF - 1])
+        f1.write(process_name(cxxfilt.demangle(name)).encode('ascii'))
         f1.write(b'\x00')
 
     for start, end, offs in dbgtable_optimized:

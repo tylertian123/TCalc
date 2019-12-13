@@ -142,7 +142,6 @@ namespace lcd {
     // Percent sign (%)
 	extern const Image CHAR_PCT;
     // Ampersand (&)
-    // Unused
 	extern const Image CHAR_AND;
     // Single quote (')
     // Unused
@@ -262,7 +261,6 @@ namespace lcd {
     // Caret (^)
 	extern const Image CHAR_CART;
     // Underscore (_)
-    // Unused
 	extern const Image CHAR_USCR;
     // Backtick (`)
     // Unused
