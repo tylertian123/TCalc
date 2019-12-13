@@ -83,7 +83,7 @@ namespace gunzip_ns
     static constexpr bool USE_BITARRAY_FOR_LENGTHS = false;                   /* 160 bytes save */
     static constexpr bool USE_BITARRAY_FOR_HUFFNODES = false;                 /* 392 bytes save */
 
-    static constexpr unsigned MAX_WINDOW_SIZE = 2048u;
+    static constexpr unsigned MAX_WINDOW_SIZE = 8192u;
 
     static_assert(MAX_WINDOW_SIZE >= 1,      "Max window size should be >= 1");
     static_assert(MAX_WINDOW_SIZE <= 32768u, "Window sizes larger than 32768 are not supported by deflate standard. Edit the source code to remove this assert if you need it.");

@@ -2,6 +2,7 @@
 #include "exception.hpp"
 #include <unwind.h>
 #include "usart.hpp"
+#include <string.h>
 
 #ifndef DEBUG_EXCEPTION
 #define DEBUG_EXCEPTION 0
@@ -92,6 +93,7 @@ namespace exception {
 		while (!local_btps.signalDone && local_btps.bt_len < local_btps.bt_maxlen) {
 			// Set the initial state of the BTP
 			local_btps.parse_state = 0x10;
+			local_btps.upper_PC = 0; local_btps.lower_PC = 0; local_btps.unwind_amt = 0;
 			// Set the buffer pointer
 			local_btps.offset = 0;
 			// Deflate the entire buffer
@@ -109,7 +111,10 @@ namespace exception {
 					case 0x20:
 						btps->upper_PC <<= 8; btps->upper_PC |= data;
 						++btps->parse_state;
-						if ((btps->parse_state & 0x0F) == 4) btps->parse_state = 0x30;
+						if ((btps->parse_state & 0x0F) == 2) {
+							btps->upper_PC += btps->lower_PC;
+							btps->parse_state = 0x30;
+						}
 						break;
 					case 0x30:
 						btps->unwind_amt <<= 8; btps->unwind_amt |= data;
@@ -127,7 +132,7 @@ namespace exception {
 						// It is! apply the unwind amount
 						_applyUnwindTo(btps->PC, btps->LR, btps->SP, btps->unwind_amt);
 						// Push the new PC to the backtrace
-						btps->backtrace[btps->bt_len++] = btps->PC;
+						btps->backtrace[btps->bt_len++] = btps->PC % 2 == 0 ? btps->PC + 1 : btps->PC;
 						DEBUG_EXCEPTION_PRINT("now at PC=%08x; SP=%08x; LR=%08x\n", btps->PC, btps->SP, btps->LR);
 
 						// Check if we have reached the end of the backtrace
@@ -144,6 +149,8 @@ namespace exception {
 						// If the value is later, this function returns and decompression continues.
 					}
 
+					//DEBUG_EXCEPTION_PRINT("advancing to next\n");
+
 
 					btps->unwind_amt = 0;
 					btps->lower_PC = 0;
@@ -153,19 +160,121 @@ namespace exception {
 
 				return false;
 			});
+
+			//DEBUG_EXCEPTION_PRINT("starting over\n");
 		}
 
 		backtrace_length = local_btps.bt_len;
 		btps = nullptr;
 	}
 
+	struct SymbolParseState {
+		uint16_t parse_state; // Upper byte - mode, lower byte - idx.
+							 // Mode:
+							 //    00 - not init
+							 //    01 - reading address
+							 //    02 - reading name
+
+		char *currname;
+		uint32_t curraddr;
+
+		char *prevname;
+		uint32_t prevaddr;
+
+		char namebuf1[64];
+		char namebuf2[64];
+		ptrdiff_t offset = 0;
+
+		char (*resolved)[64];
+		const uint32_t *backtrace;
+		uint16_t bt_len;
+	};
+
+	SymbolParseState *sps;
+
 	void fillSymbols(char resolved[][64], const uint32_t backtrace[], uint16_t length) {
+		// Copy out the symbol table into the resolved table.
+		//
+		// Work by scanning through the entire table of values with deflate. Start by setting resolved to nulls, if something is a null check if we are greater than it.
+		// If so, use the previous value
+		
+		// Init the SBS
+		SymbolParseState local_sps;
+		sps = &local_sps;
+
+		sps->parse_state = 0x01'00;
+		sps->currname = sps->namebuf1;
+		sps->prevname = sps->namebuf2;
+
+		sps->curraddr = 0;
+		sps->prevaddr = 0;
+		sps->offset   = 0;
+
+		sps->bt_len = length;
+		sps->backtrace = backtrace;
+		sps->resolved = resolved;
+
+		memset(resolved, 0, length * 64);
+
+		tinydeflate::Deflate(+[](){
+			return dbg_symtable_begin[sps->offset++];
+		}, +[](uint8_t data){ // this lambda is positive. (it forces a cast to pointer to avoid flash space)
+			// Check the state
+			switch (sps->parse_state & 0xFF00) {
+				case 0x0100:
+					{
+						sps->curraddr <<= 8; sps->curraddr |= data;
+						++sps->parse_state;
+						if ((sps->parse_state & 0x0F) == 4) sps->parse_state = 0x0200;
+					}
+					break;
+				case 0x0200:
+					{
+						// always add the data, so we get the null terminator
+						sps->currname[sps->parse_state & 0xFF] = data;
+						if (data == 0) {
+							DEBUG_EXCEPTION_PRINT("got ai: %s at %04x\n", sps->currname, sps->curraddr);
+							// Handle the new data
+							
+							// ... but first check if we've parsed at least one thing
+							
+							if (sps->prevaddr != 0) {
+								for (int i = 0; i < sps->bt_len; ++i) {
+									if ((sps->resolved[i][0] == 0 && sps->backtrace[i] == sps->curraddr) || (sps->backtrace[i] % 2 == 0 && sps->backtrace[i] + 1 == sps->curraddr)) {
+										DEBUG_EXCEPTION_PRINT("resolving c2 with %04x at %04x (%s)\n", sps->prevaddr, sps->backtrace[i], sps->currname);
+										strcpy(sps->resolved[i], sps->currname);
+									}
+									else if (sps->resolved[i][0] == 0 && sps->backtrace[i] < sps->curraddr) {
+										DEBUG_EXCEPTION_PRINT("resolving c1 with %04x at %04x (%s)\n", sps->prevaddr, sps->backtrace[i], sps->prevname);
+										strcpy(sps->resolved[i], sps->prevname);
+									}
+								}
+							}
+
+							// Now set the pointers around
+							sps->prevaddr = sps->curraddr;
+							auto old_ptr = sps->prevname;
+							sps->prevname = sps->currname;
+							sps->currname = old_ptr;
+
+							// Go back to initial state
+							sps->parse_state = 0x0100;
+						}
+						else {
+							++sps->parse_state;
+						}
+					}
+					break;
+				default:
+					break;
+			}
+		});
 	}
 
 	void loadRegsFromFaultTrace(uint32_t *faultSP, uint32_t &PC, uint32_t &LR, uint32_t &SP) {
 		PC = faultSP[6];
-		LR = faultSP[7];
-		SP = reinterpret_cast<uint32_t>(SP);
+		LR = faultSP[5];
+		SP = reinterpret_cast<uint32_t>(faultSP) + 24;
 	}
 
 };

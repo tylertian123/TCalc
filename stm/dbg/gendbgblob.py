@@ -39,7 +39,7 @@ import io
 SYMBOL_CUTOFF = 64
 
 def lowmemcompress(data):
-    cobj = zlib.compressobj(level=9, wbits=11)
+    cobj = zlib.compressobj(level=9, wbits=13)
     return cobj.compress(data) + cobj.flush()
 
 def run(inelf, outbin):
@@ -52,9 +52,10 @@ def run(inelf, outbin):
     symtable_section = elf.get_section_by_name(".symtab")
 
     for symbol in symtable_section.iter_symbols():
-        if not symbol.name.startswith("_Z"):
-            continue
-        if elf.get_section(symbol.entry.st_shndx).name != ".text":
+        try:
+            if elf.get_section(symbol.entry.st_shndx).name != ".text":
+                continue
+        except TypeError:
             continue
         symtable[symbol.name] = symbol.entry.st_value
         addr_set.append(symbol.entry.st_value)
@@ -132,18 +133,27 @@ def run(inelf, outbin):
         block_end = base_address + fde.header.address_range 
         do_add()
 
+    # optimize table
+    dbgtable_optimized = []
+    for (start, end), offs in sorted(dbgtable.items(), key=lambda x: x[0][0]):
+        if dbgtable_optimized:
+            if dbgtable_optimized[-1][1] == start and dbgtable_optimized[-1][2] == offs:
+                dbgtable_optimized[-1][1] = end
+                continue
+        dbgtable_optimized.append([start, end, offs])
+
     # output in sorted form
 
     f1 = io.BytesIO()  # symbol table
     f2 = io.BytesIO()  # unwind table
 
-    for name, addr in sorted(symtable.items(), key=lambda x: x[0]):
+    for name, addr in sorted(symtable.items(), key=lambda x: x[1]):
         f1.write(struct.pack(">I", addr))
-        f1.write(cxxfilt.demangleb(name.encode('ascii'))[:SYMBOL_CUTOFF])
+        f1.write(cxxfilt.demangleb(name.encode('ascii'))[:SYMBOL_CUTOFF - 1])
         f1.write(b'\x00')
 
-    for (start, end), offs in sorted(dbgtable.items(), key=lambda x: x[0][0]):
-        f2.write(struct.pack(">IIh", start, end, offs))
+    for start, end, offs in dbgtable_optimized:
+        f2.write(struct.pack(">IHh", start, (end - start), offs))
 
     blob1 = lowmemcompress(f1.getvalue())
     blob2 = lowmemcompress(f2.getvalue())

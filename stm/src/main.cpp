@@ -96,23 +96,21 @@ void displayErrorMessage(const char *type) {
 
 void __attribute__((naked)) HardFault_Handler() {
 	asm volatile (
-			"mrs r0, msp \n\t"
-			"ldr r1, [r0, #24] \n\t"
-			"ldr r2, handler_address \n\t"
-			"bx r2\n\t"
+			"mrs r0, msp \n"
+			"ldr r2, handler_address \n"
+			"bx r2 \n"
 
-			"handler_address: .word HardFault_Handler_impl"
+			"handler_address: .word HardFault_Handler_impl \n"
 	);
 }
 
 void __attribute__((naked)) UsageFault_Handler() {
 	asm volatile (
-			"mrs r0, msp \n\t"
-			"ldr r1, [sp, #24] \n\t"
-			"ldr r2, handler_address2 \n\t"
-			"bx r2\n\t"
+			"mrs r0, msp \n"
+			"ldr r2, handler_address2 \n"
+			"bx r2 \n"
 
-			"handler_address2: .word UsageFault_Handler_impl"
+			"handler_address2: .word UsageFault_Handler_impl \n"
 	);
 }
 
@@ -120,6 +118,11 @@ void HardFault_Handler_impl(uint32_t *stackAtFault) {
 	uint32_t PC, SP, LR; exception::loadRegsFromFaultTrace(stackAtFault, PC, LR, SP);
 	uint16_t backtrace_len = 64;
 	uint32_t backtrace[64]; exception::fillBacktrace(backtrace, backtrace_len, PC, LR, SP);
+	char funcnames[backtrace_len][64]; exception::fillSymbols(funcnames, backtrace, backtrace_len);
+	puts("BACKTRACE:");
+	for (int i = 0; i < backtrace_len; ++i) {
+		printf("[%d] - 0x%08x <%s>\n", i, backtrace[i], funcnames[i]);
+	}
     displayErrorMessage("HardFault");
 }
 
@@ -127,6 +130,11 @@ void UsageFault_Handler_impl(uint32_t *stackAtFault) {
 	uint32_t PC, SP, LR; exception::loadRegsFromFaultTrace(stackAtFault, PC, LR, SP);
 	uint16_t backtrace_len = 64;
 	uint32_t backtrace[64]; exception::fillBacktrace(backtrace, backtrace_len, PC, LR, SP);
+	char funcnames[backtrace_len][64]; exception::fillSymbols(funcnames, backtrace, backtrace_len);
+	puts("BACKTRACE:");
+	for (int i = 0; i < backtrace_len; ++i) {
+		printf("[%d] - 0x%08x <%s>\n", i, backtrace[i], funcnames[i]);
+	}
     displayErrorMessage("UsageFault");
 }
 
@@ -136,6 +144,12 @@ void _fini() {
 	uint32_t PC, SP, LR; exception::loadRegsFromCurrentLocation(PC, LR, SP);
 	uint16_t backtrace_len = 64;
 	uint32_t backtrace[64]; exception::fillBacktrace(backtrace, backtrace_len, PC, LR, SP);
+	char funcnames[backtrace_len][64]; exception::fillSymbols(funcnames, backtrace, backtrace_len);
+	puts("BACKTRACE:");
+	for (int i = 0; i < backtrace_len; ++i) {
+		printf("[%d] - 0x%08x <%s>\n", i, backtrace[i], funcnames[i]);
+	}
+
     displayErrorMessage("_fini called");
 }
 }
