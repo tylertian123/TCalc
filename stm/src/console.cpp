@@ -8,6 +8,10 @@
 #include "usart.hpp"
 #include "util.hpp"
 
+extern "C" {
+	extern void _fini();
+}
+
 namespace console {
 
     char recvBuf[CONSOLE_RECEIVE_BUFFER_SIZE];
@@ -98,6 +102,10 @@ namespace console {
                 }
             }
         }
+		else if (strcmp(cmd, "crash") == 0) {
+			// crash the system
+			_fini(); // use fini since it's the most reliable
+		}
         else {
             printf("Unrecognized command: %s\n", cmd);
         }

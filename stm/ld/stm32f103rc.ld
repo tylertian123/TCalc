@@ -60,12 +60,10 @@ SECTIONS
     . = ALIGN(4);
   } >FLASH
 
-  .ARM.extab   : { *(.ARM.extab* .gnu.linkonce.armextab.*) } >FLASH
   .ARM : {
     __exidx_start = .;
-    *(.ARM.exidx*)
     __exidx_end = .;
-  } >FLASH
+  } >FLASH   /* we provide our own exception handling stuff */
 
   .preinit_array     :
   {
@@ -130,7 +128,16 @@ SECTIONS
     . = ALIGN(4);
   } >RAM
 
-  
+  /* DEBUG REGION */
+  .fw_dbg :
+  {
+	  . = ALIGN(4);  /* align to word access */
+	  PROVIDE (dbg_symtable_size = .);  /* provide place to store size of symbol table, as unwind table is after it */
+	  PROVIDE (_dbg_symtable_size = .);
+	  . = . + 4; /*  go past it */
+	  PROVIDE (dbg_data_begin = .);  /* binary data will now be placed here */
+	  PROVIDE (_dbg_data_begin = .);
+  } >FLASH
 
   /* Remove information from the standard libraries */
   /DISCARD/ :
@@ -138,6 +145,7 @@ SECTIONS
     libc.a ( * )
     libm.a ( * )
     libgcc.a ( * )
+	*(.ARM.ex*)
   }
 
   .ARM.attributes 0 : { *(.ARM.attributes) }

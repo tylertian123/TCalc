@@ -87,3 +87,6 @@ data.json
 *.iex
 ~*
 
+# Python
+__pycache__
+
