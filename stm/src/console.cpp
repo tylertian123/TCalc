@@ -104,7 +104,7 @@ namespace console {
         }
 		else if (strcmp(cmd, "crash") == 0) {
 			// crash the system
-			_fini();
+			_fini(); // use fini since it's the most reliable
 		}
         else {
             printf("Unrecognized command: %s\n", cmd);

@@ -96,6 +96,8 @@ namespace exception {
 			local_btps.upper_PC = 0; local_btps.lower_PC = 0; local_btps.unwind_amt = 0;
 			// Set the buffer pointer
 			local_btps.offset = 0;
+
+			int previous_idx = local_btps.bt_len;
 			// Deflate the entire buffer
 			tinydeflate::Deflate(+[](){
 				return dbg_backtable_begin[btps->offset++];
@@ -160,6 +162,13 @@ namespace exception {
 
 				return false;
 			});
+
+			// If the idx didn't change, we're stuck in an infinite loop; return and break
+			if (previous_idx == btps->bt_len) {
+				puts("stuck in infinite loop during BT decode; try compiling with -g");
+
+				break;
+			}
 
 			//DEBUG_EXCEPTION_PRINT("starting over\n");
 		}
