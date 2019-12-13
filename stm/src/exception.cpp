@@ -277,6 +277,8 @@ namespace exception {
 				default:
 					break;
 			}
+			
+			return false; // Done to avoid making multiple kinds of deflaters.
 		});
 	}
 
