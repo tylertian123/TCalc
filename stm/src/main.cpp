@@ -25,7 +25,7 @@
 #include "exception.hpp"
 #include <inttypes.h>
 
-#define VERSION_STR "V1.5.0"
+#define VERSION_STR "V1.5.1"
 
 #ifdef _USE_CONSOLE
 #pragma message("Compiling with the USART Console.")

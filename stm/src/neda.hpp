@@ -42,6 +42,7 @@ namespace neda {
         MATRIX,
         PIECEWISE,
         ABS,
+        DERIVATIVE,
     };
 
     /*
@@ -577,6 +578,26 @@ namespace neda {
         virtual void updatePosition(int16_t, int16_t) override;
 
         virtual Abs *copy() override;
+
+        virtual ObjType getType() const override;
+    };
+
+    class Derivative : public Expr {
+    public:
+        // TODO: Constructor
+
+        virtual ~Derivative();
+
+        Expr *contents;
+
+        virtual void computeDimensions() override;
+        virtual void draw(lcd::LCD12864 &display, int16_t x, int16_t y) override;
+
+        virtual void getCursor(Cursor &cursor, CursorLocation location) override;
+
+        virtual void updatePosition(int16_t dx, int16_t dy) override;
+
+        virtual Derivative *copy() override;
 
         virtual ObjType getType() const override;
     };

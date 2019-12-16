@@ -1976,7 +1976,6 @@ namespace eval {
                                 : evaluateUserDefinedFunction(uFunc, exprs, varc, vars, funcc, funcs, end, end);
                         
                         delete func;
-                        delete uFunc;
                         if(!result) {
                             freeTokens(arr);
                             delete[] str;
