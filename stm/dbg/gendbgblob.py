@@ -59,6 +59,15 @@ def process_name(name):
         name = name.replace(tn, rn)
     return name if len(name) < SYMBOL_CUTOFF else name[:SYMBOL_CUTOFF - 1 - 3] + "..."
 
+def is_good_symbol(symbol):
+    if not symbol:
+        return False
+    if symbol[0] == "$":
+        return False
+    if symbol.startswith("_GLOBAL"):
+        return False
+    return True
+
 def run(inelf, outbin):
     elf = ELFFile(open(inelf, "rb"))
 
@@ -73,6 +82,10 @@ def run(inelf, outbin):
             if elf.get_section(symbol.entry.st_shndx).name != ".text":
                 continue
         except TypeError:
+            continue
+        if symbol.entry.st_value in addr_set:
+            continue
+        if not is_good_symbol(symbol.name):
             continue
         symtable[symbol.name] = symbol.entry.st_value
         addr_set.append(symbol.entry.st_value)
