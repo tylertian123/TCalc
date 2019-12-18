@@ -78,6 +78,8 @@ void displayErrorMessage(const char *type, uint32_t pc[], const char fn[][64], u
 
     // Kill off the cursor blink
     TIM_Cmd(TIM3, DISABLE);
+    // Reset the keyboard in case it was in analog mode
+    keyboard.send32(KEYMSG_RESET);
     while(1) {
         uint8_t line = 0;
         char buf[64];
