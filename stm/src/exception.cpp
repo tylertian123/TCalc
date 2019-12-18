@@ -286,7 +286,8 @@ namespace exception {
 	void loadRegsFromFaultTrace(uint32_t *faultSP, uint32_t &PC, uint32_t &LR, uint32_t &SP) {
 		PC = faultSP[6];
 		LR = faultSP[5];
-		SP = reinterpret_cast<uint32_t>(faultSP) + 24;
+		bool isAligned = faultSP[7] & (1 << 9);
+		SP = (uint32_t)(&faultSP[8]) + isAligned * 4;
 	}
 
 };
