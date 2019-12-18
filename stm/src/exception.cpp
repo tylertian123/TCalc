@@ -225,6 +225,10 @@ namespace exception {
 		sps->resolved = resolved;
 
 		memset(resolved, 0, length * 64);
+		if (backtrace[length - 1] > 0xffff'fff0) {
+			// Resolve it to a constant
+			snprintf(resolved[length - 1], 64, "interrupt handler");
+		}
 
 		tinydeflate::Deflate(+[](){
 			return dbg_symtable_begin[sps->offset++];
