@@ -1084,8 +1084,8 @@ namespace expr {
         util::DynamicArray<GraphableFunction> newGraphableFunctions;
 
         for (const auto &func : functions) {
-            // A function is only graphable if it only takes a single parameter x.
-            if (func.argc == 1 && strcmp(func.argn[0], "x") == 0) {
+            // A function is only graphable if it only takes a single parameter
+            if (func.argc == 1) {
                 GraphableFunction f(&func, false);
                 // Look in the old array and see if it existed previously
                 for (const auto &gfunc : graphableFunctions) {
@@ -1420,12 +1420,10 @@ namespace expr {
                     // Determine what function(s) occupy this pixel
 
                     // Graph each function
-                    // Construct a environment that can be reused later since all graphable functions only have 1
-                    // argument x
-                    eval::Variable *newVars = constructFunctionGraphingEnvironment();
-
+                    util::DynamicArray<eval::Variable> args;
                     eval::Numerical arg(0);
-                    newVars[0].value = &arg;
+                    args.add(eval::Variable(nullptr, &arg));
+                    const eval::Environment env(variables, functions, args);
 
                     uint16_t counter = 0;
                     bool incremented = false;
@@ -1438,6 +1436,8 @@ namespace expr {
                     for (GraphableFunction &gfunc : graphableFunctions) {
                         if (gfunc.graph) {
                             const eval::UserDefinedFunction &func = *gfunc.func;
+                            // Set parameter name
+                            args[0].name = func.argn[0];
 
                             // Evaluate for x coordinates surrounding the cursor
                             for (int16_t currentXLCD = cursorX - 1; currentXLCD <= cursorX + 1; currentXLCD++) {
@@ -1446,8 +1446,7 @@ namespace expr {
                                 // Set the value of the argument
                                 arg.value = currentXReal;
                                 // Attempt to evaluate
-                                eval::Token *t = eval::evaluate(func.expr, variables.length() + 1, newVars,
-                                        functions.length(), functions.asArray());
+                                eval::Token *t = eval::evaluate(func.expr, env);
                                 // Watch out for syntax error
                                 double currentYReal = t ? eval::extractDouble(t) : NAN;
                                 delete t;
@@ -1523,8 +1522,6 @@ namespace expr {
                     if (!incremented) {
                         selectorIndex = 0;
                     }
-
-                    delete[] newVars;
                 }
                 else if (graphCursorMode == GraphCursorMode::AREA_ZOOM) {
                     // First make sure that the area isn't zero
@@ -1838,17 +1835,6 @@ namespace expr {
         return realY;
     }
 
-    eval::Variable *constructFunctionGraphingEnvironment() {
-        eval::Variable *newVars = new eval::Variable[variables.length() + 1];
-        for (uint16_t i = 0; i < variables.length(); i++) {
-            newVars[i + 1] = variables[i];
-        }
-
-        newVars[0].name = "x";
-
-        return newVars;
-    }
-
     void ExprEntry::redrawGraph() {
         // Display loading message
         display.clearDrawingBuffer();
@@ -1917,11 +1903,11 @@ namespace expr {
         }
 
         // Graph each function
-        // Construct a environment that can be reused later since all graphable functions only have 1 argument x
-        eval::Variable *newVars = constructFunctionGraphingEnvironment();
 
+        util::DynamicArray<eval::Variable> args;
         eval::Numerical arg(0);
-        newVars[0].value = &arg;
+        args.add(eval::Variable(nullptr, &arg));
+        const eval::Environment env(variables, functions, args);
 
         // The y value of the previous pixel (in the real coordinate system)
         double prevResult = NAN;
@@ -1929,6 +1915,7 @@ namespace expr {
         for (GraphableFunction &gfunc : graphableFunctions) {
             if (gfunc.graph) {
                 const eval::UserDefinedFunction &func = *gfunc.func;
+                args[0].name = func.argn[0];
 
                 // Evaluate for each x coordinate
                 // We intentially also include the pixel at x = 128 and x = -1, which is out of bounds
@@ -1939,8 +1926,7 @@ namespace expr {
                     // Set the value of the argument
                     arg.value = currentXReal;
                     // Attempt to evaluate
-                    eval::Token *t = eval::evaluate(
-                            func.expr, variables.length() + 1, newVars, functions.length(), functions.asArray());
+                    eval::Token *t = eval::evaluate(func.expr, env);
                     // Watch out for syntax error
                     double currentYReal = t ? eval::extractDouble(t) : NAN;
                     delete t;
@@ -1984,7 +1970,6 @@ namespace expr {
                 }
             }
         }
-        delete[] newVars;
     }
 
     void ExprEntry::drawInterfaceGraphViewer() {

@@ -275,6 +275,19 @@ namespace eval {
         Token *value;
     };
 
+    struct Environment {
+        const util::DynamicArray<Variable> &vars;
+        const util::DynamicArray<UserDefinedFunction> &funcs;
+        util::DynamicArray<Variable> &args;
+
+        Environment(const util::DynamicArray<Variable> &vars, const util::DynamicArray<UserDefinedFunction> &funcs,
+                util::DynamicArray<Variable> &args) : vars(vars), funcs(funcs), args(args) {
+        }
+        Environment(const Environment &other, util::DynamicArray<Variable> &args) : vars(other.vars),
+                funcs(other.funcs), args(args) {
+        }
+    };
+
     /*
      * Converts t into a suitable NEDA representation, which is then added to cont.
      *
@@ -296,21 +309,15 @@ namespace eval {
     char extractChar(const neda::NEDAObj *);
     double extractDouble(const Token *);
     uint16_t findEquals(const util::DynamicArray<neda::NEDAObj *> &, bool forceVarName = true);
+    uint16_t findTokenEnd(const util::DynamicArray<neda::NEDAObj *> &arr, uint16_t start, int8_t direction, bool &isNum);
     int8_t isTruthy(const Token *);
-    util::DynamicArray<Token *> evaluateArgs(const util::DynamicArray<neda::NEDAObj *> &expr, uint16_t varc,
-            const Variable *vars, uint16_t funcc, const UserDefinedFunction *funcs, uint16_t start, uint16_t &end,
-            bool &err);
 
-    uint16_t findTokenEnd(
-            const util::DynamicArray<neda::NEDAObj *> &arr, uint16_t start, int8_t direction, bool &isNum);
-
-    Token *evaluate(const neda::Container *, const util::DynamicArray<Variable> &,
-            const util::DynamicArray<UserDefinedFunction> &);
-    Token *evaluate(const util::DynamicArray<neda::NEDAObj *> &, const util::DynamicArray<Variable> &,
-            const util::DynamicArray<UserDefinedFunction> &);
-    Token *evaluate(const neda::Container *, uint16_t, const Variable *, uint16_t, const UserDefinedFunction *);
-    Token *evaluate(const util::DynamicArray<neda::NEDAObj *> &, uint16_t, const Variable *, uint16_t,
-            const UserDefinedFunction *);
+    Token *evaluate(const neda::Container *, const util::DynamicArray<Variable> &vars, 
+            const util::DynamicArray<UserDefinedFunction> &funcs);
+    Token *evaluate(const util::DynamicArray<neda::NEDAObj *> &, const util::DynamicArray<Variable> &vars, 
+            const util::DynamicArray<UserDefinedFunction> &funcs);
+    Token *evaluate(const neda::Container *, const Environment &env);
+    Token *evaluate(const util::DynamicArray<neda::NEDAObj *> &, const Environment &env);
 } // namespace eval
 
 #endif

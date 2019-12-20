@@ -1249,9 +1249,8 @@ namespace eval {
      *
      * If there is a syntax error in the arguments list, this function will set the output bool to true.
      */
-    util::DynamicArray<Token *> evaluateArgs(const util::DynamicArray<neda::NEDAObj *> &expr, uint16_t varc,
-            const Variable *vars, uint16_t funcc, const UserDefinedFunction *funcs, uint16_t start, uint16_t &end,
-            bool &err) {
+    util::DynamicArray<Token *> evaluateArgs(const util::DynamicArray<neda::NEDAObj *> &expr, const Environment &env,
+            uint16_t start, uint16_t &end, bool &err) {
         
         if(start >= expr.length()) {
             err = true;
@@ -1282,8 +1281,7 @@ namespace eval {
                         return args;
                     }
                     // Try evaluate
-                    Token *result = evaluate(util::DynamicArray<neda::NEDAObj *>::createConstRef(expr.begin() + argStart, expr.begin() + end),
-                            varc, vars, funcc, funcs);
+                    Token *result = evaluate(util::DynamicArray<neda::NEDAObj *>::createConstRef(expr.begin() + argStart, expr.begin() + end), env);
                     if(!result) {
                         freeTokens(args);
                         err = true;
@@ -1299,7 +1297,7 @@ namespace eval {
             else if(expr[end]->getType() == neda::ObjType::CHAR_TYPE && extractChar(expr[end]) == ',' && nesting == 1) {
                 // Try evaluate
                 Token *result = evaluate(util::DynamicArray<neda::NEDAObj *>::createConstRef(expr.begin() + argStart, expr.begin() + end),
-                        varc, vars, funcc, funcs);
+                        env);
                 if(!result) {
                     freeTokens(args);
                     err = true;
@@ -1319,9 +1317,9 @@ namespace eval {
     }
 
     Token *evaluateBuiltinFunction(const Function *func, const util::DynamicArray<neda::NEDAObj *> &expr,
-            uint16_t varc, const Variable *vars, uint16_t funcc, const UserDefinedFunction *funcs, uint16_t argStart, uint16_t &endOut) {
+            const Environment &env, uint16_t argStart, uint16_t &endOut) {
         bool err = false;
-        auto args = evaluateArgs(expr, varc, vars, funcc, funcs, argStart, endOut, err);
+        auto args = evaluateArgs(expr, env, argStart, endOut, err);
         // Verify number of arguments
         if(err || (func->isVarArgs() ? args.length() < func->getNumArgs() : args.length() != func->getNumArgs())) {
             freeTokens(args);
@@ -1335,50 +1333,34 @@ namespace eval {
     }
 
     Token *evaluateUserDefinedFunction(const UserDefinedFunction *func, const util::DynamicArray<neda::NEDAObj *> &expr,
-            uint16_t varc, const Variable *vars, uint16_t funcc, const UserDefinedFunction *funcs, uint16_t argStart, uint16_t &endOut) {
+            const Environment &env, uint16_t argStart, uint16_t &endOut) {
         bool err = false;
-        auto args = evaluateArgs(expr, varc, vars, funcc, funcs, argStart, endOut, err);
+        auto args = evaluateArgs(expr, env, argStart, endOut, err);
         // Verify number of arguments
         if(err || func->argc != args.length()) {
             freeTokens(args);
             return nullptr;
         }
 
-        // Evaluate a user-defined function by creating a new environment in which the variables
-        // list also contain the function arguments. The other variables and functions are also
-        // kept so that functions can call other functions. The function arguments are first in
-        // the list so that they have precedence over other variables. However, this doesn't
-        // handle recursion! Recursive functions without an exit condition will cause a stack
-        // overflow.
-
-        // Construct a new variables list containing the arguments and normal variables
-        Variable *newVars = new Variable[varc + func->argc];
-        // Copy in the names and values of function arguments
-        for (uint8_t i = 0; i < func->argc; i++) {
-            newVars[i].name = func->argn[i];
-            newVars[i].value = args[i];
+        util::DynamicArray<Variable> argsArr;
+        for(uint8_t i = 0; i < func->argc; i ++) {
+            argsArr.add(Variable(func->argn[i], args[i]));
         }
-        // Copy in the names and values of variables
-        for (uint16_t i = 0; i < varc; i++) {
-            newVars[i + func->argc] = vars[i];
-        }
+        const Environment newEnv(env, argsArr);
 
         // Evaluate
-        auto result = evaluate(func->expr, varc + func->argc, newVars, funcc, funcs);
-        delete[] newVars;
+        auto result = evaluate(func->expr, newEnv);
         freeTokens(args);
         // Will be nullptr in case of failure
         return result;
     }
     
-    Token *logSEP(const util::DynamicArray<neda::NEDAObj *> &expr, uint16_t varc, const Variable *vars, 
-            uint16_t funcc, const UserDefinedFunction *funcs, uint16_t start, uint16_t &endOut) {
+    Token *logSEP(const util::DynamicArray<neda::NEDAObj *> &expr, const Environment &env, uint16_t start, uint16_t &endOut) {
         if(start + 1 < expr.length()) {
             // Custom base
             if(expr[start]->getType() == neda::ObjType::SUBSCRIPT) {
                 // If subscript exists, recursively evaluate it
-                Token *sub = evaluate((neda::Container *) ((neda::Subscript *) expr[start])->contents, varc,
-                        vars, funcc, funcs);
+                Token *sub = evaluate((neda::Container *) ((neda::Subscript *) expr[start])->contents, env);
                 
                 // If an error occurs, clean up and return
                 if (!sub) {
@@ -1387,7 +1369,7 @@ namespace eval {
 
                 // Now evaluate arguments
                 bool err = false;
-                auto arg = evaluateArgs(expr, varc, vars, funcc, funcs, start + 1, endOut, err);
+                auto arg = evaluateArgs(expr, env, start + 1, endOut, err);
                 // Syntax error/wrong number of args
                 if(err || arg.length() != 1) {
                     freeTokens(arg);
@@ -1415,7 +1397,7 @@ namespace eval {
             // Default base
             else {
                 bool err = false;
-                auto arg = evaluateArgs(expr, varc, vars, funcc, funcs, start, endOut, err);
+                auto arg = evaluateArgs(expr, env, start, endOut, err);
 
                 // Syntax error/wrong number of args
                 if(err || arg.length() != 1) {
@@ -1434,8 +1416,7 @@ namespace eval {
         }
     }
 
-    Token *linRegSEP(const util::DynamicArray<neda::NEDAObj *> &expr, uint16_t varc, const Variable *vars,
-            uint16_t funcc, const UserDefinedFunction *funcs, uint16_t start, uint16_t &endOut) {
+    Token *linRegSEP(const util::DynamicArray<neda::NEDAObj *> &expr, const Environment &env, uint16_t start, uint16_t &endOut) {
         if(start + 1 >= expr.length() || expr[start]->getType() != neda::ObjType::L_BRACKET) {
             return nullptr;
         }
@@ -1457,7 +1438,7 @@ namespace eval {
                     // Try evaluating the last argument
                     if(args.length() < 2) {
                         Token *result = evaluate(util::DynamicArray<neda::NEDAObj *>::createConstRef(expr.begin() + argStart, expr.begin() + endOut),
-                                varc, vars, funcc, funcs);
+                                env);
                         if(!result) {
                             freeTokens(args);
                             return nullptr;
@@ -1478,7 +1459,7 @@ namespace eval {
                 // Try evaluate
                 if(args.length() < 2) {
                     Token *result = evaluate(util::DynamicArray<neda::NEDAObj *>::createConstRef(expr.begin() + argStart, expr.begin() + endOut),
-                            varc, vars, funcc, funcs);
+                            env);
                     if(!result) {
                         freeTokens(args);
                         return nullptr;
@@ -1511,26 +1492,17 @@ namespace eval {
 
         Matrix a(x->m, model.length());
 
-        // Construct a new variables list containing the arguments and normal variables
-        Variable *newVars = new Variable[varc + 1];
-        // Copy in the names and values of variables
-        for (uint16_t i = 0; i < varc; i++) {
-            newVars[i + 1] = vars[i];
-        }
-        newVars[0].name = "x";
-        
         Numerical xn(0);
-        newVars[0].value = &xn;
+        env.args.add(Variable("x", &xn));
 
         for(uint8_t row = 0; row < x->m; row ++) {
             for(uint8_t col = 0; col < model.length(); col ++) {
                 xn.value = x->contents[row];
                 Token *t = evaluate(util::DynamicArray<neda::NEDAObj *>::createConstRef(expr.begin() + (model[col] >> 16), 
-                        expr.begin() + (model[col] & 0xFFFF)), varc + 1, newVars, funcc, funcs);
+                        expr.begin() + (model[col] & 0xFFFF)), env);
 
                 if(!t || t->getType() != TokenType::NUMERICAL) {
                     freeTokens(args);
-                    delete[] newVars;
                     return nullptr;
                 }
 
@@ -1539,14 +1511,13 @@ namespace eval {
             }
         }
 
-        delete[] newVars;
+        env.args.removeAt(0);
         Token *result = Matrix::leastSquares(a, *y);
         freeTokens(args);
         return result ? result : new Numerical(NAN);
     }
 
-    typedef Token *(*const SpecialExpressionParser)(const util::DynamicArray<neda::NEDAObj *> &expr, 
-            uint16_t varc, const Variable *vars, uint16_t funcc, const UserDefinedFunction *funcs, uint16_t start, uint16_t &endOut);
+    typedef Token *(*const SpecialExpressionParser)(const util::DynamicArray<neda::NEDAObj *> &expr, const Environment &env, uint16_t start, uint16_t &endOut);
     const char * const SPECIAL_EXPRESSION_NAMES[] = {
         "log",
         "linReg",
@@ -1557,28 +1528,16 @@ namespace eval {
         &linRegSEP,
     };
 
-    // Overloaded instance of the other evaluate() for convenience. Works directly on neda::Containers.
-    Token *evaluate(const neda::Container *expr, const util::DynamicArray<Variable> &vars,
-            const util::DynamicArray<UserDefinedFunction> &funcs) {
-        return evaluate(expr->contents, vars.length(), vars.asArray(), funcs.length(), funcs.asArray());
+    Token *evaluate(const neda::Container *expr, const util::DynamicArray<Variable> &vars, const util::DynamicArray<UserDefinedFunction> &funcs) {
+        util::DynamicArray<eval::Variable> args;
+        return evaluate(expr->contents, Environment(vars, funcs, args));
     }
-    /*
-     * Evaluates an expression and returns a token result
-     * Returns nullptr on syntax errors
-     *
-     * Parameters:
-     * expr - a reference to a util::DynamicArray of neda::NEDAObjs representing an expression
-     * vars - a reference to a util::DynamicArray of Variables representing all user-defined variables
-     * funcs - a reference to a util::DynamicArray of UserDefinedFunctions representing all user-defined functions
-     */
-    Token *evaluate(const util::DynamicArray<neda::NEDAObj *> &expr, const util::DynamicArray<Variable> &vars,
-            const util::DynamicArray<UserDefinedFunction> &funcs) {
-        return evaluate(expr, vars.length(), vars.asArray(), funcs.length(), funcs.asArray());
+    Token *evaluate(const util::DynamicArray<neda::NEDAObj *> &exprs, const util::DynamicArray<Variable> &vars, const util::DynamicArray<UserDefinedFunction> &funcs) {
+        util::DynamicArray<eval::Variable> args;
+        return evaluate(exprs, Environment(vars, funcs, args));
     }
-    // Overloaded instance of the other evaluate() for convenience. Works directly on neda::Containers.
-    Token *evaluate(const neda::Container *expr, uint16_t varc, const Variable *vars, uint16_t funcc,
-            const UserDefinedFunction *funcs) {
-        return evaluate(expr->contents, varc, vars, funcc, funcs);
+    Token *evaluate(const neda::Container *expr, const Environment &env) {
+        return evaluate(expr->contents, env);
     }
     // This is a label that was declared in the startup asm and exported
     // Take its address for the stack limit
@@ -1595,8 +1554,7 @@ namespace eval {
      * funcc - the number of user-defined functions
      * funcs - an array containing all user-defined functions
      */
-    Token *evaluate(const util::DynamicArray<neda::NEDAObj *> &exprs, uint16_t varc, const Variable *vars,
-            uint16_t funcc, const UserDefinedFunction *funcs) {
+    Token *evaluate(const util::DynamicArray<neda::NEDAObj *> &exprs, const Environment &env) {
         // This function first parses the NEDA expression to convert it into eval tokens
         // It then converts the infix notation to postfix with shunting-yard
         // And finally evaluates it and returns the result
@@ -1650,7 +1608,7 @@ namespace eval {
                 const util::DynamicArray<neda::NEDAObj *> inside = util::DynamicArray<neda::NEDAObj *>::createConstRef(
                         exprs.begin() + index + 1, exprs.begin() + endIndex);
                 // Recursively calculate the content inside
-                Token *insideResult = evaluate(inside, varc, vars, funcc, funcs);
+                Token *insideResult = evaluate(inside, env);
                 // If syntax error inside bracket, clean up and return null
                 if (!insideResult) {
                     freeTokens(arr);
@@ -1678,9 +1636,9 @@ namespace eval {
             case neda::ObjType::FRACTION: {
                 // Recursively evaluate the numerator and denominator
                 Token *num = evaluate(
-                        (neda::Container *) ((neda::Fraction *) exprs[index])->numerator, varc, vars, funcc, funcs);
+                        (neda::Container *) ((neda::Fraction *) exprs[index])->numerator, env);
                 Token *denom = evaluate(
-                        (neda::Container *) ((neda::Fraction *) exprs[index])->denominator, varc, vars, funcc, funcs);
+                        (neda::Container *) ((neda::Fraction *) exprs[index])->denominator, env);
                 // If one of them results in an error, clean up and return null
                 if (!num || !denom) {
                     // Since deleting nullptrs are allowed, no need for checking
@@ -1729,7 +1687,7 @@ namespace eval {
                 }
                 // Recursively evaluate the exponent
                 Token *exponent = evaluate(
-                        (neda::Container *) ((neda::Superscript *) exprs[index])->contents, varc, vars, funcc, funcs);
+                        (neda::Container *) ((neda::Superscript *) exprs[index])->contents, env);
                 // If an error occurs, clean up and return null
                 if (!exponent) {
                     freeTokens(arr);
@@ -1761,7 +1719,7 @@ namespace eval {
                 Token *n;
                 // If the base exists, recursively evaluate it
                 if (((neda::Radical *) exprs[index])->n) {
-                    n = evaluate((neda::Container *) ((neda::Radical *) exprs[index])->n, varc, vars, funcc, funcs);
+                    n = evaluate((neda::Container *) ((neda::Radical *) exprs[index])->n, env);
                 }
                 // No base - implied square root
                 else {
@@ -1769,7 +1727,7 @@ namespace eval {
                 }
                 // Recursively evaluate the contents of the radical
                 Token *contents = evaluate(
-                        (neda::Container *) ((neda::Radical *) exprs[index])->contents, varc, vars, funcc, funcs);
+                        (neda::Container *) ((neda::Radical *) exprs[index])->contents, env);
                 // If an error occurs, clean up and return null
                 if (!n || !contents || n->getType() == TokenType::MATRIX) {
                     // nullptr deletion allowed; no need for checking
@@ -1847,7 +1805,7 @@ namespace eval {
                     // Evaluate the contents of the subscript
                     Token *res = evaluate(
                             static_cast<neda::Container *>(static_cast<neda::Superscript *>(exprs[end])->contents),
-                            varc, vars, funcc, funcs);
+                            env);
                     // Check for syntax errors, noninteger result, and out of bounds
                     double n;
                     if (!res || res->getType() == TokenType::MATRIX || (n = extractDouble(res), !util::isInt(n)) ||
@@ -1889,7 +1847,7 @@ namespace eval {
 
                     // Evaluate its arguments
                     bool err = false;
-                    auto args = evaluateArgs(exprs, varc, vars, funcc, funcs, end, end, err);
+                    auto args = evaluateArgs(exprs, env, end, end, err);
                     if (err || args.length() != 1 || args[0]->getType() == TokenType::MATRIX) {
                         // Syntax error
                         freeTokens(args);
@@ -1928,8 +1886,7 @@ namespace eval {
                             arr.add(new Operator(Operator::Type::MULTIPLY));
                         }
                         // Evaluate
-                        Token *result = SPECIAL_EXPRESSION_PARSERS[i](exprs, varc, vars, funcc, funcs, 
-                                end, end);
+                        Token *result = SPECIAL_EXPRESSION_PARSERS[i](exprs, env, end, end);
                         
                         delete[] str;
                         if(!result) {
@@ -1956,11 +1913,11 @@ namespace eval {
                     // If it's not a normal function then try to find a user function that matches
                     if (!func) {
                         // Loop through all functions
-                        for (uint16_t i = 0; i < funcc; ++i) {
+                        for(const auto &f : env.funcs) {
                             // Compare with all the names of user-defined functions
-                            if (strcmp(funcs[i].name, str) == 0) {
+                            if (strcmp(f.name, str) == 0) {
                                 // If found, set uFunc to point to it
-                                uFunc = funcs + i;
+                                uFunc = &f;
                                 break;
                             }
                         }
@@ -1972,8 +1929,8 @@ namespace eval {
                             arr.add(new Operator(Operator::Type::MULTIPLY));
                         }
 
-                        Token *result = func ? evaluateBuiltinFunction(func, exprs, varc, vars, funcc, funcs, end, end) 
-                                : evaluateUserDefinedFunction(uFunc, exprs, varc, vars, funcc, funcs, end, end);
+                        Token *result = func ? evaluateBuiltinFunction(func, exprs, env, end, end) 
+                                : evaluateUserDefinedFunction(uFunc, exprs, env, end, end);
                         
                         delete func;
                         if(!result) {
@@ -2001,29 +1958,42 @@ namespace eval {
                         if (n) {
                             arr.add(n);
                         }
-                        // Otherwise check if it's a valid variable
                         else {
-                            // Loop through all variables
-                            uint16_t i;
-                            for (i = 0; i < varc; i++) {
+                            // Check arguments
+                            for(auto &var : env.args) {
                                 // Compare with each variable name
-                                if (strcmp(str, vars[i].name) == 0) {
+                                if (strcmp(str, var.name) == 0) {
                                     // We found a match!
-                                    if (vars[i].value->getType() == TokenType::NUMERICAL) {
-                                        arr.add(new Numerical(static_cast<Numerical *>(vars[i].value)->value));
+                                    if (var.value->getType() == TokenType::NUMERICAL) {
+                                        arr.add(new Numerical(static_cast<Numerical *>(var.value)->value));
                                     }
                                     else {
-                                        arr.add(new Matrix(*static_cast<Matrix *>(vars[i].value)));
+                                        arr.add(new Matrix(*static_cast<Matrix *>(var.value)));
                                     }
-                                    break;
+                                    lastTokenOperator = false;
+                                    goto charParseEnd;
                                 }
                             }
-                            // If no match was found, cleanup and return
-                            if (i == varc) {
-                                freeTokens(arr);
-                                delete[] str;
-                                return nullptr;
+                            // Otherwise check if it's a valid variable
+                            // Loop through all variables
+                            for(auto &var : env.vars) {
+                                // Compare with each variable name
+                                if (strcmp(str, var.name) == 0) {
+                                    // We found a match!
+                                    if (var.value->getType() == TokenType::NUMERICAL) {
+                                        arr.add(new Numerical(static_cast<Numerical *>(var.value)->value));
+                                    }
+                                    else {
+                                        arr.add(new Matrix(*static_cast<Matrix *>(var.value)));
+                                    }
+                                    lastTokenOperator = false;
+                                    goto charParseEnd;
+                                }
                             }
+                            // Nothing found
+                            freeTokens(arr);
+                            delete[] str;
+                            return nullptr;
                         }
                         lastTokenOperator = false;
                     }
@@ -2034,6 +2004,7 @@ namespace eval {
                     index = end;
                     lastTokenOperator = false;
                 }
+            charParseEnd:
                 // Clean up the string buffer and move on
                 delete[] str;
                 index = end;
@@ -2045,7 +2016,7 @@ namespace eval {
             case neda::ObjType::SIGMA_PI: {
                 // First recursively evaluate the end value
                 Token *end = evaluate(
-                        (neda::Container *) ((neda::SigmaPi *) exprs[index])->finish, varc, vars, funcc, funcs);
+                        (neda::Container *) ((neda::SigmaPi *) exprs[index])->finish, env);
                 if (!end) {
                     freeTokens(arr);
                     return nullptr;
@@ -2064,7 +2035,7 @@ namespace eval {
                 const util::DynamicArray<neda::NEDAObj *> startVal =
                         util::DynamicArray<neda::NEDAObj *>::createConstRef(
                                 startContents.begin() + equalsIndex + 1, startContents.end());
-                Token *start = evaluate(startVal, varc, vars, funcc, funcs);
+                Token *start = evaluate(startVal, env);
                 // Check for syntax error
                 if (!start) {
                     delete end;
@@ -2086,18 +2057,9 @@ namespace eval {
                 }
                 // Null termination
                 vName[equalsIndex] = '\0';
-
-                // Just like in the case of a user-defined function, we create a new environment with the counter
-                // variable. The counter variable is copied in first and gets precedence over other variables.
-                // Construct new variable arrays
-                Variable *newVars = new Variable[varc + 1];
-                // Copy in the counter variable
-                newVars[0].name = vName;
-                newVars[0].value = start;
-                // Copy existing variables
-                for (uint16_t i = 0; i < varc; i++) {
-                    newVars[i + 1] = vars[i];
-                }
+                // Add it as a variable
+                // Insert at index 0 so it overrides all other args
+                env.args.insert(Variable(vName, start), 0);
 
                 // Find the type of operation by extracting the symbol
                 auto &type = ((neda::SigmaPi *) exprs[index])->symbol;
@@ -2107,15 +2069,13 @@ namespace eval {
                 while (static_cast<Numerical *>(start)->value < static_cast<Numerical *>(end)->value ||
                         static_cast<Numerical *>(start)->value.feq(static_cast<Numerical *>(end)->value)) {
                     // Evaluate the inside expression
-                    Token *n = evaluate((neda::Container *) ((neda::SigmaPi *) exprs[index])->contents, varc + 1,
-                            newVars, funcc, funcs);
+                    Token *n = evaluate((neda::Container *) ((neda::SigmaPi *) exprs[index])->contents, env);
 
                     // If there is ever a syntax error then cleanup and exit
                     if (!n) {
                         delete end;
                         delete start;
                         delete[] vName;
-                        delete[] newVars;
                         delete val;
                         freeTokens(arr);
                         return nullptr;
@@ -2134,6 +2094,8 @@ namespace eval {
                     // Add one to the counter variable
                     static_cast<Numerical *>(start)->value += 1;
                 }
+                // Remove the counter variable added as an argument previously
+                env.args.removeAt(0);
                 // If val was not set, then there were no iterations
                 // Set it to a default value instead
                 // For summation this is 0, for product it is 1
@@ -2147,7 +2109,6 @@ namespace eval {
                 delete end;
                 delete start;
                 delete[] vName;
-                delete[] newVars;
                 // Move on to the next object
                 ++index;
                 lastTokenOperator = false;
@@ -2167,7 +2128,7 @@ namespace eval {
                 bool fromVecs = false;
                 // Evaluate every entry
                 for (uint16_t i = 0; i < nMat->m * nMat->n; i++) {
-                    Token *n = evaluate((neda::Container *) nMat->contents[i], varc, vars, funcc, funcs);
+                    Token *n = evaluate((neda::Container *) nMat->contents[i], env);
                     // Check for syntax error
                     if (!n) {
                         delete mat;
@@ -2232,7 +2193,7 @@ namespace eval {
                 for (uint8_t i = 0; i < p->pieces; i++) {
 
                     // Evaluate the condition
-                    Token *n = evaluate(static_cast<neda::Container *>(p->conditions[i]), varc, vars, funcc, funcs);
+                    Token *n = evaluate(static_cast<neda::Container *>(p->conditions[i]), env);
                     bool isElse = false;
                     // Syntax error
                     if (!n) {
@@ -2262,7 +2223,7 @@ namespace eval {
                     // Condition is true
                     else if (condition == 1) {
                         // Evaluate value
-                        val = evaluate(static_cast<neda::Container *>(p->values[i]), varc, vars, funcc, funcs);
+                        val = evaluate(static_cast<neda::Container *>(p->values[i]), env);
 
                         // Syntax error
                         if (!val) {
@@ -2327,7 +2288,7 @@ namespace eval {
 
                 // No comma
                 if (commaIndex == contents.length()) {
-                    Token *t = evaluate(contents, varc, vars, funcc, funcs);
+                    Token *t = evaluate(contents, env);
                     // Check for syntax errors in expression, or noninteger result
                     if (!t || t->getType() == TokenType::MATRIX || !util::isInt(extractDouble(t))) {
                         delete t;
@@ -2371,7 +2332,7 @@ namespace eval {
                             util::DynamicArray<neda::NEDAObj *>::createConstRef(
                                     contents.begin() + commaIndex + 1, contents.end());
 
-                    Token *row = evaluate(rowExpr, varc, vars, funcc, funcs);
+                    Token *row = evaluate(rowExpr, env);
                     // Check for syntax errors in expression, or noninteger result
                     if (!row || row->getType() == TokenType::MATRIX || !util::isInt(extractDouble(row))) {
                         // Wildcard syntax
@@ -2384,7 +2345,7 @@ namespace eval {
                             return nullptr;
                         }
                     }
-                    Token *col = evaluate(colExpr, varc, vars, funcc, funcs);
+                    Token *col = evaluate(colExpr, env);
                     if (!col || col->getType() == TokenType::MATRIX || !util::isInt(extractDouble(col))) {
                         // Wildcard syntax
                         if (colExpr.length() == 1 && extractChar(colExpr[0]) == '*') {
@@ -2485,8 +2446,7 @@ namespace eval {
                 if (!lastTokenOperator) {
                     arr.add(new Operator(Operator::Type::MULTIPLY));
                 }
-                Token *t = evaluate(static_cast<neda::Container *>(static_cast<neda::Abs *>(exprs[index])->contents),
-                        varc, vars, funcc, funcs);
+                Token *t = evaluate(static_cast<neda::Container *>(static_cast<neda::Abs *>(exprs[index])->contents), env);
 
                 if (!t) {
                     freeTokens(arr);

@@ -9,6 +9,7 @@
 #endif
 #include "dynamarr.hpp"
 #include "eval.hpp"
+#include "exception.hpp"
 #include "exprentry.hpp"
 #include "gpiopin.hpp"
 #include "keydef.h"
@@ -22,10 +23,9 @@
 #include "tetris.hpp"
 #include "usart.hpp"
 #include "util.hpp"
-#include "exception.hpp"
 #include <inttypes.h>
 
-#define VERSION_STR "V1.5.1"
+#define VERSION_STR "V1.5.2"
 
 #ifdef _USE_CONSOLE
 #pragma message("Compiling with the USART Console.")
@@ -61,11 +61,12 @@ extern "C" {
 bool displayErrorMessageLine(uint8_t &line, const char *str) {
     display.drawString(0, line * 10, str);
 
-    line ++;
-    if(line == 6) {
+    line++;
+    if (line == 6) {
         line = 0;
         display.updateDrawing();
-        while(!keyboard.receivePending());
+        while (!keyboard.receivePending())
+            ;
         keyboard.receive();
         display.clearDrawingBuffer();
         return true;
@@ -80,7 +81,7 @@ void displayErrorMessage(const char *type, uint32_t pc[], const char fn[][64], u
     TIM_Cmd(TIM3, DISABLE);
     // Reset the keyboard in case it was in analog mode
     keyboard.send32(KEYMSG_RESET);
-    while(1) {
+    while (1) {
         uint8_t line = 0;
         char buf[64];
 
@@ -90,90 +91,96 @@ void displayErrorMessage(const char *type, uint32_t pc[], const char fn[][64], u
         displayErrorMessageLine(line, "ion has occurred.");
         displayErrorMessageLine(line, "Exception Type:");
         displayErrorMessageLine(line, type);
-        line ++;
+        line++;
         displayErrorMessageLine(line, "**BEGIN STACKTRACE**");
-        
-        for(uint16_t i = 0; i < length; i ++) {
+
+        for (uint16_t i = 0; i < length; i++) {
             // Print the number and program counter
             sprintf(buf, "[%d] - 0x%08" PRIx32 "", i, pc[i]);
             displayErrorMessageLine(line, buf);
 
             uint8_t len = strlen(fn[i]);
             // Handle line wrapping
-            for(uint8_t s = 0; s < len; s += CHARS_PER_LINE) {
+            for (uint8_t s = 0; s < len; s += CHARS_PER_LINE) {
                 // Copy substring
                 strncpy(buf, fn[i] + s, CHARS_PER_LINE);
                 // Null terminate if necessary
-                if(s + CHARS_PER_LINE < len) {
+                if (s + CHARS_PER_LINE < len) {
                     buf[CHARS_PER_LINE] = '\0';
                 }
                 displayErrorMessageLine(line, buf);
             }
         }
 
-        if(!displayErrorMessageLine(line, "**END STACKTRACE**")) {
+        if (!displayErrorMessageLine(line, "**END STACKTRACE**")) {
             display.updateDrawing();
-            while(!keyboard.receivePending());
+            while (!keyboard.receivePending())
+                ;
             keyboard.receive();
         }
     }
 }
 
 void __attribute__((naked)) HardFault_Handler() {
-	asm volatile (
-			"mrs r0, msp \n"
-			"ldr r2, handler_address \n"
-			"bx r2 \n"
+    asm volatile("mrs r0, msp \n"
+                 "ldr r2, handler_address \n"
+                 "bx r2 \n"
 
-			"handler_address: .word HardFault_Handler_impl \n"
-	);
+                 "handler_address: .word HardFault_Handler_impl \n");
 }
 
 void __attribute__((naked)) UsageFault_Handler() {
-	asm volatile (
-			"mrs r0, msp \n"
-			"ldr r2, handler_address2 \n"
-			"bx r2 \n"
+    asm volatile("mrs r0, msp \n"
+                 "ldr r2, handler_address2 \n"
+                 "bx r2 \n"
 
-			"handler_address2: .word UsageFault_Handler_impl \n"
-	);
+                 "handler_address2: .word UsageFault_Handler_impl \n");
 }
 
 void HardFault_Handler_impl(uint32_t *stackAtFault) {
-	uint32_t PC, SP, LR; exception::loadRegsFromFaultTrace(stackAtFault, PC, LR, SP);
-	uint16_t backtrace_len = 64;
-	uint32_t backtrace[64]; exception::fillBacktrace(backtrace, backtrace_len, PC, LR, SP);
-	char funcnames[backtrace_len][64]; exception::fillSymbols(funcnames, backtrace, backtrace_len);
-	puts("BACKTRACE:");
-	for (int i = 0; i < backtrace_len; ++i) {
-		printf("[%d] - 0x%08" PRIx32 " <%s>\n", i, backtrace[i], funcnames[i]);
-	}
+    uint32_t PC, SP, LR;
+    exception::loadRegsFromFaultTrace(stackAtFault, PC, LR, SP);
+    uint16_t backtrace_len = 64;
+    uint32_t backtrace[64];
+    exception::fillBacktrace(backtrace, backtrace_len, PC, LR, SP);
+    char funcnames[backtrace_len][64];
+    exception::fillSymbols(funcnames, backtrace, backtrace_len);
+    puts("BACKTRACE:");
+    for (int i = 0; i < backtrace_len; ++i) {
+        printf("[%d] - 0x%08" PRIx32 " <%s>\n", i, backtrace[i], funcnames[i]);
+    }
     displayErrorMessage("HardFault", backtrace, funcnames, backtrace_len);
 }
 
 void UsageFault_Handler_impl(uint32_t *stackAtFault) {
-	uint32_t PC, SP, LR; exception::loadRegsFromFaultTrace(stackAtFault, PC, LR, SP);
-	uint16_t backtrace_len = 64;
-	uint32_t backtrace[64]; exception::fillBacktrace(backtrace, backtrace_len, PC, LR, SP);
-	char funcnames[backtrace_len][64]; exception::fillSymbols(funcnames, backtrace, backtrace_len);
-	puts("BACKTRACE:");
-	for (int i = 0; i < backtrace_len; ++i) {
-		printf("[%d] - 0x%08" PRIx32 " <%s>\n", i, backtrace[i], funcnames[i]);
-	}
+    uint32_t PC, SP, LR;
+    exception::loadRegsFromFaultTrace(stackAtFault, PC, LR, SP);
+    uint16_t backtrace_len = 64;
+    uint32_t backtrace[64];
+    exception::fillBacktrace(backtrace, backtrace_len, PC, LR, SP);
+    char funcnames[backtrace_len][64];
+    exception::fillSymbols(funcnames, backtrace, backtrace_len);
+    puts("BACKTRACE:");
+    for (int i = 0; i < backtrace_len; ++i) {
+        printf("[%d] - 0x%08" PRIx32 " <%s>\n", i, backtrace[i], funcnames[i]);
+    }
     displayErrorMessage("UsageFault", backtrace, funcnames, backtrace_len);
 }
 
 // Redefine _fini to allow loading of library
 void _fini() {
     // According to specifications this function should never return
-	uint32_t PC, SP, LR; exception::loadRegsFromCurrentLocation(PC, LR, SP);
-	uint16_t backtrace_len = 64;
-	uint32_t backtrace[64]; exception::fillBacktrace(backtrace, backtrace_len, PC, LR, SP);
-	char funcnames[backtrace_len][64]; exception::fillSymbols(funcnames, backtrace, backtrace_len);
-	puts("BACKTRACE:");
-	for (int i = 0; i < backtrace_len; ++i) {
-		printf("[%d] - 0x%08" PRIx32 " <%s>\n", i, backtrace[i], funcnames[i]);
-	}
+    uint32_t PC, SP, LR;
+    exception::loadRegsFromCurrentLocation(PC, LR, SP);
+    uint16_t backtrace_len = 64;
+    uint32_t backtrace[64];
+    exception::fillBacktrace(backtrace, backtrace_len, PC, LR, SP);
+    char funcnames[backtrace_len][64];
+    exception::fillSymbols(funcnames, backtrace, backtrace_len);
+    puts("BACKTRACE:");
+    for (int i = 0; i < backtrace_len; ++i) {
+        printf("[%d] - 0x%08" PRIx32 " <%s>\n", i, backtrace[i], funcnames[i]);
+    }
 
     displayErrorMessage("_fini", backtrace, funcnames, backtrace_len);
 }
