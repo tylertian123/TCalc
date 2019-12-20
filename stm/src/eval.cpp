@@ -782,6 +782,7 @@ namespace eval {
             "mean(values...)",
             "rand()",
             "linReg(x,y,model...)",
+            "solve(eqn,min,max,err)"
     };
     Function *Function::fromString(const char *str) {
         for (uint8_t i = 0; i < TYPE_COUNT; i++) {
@@ -1517,15 +1518,179 @@ namespace eval {
         return result ? result : new Numerical(NAN);
     }
 
+    constexpr uint16_t BISECTION_MAX_ITERATIONS = 255;
+
+    Token *solveSEP(const util::DynamicArray<neda::NEDAObj *> &expr, const Environment &env, uint16_t start, uint16_t &endOut) {
+        if(start + 1 >= expr.length() || expr[start]->getType() != neda::ObjType::L_BRACKET) {
+            return nullptr;
+        }
+
+        uint16_t nesting = 0;
+        uint16_t argStart = start + 1;
+        uint16_t argn = 0;
+        
+        uint16_t eqnEnd;
+        // Since this is a numerical solver anyways keeping fractions is not a concern
+        double min = 0, max = 0, err = 0;
+
+        for(endOut = start; endOut < expr.length(); endOut ++) {
+            // left bracket - increase nesting
+            if(expr[endOut]->getType() == neda::ObjType::L_BRACKET) {
+                ++nesting;
+            }
+            // right bracket - decrease nesting
+            else if(expr[endOut]->getType() == neda::ObjType::R_BRACKET) {
+                --nesting;
+                // All brackets finished
+                if(!nesting) {
+                    // Try evaluating the last argument
+                    if(argn > 3) {
+                        // Too many arguments!
+                        return nullptr;
+                    }
+                    
+                    // Save the equation if it's the first arg
+                    if(argn == 0) {
+                        eqnEnd = endOut;
+                    }
+                    // Try evaluate
+                    else {
+                        Token *result = evaluate(util::DynamicArray<neda::NEDAObj *>::createConstRef(expr.begin() + argStart, expr.begin() + endOut), env);
+                        /// Syntax error or non-number
+                        if(!result || !result->getType() == TokenType::NUMERICAL) {
+                            delete result;
+                            return nullptr;
+                        }
+                        (argn == 1 ? min : (argn == 2 ? max : err)) = static_cast<Numerical *>(result)->value.asDouble();
+                        delete result;
+                    }
+                    argn ++;
+                    break;
+                }
+            }
+            // comma - handle arguments
+            // Only do this if nesting level is 1, so commas inside inner brackets are not counted by mistake
+            else if(expr[endOut]->getType() == neda::ObjType::CHAR_TYPE && extractChar(expr[endOut]) == ',' && nesting == 1) {
+                if(argn > 3) {
+                    // Too many arguments!
+                    return nullptr;
+                }
+                
+                // Save the equation if it's the first arg
+                if(argn == 0) {
+                    eqnEnd = endOut;
+                }
+                // Try evaluate
+                else {
+                    Token *result = evaluate(util::DynamicArray<neda::NEDAObj *>::createConstRef(expr.begin() + argStart, expr.begin() + endOut), env);
+                    /// Syntax error or non-number
+                    if(!result || !result->getType() == TokenType::NUMERICAL) {
+                        delete result;
+                        return nullptr;
+                    }
+                    (argn == 1 ? min : (argn == 2 ? max : err)) = static_cast<Numerical *>(result)->value.asDouble();
+                    delete result;
+                }
+                argn ++;
+                // Skip the comma
+                argStart = endOut + 1;
+            }
+        }
+        ++endOut;
+
+        // Wrong bounds or wrong number of args
+        // Note 3 arguments is also acceptable, in which case the accepted error is 0
+        if(argn < 3 || max < min) {
+            return nullptr;
+        }
+
+        // Set up equation
+        const util::DynamicArray<neda::NEDAObj *> eqn = util::DynamicArray<neda::NEDAObj *>::createConstRef(
+                expr.begin() + start + 1, expr.begin() + eqnEnd);
+        Numerical arg(min);
+        Variable varg("x", &arg);
+        env.args.insert(varg, 0);
+
+        // Evaluate on bounds of interval
+        Token *t = evaluate(eqn, env);
+        double minVal;
+        if(!t || t->getType() != TokenType::NUMERICAL) {
+            delete t;
+            return nullptr;
+        }
+        minVal = static_cast<Numerical *>(t)->value.asDouble();
+        delete t;
+
+        arg.value = max;
+        t = evaluate(eqn, env);
+        double maxVal;
+        if(!t || t->getType() != TokenType::NUMERICAL) {
+            delete t;
+            return nullptr;
+        }
+        maxVal = static_cast<Numerical *>(t)->value.asDouble();
+        delete t;
+
+        // Test for zeros
+        if(minVal == 0) {
+            env.args.removeAt(0);
+            return new Numerical(minVal);
+        }
+        if(maxVal == 0) {
+            env.args.removeAt(0);
+            return new Numerical(maxVal);
+        }
+        // Test for same sign or infinite or NaN
+        if((minVal > 0 && maxVal > 0) || (minVal < 0 && maxVal < 0) || !isfinite(minVal) || !isfinite(maxVal) || err < 0) {
+            env.args.removeAt(0);
+            return new Numerical(NAN);
+        }
+
+        // Start bisection
+        for(uint16_t iterations = 0; iterations < BISECTION_MAX_ITERATIONS; iterations ++) {
+            double x = min + (max - min) / 2;
+            // Evaluate on middle
+            arg.value = x;
+            t = evaluate(eqn, env);
+            if(!t || t->getType() != TokenType::NUMERICAL) {
+                delete t;
+                return nullptr;
+            }
+            double val = static_cast<Numerical *>(t)->value.asDouble();
+            delete t;
+            // Value within range
+            if(util::abs(val) <= err) {
+                env.args.removeAt(0);
+                return new Numerical(x);
+            }
+
+            // Iterate again
+            if((minVal < 0 && val > 0) || (minVal > 0 && val < 0)) {
+                max = x;
+                maxVal = val;
+            }
+            else {
+                min = x;
+                minVal = val;
+            }
+        }
+
+        return new Numerical(min + (max - min) / 2);
+
+        env.args.removeAt(0);
+    }
+
     typedef Token *(*const SpecialExpressionParser)(const util::DynamicArray<neda::NEDAObj *> &expr, const Environment &env, uint16_t start, uint16_t &endOut);
     const char * const SPECIAL_EXPRESSION_NAMES[] = {
         "log",
         "linReg",
+        "solve",
     };
     constexpr auto SPECIAL_EXPRESSION_LEN = sizeof(SPECIAL_EXPRESSION_NAMES) / sizeof(const char *const);
     const SpecialExpressionParser SPECIAL_EXPRESSION_PARSERS[SPECIAL_EXPRESSION_LEN] = {
         &logSEP,
         &linRegSEP,
+        &solveSEP,
     };
 
     Token *evaluate(const neda::Container *expr, const util::DynamicArray<Variable> &vars, const util::DynamicArray<UserDefinedFunction> &funcs) {

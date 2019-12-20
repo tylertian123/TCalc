@@ -227,7 +227,7 @@ namespace eval {
         // Used for displaying, doesn't have to contain all functions
         static const char *const FUNC_FULLNAMES[];
         // Length of FUNC_FULLNAMES
-        static constexpr uint8_t TYPE_COUNT_DISPLAYABLE = 27;
+        static constexpr uint8_t TYPE_COUNT_DISPLAYABLE = 28;
 
         Function(Type type) : type(type) {
         }
