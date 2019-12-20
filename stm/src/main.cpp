@@ -137,6 +137,16 @@ void __attribute__((naked)) UsageFault_Handler() {
                  "handler_address2: .word UsageFault_Handler_impl \n");
 }
 
+void __attribute__((naked)) BusFault_Handler() {
+	asm volatile (
+			"mrs r0, msp \n"
+			"ldr r2, handler_address3 \n"
+			"bx r2 \n"
+
+			"handler_address3: .word BusFault_Handler_impl \n"
+	);
+}
+
 void HardFault_Handler_impl(uint32_t *stackAtFault) {
     uint32_t PC, SP, LR;
     exception::loadRegsFromFaultTrace(stackAtFault, PC, LR, SP);
@@ -165,6 +175,18 @@ void UsageFault_Handler_impl(uint32_t *stackAtFault) {
         printf("[%d] - 0x%08" PRIx32 " <%s>\n", i, backtrace[i], funcnames[i]);
     }
     displayErrorMessage("UsageFault", backtrace, funcnames, backtrace_len);
+}
+
+void BusFault_Handler_impl(uint32_t *stackAtFault) {
+	uint32_t PC, SP, LR; exception::loadRegsFromFaultTrace(stackAtFault, PC, LR, SP);
+	uint16_t backtrace_len = 64;
+	uint32_t backtrace[64]; exception::fillBacktrace(backtrace, backtrace_len, PC, LR, SP);
+	char funcnames[backtrace_len][64]; exception::fillSymbols(funcnames, backtrace, backtrace_len);
+	puts("BACKTRACE:");
+	for (int i = 0; i < backtrace_len; ++i) {
+		printf("[%d] - 0x%08" PRIx32 " <%s>\n", i, backtrace[i], funcnames[i]);
+	}
+    displayErrorMessage("BusFault", backtrace, funcnames, backtrace_len);
 }
 
 // Redefine _fini to allow loading of library
