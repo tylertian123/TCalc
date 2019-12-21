@@ -57,9 +57,9 @@ namespace console {
             NVIC_SystemReset();
         }
         else if(strcmp(cmd, "stackinfo") == 0) {
-            printf("Stack Start Address: %#010lx\n", *reinterpret_cast<uint32_t*>(0x00000000));
+            printf("Stack Start Address: %#010lx\n", *reinterpret_cast<uint32_t*>(0x08000000));
             printf("Stack End Address: %#010lx\n", reinterpret_cast<uint32_t>(&__stack_limit));
-            printf("Stack Size: %#010lx\n", *reinterpret_cast<uint32_t*>(0x00000000) - reinterpret_cast<uint32_t>(&__stack_limit));
+            printf("Stack Size: %#010lx\n", *reinterpret_cast<uint32_t*>(0x08000000) - reinterpret_cast<uint32_t>(&__stack_limit));
             printf("Current Stack Pointer: %#010lx\n", __current_sp());
         }
         else if(strcmp(cmd, "blink") == 0) {
@@ -76,29 +76,6 @@ namespace console {
                 }
                 else {
                     printf("Usage: blink [on|off]\n");
-                }
-            }
-        }
-        else if(strcmp(cmd, "input") == 0) {
-            cmd = strtok(NULL, " ");
-            if(!cmd) {
-                printf("Usage: input [on|off]\n");
-            }
-            else {
-                EXTI_InitTypeDef initStruct;
-                initStruct.EXTI_Line = EXTI_Line8;
-                initStruct.EXTI_Mode = EXTI_Mode_Interrupt;
-                initStruct.EXTI_Trigger = EXTI_Trigger_Rising_Falling;
-                if(strcmp(cmd, "on") == 0) {
-                    initStruct.EXTI_LineCmd = ENABLE;
-                    EXTI_Init(&initStruct);
-                }
-                else if(strcmp(cmd, "off") == 0) {
-                    initStruct.EXTI_LineCmd = DISABLE;
-                    EXTI_Init(&initStruct);
-                }
-                else {
-                    printf("Usage: input [on|off]\n");
                 }
             }
         }
