@@ -1,15 +1,20 @@
 #!/usr/bin/env bash
-set +e
-set -v
+echo "[*] Installing dependencies"
 
-echo "[*] Cloning the original qemu STM32"
+sudo apt-get install libglib2.0-dev libfdt-dev libpixman-1-dev zlib1g-dev libgtk-3-dev
 
-git clone https://github.com/beckus/qemu_stm32 --depth=1
+if [ ! -d "qemu_stm32" ]
+	echo "[*] Cloning the original qemu STM32"
 
-echo "[*] Applying TCalc patch"
+	git clone https://github.com/beckus/qemu_stm32 --depth=1
 
-cd qemu_stm32
-git apply ../upstream-qemu-patch.patch
+	echo "[*] Applying TCalc patch"
+
+	cd qemu_stm32
+	git apply ../upstream-qemu-patch.patch
+else
+	echo "[!] QEMU is already cloned!"
+fi
 
 echo "[*] Building QEMU"
 
