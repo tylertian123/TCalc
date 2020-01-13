@@ -3,7 +3,7 @@ echo "[*] Installing dependencies"
 
 sudo apt-get install libglib2.0-dev libfdt-dev libpixman-1-dev zlib1g-dev libgtk-3-dev
 
-if [ ! -d "qemu_stm32" ]
+if [ ! -d "qemu_stm32" ]; then
 	echo "[*] Cloning the original qemu STM32"
 
 	git clone https://github.com/beckus/qemu_stm32 --depth=1
