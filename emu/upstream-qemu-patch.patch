@@ -1,0 +1,1242 @@
+diff --git a/hw/arm/Makefile.objs b/hw/arm/Makefile.objs
+index f618c10a9..699257e5e 100644
+--- a/hw/arm/Makefile.objs
++++ b/hw/arm/Makefile.objs
+@@ -9,4 +9,4 @@ obj-$(CONFIG_DIGIC) += digic.o
+ obj-y += omap1.o omap2.o strongarm.o
+ obj-$(CONFIG_ALLWINNER_A10) += allwinner-a10.o cubieboard.o
+ 
+-obj-y += stm32.o stm32_rcc.o stm32_clktree.o stm32_p103.o stm32_maple.o stm32_adc.o stm32_dac.o stm32_iwdg.o stm32_f103c8.o stm32_crc.o stm32_dma.o
++obj-y += stm32.o stm32_rcc.o stm32_clktree.o stm32_p103.o stm32_maple.o stm32_adc.o stm32_dac.o stm32_iwdg.o stm32_f103c8.o stm32_crc.o stm32_dma.o stm32_tcalc.o
+diff --git a/hw/arm/stm32_adc.c b/hw/arm/stm32_adc.c
+index 6b44dc213..bb098387e 100644
+--- a/hw/arm/stm32_adc.c
++++ b/hw/arm/stm32_adc.c
+@@ -793,18 +793,7 @@ static uint64_t stm32_ADC_get_nbr_cycle_per_sample(Stm32Adc* s,int channel)
+ /* REGISTER IMPLEMENTATION */
+ static void stm32_ADC_SR_write(Stm32Adc *s, uint32_t new_value)
+ {
+-    /* The ADC_SR flags can be cleared, but not set. */
+-    if(new_value & ADC_SR_EOC)
+-     hw_error("Software attempted to set ADC SR_EOC bit\n");
+-    if(new_value & ADC_SR_JEOC)
+-     hw_error("Software attempted to set ADC SR_JEOC bit\n");  
+-    if(new_value & ADC_SR_AWD)
+-     hw_error("Software attempted to set ADC SR_EOC bit\n");
+-    if(new_value & ADC_SR_JSTRT)
+-     hw_error("Software attempted to set ADC SR_JSTRT bit\n");
+-    if(new_value & ADC_SR_STRT)
+-     hw_error("Software attempted to set ADC SR_STRT bit\n");
+-  
++  	// ignore errors, follow hardware
+     s->ADC_SR= new_value & 0x0000001f;
+ 
+     stm32_ADC_update_irq(s); //modification of ADC_SR requiere update of interrupt 
+diff --git a/hw/arm/stm32_tcalc.c b/hw/arm/stm32_tcalc.c
+new file mode 100644
+index 000000000..b81439b35
+--- /dev/null
++++ b/hw/arm/stm32_tcalc.c
+@@ -0,0 +1,98 @@
++/*
++ * STM32 Tcalc (f103RBTx) board.
++ *
++ * Copyright (C) 2019 Matthew Mirvish
++ *
++ * Matthew Mirvish
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License as
++ * published by the Free Software Foundation; either version 2 of
++ * the License, or (at your option) any later version.
++ *
++ * This program is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License along
++ * with this program; if not, see <http://www.gnu.org/licenses/>.
++ */
++
++#include "hw/arm/stm32.h"
++#include "hw/sysbus.h"
++#include "hw/arm/arm.h"
++#include "hw/devices.h"
++#include "ui/console.h"
++#include "sysemu/sysemu.h"
++#include "hw/boards.h"
++#include "hw/display/st7920.h"
++
++static void stm32_tcalc_init(MachineState *machine)
++{
++    const char* kernel_filename = machine->kernel_filename;
++
++    stm32_init(/*flash_size*/0x0003ffff,
++               /*ram_size*/0x0000dfff,
++               kernel_filename,
++               8000000, // external oscillators, HSE = 8mhzj
++               32768);  // LSE is not used, but set it to 32k
++
++    DeviceState *gpio_a = DEVICE(object_resolve_path("/machine/stm32/gpio[a]", NULL));
++    DeviceState *gpio_b = DEVICE(object_resolve_path("/machine/stm32/gpio[b]", NULL));
++    DeviceState *gpio_c = DEVICE(object_resolve_path("/machine/stm32/gpio[c]", NULL));
++
++    DeviceState *debug_uart = DEVICE(object_resolve_path("/machine/stm32/uart[1]", NULL));
++
++	// Setup the uart as serial port 0
++	
++	stm32_uart_connect((Stm32Uart *)debug_uart, serial_hds[0], STM32_USART1_NO_REMAP);
++
++	DeviceState *display_dev = sysbus_create_simple(TYPE_ST7920, -1, NULL);
++
++	qdev_connect_gpio_out(display_dev, ST7920_PIN_DBx + 0, qdev_get_gpio_in(gpio_b, 12));
++	qdev_connect_gpio_out(display_dev, ST7920_PIN_DBx + 1, qdev_get_gpio_in(gpio_b, 13));
++	qdev_connect_gpio_out(display_dev, ST7920_PIN_DBx + 2, qdev_get_gpio_in(gpio_b, 14));
++	qdev_connect_gpio_out(display_dev, ST7920_PIN_DBx + 3, qdev_get_gpio_in(gpio_b, 15));
++	qdev_connect_gpio_out(display_dev, ST7920_PIN_DBx + 4, qdev_get_gpio_in(gpio_c, 6));
++	qdev_connect_gpio_out(display_dev, ST7920_PIN_DBx + 5, qdev_get_gpio_in(gpio_c, 7));
++	qdev_connect_gpio_out(display_dev, ST7920_PIN_DBx + 6, qdev_get_gpio_in(gpio_c, 8));
++	qdev_connect_gpio_out(display_dev, ST7920_PIN_DBx + 7, qdev_get_gpio_in(gpio_c, 9));
++
++	qdev_connect_gpio_out(gpio_b, 12, qdev_get_gpio_in(display_dev, ST7920_PIN_DBx + 0));
++	qdev_connect_gpio_out(gpio_b, 13, qdev_get_gpio_in(display_dev, ST7920_PIN_DBx + 1));
++	qdev_connect_gpio_out(gpio_b, 14, qdev_get_gpio_in(display_dev, ST7920_PIN_DBx + 2));
++	qdev_connect_gpio_out(gpio_b, 15, qdev_get_gpio_in(display_dev, ST7920_PIN_DBx + 3));
++	qdev_connect_gpio_out(gpio_c, 6, qdev_get_gpio_in(display_dev, ST7920_PIN_DBx + 4));
++	qdev_connect_gpio_out(gpio_c, 7, qdev_get_gpio_in(display_dev, ST7920_PIN_DBx + 5));
++	qdev_connect_gpio_out(gpio_c, 8, qdev_get_gpio_in(display_dev, ST7920_PIN_DBx + 6));
++	qdev_connect_gpio_out(gpio_c, 9, qdev_get_gpio_in(display_dev, ST7920_PIN_DBx + 7));
++
++	qdev_connect_gpio_out(gpio_c, 10, qdev_get_gpio_in(display_dev, ST7920_PIN_RS));
++	qdev_connect_gpio_out(gpio_c, 11, qdev_get_gpio_in(display_dev, ST7920_PIN_RW));
++	qdev_connect_gpio_out(gpio_c, 12, qdev_get_gpio_in(display_dev, ST7920_PIN_E));
++
++	DeviceState *kbd_dev = sysbus_create_simple("tsbdi", -1, NULL);
++
++	qdev_connect_gpio_out(gpio_b, 6, qdev_get_gpio_in(kbd_dev, 2));
++	qdev_connect_gpio_out(gpio_b, 7, qdev_get_gpio_in(kbd_dev, 1));
++	qdev_connect_gpio_out(gpio_b, 8, qdev_get_gpio_in(kbd_dev, 0));
++
++	qdev_connect_gpio_out(kbd_dev, 2, qdev_get_gpio_in(gpio_b, 6));
++	qdev_connect_gpio_out(kbd_dev, 1, qdev_get_gpio_in(gpio_b, 7));
++	qdev_connect_gpio_out(kbd_dev, 0, qdev_get_gpio_in(gpio_b, 8));
++ }
++
++static QEMUMachine stm32_tcalc_machine = {
++    .name = "stm32-tcalc",
++    .desc = "TCalc (+emulated kbd)",
++    .init = stm32_tcalc_init,
++};
++
++
++static void stm32_tcalc_machine_init(void)
++{
++    qemu_register_machine(&stm32_tcalc_machine);
++}
++
++machine_init(stm32_tcalc_machine_init);
+diff --git a/hw/char/stm32_uart.c b/hw/char/stm32_uart.c
+index 5c8941444..25bfe264d 100644
+--- a/hw/char/stm32_uart.c
++++ b/hw/char/stm32_uart.c
+@@ -496,17 +496,15 @@ static void stm32_uart_USART_SR_write(Stm32Uart *s, uint32_t new_value)
+ 
+     new_TC = extract32(new_value, USART_SR_TC_BIT, 1);
+     /* The Transmit Complete flag can be cleared, but not set. */
+-    if(new_TC) {
+-        hw_error("Software attempted to set USART TC bit\n");
++    if(!new_TC) {
++		s->USART_SR_TC = new_TC;
+     }
+-    s->USART_SR_TC = new_TC;
+ 
+     new_RXNE = extract32(new_value, USART_SR_RXNE_BIT, 1);
+     /* The Read Data Register Not Empty flag can be cleared, but not set. */
+-    if(new_RXNE) {
+-        hw_error("Software attempted to set USART RXNE bit\n");
++    if(!new_RXNE) {
++		s->USART_SR_RXNE = new_RXNE;
+     }
+-    s->USART_SR_RXNE = new_RXNE;
+ 
+     stm32_uart_update_irq(s);
+ }
+diff --git a/hw/display/Makefile.objs b/hw/display/Makefile.objs
+index 7ed76a9c2..0a161b871 100644
+--- a/hw/display/Makefile.objs
++++ b/hw/display/Makefile.objs
+@@ -33,3 +33,4 @@ obj-$(CONFIG_CG3) += cg3.o
+ obj-$(CONFIG_VGA) += vga.o
+ 
+ common-obj-$(CONFIG_QXL) += qxl.o qxl-logger.o qxl-render.o
++common-obj-y += st7920.o
+diff --git a/hw/display/st7920.c b/hw/display/st7920.c
+new file mode 100644
+index 000000000..ba3ab7dbc
+--- /dev/null
++++ b/hw/display/st7920.c
+@@ -0,0 +1,425 @@
++/*
++ * ST7920 LCD controller with Shitty:tm: LCD panel
++ * Black on green for maximum authenticity
++ *
++ * Copyright (c) 2019 Matthew Mirvish
++ *
++ * GPL'd because why not
++ *
++ */
++
++/*
++ * This only implements 8-bit parallel mode with framebuffer.
++ */
++
++#include "ui/console.h"
++#include "hw/display/st7920.h"
++#include "hw/sysbus.h"
++
++#define MAGNIFY 4
++
++enum st7920_command_set {
++	ST7920_CS_BASIC,
++	ST7920_CS_EXTENDED
++};
++
++// address counter mode (Which address counter to update)
++enum st7920_ac_mode {
++	ST7920_AC_CGRAM,
++	ST7920_AC_DDRAM,
++	ST7920_AC_GDRAM
++};
++
++typedef struct {
++	// inherited
++	SysBusDevice busdev;
++
++	// output
++	QemuConsole *con;
++
++	// output IRQs
++	qemu_irq output[ST7920_PIN_COUNT];
++
++	// current state:
++	
++	// instruction decoding
++	enum st7920_command_set command_set;
++	bool gdram_set_horizontal;
++
++	// memory
++	uint16_t GDRAM[64][16];
++	uint8_t DDRAM[256];
++	// cgram not emulated
++	
++	// address counter
++	uint8_t ac_gdram_vertical, ac_gdram_horizontal;
++	uint8_t ac_ddram;
++	bool ac_low_byte;
++	bool ac_ddram_left;
++
++	enum st7920_ac_mode ac_mode;
++
++	// display source
++	bool use_gdram_for_fb;
++	bool eight_bit_mode;
++
++	// flags
++	bool display_enabled;
++
++	// pin values
++	bool rw;
++	bool rs;
++	bool en;
++	bool busy;
++
++	uint8_t db_byte;
++
++	// dirty
++	bool is_dirty;
++
++} ST7920;
++
++static void st7920_reset(DeviceState *s) {
++	ST7920 *dev = ST7920_(s);
++
++	dev->command_set = ST7920_CS_BASIC;
++	dev->gdram_set_horizontal = false;
++	memset(dev->GDRAM, 0, sizeof(dev->GDRAM));
++	memset(dev->DDRAM, 0, sizeof(dev->DDRAM));
++	
++	dev->ac_gdram_vertical = 0;
++	dev->ac_gdram_horizontal = 0;
++	dev->ac_ddram = 0;
++	dev->ac_low_byte = false;
++	dev->ac_ddram_left = 0;
++
++	dev->ac_mode = ST7920_AC_DDRAM;
++	dev->use_gdram_for_fb = false;
++	dev->eight_bit_mode = false;
++	dev->display_enabled = false;
++	dev->rw = false;
++	dev->rs = false;
++	dev->en = false;
++	dev->busy = false;
++	dev->db_byte = 0;
++	dev->is_dirty = false;
++}
++
++static void st7920_write_at(uint16_t *location, uint8_t value, bool *low_byte) {
++	// endianness is reversed inside chip
++	if (*low_byte) {
++		*location &= 0xFF00; *location |= value;
++	} else {
++		*location &= 0x00FF; *location |= (value << 8);
++	}
++	*low_byte = !*low_byte;
++}
++
++// WRITE BYTE
++static void st7920_write(ST7920 *dev, uint8_t byte) {
++	switch (dev->ac_mode) {
++		case ST7920_AC_CGRAM:
++			// don't handle this
++			break;
++		case ST7920_AC_DDRAM:
++			dev->DDRAM[(dev->ac_ddram_left ? dev->ac_ddram-- : dev->ac_ddram++)] = byte;
++			// wrap around
++			dev->ac_ddram %= 256;
++			break;
++		case ST7920_AC_GDRAM:
++			st7920_write_at(&dev->GDRAM[dev->ac_gdram_vertical][dev->ac_gdram_horizontal], byte, &dev->ac_low_byte);
++			if (!dev->ac_low_byte) ++dev->ac_gdram_horizontal;
++			// wrap around
++			dev->ac_gdram_horizontal %= 16;
++			break;
++	}
++}
++
++// COMMANDS
++// take the entire command byte from st7920_decode_command
++
++// "Set Graphic Display RAM Addresss" (code 10dddddd)
++static void st7920_set_ac_gdram(ST7920 *dev, uint8_t byte) {
++	dev->ac_mode = ST7920_AC_GDRAM;
++
++	if (dev->gdram_set_horizontal) {
++		dev->ac_gdram_horizontal = byte & 15;
++		dev->gdram_set_horizontal = false;
++	}
++	else {
++		dev->ac_gdram_vertical = byte & 63;
++		dev->gdram_set_horizontal = true;
++	}
++}
++
++// "Function Set"
++static void st7920_set_function_set(ST7920 *dev, uint8_t byte) {
++	// We only handle the case for DL = 1
++	
++	if (!(byte & (1 << 4))) {
++		hw_error("ST7920: don't handle 4-bit bus.\n");
++	}
++
++	enum st7920_command_set new_command_set = (byte & (1 << 2)) ? ST7920_CS_EXTENDED : ST7920_CS_BASIC;
++	printf("ST9720: requested command set = %d\n", new_command_set);
++
++	if (!dev->eight_bit_mode && new_command_set != dev->command_set) {
++		printf("ST7920: changed DL+RE, ignoring RE\n");
++		new_command_set = dev->command_set;
++	}
++
++	dev->eight_bit_mode = true;
++	if (dev->command_set == ST7920_CS_EXTENDED) {
++		dev->use_gdram_for_fb = (byte & (1 << 1)) != 0;
++		printf("ST9720: requested gdram = %d\n", dev->use_gdram_for_fb);
++	}
++
++	dev->command_set = new_command_set;
++}
++
++static void st7920_set_ac_ddram(ST7920 *dev, uint8_t byte) {
++	dev->ac_mode = ST7920_AC_DDRAM;
++	dev->ac_ddram = byte & 64;
++}
++
++static void st7920_set_entrymode(ST7920 *dev, uint8_t byte) {
++	if (byte & 1) {
++		printf("ST7920: don't support display shift\n");
++		return;
++	}
++	dev->ac_ddram_left = (byte & (1 << 1)) == 0;
++	printf("ST9720: entrymode set\n");
++}
++
++// "Display Control"
++static void st7920_set_disp_control(ST7920 *dev, uint8_t byte) {
++	dev->display_enabled = (byte & (1 << 2)) != 0;
++}
++
++// Instruction decoder
++static void st7920_decode_dommand(ST7920 *dev, uint8_t byte) {
++	switch (dev->command_set) {
++		case ST7920_CS_BASIC:
++			{
++				if (byte == 1) { /* do clear, wip */ }
++				else if ((byte & ~1) == 2) { /* return home */ }
++				else if ((byte & ~3) == 4) { st7920_set_entrymode(dev, byte); }
++				else if ((byte & ~7) == 8) { st7920_set_disp_control(dev, byte); }
++				else if ((byte & ~15) == 16) { /* cursor + display control */ }
++				else if ((byte & ~31) == 32) { st7920_set_function_set(dev, byte); }
++				else if ((byte & ~63) == 64) { /* set cgram address */ }
++				else { st7920_set_ac_ddram(dev, byte); }
++			}
++			break;
++		default:
++			{
++				if (byte == 1) { /* standby */ }
++				else if ((byte & ~1) == 2) { /* vertical scroll / cgram */ }
++				else if ((byte & ~2) == 3) { /* reverse by line */ }
++				else if ((byte & ~31) == 32) { st7920_set_function_set(dev, byte); }
++				else if ((byte & ~63) == 64) { /* set scroll address */ }
++				else if ((byte & 128) == 128) { st7920_set_ac_gdram(dev, byte); }
++			}
++			break;
++	}
++}
++
++// Entry point -- handle a byte coming in / going out over DB
++static uint8_t st7920_handle_req(ST7920 *dev, uint8_t byte, bool rw, bool rs) {
++	//printf("ST7920: got req w/ byte=%d, rw=%d, rs=%d\n", byte, rw, rs);
++
++	if (rw) {
++		if (rs) {
++			hw_error("ST7920: don't support reading ram");
++		}
++		else {
++			if (dev->busy) {
++				dev->busy = false;
++				return (1 << 7);
++			}
++			return 0;
++		}
++	}
++	else {
++		if (rs) {
++			st7920_write(dev, byte);
++
++
++			// hack:
++			dev->gdram_set_horizontal = false;
++		}
++		else {
++			st7920_decode_dommand(dev, byte);
++		}
++	}
++
++	return 0;
++}
++
++static void st7920_output_byte(ST7920 *dev, uint8_t byte) {
++	for (int irq = 0; irq < 8; ++irq) {
++		qemu_set_irq(dev->output[irq], (byte & (1 << irq)) ? 1 : 0);
++	}
++}
++
++static void st7920_handle_gpio_event(void *opaque, int irq, int level) {
++	ST7920 *dev = ST7920_(opaque);
++	//printf("ST7920: IRQ %d = %d\n", irq, level);
++	
++	if (irq < 8) {
++		if (dev->en) {
++			puts("ST7920: WARN data while EN");
++		}
++		// this is a data pin
++		dev->db_byte &= ~(1 << irq);
++		dev->db_byte |= (level ? 1 : 0) << irq;
++		//printf("ST7920: IRQv %d\n", dev->db_byte);
++	}
++	else if (irq == ST7920_PIN_RW) {
++		dev->rw = level == 1;
++	}
++	else if (irq == ST7920_PIN_RS) {
++		dev->rs = level == 1;
++	}
++	else if (irq == ST7920_PIN_E) {
++		if (dev->en) {
++			dev->en = level == 1;
++			if (level == 0) {
++				// passed as parameters because reasons
++				if (!dev->rw) dev->busy = true;
++				uint8_t output = st7920_handle_req(dev, dev->db_byte, dev->rw, dev->rs);
++				if (dev->rw) {
++					st7920_output_byte(dev, output);
++				}
++				else if (dev->rs) {
++					graphic_hw_invalidate(dev->con);
++					graphic_hw_update(dev->con);
++				}
++			}
++		}
++		else if (level != 0) {
++			dev->en = true;
++		}
++	}
++	else {
++		hw_error("ST7920: unknown pin\n");
++	}
++}
++
++static void st7920_invalidate_display(void * opaque) {
++    ST7920 *dev = (ST7920 *)opaque;
++	dev->is_dirty = true;
++}
++
++static bool st7920_lookup_pixel(ST7920 *dev, int x, int y) {
++	// display off, or not implemented
++	if (!(dev->display_enabled  && dev->use_gdram_for_fb)) return false;
++
++	if (y >= 32) {
++		y -= 32;
++		x += 128;
++	}
++
++	return dev->GDRAM[y][x / 16] & (0x8000 >> (x % 16));
++}
++
++static void st7920_update_display(void * opaque) {
++    ST7920 *dev = (ST7920 *)opaque;
++	DisplaySurface *surface = qemu_console_surface(dev->con);
++
++	if (!dev->is_dirty) return;
++
++	int dest_width = 0;
++	bool use_fullcolor = false;
++	switch (surface_bits_per_pixel(surface)) {
++		case 0:
++			return;
++		case 15:
++		case 16:
++			dest_width = 2;
++			break;
++		case 24:
++			dest_width = 3;
++			break;
++		case 32:
++			dest_width = 4;
++			use_fullcolor = true;
++			break;
++		default:
++			return;
++	}
++	dest_width *= MAGNIFY;
++
++	uint8_t off_row[dest_width];
++	uint8_t on_row[dest_width];
++	if (!use_fullcolor) {
++		memset(on_row, 0xff, dest_width);
++		memset(off_row, 0x00, dest_width);
++	}
++	else {
++		uint8_t on[4] = {0x00, 0x00, 0x00, 0xff};
++		uint8_t off[4] = {21, 143, 21, 0xff};
++		for (int i = 0; i < MAGNIFY; ++i) {
++			memcpy(off_row + i*4, off, 4);
++			memcpy(on_row + i*4, on, 4);
++		}
++	}
++
++	uint8_t *dest = surface_data(surface);
++	int advance_dest_line = surface_stride(surface);
++
++	for (int y = 0; y < 64; ++y) {
++		for (int x = 0; x < 128; ++x) {
++			uint8_t *src_buf = st7920_lookup_pixel(dev, x, y) ? on_row : off_row;
++			for (int mag_y = 0; mag_y < MAGNIFY; ++mag_y) {
++				memcpy(dest + advance_dest_line * mag_y, src_buf, dest_width);
++			}
++			dest += dest_width;
++		}
++		dest += advance_dest_line * (MAGNIFY - 1);
++	}
++
++	dev->is_dirty = false;
++	dpy_gfx_update(dev->con, 0, 0, 128 * MAGNIFY, 64 * MAGNIFY);
++}
++
++static const GraphicHwOps st7920_ops = {
++	.invalidate = st7920_invalidate_display,
++	.gfx_update = st7920_update_display,
++};
++
++static int st7920_init(SysBusDevice *s) {
++	ST7920 *dev = ST7920_(s);
++
++	// init screen
++	dev->con = graphic_console_init(DEVICE(s), 0, &st7920_ops, s);
++	qemu_console_resize(dev->con, 128 * MAGNIFY, 64 * MAGNIFY);
++
++	// gpio init
++	qdev_init_gpio_in(DEVICE(s), st7920_handle_gpio_event, ST7920_PIN_COUNT);
++	qdev_init_gpio_out(DEVICE(s), dev->output, ST7920_PIN_COUNT);
++
++	st7920_reset(DEVICE(s));
++	return 0;
++}
++
++static void st7920_class_init(ObjectClass *klass, void *data) {
++    DeviceClass *dc = DEVICE_CLASS(klass);
++    SysBusDeviceClass *s = SYS_BUS_DEVICE_CLASS(klass);
++
++	dc->reset = st7920_reset;
++	s->init  = st7920_init;
++}
++
++static TypeInfo st7920_info = {
++	.name = TYPE_ST7920,
++	.parent = TYPE_SYS_BUS_DEVICE,
++	.instance_size = sizeof(ST7920),
++	.class_init = st7920_class_init,
++};
++
++static void st7920_register_types(void) {
++	type_register_static(&st7920_info);
++}
++
++type_init(st7920_register_types);
+diff --git a/hw/gpio/stm32_gpio.c b/hw/gpio/stm32_gpio.c
+index 9bfd15183..2b09a8aa5 100644
+--- a/hw/gpio/stm32_gpio.c
++++ b/hw/gpio/stm32_gpio.c
+@@ -160,15 +160,7 @@ static void stm32_gpio_GPIOx_ODR_write(Stm32Gpio *s, uint32_t new_value)
+              */
+             if (changed_out & BIT(pin)) {
+                 qemu_set_irq(
+-                        /* The "irq_intercept_out" command in the qtest
+-                           framework overwrites the out IRQ array in the
+-                           NamedGPIOList structure (via the
+-                           qemu_irq_intercept_out procedure).  So we need
+-                           to reference this structure directly (rather than
+-                           use our local s->out_irq array) in order for
+-                           the unit tests to work. This is something of a hack,
+-                           but I don't have a solution yet. */
+-                        s->busdev.parent_obj.gpios.lh_first->out[pin],
++						s->out_irq[pin],
+                         (s->GPIOx_ODR & BIT(pin)) ? 1 : 0);
+             }
+         }
+diff --git a/hw/input/Makefile.objs b/hw/input/Makefile.objs
+index e8c80b9de..b7636a8f6 100644
+--- a/hw/input/Makefile.objs
++++ b/hw/input/Makefile.objs
+@@ -3,7 +3,7 @@ common-obj-y += hid.o
+ common-obj-$(CONFIG_LM832X) += lm832x.o
+ common-obj-$(CONFIG_PCKBD) += pckbd.o
+ common-obj-$(CONFIG_PL050) += pl050.o
+-common-obj-y += ps2.o
++common-obj-y += ps2.o tcalc_sbdi.o
+ common-obj-$(CONFIG_STELLARIS_INPUT) += stellaris_input.o
+ common-obj-$(CONFIG_TSC2005) += tsc2005.o
+ common-obj-$(CONFIG_VMMOUSE) += vmmouse.o
+diff --git a/hw/input/tcalc_defs.inc b/hw/input/tcalc_defs.inc
+new file mode 100644
+index 000000000..5ab9d2fb1
+--- /dev/null
++++ b/hw/input/tcalc_defs.inc
+@@ -0,0 +1,139 @@
++#define TC_KEY_NULL        0x0000
++
++#define TC_KEY_UP          0x0001
++#define TC_KEY_DOWN        0x0002
++#define TC_KEY_LEFT        0x0003
++#define TC_KEY_RIGHT       0x0004
++#define TC_KEY_CENTER      0x0005
++#define TC_KEY_CTRL        0x0006
++#define TC_KEY_SHIFT       0x0007
++#define TC_KEY_A           0x0008
++#define TC_KEY_B           0x0009
++#define TC_KEY_C           0x000A
++#define TC_KEY_D           0x000B
++#define TC_KEY_E           0x000C
++#define TC_KEY_F           0x000D
++#define TC_KEY_G           0x000E
++#define TC_KEY_H           0x000F
++#define TC_KEY_I           0x0010
++#define TC_KEY_J           0x0011
++#define TC_KEY_K           0x0012
++#define TC_KEY_L           0x0013
++#define TC_KEY_M           0x0014
++#define TC_KEY_N           0x0015
++#define TC_KEY_O           0x0016
++#define TC_KEY_P           0x0017
++#define TC_KEY_Q           0x0018
++#define TC_KEY_R           0x0019
++#define TC_KEY_S           0x001A
++#define TC_KEY_T           0x001B
++#define TC_KEY_U           0x001C
++#define TC_KEY_V           0x001D
++#define TC_KEY_W           0x001E
++#define TC_KEY_X           0x001F
++#define TC_KEY_Y           0x0020
++#define TC_KEY_Z           0x0021
++#define TC_KEY_LCA         0x0022
++#define TC_KEY_LCB         0x0023
++#define TC_KEY_LCC         0x0024
++#define TC_KEY_LCD         0x0025
++#define TC_KEY_LCE         0x0026
++#define TC_KEY_LCF         0x0027
++#define TC_KEY_LCG         0x0028
++#define TC_KEY_LCH         0x0029
++#define TC_KEY_LCI         0x002A
++#define TC_KEY_LCJ         0x002B
++#define TC_KEY_LCK         0x002C
++#define TC_KEY_LCL         0x002D
++#define TC_KEY_LCM         0x002E
++#define TC_KEY_LCN         0x002F
++#define TC_KEY_LCO         0x0030
++#define TC_KEY_LCP         0x0031
++#define TC_KEY_LCQ         0x0032
++#define TC_KEY_LCR         0x0033
++#define TC_KEY_LCS         0x0034
++#define TC_KEY_LCT         0x0035
++#define TC_KEY_LCU         0x0036
++#define TC_KEY_LCV         0x0037
++#define TC_KEY_LCW         0x0038
++#define TC_KEY_LCX         0x0039
++#define TC_KEY_LCY         0x003A
++#define TC_KEY_LCZ         0x003B
++#define TC_KEY_0           0x003C
++#define TC_KEY_1           0x003D
++#define TC_KEY_2           0x003E
++#define TC_KEY_3           0x003F
++#define TC_KEY_4           0x0040
++#define TC_KEY_5           0x0041
++#define TC_KEY_6           0x0042
++#define TC_KEY_7           0x0043
++#define TC_KEY_8           0x0044
++#define TC_KEY_9           0x0045
++#define TC_KEY_SPACE       0x0046
++#define TC_KEY_COMMA       0x0047
++#define TC_KEY_LBRACKET    0x0048
++#define TC_KEY_RBRACKET    0x0049
++#define TC_KEY_PLUS        0x004A
++#define TC_KEY_MINUS       0x004B
++#define TC_KEY_DELETE      0x004C
++#define TC_KEY_ALLCLEAR    0x004D
++#define TC_KEY_TRIG        0x004E
++#define TC_KEY_CAT         0x004F
++#define TC_KEY_DOT         0x0050
++#define TC_KEY_MUL         0x0051
++#define TC_KEY_DIV         0x0052
++#define TC_KEY_SQUARE      0x0053
++#define TC_KEY_EXPONENT    0x0054
++#define TC_KEY_EXP         0x0055
++#define TC_KEY_LOG10       0x0056
++#define TC_KEY_EE          0x0057
++#define TC_KEY_ANS         0x0058
++#define TC_KEY_ENTER       0x0059
++#define TC_KEY_ROOT        0x005A
++#define TC_KEY_PI          0x005B
++#define TC_KEY_CONFIG      0x005C
++#define TC_KEY_SUM         0x005D
++#define TC_KEY_CLEAR       0x005E
++#define TC_KEY_PRODUCT     0x005F
++#define TC_KEY_FRAC        0x0060
++#define TC_KEY_CUBE        0x0061
++#define TC_KEY_LN          0x0062
++#define TC_KEY_LOGN        0x0063
++#define TC_KEY_APPROX      0x0064
++#define TC_KEY_NTHROOT     0x0065
++#define TC_KEY_EULER       0x0066
++#define TC_KEY_GRAPH       0x0067
++#define TC_KEY_FRACFMT     0x0068
++#define TC_KEY_EQUAL       0x0069
++#define TC_KEY_CONST       0x006A
++#define TC_KEY_CLEARVAR    0x006B
++#define TC_KEY_SHIFTON     0x006C
++#define TC_KEY_SHIFTOFF    0x006D
++#define TC_KEY_CTRLON      0x006E
++#define TC_KEY_CTRLOFF     0x006F
++#define TC_KEY_RECALL      0x0070
++#define TC_KEY_MATRIX      0x0071
++#define TC_KEY_CROSS       0x0072
++#define TC_KEY_PIECEWISE   0x0073
++#define TC_KEY_GFUNCS      0x0074
++#define TC_KEY_GSETTINGS   0x0075
++#define TC_KEY_LOGIC       0x0076
++#define TC_KEY_FACT        0x0077
++#define TC_KEY_RARROW      0x0078
++#define TC_KEY_MU          0x0079
++#define TC_KEY_SUB         0x007A
++#define TC_KEY_ABS         0x007B
++#define TC_KEY_ASTERISK    0x007C
++#define TC_KEY_AUGMENT     0x007D
++#define TC_KEY_HOME        0x007E
++#define TC_KEY_END         0x007F
++#define TC_KEY_TOP         0x0080
++#define TC_KEY_BOTTOM      0x0081
++#define TC_KEY_PTABLE      0x0082
++#define TC_KEY_VRECALL     0x0083
++
++#define TC_KEY_DUMMY       0xFFFF
++
++#define TC_KEY_ADCX_MASK   0x1000
++#define TC_KEY_ADCY_MASK   0x2000
++
+diff --git a/hw/input/tcalc_sbdi.c b/hw/input/tcalc_sbdi.c
+new file mode 100644
+index 000000000..ca9e35773
+--- /dev/null
++++ b/hw/input/tcalc_sbdi.c
+@@ -0,0 +1,430 @@
++/*
++ * TCALC SBDI
++ *
++ * not by tyler
++ */
++
++#include "hw/hw.h"
++#include "ui/console.h"
++#include "hw/sysbus.h"
++#include "ui/input.h"
++
++#define PIN_EN 0
++#define PIN_CLK 1
++#define PIN_DATA 2
++
++#define TYPE_TSBDI "tsbdi"
++#define TSBDI(obj) OBJECT_CHECK(TCalcSBDI, (obj), TYPE_TSBDI);
++
++// key defs
++
++#include "tcalc_defs.inc"
++
++// KEYMAPPER
++
++static const int normal_keymap[] = {
++	[Q_KEY_CODE_A] = TC_KEY_LCA,
++	[Q_KEY_CODE_B] = TC_KEY_LCB,
++	[Q_KEY_CODE_C] = TC_KEY_LCC,
++	[Q_KEY_CODE_D] = TC_KEY_LCD,
++	[Q_KEY_CODE_E] = TC_KEY_LCE,
++	[Q_KEY_CODE_F] = TC_KEY_LCF,
++	[Q_KEY_CODE_G] = TC_KEY_LCG,
++	[Q_KEY_CODE_H] = TC_KEY_LCH,
++	[Q_KEY_CODE_I] = TC_KEY_LCI,
++	[Q_KEY_CODE_J] = TC_KEY_LCJ,
++	[Q_KEY_CODE_K] = TC_KEY_LCK,
++	[Q_KEY_CODE_L] = TC_KEY_LCL,
++	[Q_KEY_CODE_M] = TC_KEY_LCM,
++	[Q_KEY_CODE_N] = TC_KEY_LCN,
++	[Q_KEY_CODE_O] = TC_KEY_LCO,
++	[Q_KEY_CODE_P] = TC_KEY_LCP,
++	[Q_KEY_CODE_Q] = TC_KEY_LCQ,
++	[Q_KEY_CODE_S] = TC_KEY_LCS,
++	[Q_KEY_CODE_T] = TC_KEY_LCT,
++	[Q_KEY_CODE_U] = TC_KEY_LCU,
++	[Q_KEY_CODE_V] = TC_KEY_LCV,
++	[Q_KEY_CODE_W] = TC_KEY_LCW,
++	[Q_KEY_CODE_X] = TC_KEY_LCX,
++	[Q_KEY_CODE_Y] = TC_KEY_LCY,
++	[Q_KEY_CODE_Z] = TC_KEY_LCZ,
++
++	[Q_KEY_CODE_0] = TC_KEY_0,
++	[Q_KEY_CODE_1] = TC_KEY_1,
++	[Q_KEY_CODE_2] = TC_KEY_2,
++	[Q_KEY_CODE_3] = TC_KEY_3,
++	[Q_KEY_CODE_4] = TC_KEY_4,
++	[Q_KEY_CODE_5] = TC_KEY_5,
++	[Q_KEY_CODE_6] = TC_KEY_6,
++	[Q_KEY_CODE_7] = TC_KEY_7,
++	[Q_KEY_CODE_8] = TC_KEY_8,
++	[Q_KEY_CODE_9] = TC_KEY_9,
++	
++	[Q_KEY_CODE_KP_0] = TC_KEY_0,
++	[Q_KEY_CODE_KP_1] = TC_KEY_1,
++	[Q_KEY_CODE_KP_2] = TC_KEY_2,
++	[Q_KEY_CODE_KP_3] = TC_KEY_3,
++	[Q_KEY_CODE_KP_4] = TC_KEY_4,
++	[Q_KEY_CODE_KP_5] = TC_KEY_5,
++	[Q_KEY_CODE_KP_6] = TC_KEY_6,
++	[Q_KEY_CODE_KP_7] = TC_KEY_7,
++	[Q_KEY_CODE_KP_8] = TC_KEY_8,
++	[Q_KEY_CODE_KP_9] = TC_KEY_9,
++
++	[Q_KEY_CODE_KP_ADD] = TC_KEY_PLUS,
++	[Q_KEY_CODE_KP_SUBTRACT] = TC_KEY_MINUS,
++	[Q_KEY_CODE_KP_MULTIPLY] = TC_KEY_MUL,
++	[Q_KEY_CODE_KP_DIVIDE] = TC_KEY_DIV,
++
++	[Q_KEY_CODE_DOT] = TC_KEY_DOT,
++	[Q_KEY_CODE_KP_DECIMAL] = TC_KEY_DOT,
++
++	[Q_KEY_CODE_BACKSPACE] = TC_KEY_DELETE,
++
++	[Q_KEY_CODE_SPC] = TC_KEY_SPACE,
++
++	[Q_KEY_CODE_RET] = TC_KEY_ENTER,
++	[Q_KEY_CODE_KP_ENTER] = TC_KEY_ENTER,
++
++	[Q_KEY_CODE_COMMA] = TC_KEY_COMMA,
++
++	[Q_KEY_CODE_HOME] = TC_KEY_HOME,
++	[Q_KEY_CODE_END] = TC_KEY_END,
++
++	[Q_KEY_CODE_UP] = TC_KEY_UP,
++	[Q_KEY_CODE_DOWN] = TC_KEY_DOWN,
++	[Q_KEY_CODE_LEFT] = TC_KEY_LEFT,
++	[Q_KEY_CODE_RIGHT] = TC_KEY_RIGHT,
++	
++	[Q_KEY_CODE_EQUAL] = TC_KEY_EQUAL,
++};
++
++static const int ctrl_keymap[] = {
++	[Q_KEY_CODE_G] = TC_KEY_GRAPH,
++	[Q_KEY_CODE_F] = TC_KEY_GFUNCS,
++	[Q_KEY_CODE_C] = TC_KEY_CONFIG,
++
++	[Q_KEY_CODE_R] = TC_KEY_RECALL,
++	[Q_KEY_CODE_P] = TC_KEY_PI
++};
++
++static const int shift_keymap[] = {
++	[Q_KEY_CODE_A] = TC_KEY_A,
++	[Q_KEY_CODE_B] = TC_KEY_B,
++	[Q_KEY_CODE_C] = TC_KEY_C,
++	[Q_KEY_CODE_D] = TC_KEY_D,
++	[Q_KEY_CODE_E] = TC_KEY_E,
++	[Q_KEY_CODE_F] = TC_KEY_F,
++	[Q_KEY_CODE_G] = TC_KEY_G,
++	[Q_KEY_CODE_H] = TC_KEY_H,
++	[Q_KEY_CODE_I] = TC_KEY_I,
++	[Q_KEY_CODE_J] = TC_KEY_J,
++	[Q_KEY_CODE_K] = TC_KEY_K,
++	[Q_KEY_CODE_L] = TC_KEY_L,
++	[Q_KEY_CODE_M] = TC_KEY_M,
++	[Q_KEY_CODE_N] = TC_KEY_N,
++	[Q_KEY_CODE_O] = TC_KEY_O,
++	[Q_KEY_CODE_P] = TC_KEY_P,
++	[Q_KEY_CODE_Q] = TC_KEY_Q,
++	[Q_KEY_CODE_S] = TC_KEY_S,
++	[Q_KEY_CODE_T] = TC_KEY_T,
++	[Q_KEY_CODE_U] = TC_KEY_U,
++	[Q_KEY_CODE_V] = TC_KEY_V,
++	[Q_KEY_CODE_W] = TC_KEY_W,
++	[Q_KEY_CODE_X] = TC_KEY_X,
++	[Q_KEY_CODE_Y] = TC_KEY_Y,
++	[Q_KEY_CODE_Z] = TC_KEY_Z,
++
++	[Q_KEY_CODE_0] = TC_KEY_RBRACKET,
++	[Q_KEY_CODE_9] = TC_KEY_LBRACKET,
++
++	[Q_KEY_CODE_1] = TC_KEY_ROOT,
++	[Q_KEY_CODE_2] = TC_KEY_SQUARE,
++	[Q_KEY_CODE_3] = TC_KEY_MATRIX,
++	[Q_KEY_CODE_5] = TC_KEY_FRAC,
++	[Q_KEY_CODE_6] = TC_KEY_EXPONENT,
++	[Q_KEY_CODE_7] = TC_KEY_ANS,
++	[Q_KEY_CODE_8] = TC_KEY_MUL,
++
++	[Q_KEY_CODE_KP_8] = TC_KEY_UP,
++	[Q_KEY_CODE_KP_2] = TC_KEY_DOWN,
++	[Q_KEY_CODE_KP_5] = TC_KEY_CENTER,
++	[Q_KEY_CODE_KP_4] = TC_KEY_LEFT,
++	[Q_KEY_CODE_KP_6] = TC_KEY_RIGHT,
++	
++	[Q_KEY_CODE_KP_ADD] = TC_KEY_SUM,
++	[Q_KEY_CODE_KP_MULTIPLY] = TC_KEY_PRODUCT,
++
++	[Q_KEY_CODE_BACKSPACE] = TC_KEY_CLEAR,
++
++	[Q_KEY_CODE_LEFT] = TC_KEY_HOME,
++	[Q_KEY_CODE_RIGHT] = TC_KEY_END,
++
++	[Q_KEY_CODE_MINUS] = TC_KEY_SUB
++};
++
++typedef struct {
++	SysBusDevice busdev;
++	
++	// output IRQs
++	qemu_irq output[3];
++	
++	// input API
++	uint16_t pending_keycodes[8];
++	int  pending_keycode_count;
++
++	bool modifier_shift, modifier_ctrl, modifier_alt;
++
++	// internal state:
++	
++	uint64_t rxbuf;
++	uint64_t txbuf;
++	int rxidx;
++	int txidx;
++	bool paritysent;
++	int txcount;
++
++	bool rxing;
++	bool txing;
++
++	bool data;
++
++	// clock timer
++	
++	struct QEMUTimer *clk_timer;
++
++	// clock state
++	bool clockstate;
++	bool parity;
++} TCalcSBDI;
++
++
++static void tsbdi_handle_message(TCalcSBDI *dev, uint64_t data, int length) {
++	printf("TSBDI: debug rx'd %04lX\n", data);
++}
++
++static void tsbdi_handle_clk_data_in(TCalcSBDI *dev) {
++	// Is this incoming bit a parity bit?
++	if (dev->rxidx && dev->rxidx % 8 == 0 && !dev->paritysent) {
++		// discard it
++		dev->paritysent = true;
++	}
++	else {
++		if (dev->rxidx % 8 == 1) dev->paritysent = false;
++		// The STM has responded to our clock, write this bit in
++		dev->rxbuf |= dev->data;
++		
++		// Get ready for next bit
++		dev->rxbuf <<= 1;
++		++dev->rxidx;
++		printf("TSBDI: got data bit: %d\n", dev->data);
++	}
++}
++
++static void tsbdi_handle_gpio_event(void *opaque, int irq, int level) {
++	TCalcSBDI *dev = TSBDI(opaque);
++
++	if (irq == PIN_EN) {
++		// Open drain isn't emulated, but the stm will always leave this output high after tx.
++		// This means that this is only _low_ when the STM pulls it like that.
++		
++		if (dev->rxing && level == 0) {
++			// No use
++			return;
++		}
++		else if (dev->rxing && level == 1) {
++			// Transmission finished, check the data in rxbuf
++			
++			tsbdi_handle_message(dev, dev->rxbuf, dev->rxidx / 8);
++
++			dev->rxing = false;
++			dev->rxbuf = 0;
++			dev->rxidx = 0;
++			dev->clockstate = true;
++
++			qemu_irq_raise(dev->output[PIN_CLK]);  // Stop the RX clock
++		}
++		else if (dev->txing) {
++			hw_error("SBDI: conflict on bus state\n");
++		}
++		else if (level == 0) {
++			puts("SBDI: begin rx");
++			// Begin RX
++			dev->rxing = true;
++			dev->rxbuf = 0;
++			dev->rxidx = 0;
++			dev->clockstate = true;
++
++			// The clock will be befuddled at the next avilable opportunity
++		}
++		else {
++			// Do nothing
++			return;
++		}
++	}
++	else if (irq == PIN_DATA) {
++		// This will only happen if rxing
++		if (!dev->rxing) {
++			// ignore this
++			puts("SBDI: ignoring data");
++			return;
++		}
++
++		dev->data = level;
++
++		// The clock will be befuddled at the next avilable opportunity
++	}
++	else if (irq == PIN_CLK) {
++		if (dev->txing && level == 0) {
++			// Get the next byte to send
++			
++			if (dev->txidx % 8 == 0 && dev->txidx && !dev->paritysent) {
++				// send parity
++				qemu_set_irq(dev->output[PIN_DATA], dev->parity);
++				dev->parity = 0;
++				dev->paritysent = true;
++
++				if (dev->txidx == dev->txcount) {
++					dev->txing = false;
++					dev->txidx = 0;
++					dev->txcount = 0;
++					dev->txbuf = 0;
++
++					qemu_set_irq(dev->output[PIN_EN], 1);
++					// end transmission
++				}
++			}
++			else {
++				if (dev->txidx % 8 == 1) dev->paritysent = false;
++				// Send out a bit
++				bool bit = (dev->txbuf & (1 << (dev->txcount - dev->txidx - 1))) != 0;
++				dev->parity ^= bit;
++
++				qemu_set_irq(dev->output[PIN_DATA], bit);
++
++				dev->txidx += 1;
++			}
++		}
++	}
++}
++
++static void tsbdi_timer_reset(TCalcSBDI *tsbdi) {
++	int next_time = qemu_clock_get_ms(QEMU_CLOCK_VIRTUAL) + 1;
++	timer_mod(tsbdi->clk_timer, next_time);
++}
++
++static int tsbdi_compute_bytelen(uint64_t v) {
++	if (!(v & ~0xFFFF)) return 2;
++	if (!(v & ~0xFFFFFFFF)) return 4;
++	else return 8;
++}
++
++static void tsbdi_timer_cb(void * opaque) {
++	TCalcSBDI *dev = TSBDI(opaque);
++
++	// Check if we need to generate a CLOCK signal
++	
++	if (dev->rxing) {
++		// Invert the clock state
++		dev->clockstate = !dev->clockstate;
++		qemu_set_irq(dev->output[PIN_CLK], dev->clockstate);
++		if (dev->clockstate == 1) {
++			tsbdi_handle_clk_data_in(dev);
++		}
++	}
++	else if (!dev->txing && dev->pending_keycode_count) {
++		// Start transmission
++		dev->txbuf = dev->pending_keycodes[--dev->pending_keycode_count];
++		dev->txcount = tsbdi_compute_bytelen(dev->txbuf) * 8;
++		dev->txidx = 0;
++		dev->txing = true;
++
++		// Set EN low to begin transmission
++		qemu_irq_lower(dev->output[PIN_EN]);
++	}
++
++	// run the timer again
++	tsbdi_timer_reset(dev);
++}
++
++static void tsbdi_kbd_handler(void * opaque, int keycode) {
++	TCalcSBDI *dev = TSBDI(opaque);
++	uint8_t kcode = qemu_input_key_number_to_qcode(keycode & 0x7F);
++
++	// .. todo: check for alt, shift, etc. 
++	if (kcode == Q_KEY_CODE_SHIFT || kcode == Q_KEY_CODE_SHIFT_R) {
++		dev->modifier_shift = !(keycode & 0x80);
++		dev->pending_keycodes[dev->pending_keycode_count++] = (dev->modifier_shift) ? TC_KEY_SHIFTON : TC_KEY_SHIFTOFF;
++		return;
++	}
++	if (kcode == Q_KEY_CODE_CTRL || kcode == Q_KEY_CODE_CTRL_R) {
++		dev->modifier_ctrl = !(keycode & 0x80);
++		dev->pending_keycodes[dev->pending_keycode_count++] = (dev->modifier_ctrl) ? TC_KEY_CTRLON : TC_KEY_CTRLOFF;
++		return;
++	}
++
++	const int * keymap = normal_keymap;
++	if (dev->modifier_shift && !dev->modifier_alt && !dev->modifier_ctrl) keymap = shift_keymap;
++	if (!dev->modifier_shift && !dev->modifier_alt && dev->modifier_ctrl) keymap = ctrl_keymap;
++
++	// key released
++	if (keycode & 0x80) {
++		// This case is for a normal key
++		uint16_t tcalc_code = keymap[kcode];
++		dev->pending_keycodes[dev->pending_keycode_count++] = tcalc_code;
++	}
++}
++
++static int tsbdi_init(SysBusDevice *s) {
++	TCalcSBDI *dev = TSBDI(s);
++	DeviceState *ds = DEVICE(s);
++	
++	// initialize timer
++	dev->clk_timer = timer_new_ms(QEMU_CLOCK_VIRTUAL, tsbdi_timer_cb, dev);
++	tsbdi_timer_reset(dev);
++
++	// init gpio
++	qdev_init_gpio_in(ds, tsbdi_handle_gpio_event, 3);
++	qdev_init_gpio_out(ds, dev->output, 3);
++
++	// init kbd
++	qemu_add_kbd_event_handler(tsbdi_kbd_handler, dev);
++
++	return 0;
++}
++
++static void tsbdi_reset(DeviceState *s) {
++	TCalcSBDI *dev = TSBDI(s);
++
++	dev->pending_keycode_count = 0;
++	dev->modifier_shift = false;
++	dev->modifier_ctrl = false;
++	dev->modifier_alt = false;
++
++	dev->rxing = false;
++	dev->txing = false;
++	dev->clockstate = true;
++
++	qemu_set_irq(dev->output[PIN_EN], 1);
++}
++
++static void tsbdi_class_init(ObjectClass *klass, void *data) {
++    DeviceClass *dc = DEVICE_CLASS(klass);
++    SysBusDeviceClass *s = SYS_BUS_DEVICE_CLASS(klass);
++
++	s->init  = tsbdi_init;
++	dc->reset = tsbdi_reset;
++}
++
++static TypeInfo tsbdi_info = {
++	.name = TYPE_TSBDI,
++	.parent = TYPE_SYS_BUS_DEVICE,
++	.instance_size = sizeof(TCalcSBDI),
++	.class_init = tsbdi_class_init
++};
++
++static void tsbdi_register_types(void) {
++	type_register_static(&tsbdi_info);
++}
++
++type_init(tsbdi_register_types);
+diff --git a/include/hw/display/st7920.h b/include/hw/display/st7920.h
+new file mode 100644
+index 000000000..5c7241b50
+--- /dev/null
++++ b/include/hw/display/st7920.h
+@@ -0,0 +1,17 @@
++#ifndef QEMU_ST7920_H
++#define QEMU_ST7920_H
++
++#include "hw/qdev.h"
++
++// 8 data lines, r/w + d/i + e
++#define ST7920_PIN_COUNT (8 + 3)
++
++#define ST7920_PIN_DBx 0
++#define ST7920_PIN_RW 8
++#define ST7920_PIN_RS 9
++#define ST7920_PIN_E  10
++
++#define TYPE_ST7920 "st7920"
++#define ST7920_(obj) OBJECT_CHECK(ST7920, (obj), TYPE_ST7920);
++
++#endif
