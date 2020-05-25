@@ -1828,7 +1828,7 @@ namespace eval {
             // Superscripts (exponentiation)
             case neda::ObjType::SUPERSCRIPT: {
                 // If the last thing in the tokens array was a matrix, this may be a transpose or inverse operation
-                if (arr[arr.length() - 1]->getType() == TokenType::MATRIX) {
+                if (arr.length() > 0 && arr[arr.length() - 1]->getType() == TokenType::MATRIX) {
                     const auto &c =
                             static_cast<neda::Container *>(static_cast<neda::Superscript *>(exprs[index])->contents)
                                     ->contents;
@@ -2651,12 +2651,24 @@ namespace eval {
         // Use shunting yard
         util::Deque<Token *> output(arr.length());
         util::Deque<Token *> stack;
+        bool expectOperand = true;
         for (Token *t : arr) {
             // If token is a number, fraction or matrix, put it in the queue
             if (t->getType() == TokenType::NUMERICAL || t->getType() == TokenType::MATRIX) {
+                if (!expectOperand) {
+                    // Syntax error
+                    freeTokens(arr);
+                    return nullptr;
+                }
                 output.enqueue(t);
+                expectOperand = false;
             }
             else {
+                if (expectOperand) {
+                    // Syntax error
+                    freeTokens(arr);
+                    return nullptr;
+                }
                 // Operator
                 // Pop all items on the stack that have higher precedence and put into the output queue
                 while (!stack.isEmpty() && static_cast<const Operator *>(stack.peek())->getPrecedence() <=
@@ -2665,6 +2677,7 @@ namespace eval {
                 }
                 // Push the operator
                 stack.push(t);
+                expectOperand = true;
             }
         }
         // Transfer all the contents of the stack to the queue

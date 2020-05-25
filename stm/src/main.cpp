@@ -25,7 +25,7 @@
 #include "util.hpp"
 #include <inttypes.h>
 
-#define VERSION_STR "V1.5.3"
+#define VERSION_STR "V1.5.4"
 
 #ifdef _USE_CONSOLE
 #pragma message("Compiling with the USART Console.")
