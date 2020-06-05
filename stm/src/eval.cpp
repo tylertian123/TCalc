@@ -2664,20 +2664,30 @@ namespace eval {
                 expectOperand = false;
             }
             else {
-                if (expectOperand) {
-                    // Syntax error
-                    freeTokens(arr);
-                    return nullptr;
+                if (static_cast<const Operator *>(t)->isUnary()) {
+                    if (!expectOperand) {
+                        // Syntax error
+                        freeTokens(arr);
+                        return nullptr;
+                    }
+                    stack.push(t);
                 }
-                // Operator
-                // Pop all items on the stack that have higher precedence and put into the output queue
-                while (!stack.isEmpty() && static_cast<const Operator *>(stack.peek())->getPrecedence() <=
-                                                   static_cast<const Operator *>(t)->getPrecedence()) {
-                    output.enqueue(stack.pop());
+                else {
+                    if (expectOperand) {
+                        // Syntax error
+                        freeTokens(arr);
+                        return nullptr;
+                    }
+                    // Operator
+                    // Pop all items on the stack that have higher precedence and put into the output queue
+                    while (!stack.isEmpty() && static_cast<const Operator *>(stack.peek())->getPrecedence() <=
+                                                    static_cast<const Operator *>(t)->getPrecedence()) {
+                        output.enqueue(stack.pop());
+                    }
+                    // Push the operator
+                    stack.push(t);
+                    expectOperand = true;
                 }
-                // Push the operator
-                stack.push(t);
-                expectOperand = true;
             }
         }
         // Transfer all the contents of the stack to the queue
