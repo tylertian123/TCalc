@@ -2681,7 +2681,7 @@ namespace eval {
                     // Operator
                     // Pop all items on the stack that have higher precedence and put into the output queue
                     while (!stack.isEmpty() && static_cast<const Operator *>(stack.peek())->getPrecedence() <=
-                                                    static_cast<const Operator *>(t)->getPrecedence()) {
+                            static_cast<const Operator *>(t)->getPrecedence()) {
                         output.enqueue(stack.pop());
                     }
                     // Push the operator

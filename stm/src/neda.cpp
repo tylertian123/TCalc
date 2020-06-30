@@ -70,6 +70,7 @@ namespace neda {
 	
 	// *************************** Container ***************************************
     void Container::computeDimensions() {
+		recomputeHeights();
         // If this expression is empty, return the default values
         if(contents.length() == 0) {
 			topSpacing = EMPTY_EXPR_HEIGHT / 2;
@@ -223,8 +224,6 @@ namespace neda {
     }
 	void Container::add(NEDAObj *expr) {
 		_add(expr);
-
-		recomputeHeights();
         computeDimensions();
 	}
 	uint16_t Container::indexOf(NEDAObj *expr) {
@@ -238,8 +237,6 @@ namespace neda {
 	NEDAObj* Container::remove(uint16_t index) {
 		NEDAObj *obj = contents[index];
 		contents.removeAt(index);
-
-		recomputeHeights();
 		computeDimensions();
 		return obj;
 	}
@@ -248,8 +245,6 @@ namespace neda {
 		if(exprToAdd->getType() != ObjType::CHAR_TYPE) {
 			((Expr*) exprToAdd)->parent = this;
 		}
-
-		recomputeHeights();
 		computeDimensions();
 	}
 	Container::~Container() {
@@ -441,8 +436,6 @@ namespace neda {
     }
 	void Container::addAtCursor(NEDAObj *expr, Cursor &cursor) {
 		_addAtCursor(expr, cursor);
-        
-		recomputeHeights();
 		computeDimensions();
 	}
 	// Returns the expression removed for deletion
@@ -450,7 +443,6 @@ namespace neda {
 		if(cursor.index != 0) {
 			NEDAObj *obj = contents[--cursor.index];
 			contents.removeAt(cursor.index);
-			recomputeHeights();
 			computeDimensions();
 			return obj;
 		}
@@ -470,7 +462,6 @@ namespace neda {
 		for(NEDAObj *ex : contents) {
 			c->_add(ex->copy());
 		}
-        c->recomputeHeights();
         c->computeDimensions();
 		
 		return c;
@@ -479,7 +470,6 @@ namespace neda {
 		while(*str != '\0') {
 			_add(new Character(*(str++)));
 		}
-        recomputeHeights();
         computeDimensions();
 	}
 
@@ -665,14 +655,16 @@ namespace neda {
 		this->x = x;
 		this->y = y;
 		VERIFY_INBOUNDS(x, y);
-		
-		dest.setPixel(x + 2, y, true);
-		dest.setPixel(x + 1, y + 1, true);
-		for(uint16_t i = 2; i < exprHeight - 2; i ++) {
-			dest.setPixel(x, y + i, true);
+		uint16_t segmentHeight = (exprHeight - 2) / 5;
+		dest.setPixel(x + 2, y);
+		dest.setPixel(x + 2, y + exprHeight - 1);
+		for(uint16_t i = 0; i < segmentHeight; i ++) {
+			dest.setPixel(x + 1, y + 1 + i);
+			dest.setPixel(x + 1, y + exprHeight - 2 - i);
 		}
-		dest.setPixel(x + 1, y + exprHeight - 1 - 1, true);
-		dest.setPixel(x + 2, y + exprHeight - 1, true);
+		for(uint16_t i = 0; i < exprHeight - 2 * segmentHeight - 2; i ++) {
+			dest.setPixel(x, y + 1 + segmentHeight + i);
+		}
 	}
     void LeftBracket::updatePosition(int16_t dx, int16_t dy) {
         this->x += dx;
@@ -779,13 +771,16 @@ namespace neda {
 		this->y = y;
 		VERIFY_INBOUNDS(x, y);
 
-		dest.setPixel(x, y, true);
-		dest.setPixel(x + 1, y + 1, true);
-		for(uint16_t i = 2; i < exprHeight - 2; i ++) {
-			dest.setPixel(x + 2, y + i, true);
+		uint16_t segmentHeight = (exprHeight - 2) / 5;
+		dest.setPixel(x, y);
+		dest.setPixel(x, y + exprHeight - 1);
+		for(uint16_t i = 0; i < segmentHeight; i ++) {
+			dest.setPixel(x + 1, y + 1 + i);
+			dest.setPixel(x + 1, y + exprHeight - 2 - i);
 		}
-		dest.setPixel(x + 1, y + exprHeight - 1 - 1, true);
-		dest.setPixel(x, y + exprHeight - 1, true);
+		for(uint16_t i = 0; i < exprHeight - 2 * segmentHeight - 2; i ++) {
+			dest.setPixel(x + 2, y + 1 + segmentHeight + i);
+		}
 	}
     void RightBracket::updatePosition(int16_t dx, int16_t dy) {
         this->x += dx;
@@ -1637,7 +1632,6 @@ namespace neda {
         while(*str != '\0') {
             expr->_addAtCursor(new neda::Character(*str++), *this);
         }
-        expr->recomputeHeights();
         expr->computeDimensions();
     }
 
