@@ -97,7 +97,7 @@ namespace neda {
     class Expr : public NEDAObj {
     public:
         // The width, height, top spacing, x and y coordinates are all cached
-        virtual void computeDimensions() = 0;
+        virtual void computeDimensions(bool recurseParent = true) = 0;
 
         virtual void updatePosition(int16_t, int16_t) = 0;
 
@@ -165,7 +165,7 @@ namespace neda {
         void addAt(uint16_t, NEDAObj *);
         uint16_t indexOf(NEDAObj *);
 
-        virtual void computeDimensions() override;
+        virtual void computeDimensions(bool recurseParent = true) override;
         virtual void draw(lcd::LCD12864 &, int16_t, int16_t) override;
 
         virtual ~Container();
@@ -217,7 +217,7 @@ namespace neda {
             computeDimensions();
         }
 
-        virtual void computeDimensions() override;
+        virtual void computeDimensions(bool recurseParent = true) override;
         virtual void draw(lcd::LCD12864 &, int16_t, int16_t) override;
 
         Expr *getNumerator();
@@ -250,7 +250,7 @@ namespace neda {
             computeDimensions();
         }
 
-        virtual void computeDimensions() override;
+        virtual void computeDimensions(bool recurseParent = true) override;
         virtual void draw(lcd::LCD12864 &, int16_t, int16_t) override;
         // Do nothing
         // Realistically this method is never going to be called on LeftBracket anyways
@@ -273,7 +273,7 @@ namespace neda {
             computeDimensions();
         }
 
-        virtual void computeDimensions() override;
+        virtual void computeDimensions(bool recurseParent = true) override;
         virtual void draw(lcd::LCD12864 &, int16_t, int16_t) override;
         // Do nothing
         // Realistically this method is never going to be called on RightBracket anyways
@@ -307,7 +307,7 @@ namespace neda {
         static constexpr uint16_t CONTENTS_N_OVERLAP = 7;
         static constexpr uint16_t SIGN_N_OVERLAP = 1;
 
-        virtual void computeDimensions() override;
+        virtual void computeDimensions(bool recurseParent = true) override;
         virtual void draw(lcd::LCD12864 &, int16_t, int16_t) override;
 
         void setContents(Expr *);
@@ -343,7 +343,7 @@ namespace neda {
 
         static constexpr uint16_t OVERLAP = 4;
 
-        virtual void computeDimensions() override;
+        virtual void computeDimensions(bool recurseParent = true) override;
         virtual void draw(lcd::LCD12864 &, int16_t, int16_t) override;
 
         void setContents(Expr *);
@@ -376,7 +376,7 @@ namespace neda {
 
         static constexpr uint16_t OVERLAP = 4;
 
-        virtual void computeDimensions() override;
+        virtual void computeDimensions(bool recurseParent = true) override;
         virtual void draw(lcd::LCD12864 &, int16_t, int16_t) override;
 
         void setContents(Expr *);
@@ -413,7 +413,7 @@ namespace neda {
 
         static constexpr uint16_t CONTENT_SYMBOL_OVERLAP = 12;
 
-        virtual void computeDimensions() override;
+        virtual void computeDimensions(bool recurseParent = true) override;
         virtual void draw(lcd::LCD12864 &, int16_t, int16_t) override;
 
         void setStart(Expr *start);
@@ -483,7 +483,7 @@ namespace neda {
 
         bool findElem(Expr *ex, uint8_t &rowOut, uint8_t &colOut);
 
-        virtual void computeDimensions() override;
+        virtual void computeDimensions(bool recurseParent = true) override;
         virtual void draw(lcd::LCD12864 &, int16_t, int16_t) override;
 
         virtual void left(Expr *, Cursor &) override;
@@ -533,7 +533,7 @@ namespace neda {
         static constexpr uint16_t LEFT_SPACING = 4;
         static constexpr uint16_t TOP_SPACING = 2;
 
-        virtual void computeDimensions() override;
+        virtual void computeDimensions(bool recurseParent = true) override;
         virtual void draw(lcd::LCD12864 &, int16_t, int16_t) override;
 
         virtual void left(Expr *, Cursor &) override;
@@ -570,7 +570,7 @@ namespace neda {
 
         Expr *contents;
 
-        virtual void computeDimensions() override;
+        virtual void computeDimensions(bool recurseParent = true) override;
         virtual void draw(lcd::LCD12864 &, int16_t, int16_t) override;
 
         virtual void getCursor(Cursor &, CursorLocation) override;
@@ -590,7 +590,7 @@ namespace neda {
 
         Expr *contents;
 
-        virtual void computeDimensions() override;
+        virtual void computeDimensions(bool recurseParent = true) override;
         virtual void draw(lcd::LCD12864 &display, int16_t x, int16_t y) override;
 
         virtual void getCursor(Cursor &cursor, CursorLocation location) override;

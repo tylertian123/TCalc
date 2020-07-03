@@ -69,7 +69,7 @@ namespace neda {
 	}
 	
 	// *************************** Container ***************************************
-    void Container::computeDimensions() {
+    void Container::computeDimensions(bool recurseParent) {
 		recomputeHeights();
         // If this expression is empty, return the default values
         if(contents.length() == 0) {
@@ -122,8 +122,10 @@ namespace neda {
                 exprHeight = util::max(height, exprHeight);
             }
         }
-
-        SAFE_EXEC(parent, computeDimensions);
+		
+		if (recurseParent) {
+        	SAFE_EXEC(parent, computeDimensions, true);
+		}
     }
 	void Container::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
 		this->x = x;
@@ -176,7 +178,8 @@ namespace neda {
             // Compute dimensions for superscripts and subscripts
             // Handle lone right brackets as well
             if(elem->getType() == ObjType::SUPERSCRIPT || elem->getType() == ObjType::SUBSCRIPT || elem->getType() == ObjType::R_BRACKET) {
-                static_cast<neda::Expr*>(elem)->computeDimensions();
+                // Make sure to not recurse on the parent as that would cause an infinite loop
+				static_cast<neda::Expr*>(elem)->computeDimensions(false);
             }
             // For left brackets, first recurse on its contents, and then call computeDimensions for the brackets
             else if(elem->getType() == ObjType::L_BRACKET) {
@@ -202,10 +205,10 @@ namespace neda {
                 // Recurse
                 recomputeHeights(start + 1, it);
                 // Compute dimensions for the brackets themselves
-                static_cast<Expr*>(elem)->computeDimensions();
+                static_cast<Expr*>(elem)->computeDimensions(false);
                 // If nesting is 0, then it landed on a right bracket
                 if(nesting == 0) {
-                    static_cast<Expr*>(*it)->computeDimensions();
+                    static_cast<Expr*>(*it)->computeDimensions(false);
                     // The for loop will increment start, thereby skipping the right bracket
                     start = it;
                 }
@@ -474,7 +477,7 @@ namespace neda {
 	}
 
 	// *************************** Fraction ***************************************
-    void Fraction::computeDimensions() {
+    void Fraction::computeDimensions(bool recurseParent) {
         // The top spacing of a fraction is equal to the height of its numerator, plus a pixel of spacing between the numerator and
 		// the fraction line.
         topSpacing = SAFE_ACCESS_0(numerator, exprHeight) + 1;
@@ -487,7 +490,9 @@ namespace neda {
 		uint16_t denominatorHeight = SAFE_ACCESS_0(denominator, exprHeight);
 		exprHeight = numeratorHeight + denominatorHeight + 3;
 		
-        SAFE_EXEC(parent, computeDimensions);
+		if (recurseParent) {
+        	SAFE_EXEC(parent, computeDimensions, true);
+		}
     }
 	void Fraction::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
 		this->x = x;
@@ -562,7 +567,7 @@ namespace neda {
 	}
 	
 	// *************************** LeftBracket ***************************************
-    void LeftBracket::computeDimensions() {
+    void LeftBracket::computeDimensions(bool recurseParent) {
         // Constant width
         exprWidth = 3;
 
@@ -645,11 +650,10 @@ namespace neda {
             exprHeight = Container::EMPTY_EXPR_HEIGHT;
         }
 
-        // Notice how this method does not call computeDimensions() on its parent.
-        // This is because the only time computeDimensions() will be called on a bracket is through
-        // neda::Container's recomputeHeights() method, which is always followed by a call to 
-        // computeDimensions() anyways. Calling computeDimensions() on its parent here will only
-        // cause unnecessary calls.
+
+		if (recurseParent) {
+        	SAFE_EXEC(parent, computeDimensions, true);
+		}
     }
 	void LeftBracket::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
 		this->x = x;
@@ -675,7 +679,7 @@ namespace neda {
 	}
 
 	// *************************** RightBracket ***************************************
-    void RightBracket::computeDimensions() {
+    void RightBracket::computeDimensions(bool recurseParent) {
         // Constant width
         exprWidth = 3;
 
@@ -760,11 +764,9 @@ namespace neda {
             exprHeight = Container::EMPTY_EXPR_HEIGHT;
         }
 
-        // Notice how this method does not call computeDimensions() on its parent.
-        // This is because the only time computeDimensions() will be called on a bracket is through
-        // neda::Container's recomputeHeights() method, which is always followed by a call to 
-        // computeDimensions() anyways. Calling computeDimensions() on its parent here will only
-        // cause unnecessary calls.
+        if (recurseParent) {
+        	SAFE_EXEC(parent, computeDimensions, true);
+		}
     }
 	void RightBracket::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
 		this->x = x;
@@ -791,7 +793,7 @@ namespace neda {
 	}
 	
 	// *************************** Radical ***************************************
-    void Radical::computeDimensions() {
+    void Radical::computeDimensions(bool recurseParent) {
         // No base
         if(!n) {
             if(contents) {
@@ -814,7 +816,9 @@ namespace neda {
             exprWidth =  SAFE_ACCESS_0(contents, exprWidth) + 8 + util::max(0, n->exprWidth - SIGN_N_OVERLAP);
         }
 
-        SAFE_EXEC(parent, computeDimensions);
+        if (recurseParent) {
+        	SAFE_EXEC(parent, computeDimensions, true);
+		}
     }
 	void Radical::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
 		this->x = x;
@@ -894,7 +898,7 @@ namespace neda {
 	}
 
 	// *************************** Superscript ***************************************
-    void Superscript::computeDimensions() {
+    void Superscript::computeDimensions(bool recurseParent) {
         // Width is the same as the contents
         exprWidth = SAFE_ACCESS_0(contents, exprWidth);
         // There must be a parent container
@@ -927,7 +931,9 @@ namespace neda {
             }
         }
 
-        SAFE_EXEC(parent, computeDimensions);
+        if (recurseParent) {
+        	SAFE_EXEC(parent, computeDimensions, true);
+		}
     }
 	void Superscript::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
 		this->x = x;
@@ -955,7 +961,7 @@ namespace neda {
 	}
 	
 	// *************************** Subscript ***************************************
-    void Subscript::computeDimensions() {
+    void Subscript::computeDimensions(bool recurseParent) {
         // Width is the same as the contents
         exprWidth = SAFE_ACCESS_0(contents, exprWidth);
         // There must be a parent container
@@ -990,7 +996,9 @@ namespace neda {
             }
         }
 
-        SAFE_EXEC(parent, computeDimensions);
+        if (recurseParent) {
+        	SAFE_EXEC(parent, computeDimensions, true);
+		}
     }
 	void Subscript::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
 		this->x = x;
@@ -1027,7 +1035,7 @@ namespace neda {
 	}
 	
 	// *************************** SigmaPi ***************************************
-    void SigmaPi::computeDimensions() {
+    void SigmaPi::computeDimensions(bool recurseParent) {
         // The top spacing of this expr can be split into two cases: when the contents are tall and when the contents are short.
 		// When the contents are tall enough, the result is simply the top spacing of the contents (b)
 		// Otherwise, it is the distance from the top to the middle of the base of the contents.
@@ -1053,7 +1061,9 @@ namespace neda {
 		uint16_t bodyHeight = SAFE_ACCESS_0(contents, exprHeight) + topSpacing - b;
 		exprHeight = util::max(symbolHeight, bodyHeight);
 
-        SAFE_EXEC(parent, computeDimensions);
+        if (recurseParent) {
+        	SAFE_EXEC(parent, computeDimensions, true);
+		}
     }
 	void SigmaPi::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
 		this->x = x;
@@ -1179,7 +1189,7 @@ namespace neda {
 		}
 		return colMax;
 	}
-    void Matrix::computeDimensions() {
+    void Matrix::computeDimensions(bool recurseParent) {
         // Go through every row in the top half
 		topSpacing = 0;
 		for(uint8_t i = 0; i < m / 2; i ++) {
@@ -1219,7 +1229,9 @@ namespace neda {
 		exprWidth += (n - 1) * ENTRY_SPACING;
 		exprWidth += 2 * SIDE_SPACING;
 
-        SAFE_EXEC(parent, computeDimensions);
+        if (recurseParent) {
+        	SAFE_EXEC(parent, computeDimensions, true);
+		}
     }
 	void Matrix::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
 		this->x = x;
@@ -1360,7 +1372,7 @@ namespace neda {
         delete[] values;
         delete[] conditions;
     }
-    void Piecewise::computeDimensions() {
+    void Piecewise::computeDimensions(bool recurseParent) {
         // Go through every row in the top half
 		topSpacing = 0;
 		for(uint8_t i = 0; i < pieces / 2; i ++) {
@@ -1398,7 +1410,9 @@ namespace neda {
             exprHeight += util::max(SAFE_ACCESS_0(values[i], exprHeight), SAFE_ACCESS_0(conditions[i], exprHeight));
         }
 
-        SAFE_EXEC(parent, computeDimensions);
+        if (recurseParent) {
+        	SAFE_EXEC(parent, computeDimensions, true);
+		}
     }
     void Piecewise::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
         this->x = x;
@@ -1563,13 +1577,15 @@ namespace neda {
     Abs::~Abs() {
         DESTROY_IF_NONNULL(contents);
     }
-    void Abs::computeDimensions() {
+    void Abs::computeDimensions(bool recurseParent) {
 
         topSpacing = SAFE_ACCESS_0(contents, topSpacing) + 1;
         exprWidth = SAFE_ACCESS_0(contents, exprWidth) + 4;
         exprHeight = SAFE_ACCESS_0(contents, exprHeight) + 2;
 
-        SAFE_EXEC(parent, computeDimensions);
+        if (recurseParent) {
+        	SAFE_EXEC(parent, computeDimensions, true);
+		}
     }
     void Abs::draw(lcd::LCD12864 &dest, int16_t x, int16_t y) {
         this->x = x;
