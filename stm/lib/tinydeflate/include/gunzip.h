@@ -295,7 +295,7 @@ namespace gunzip_ns
 
         constexpr unsigned ElemBits = CeilLog2<A-15>; // ceil(log2(A-15)) where A-15 is max value of num_values
         static_assert((1u << B) >= (A-15), "B is too small");
-        assert(num_values <= (A-15));
+        // assert(num_values <= (A-15));
 
         RandomAccessArray<USE_BITARRAY_TEMPORARY_IN_HUFFMAN_CREATION, 15, ElemBits> offs{}; // 24 or 16 bytes.
         // Theoretically 15.32 bytes for 288 num_values, 9.375 for 32 num_values, 7.97 for 19 num_values.
@@ -352,7 +352,7 @@ namespace gunzip_ns
                 largest_treetrans_index = std::max(largest_treetrans_index, q);
                 largest_treetrans_value = std::max(largest_treetrans_value, value);
         #endif
-                assert(q < num_values /*&& value < num_values*/);
+                // assert(q < num_values /*&& value < num_values*/);
                 //fprintf(stderr, " [x]%3d CLL %d\n", 15+q, value);
                 tree.Set(15 + q, value);
             }
