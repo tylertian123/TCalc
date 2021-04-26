@@ -1,5 +1,5 @@
-#include "delay.hpp"
 #include "stm32f10x.h"
+#include "delay.hpp"
 #include "sys.hpp"
 #include <stdio.h>
 #include <stdlib.h>
@@ -754,7 +754,6 @@ int getRandomSeed() {
 
 int main() {
     // Init system
-    sys::initRCC();
     sys::initNVIC();
     usart::init(115200);
     printf("******** Welcome to TCalc " VERSION_STR " ********\n");
