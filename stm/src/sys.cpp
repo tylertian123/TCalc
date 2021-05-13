@@ -2,7 +2,7 @@
 
 namespace sys {
     void initNVIC() {
-        NVIC_SetPriorityGrouping(NVIC_PriorityGroup_2);
+        NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);
 
 		// Enable Usage and Bus faults
 		NVIC_InitTypeDef nvicInit;
