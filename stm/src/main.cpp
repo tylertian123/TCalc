@@ -189,8 +189,8 @@ void BusFault_Handler_impl(uint32_t *stackAtFault) {
     displayErrorMessage("BusFault", backtrace, funcnames, backtrace_len);
 }
 
-// Redefine _fini to allow loading of library
-void _fini() {
+// Redefine _exit to allow loading of library
+void _exit() {
     // According to specifications this function should never return
     uint32_t PC, SP, LR;
     exception::loadRegsFromCurrentLocation(PC, LR, SP);
